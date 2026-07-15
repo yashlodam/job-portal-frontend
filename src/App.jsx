@@ -1,14 +1,13 @@
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider, Slider } from '@mantine/core';
 import React from 'react'
 import '@mantine/core/styles.css';
+import Home from './Pages/Home';
 
 
 function App() {
   return (
     <MantineProvider>
-      <div className='text-2xl bg-amber-400'>
-        HI Hello
-      </div>
+      <Home/>
     </MantineProvider>
   )
 }
