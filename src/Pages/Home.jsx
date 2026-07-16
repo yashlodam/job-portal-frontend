@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "../Header/Header";
 import DreamJob from "../LandingPage/DreamJob";
+import Companies from "../LandingPage/Companies";
 
 function Home() {
   return (
@@ -14,6 +15,7 @@ function Home() {
 
       <Header />
       <DreamJob/>
+      <Companies/>
 
     </div>
   );

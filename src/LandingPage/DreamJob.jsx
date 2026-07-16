@@ -224,22 +224,7 @@ function DreamJob() {
           </div>
         </div>
 
-        {/* Trusted companies */}
-        <div className="mt-24 border-t border-[#1B1E27] pt-12">
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#5B6270]">
-            Trusted by 5,000+ companies worldwide
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-x-14 gap-y-4">
-            {["Google", "Microsoft", "Amazon", "Netflix", "Adobe", "Spotify"].map((name) => (
-              <span
-                key={name}
-                className="text-xl font-bold text-[#3A3F4C] transition hover:text-[#8B93A7]"
-              >
-                {name}
-              </span>
-            ))}
-          </div>
-        </div>
+       
       </div>
     </section>
   );
