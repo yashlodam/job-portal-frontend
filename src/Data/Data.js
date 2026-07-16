@@ -1,87 +1,38 @@
-const jobCategory = [
-  {
-    id: 1,
-    title: "Frontend Developer",
-    icon: "💻",
-    jobsAvailable: 1240,
-    trend: "up",
-  },
-  {
-    id: 2,
-    title: "Backend Developer",
-    icon: "⚙️",
-    jobsAvailable: 980,
-    trend: "up",
-  },
-  {
-    id: 3,
-    title: "Full Stack Developer",
-    icon: "🚀",
-    jobsAvailable: 1570,
-    trend: "hot",
-  },
-  {
-    id: 4,
-    title: "Data Scientist",
-    icon: "📊",
-    jobsAvailable: 720,
-    trend: "up",
-  },
-  {
-    id: 5,
-    title: "UI/UX Designer",
-    icon: "🎨",
-    jobsAvailable: 530,
-    trend: "stable",
-  },
-  {
-    id: 6,
-    title: "DevOps Engineer",
-    icon: "🔄",
-    jobsAvailable: 410,
-    trend: "up",
-  },
-  {
-    id: 7,
-    title: "Product Manager",
-    icon: "📱",
-    jobsAvailable: 380,
-    trend: "stable",
-  },
-  {
-    id: 8,
-    title: "Machine Learning Engineer",
-    icon: "🤖",
-    jobsAvailable: 640,
-    trend: "hot",
-  },
+import {
+  Code2,
+  Briefcase,
+  Megaphone,
+  BarChart3,
+  HeartPulse,
+  Palette,
+  ShieldCheck,
+  GraduationCap,
+  Laptop,
+  Home,
+  Building2,
+  Globe,
+} from "lucide-react";
+
+export const categories = [
+  { title: "IT & Software", jobs: "2,450 Jobs", icon: Code2 },
+  { title: "Marketing", jobs: "980 Jobs", icon: Megaphone },
+  { title: "Sales", jobs: "1,250 Jobs", icon: BarChart3 },
+  { title: "Finance", jobs: "720 Jobs", icon: Briefcase },
+  { title: "Healthcare", jobs: "860 Jobs", icon: HeartPulse },
+  { title: "Design", jobs: "540 Jobs", icon: Palette },
+  { title: "Cyber Security", jobs: "430 Jobs", icon: ShieldCheck },
+  { title: "Education", jobs: "610 Jobs", icon: GraduationCap },
 ];
 
-const work = [
-  {
-    step: 1,
-    name: "Build Your Resume",
-    desc: "Create a standout resume with your skills and experience.",
-    icon: "📄",
-  },
-  {
-    step: 2,
-    name: "AI Keyword Optimisation",
-    desc: "Our AI scans job descriptions and optimises your resume for ATS.",
-    icon: "🎯",
-  },
-  {
-    step: 3,
-    name: "Get Matched",
-    desc: "Receive instant job matches from 10,000+ companies worldwide.",
-    icon: "💼",
-  },
-  {
-    step: 4,
-    name: "Apply & Track",
-    desc: "Apply with one click and track your application status in real-time.",
-    icon: "📈",
-  },
+export const workModes = [
+  { title: "Remote", jobs: "3,450 Jobs", icon: Home },
+  { title: "Hybrid", jobs: "1,820 Jobs", icon: Building2 },
+  { title: "On Site", jobs: "2,940 Jobs", icon: Laptop },
+  { title: "Contract", jobs: "920 Jobs", icon: Briefcase },
+  { title: "Internship", jobs: "1,100 Jobs", icon: GraduationCap },
+  { title: "Full Time", jobs: "4,800 Jobs", icon: Globe },
+  { title: "Part Time", jobs: "760 Jobs", icon: BarChart3 },
+  { title: "Freelance", jobs: "540 Jobs", icon: Code2 },
 ];
 
 const testimonials = [

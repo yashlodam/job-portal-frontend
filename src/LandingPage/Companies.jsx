@@ -66,9 +66,9 @@ function CompanyCard({ company }) {
               filter: "brightness(0) invert(1)", // turns black -> white
               opacity: 0.6,
             }}
-            // Hide the fallback if mask is supported
-            // Use a small script or CSS to hide; we'll rely on the mask taking over,
-            // but the img will still show if mask fails. You can polish with @supports.
+          // Hide the fallback if mask is supported
+          // Use a small script or CSS to hide; we'll rely on the mask taking over,
+          // but the img will still show if mask fails. You can polish with @supports.
           />
         </motion.div>
 
@@ -104,23 +104,33 @@ export default function Companies() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <span className="inline-flex rounded-full border border-orange-500/20 bg-orange-500/10 px-5 py-2 text-sm font-semibold text-orange-400">
+          {/* Badge */}
+          <span className="inline-flex items-center rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-xs font-semibold text-orange-400 sm:px-5 sm:text-sm">
             Trusted Worldwide
           </span>
 
+          {/* Heading */}
           <motion.h2
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="mt-6 text-5xl font-black text-white lg:text-6xl"
+            className="mt-5 text-3xl font-extrabold leading-tight tracking-tight text-white sm:mt-6 sm:text-4xl md:text-5xl lg:text-6xl"
           >
-            Trusted by <span className="text-orange-500">1,000+</span> Companies
+            Trusted by{" "}
+            <span className="text-orange-500">
+              1,000+
+            </span>{" "}
+            Companies
           </motion.h2>
 
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-zinc-400">
-            Top companies use our AI‑powered hiring platform to discover,
-            evaluate and recruit talented developers worldwide.
+          {/* Underline */}
+          <div className="mx-auto mt-5 h-1 w-20 rounded-full bg-orange-500 sm:w-24" />
+
+          {/* Description */}
+          <p className="mx-auto mt-6 max-w-xs text-sm leading-7 text-zinc-400 sm:max-w-lg sm:text-base sm:leading-8 md:max-w-2xl md:text-lg lg:text-xl">
+            Top companies use our AI-powered hiring platform to discover,
+            evaluate, and recruit talented developers worldwide.
           </p>
         </motion.div>
 
@@ -140,22 +150,7 @@ export default function Companies() {
           </Marquee>
         </div>
 
-        {/* Marquee 2 */}
-        <div className="mt-8">
-          <Marquee
-            direction="right"
-            speed={35}
-            gradient
-            gradientColor={BACKGROUND_COLOR}
-            gradientWidth={150}
-            pauseOnHover
-            autoFill
-          >
-            {COMPANIES.map((company) => (
-              <CompanyCard key={`${company.name}-2`} company={company} />
-            ))}
-          </Marquee>
-        </div>
+
       </div>
     </section>
   );

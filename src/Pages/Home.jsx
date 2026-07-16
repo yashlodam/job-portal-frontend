@@ -2,20 +2,31 @@ import React from "react";
 import Header from "../Header/Header";
 import DreamJob from "../LandingPage/DreamJob";
 import Companies from "../LandingPage/Companies";
+import JobCategory from "../LandingPage/JobCategory";
 
 function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background font-poppins text-body">
 
       {/* Background Glow */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.12),transparent_35%)]" />
+      {/* Subtle grid texture */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#8B93A7 1px, transparent 1px), linear-gradient(90deg, #8B93A7 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+        }}
+      />
 
-      {/* Grid Pattern */}
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:70px_70px]" />
-
+      {/* Ambient glows */}
+      <div className="pointer-events-none absolute -top-10 right-0 h-[420px] w-[420px] rounded-full bg-[#FF7A45]/10 blur-[130px]" />
+      <div className="pointer-events-none absolute bottom-0 left-0 h-[320px] w-[320px] rounded-full bg-[#2DD4BF]/10 blur-[120px]" />
       <Header />
       <DreamJob/>
+      <JobCategory/>
       <Companies/>
+      
 
     </div>
   );
