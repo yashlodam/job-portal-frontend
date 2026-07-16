@@ -1,7 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  /* Mine Shaft */
+
+  /* ===========================
+      Fonts
+  =========================== */
+
+  --font-poppins: "Poppins", sans-serif;
+  --font-pacifico: "Pacifico", cursive;
+
+  /* ===========================
+      Brand
+  =========================== */
+
+  --color-primary: #f99b07;
+  --color-primary-light: #ffbd20;
+  --color-primary-dark: #dd7302;
+
+  /* ===========================
+      Mine Shaft
+  =========================== */
+
   --color-mine-shaft-50: #fafafa;
   --color-mine-shaft-100: #f5f5f5;
   --color-mine-shaft-200: #e6e6e6;
@@ -14,7 +33,10 @@
   --color-mine-shaft-900: #1a1a1a;
   --color-mine-shaft-950: #0a0a0a;
 
-  /* Bright Sun */
+  /* ===========================
+      Bright Sun
+  =========================== */
+
   --color-bright-sun-50: #fffbeb;
   --color-bright-sun-100: #fff3c6;
   --color-bright-sun-200: #ffe588;
@@ -26,4 +48,61 @@
   --color-bright-sun-800: #943d0c;
   --color-bright-sun-900: #7a320d;
   --color-bright-sun-950: #461802;
+
+  /* ===========================
+      Semantic Colors
+  =========================== */
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  /* ===========================
+      Backgrounds
+  =========================== */
+
+  --color-background: #0f0f0f;
+  --color-surface: #1a1a1a;
+  --color-card: #242424;
+  --color-card-hover: #2d2d2d;
+
+  /* ===========================
+      Text
+  =========================== */
+
+  --color-heading: #ffffff;
+  --color-body: #d4d4d4;
+  --color-muted: #9ca3af;
+
+  /* ===========================
+      Border
+  =========================== */
+
+  --color-border: #343434;
+
+  /* ===========================
+      Radius
+  =========================== */
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* ===========================
+      Shadows
+  =========================== */
+
+  --shadow-card: 0 8px 30px rgba(0,0,0,.35);
+  --shadow-button: 0 10px 25px rgba(249,155,7,.25);
+  --shadow-navbar: 0 2px 18px rgba(0,0,0,.25);
+
+  /* ===========================
+      Animation
+  =========================== */
+
+  --ease-smooth: cubic-bezier(.4,0,.2,1);
 }
