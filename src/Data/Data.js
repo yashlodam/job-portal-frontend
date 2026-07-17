@@ -249,3 +249,110 @@ export const aiTools = [
     tag: "AI Powered",
   },
 ];
+
+export const profile = {
+  id: 1,
+
+  name: "Yash Lodam",
+  role: "Software Developer",
+  company: "Google",
+  location: "New York, United States",
+
+  profileImage: "profile.png",
+  bannerImage: "banner.png",
+
+  about:
+    "Passionate Full Stack Software Developer with experience in building scalable and user-friendly web applications. Skilled in React, Java, Spring Boot, and modern backend technologies. I enjoy solving complex problems and creating high-quality digital experiences.",
+
+  skills: [
+    "React",
+    "JavaScript",
+    "Java",
+    "Spring Boot",
+    "Tailwind CSS",
+    "PostgreSQL",
+    "MySQL",
+    "Git",
+    "Docker",
+    "REST API",
+  ],
+
+  experience: [
+    {
+      id: 1,
+      role: "Software Developer",
+      company: "Google",
+      location: "New York, United States",
+      type: "Full Time",
+      startDate: "Jan 2024",
+      endDate: "Present",
+      description:
+        "Developing scalable web applications and collaborating with cross-functional teams to build high-quality software solutions.",
+    },
+    {
+      id: 2,
+      role: "Frontend Developer",
+      company: "Microsoft",
+      location: "Remote",
+      type: "Internship",
+      startDate: "Jun 2023",
+      endDate: "Dec 2023",
+      description:
+        "Built responsive user interfaces using React and modern frontend technologies while improving application performance and user experience.",
+    },
+  ],
+
+  education: [
+    {
+      id: 1,
+      degree: "Bachelor of Engineering in Computer Engineering",
+      college: "Savitribai Phule Pune University",
+      location: "Pune, Maharashtra",
+      startYear: "2022",
+      endYear: "2026",
+    },
+  ],
+
+  projects: [
+    {
+      id: 1,
+      title: "AI-Powered Job Portal",
+      description:
+        "A full-stack job platform that helps candidates discover jobs, build profiles, and connect with recruiters.",
+      technologies: [
+        "React",
+        "Spring Boot",
+        "PostgreSQL",
+        "Spring AI",
+      ],
+    },
+    {
+      id: 2,
+      title: "Multi-Vendor E-Commerce Platform",
+      description:
+        "A scalable e-commerce platform where multiple sellers can manage products, orders, and customers.",
+      technologies: [
+        "React",
+        "Java",
+        "Spring Boot",
+        "PostgreSQL",
+      ],
+    },
+  ],
+
+  availability: "Open to Work",
+
+  experienceLevel: "Mid Level",
+
+  languages: [
+    "English",
+    "Hindi",
+    "Marathi",
+  ],
+
+  socialLinks: {
+    linkedin: "https://linkedin.com/in/yashlodam",
+    github: "https://github.com/yashlodam",
+    portfolio: "https://yashlodam.dev",
+  },
+};

@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 const links = [
   { name: "Find Jobs",   url: "/find-jobs" },
   { name: "Find Talent", url: "/find-talent" },
-  { name: "Upload Job",  url: "/upload-job" },
+  { name: "Post Job",  url: "/upload-job" },
   { name: "About Us",    url: "/about" },
 ];
 

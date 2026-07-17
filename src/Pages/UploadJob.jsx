@@ -729,7 +729,59 @@ function UploadJob() {
   const [form, setForm] = useState(initialForm);
   const [published, setPublished] = useState(false);
 
-  const goNext = () => setCurrentStep((s) => Math.min(s + 1, 4));
+  const validateCurrentStep = () => {
+  if (currentStep === 1) {
+    if (
+      !form.title.trim() ||
+      !form.category ||
+      !form.workMode ||
+      !form.location.trim() ||
+      !form.jobType
+    ) {
+      alert("Please fill in all required Job Details fields.");
+      return false;
+    }
+  }
+
+  if (currentStep === 2) {
+    if (
+      !form.description.trim() ||
+      !form.requirements.trim() ||
+      form.skills.length === 0 ||
+      !form.experienceLevel
+    ) {
+      alert("Please fill in all required Description & Requirements fields.");
+      return false;
+    }
+  }
+
+  if (currentStep === 3) {
+    if (
+      !form.salaryMin ||
+      !form.salaryMax ||
+      form.benefits.length === 0 ||
+      !form.deadline
+    ) {
+      alert("Please fill in all required Compensation & Benefits fields.");
+      return false;
+    }
+
+    if (Number(form.salaryMin) > Number(form.salaryMax)) {
+      alert("Minimum salary cannot be greater than maximum salary.");
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const goNext = () => {
+  if (!validateCurrentStep()) {
+    return;
+  }
+
+  setCurrentStep((step) => Math.min(step + 1, 4));
+};
   const goBack = () => setCurrentStep((s) => Math.max(s - 1, 1));
   const goToStep = (step) => setCurrentStep(step);
 
