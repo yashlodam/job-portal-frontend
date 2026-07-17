@@ -1,142 +1,468 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { categories, workModes } from "../Data/Data";
+import SectionHeader from "../components/SectionHeader";
+
+/* ===========================
+   Animation Variants
+=========================== */
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      duration: 0.2,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -10,
+    transition: {
+      duration: 0.2,
+    },
+  },
+};
+
+/* ===========================
+   Tabs
+=========================== */
+
+const TABS = [
+  {
+    key: "category",
+    label: "By Category",
+    param: "category",
+  },
+  {
+    key: "mode",
+    label: "By Work Mode",
+    param: "mode",
+  },
+];
+
+const FOCUS_RING =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06080F]";
+
+const MotionLink = motion(Link);
+
+/* ===========================
+   Component
+=========================== */
 
 function JobCategory() {
+  const [activeTab, setActiveTab] = useState("category");
 
-const [activeTab, setActiveTab] = useState("category");
+  const items =
+    activeTab === "category" ? categories : workModes;
+
+  const activeParam =
+    TABS.find((tab) => tab.key === activeTab)?.param || "category";
+
+  const handleKeyDown = (e) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") {
+      return;
+    }
+
+    e.preventDefault();
+
+    const currentIndex = TABS.findIndex(
+      (tab) => tab.key === activeTab
+    );
+
+    const nextIndex =
+      e.key === "ArrowRight"
+        ? (currentIndex + 1) % TABS.length
+        : (currentIndex - 1 + TABS.length) % TABS.length;
+
+    setActiveTab(TABS[nextIndex].key);
+
+    const tabs =
+      e.currentTarget.querySelectorAll('[role="tab"]');
+
+    tabs[nextIndex]?.focus();
+  };
+
   return (
-    <section className="relative py-16 lg:py-24 overflow-hidden">
+    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-28">
 
       {/* Background Glow */}
-      <div className="absolute left-1/2 top-10 h-72 w-72 -translate-x-1/2 rounded-full bg-orange-500/10 blur-[120px]" />
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          left-1/2
+          top-20
+          h-64
+          w-64
+          -translate-x-1/2
+          rounded-full
+          bg-[#6366F1]/10
+          blur-[120px]
+          sm:h-80
+          sm:w-80
+        "
+      />
 
-      <div className="relative max-w-7xl mx-auto px-6">
+      {/* Main Container */}
+      <div className="section-container relative z-10">
 
-        {/* Header */}
+        {/* Section Heading */}
+        <SectionHeader
+          badge="Explore Jobs"
+          title={
+            <>
+              Browse{" "}
+              <span className="gradient-text">
+                Job
+              </span>{" "}
+              Categories
+            </>
+          }
+          subtitle="Explore opportunities across popular job categories and flexible work modes to find the role that fits your career goals."
+        />
+
+        {/* ===========================
+            Tab Switcher
+        =========================== */}
+       
+
         <motion.div
-          initial={{ opacity: 0, y: 35 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: .6 }}
-          viewport={{ once: true }}
-          className="text-center"
-        >
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{
+        duration: 0.5,
+        delay: 0.2,
+      }}
+      className="mt-8 flex w-full justify-center sm:mt-10"
+    >
+          <div
+            role="tablist"
+            aria-label="Browse jobs"
+            onKeyDown={handleKeyDown}
+            className="
+      flex
+      gap-3
+      w-full
+      max-w-[360px]
+      items-center
+      rounded-2xl
+      border
+      border-white/[0.08]
+      bg-[#0D1117]
+      p-1.5
+      shadow-[0_8px_30px_rgba(0,0,0,0.2)]
+    "
+          >
+            {TABS.map((tab) => {
+              const isActive = activeTab === tab.key;
 
-          {/* Badge */}
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`
+            relative
+            flex
+            h-10
+            flex-1
+            items-center
+            justify-center
+            whitespace-nowrap
+            rounded-xl
+            px-4
+            text-sm
+            font-semibold
+            transition-colors
+            duration-300
+            ${isActive
+                      ? "text-white"
+                      : "text-[#708090] hover:text-white"
+                    }
+          `}
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="job-tab-indicator"
+                      className="
+                absolute
+                inset-0
+                rounded-xl
+                bg-gradient-to-r
+                from-[#6366F1]
+                to-[#8B5CF6]
+                shadow-[0_4px_16px_rgba(99,102,241,0.25)]
+              "
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 30,
+                      }}
+                    />
+                  )}
 
-          <div className="inline-flex items-center gap-3 rounded-full border border-orange-500/20 bg-orange-500/10 px-6 py-2">
-
-            <span className="h-px w-6 bg-orange-500/40"></span>
-
-            <span className="text-sm font-semibold uppercase tracking-wider text-orange-400">
-              Explore Jobs
-            </span>
-
-            <span className="h-px w-6 bg-orange-500/40"></span>
-
+                  <span className="relative z-10">
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-
-          {/* Title */}
-
-          <h2 className="mt-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
-
-            Browse{" "}
-            <span className="text-orange-500">
-              Job
-            </span>{" "}
-            Categories
-
-          </h2>
-
-          {/* Description */}
-
-          <p className="mx-auto mt-6 max-w-2xl text-sm sm:text-base md:text-lg leading-8 text-zinc-400">
-            Explore diverse job opportunities tailored to your skills.
-            Start your career journey today.
-          </p>
-
         </motion.div>
 
-        {/* Toggle */}
+        {/* ===========================
+            Category Cards
+        =========================== */}
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: .2 }}
-          viewport={{ once: true }}
-          className="mt-12 flex justify-center"
-        >
+        <div
+      id="job-category-tabpanel"
+      role="tabpanel"
+      aria-label={`Jobs by ${activeTab}`}
+      className="mt-8 sm:mt-10 lg:mt-12"
+    >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="
+                grid
+                grid-cols-1
+               gap-4
+             sm:grid-cols-2
+             sm:gap-5
+             lg:grid-cols-4
+              lg:gap-5
+               xl:gap-6
+  "
+            >
+              {items.map((item) => {
+                const Icon = item.icon;
 
-          <div className="inline-flex rounded-2xl bg-[#181C24] border border-zinc-700 p-1">
+                return (
+                  <MotionLink
+                    key={item.title}
+                    to={`/find-jobs?${activeParam}=${encodeURIComponent(
+                      item.title
+                    )}`}
+                    variants={cardVariants}
+                    whileHover={{
+                      y: -4,
+                    }}
+                    whileTap={{
+                      scale: 0.98,
+                    }}
+                    className={`
+                      ${FOCUS_RING}
+                      group
+                      relative
+                      flex
+                      min-h-[150px]
+                      flex-col
+                      overflow-hidden
+                      rounded-2xl
+                      border
+                      border-white/[0.08]
+                      bg-[#0D1117]
+                      p-4
+                      transition-all
+                      duration-300
+                      hover:border-[#6366F1]/30
+                      hover:bg-[#111620]
+                      hover:shadow-[0_12px_40px_rgba(0,0,0,0.25)]
+                      sm:min-h-[170px]
+                      sm:p-5
+                      lg:p-6
+                    `}
+                  >
 
-  <button
-    onClick={() => setActiveTab("category")}
-    className={`rounded-xl cursor-pointer px-8 py-3 font-semibold transition-all duration-300 ${
-      activeTab === "category"
-        ? "bg-orange-500 text-white shadow-lg"
-        : "text-zinc-400 hover:text-white"
-    }`}
-  >
-    By Category
-  </button>
+                    {/* Hover Gradient */}
+                    <div
+                      aria-hidden="true"
+                      className="
+                        pointer-events-none
+                        absolute
+                        inset-0
+                        opacity-0
+                        transition-opacity
+                        duration-500
+                        group-hover:opacity-100
+                      "
+                      style={{
+                        background: `linear-gradient(
+                          135deg,
+                          ${item.gradient.from}12,
+                          ${item.gradient.to}05
+                        )`,
+                      }}
+                    />
 
-  <button
-    onClick={() => setActiveTab("mode")}
-    className={`rounded-xl cursor-pointer px-8 py-3 font-semibold transition-all duration-300 ${
-      activeTab === "mode"
-        ? "bg-orange-500 text-white shadow-lg"
-        : "text-zinc-400 hover:text-white"
-    }`}
-  >
-    By Work Mode
-    
-  </button>
-  
+                    {/* Icon */}
+                    <div
+                      className="
+                        relative
+                        z-10
+                        flex
+                        h-11
+                        w-11
+                        shrink-0
+                        items-center
+                        justify-center
+                        overflow-hidden
+                        rounded-xl
+                        sm:h-12
+                        sm:w-12
+                      "
+                      style={{
+                        background: `linear-gradient(
+                          135deg,
+                          ${item.gradient.from}20,
+                          ${item.gradient.to}12
+                        )`,
+                      }}
+                    >
+                      <div
+                        aria-hidden="true"
+                        className="
+                          absolute
+                          inset-0
+                          opacity-0
+                          transition-opacity
+                          duration-300
+                          group-hover:opacity-100
+                        "
+                        style={{
+                          background: `linear-gradient(
+                            135deg,
+                            ${item.gradient.from},
+                            ${item.gradient.to}
+                          )`,
+                        }}
+                      />
 
-</div>
+                      <Icon
+                        aria-hidden="true"
+                        className="
+                          relative
+                          z-10
+                          h-5
+                          w-5
+                          transition-all
+                          duration-300
+                          group-hover:scale-110
+                          group-hover:text-white
+                          sm:h-[22px]
+                          sm:w-[22px]
+                        "
+                        style={{
+                          color: item.gradient.from,
+                        }}
+                      />
+                    </div>
 
+                    {/* Card Content */}
+                    <div className="relative z-10 mt-4">
 
-        </motion.div>
-         <motion.div
-  layout
-  className="mt-14 grid grid-cols-2 gap-5 sm:grid-cols-2 lg:grid-cols-4"
->
-  {(activeTab === "category" ? categories : workModes).map(
-    (item, index) => {
-      const Icon = item.icon;
+                      <h3
+                        className="
+                          text-sm
+                          font-semibold
+                          leading-snug
+                          text-[#F1F5F9]
+                          sm:text-base
+                        "
+                      >
+                        {item.title}
+                      </h3>
 
-      return (
-        <motion.div
-          key={item.title}
-          layout
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05 }}
-          whileHover={{
-            y: -8,
-            scale: 1.03,
-          }}
-          className="group cursor-pointer rounded-3xl border border-zinc-700 bg-[#171B24] p-7 transition-all duration-300 hover:border-orange-500 hover:shadow-[0_0_40px_rgba(249,115,22,.2)]"
-        >
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500/10 text-orange-500 transition-all duration-300 group-hover:bg-orange-500 group-hover:text-white">
-            <Icon size={28} />
-          </div>
+                      <p
+                        className="
+                          mt-1
+                          text-xs
+                          text-[#708090]
+                          sm:text-sm
+                        "
+                      >
+                        {item.jobs}
+                      </p>
 
-          <h3 className="mt-6 text-xl font-semibold text-white">
-            {item.title}
-          </h3>
+                    </div>
 
-          <p className="mt-2 text-sm text-zinc-400">
-            {item.jobs}
-          </p>
-        </motion.div>
-      );
-    }
-  )}
-</motion.div>
+                    {/* Arrow */}
+                    <div
+                      aria-hidden="true"
+                      className="
+                        relative
+                        z-10
+                        mt-auto
+                        flex
+                        justify-end
+                        pt-4
+                      "
+                    >
+                      <span
+                        className="
+                          flex
+                          h-8
+                          w-8
+                          translate-x-1
+                          items-center
+                          justify-center
+                          rounded-full
+                          bg-white/[0.04]
+                          opacity-60
+                          transition-all
+                          duration-300
+                          group-hover:translate-x-0
+                          group-hover:bg-[#6366F1]/15
+                          group-hover:opacity-100
+                        "
+                        style={{
+                          color: item.gradient.from,
+                        }}
+                      >
+                        <ArrowRight size={15} />
+                      </span>
+                    </div>
+
+                  </MotionLink>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
       </div>
-
     </section>
   );
 }

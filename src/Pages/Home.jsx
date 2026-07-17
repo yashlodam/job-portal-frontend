@@ -1,33 +1,47 @@
 import React from "react";
-import Header from "../Header/Header";
 import DreamJob from "../LandingPage/DreamJob";
 import Companies from "../LandingPage/Companies";
 import JobCategory from "../LandingPage/JobCategory";
+import FeaturedJobs from "../LandingPage/FeaturedJobs";
+import AIToolsShowcase from "../LandingPage/AIToolsShowcase";
+import Testimonials from "../LandingPage/Testimonials";
+import CallToAction from "../LandingPage/CallToAction";
+
+/* ──────────────────────────────────────────────
+   Home — Landing page assembly
+   Header & Footer are rendered by Layout.jsx
+   ────────────────────────────────────────────── */
 
 function Home() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background font-poppins text-body">
+    <div className="relative">
+      {/* Mesh gradient background layer — absolute so it stays within Home only */}
+      <div className="pointer-events-none absolute inset-0 mesh-gradient" />
 
-      {/* Background Glow */}
-      {/* Subtle grid texture */}
+      {/* Ambient glow orbs — absolute (not fixed) so they don't bleed into other pages */}
+      <div className="pointer-events-none absolute -top-20 right-0 h-[500px] w-[500px] rounded-full bg-primary/6 blur-[160px]" />
+      <div className="pointer-events-none absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-accent/5 blur-[140px]" />
+      <div className="pointer-events-none absolute top-1/3 left-1/3 h-[600px] w-[600px] rounded-full bg-violet/4 blur-[200px]" />
+
+      {/* Subtle dot grid pattern */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
         style={{
-          backgroundImage:
-            "linear-gradient(#8B93A7 1px, transparent 1px), linear-gradient(90deg, #8B93A7 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
+          backgroundImage: "radial-gradient(circle, #94A3B8 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
         }}
       />
 
-      {/* Ambient glows */}
-      <div className="pointer-events-none absolute -top-10 right-0 h-[420px] w-[420px] rounded-full bg-[#FF7A45]/10 blur-[130px]" />
-      <div className="pointer-events-none absolute bottom-0 left-0 h-[320px] w-[320px] rounded-full bg-[#2DD4BF]/10 blur-[120px]" />
-      <Header />
-      <DreamJob/>
-      <JobCategory/>
-      <Companies/>
-      
-
+      {/* Page content — no extra container or padding so each section manages its own */}
+      <div className="relative z-10">
+        <DreamJob />
+        <JobCategory />
+        <AIToolsShowcase />
+        <FeaturedJobs />
+        <Companies />
+        <Testimonials />
+        <CallToAction />
+      </div>
     </div>
   );
 }
