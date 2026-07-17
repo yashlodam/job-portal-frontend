@@ -246,6 +246,17 @@ function StepJobDetails({ form, setForm, errors, clearError }) {
           clearError("title");
         }}
       />
+      <InputField
+        label="Company"
+        required
+        placeholder="e.g. Microsoft"
+        value={form.company}
+        error={errors.company}
+        onChange={(e) => {
+          setForm({ ...form, company: e.target.value });
+          clearError("company");
+        }}
+      />
 
       <SelectField
         label="Category"
@@ -846,6 +857,7 @@ const initialForm = {
   workMode: "",
   location: "",
   jobType: "",
+  company:"",
   description: "",
   requirements: "",
   skills: [],
@@ -882,6 +894,7 @@ function validateStep(step, form) {
 
   if (step === 1) {
     if (!form.title.trim()) errors.title = "Job title is required.";
+    if(!form.company) errors.company = "Company Name is required"
     if (!form.category) errors.category = "Please select a category.";
     if (!form.workMode) errors.workMode = "Please select a work mode.";
     if (!form.location.trim()) errors.location = "Location is required.";
