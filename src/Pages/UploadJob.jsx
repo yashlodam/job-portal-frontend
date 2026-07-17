@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase,
@@ -25,6 +25,7 @@ import {
   BookOpen,
   TrendingUp,
   Laptop,
+  AlertCircle,
 } from "lucide-react";
 
 /* ===========================
@@ -62,12 +63,30 @@ const benefitOptions = [
   { id: "learning", label: "Learning Budget", icon: BookOpen },
 ];
 
+const MIN_DESCRIPTION_LENGTH = 40;
+const MIN_REQUIREMENTS_LENGTH = 20;
+
+/* ===========================
+    Shared bits
+=========================== */
+
+function ErrorMessage({ id, children }) {
+  if (!children) return null;
+  return (
+    <p id={id} role="alert" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-danger">
+      <AlertCircle size={13} className="shrink-0" aria-hidden="true" />
+      {children}
+    </p>
+  );
+}
+
 /* ===========================
     Input Components
 =========================== */
 
-function InputField({ label, required, id, ...props }) {
+function InputField({ label, required, id, error, ...props }) {
   const inputId = id || `input-${label?.toLowerCase().replace(/\s+/g, "-")}`;
+  const errorId = `${inputId}-error`;
   return (
     <div>
       <label htmlFor={inputId} className="mb-2 block text-sm font-medium text-heading">
@@ -76,15 +95,23 @@ function InputField({ label, required, id, ...props }) {
       </label>
       <input
         id={inputId}
+        aria-invalid={!!error}
+        aria-describedby={error ? errorId : undefined}
         {...props}
-        className="w-full h-11 rounded-xl border border-border bg-surface-elevated px-4 text-heading placeholder:text-muted outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+        className={`w-full h-11 rounded-xl border bg-surface-elevated px-4 text-heading placeholder:text-muted outline-none transition-colors focus:ring-2 ${
+          error
+            ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10"
+            : "border-border focus:border-primary/40 focus:ring-primary/10"
+        }`}
       />
+      <ErrorMessage id={errorId}>{error}</ErrorMessage>
     </div>
   );
 }
 
-function SelectField({ label, required, options, id, ...props }) {
+function SelectField({ label, required, options, id, error, ...props }) {
   const selectId = id || `select-${label?.toLowerCase().replace(/\s+/g, "-")}`;
+  const errorId = `${selectId}-error`;
   return (
     <div>
       <label htmlFor={selectId} className="mb-2 block text-sm font-medium text-heading">
@@ -94,8 +121,14 @@ function SelectField({ label, required, options, id, ...props }) {
       <div className="relative">
         <select
           id={selectId}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
           {...props}
-          className="w-full h-11 appearance-none rounded-xl border border-border bg-surface-elevated px-4 pr-10 text-heading outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+          className={`w-full h-11 appearance-none rounded-xl border bg-surface-elevated px-4 pr-10 text-heading outline-none transition-colors focus:ring-2 ${
+            error
+              ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10"
+              : "border-border focus:border-primary/40 focus:ring-primary/10"
+          }`}
         >
           <option value="">Select {label.toLowerCase()}</option>
           {options.map((opt) => (
@@ -108,35 +141,52 @@ function SelectField({ label, required, options, id, ...props }) {
           aria-hidden="true"
         />
       </div>
+      <ErrorMessage id={errorId}>{error}</ErrorMessage>
     </div>
   );
 }
 
-function TextareaField({ label, required, id, ...props }) {
+function TextareaField({ label, required, id, error, hint, ...props }) {
   const textareaId = id || `textarea-${label?.toLowerCase().replace(/\s+/g, "-")}`;
+  const errorId = `${textareaId}-error`;
+  const hintId = `${textareaId}-hint`;
   return (
     <div>
-      <label htmlFor={textareaId} className="mb-2 block text-sm font-medium text-heading">
-        {label}
-        {required && <span className="ml-1 text-danger">*</span>}
-      </label>
+      <div className="mb-2 flex items-baseline justify-between">
+        <label htmlFor={textareaId} className="block text-sm font-medium text-heading">
+          {label}
+          {required && <span className="ml-1 text-danger">*</span>}
+        </label>
+        {typeof props.value === "string" && hint && (
+          <span className="text-xs text-muted">{hint}</span>
+        )}
+      </div>
       <textarea
         id={textareaId}
+        aria-invalid={!!error}
+        aria-describedby={error ? errorId : hint ? hintId : undefined}
         {...props}
-        className="w-full rounded-xl border border-border bg-surface-elevated px-4 py-3 text-heading placeholder:text-muted outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10 min-h-[120px] resize-y"
+        className={`w-full rounded-xl border bg-surface-elevated px-4 py-3 text-heading placeholder:text-muted outline-none transition-colors focus:ring-2 min-h-[120px] resize-y ${
+          error
+            ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10"
+            : "border-border focus:border-primary/40 focus:ring-primary/10"
+        }`}
       />
+      <ErrorMessage id={errorId}>{error}</ErrorMessage>
     </div>
   );
 }
 
-function RadioGroup({ label, required, options, value, onChange, icons }) {
+function RadioGroup({ label, required, options, value, onChange, icons, error }) {
+  const groupId = `group-${label?.toLowerCase().replace(/\s+/g, "-")}`;
+  const errorId = `${groupId}-error`;
   return (
-    <div>
-      <label className="mb-3 block text-sm font-medium text-heading">
+    <div role="group" aria-labelledby={`${groupId}-label`} aria-describedby={error ? errorId : undefined}>
+      <label id={`${groupId}-label`} className="mb-3 block text-sm font-medium text-heading">
         {label}
         {required && <span className="ml-1 text-danger">*</span>}
       </label>
-      <div className="flex flex-wrap gap-3">
+      <div className={`flex flex-wrap gap-3 rounded-xl ${error ? "ring-1 ring-danger/40 p-2 -m-2" : ""}`}>
         {options.map((opt, i) => {
           const Icon = icons?.[i];
           return (
@@ -158,6 +208,7 @@ function RadioGroup({ label, required, options, value, onChange, icons }) {
           );
         })}
       </div>
+      <ErrorMessage id={errorId}>{error}</ErrorMessage>
     </div>
   );
 }
@@ -166,7 +217,7 @@ function RadioGroup({ label, required, options, value, onChange, icons }) {
     Step Components
 =========================== */
 
-function StepJobDetails({ form, setForm }) {
+function StepJobDetails({ form, setForm, errors, clearError }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: 30 }}
@@ -189,7 +240,11 @@ function StepJobDetails({ form, setForm }) {
         required
         placeholder="e.g. Senior Frontend Developer"
         value={form.title}
-        onChange={(e) => setForm({ ...form, title: e.target.value })}
+        error={errors.title}
+        onChange={(e) => {
+          setForm({ ...form, title: e.target.value });
+          clearError("title");
+        }}
       />
 
       <SelectField
@@ -197,7 +252,11 @@ function StepJobDetails({ form, setForm }) {
         required
         options={categoryOptions}
         value={form.category}
-        onChange={(e) => setForm({ ...form, category: e.target.value })}
+        error={errors.category}
+        onChange={(e) => {
+          setForm({ ...form, category: e.target.value });
+          clearError("category");
+        }}
       />
 
       <RadioGroup
@@ -206,14 +265,23 @@ function StepJobDetails({ form, setForm }) {
         options={["Remote", "Hybrid", "On-site"]}
         icons={[Home, Building2, Laptop]}
         value={form.workMode}
-        onChange={(v) => setForm({ ...form, workMode: v })}
+        error={errors.workMode}
+        onChange={(v) => {
+          setForm({ ...form, workMode: v });
+          clearError("workMode");
+        }}
       />
 
       <InputField
         label="Location"
+        required
         placeholder="e.g. San Francisco, CA"
         value={form.location}
-        onChange={(e) => setForm({ ...form, location: e.target.value })}
+        error={errors.location}
+        onChange={(e) => {
+          setForm({ ...form, location: e.target.value });
+          clearError("location");
+        }}
       />
 
       <RadioGroup
@@ -222,21 +290,29 @@ function StepJobDetails({ form, setForm }) {
         options={["Full Time", "Part Time", "Contract", "Internship"]}
         icons={[Briefcase, Clock, FileText, BookOpen]}
         value={form.jobType}
-        onChange={(v) => setForm({ ...form, jobType: v })}
+        error={errors.jobType}
+        onChange={(v) => {
+          setForm({ ...form, jobType: v });
+          clearError("jobType");
+        }}
       />
     </motion.div>
   );
 }
 
-function StepDescription({ form, setForm }) {
+function StepDescription({ form, setForm, errors, clearError }) {
   const [skillInput, setSkillInput] = useState("");
 
   const addSkill = () => {
     const trimmed = skillInput.trim();
-    if (trimmed && !form.skills.includes(trimmed)) {
-      setForm({ ...form, skills: [...form.skills, trimmed] });
+    if (!trimmed) return;
+    if (form.skills.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
       setSkillInput("");
+      return;
     }
+    setForm({ ...form, skills: [...form.skills, trimmed] });
+    setSkillInput("");
+    clearError("skills");
   };
 
   const removeSkill = (skill) => {
@@ -265,7 +341,12 @@ function StepDescription({ form, setForm }) {
         required
         placeholder="Describe the role, responsibilities, and what a typical day looks like…"
         value={form.description}
-        onChange={(e) => setForm({ ...form, description: e.target.value })}
+        error={errors.description}
+        hint={`${form.description.length} characters (min ${MIN_DESCRIPTION_LENGTH})`}
+        onChange={(e) => {
+          setForm({ ...form, description: e.target.value });
+          clearError("description");
+        }}
       />
 
       <TextareaField
@@ -273,7 +354,12 @@ function StepDescription({ form, setForm }) {
         required
         placeholder="List qualifications, certifications, or experience needed…"
         value={form.requirements}
-        onChange={(e) => setForm({ ...form, requirements: e.target.value })}
+        error={errors.requirements}
+        hint={`${form.requirements.length} characters (min ${MIN_REQUIREMENTS_LENGTH})`}
+        onChange={(e) => {
+          setForm({ ...form, requirements: e.target.value });
+          clearError("requirements");
+        }}
       />
 
       {/* Skills Tag Input */}
@@ -286,15 +372,26 @@ function StepDescription({ form, setForm }) {
             id="input-skills"
             value={skillInput}
             onChange={(e) => setSkillInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addSkill();
+              }
+            }}
             placeholder="Type a skill and press Enter"
-            className="min-w-0 flex-1 h-11 rounded-xl border border-border bg-surface-elevated px-4 text-heading placeholder:text-muted outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+            aria-invalid={!!errors.skills}
+            aria-describedby={errors.skills ? "input-skills-error" : undefined}
+            className={`min-w-0 flex-1 h-11 rounded-xl border bg-surface-elevated px-4 text-heading placeholder:text-muted outline-none transition-colors focus:ring-2 ${
+              errors.skills
+                ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10"
+                : "border-border focus:border-primary/40 focus:ring-primary/10"
+            }`}
           />
           <button
             type="button"
             onClick={addSkill}
             aria-label="Add skill"
-            className="flex items-center gap-1 h-11 rounded-xl border border-primary/30 bg-primary/10 px-4 text-sm font-medium text-primary-light transition-colors hover:bg-primary/20"
+            className="flex shrink-0 items-center gap-1 h-11 rounded-xl border border-primary/30 bg-primary/10 px-4 text-sm font-medium text-primary-light transition-colors hover:bg-primary/20"
           >
             <Plus size={16} aria-hidden="true" />
             Add
@@ -320,6 +417,7 @@ function StepDescription({ form, setForm }) {
             ))}
           </div>
         )}
+        <ErrorMessage id="input-skills-error">{errors.skills}</ErrorMessage>
       </div>
 
       <SelectField
@@ -327,13 +425,17 @@ function StepDescription({ form, setForm }) {
         required
         options={experienceOptions}
         value={form.experienceLevel}
-        onChange={(e) => setForm({ ...form, experienceLevel: e.target.value })}
+        error={errors.experienceLevel}
+        onChange={(e) => {
+          setForm({ ...form, experienceLevel: e.target.value });
+          clearError("experienceLevel");
+        }}
       />
     </motion.div>
   );
 }
 
-function StepCompensation({ form, setForm }) {
+function StepCompensation({ form, setForm, errors, clearError }) {
   const toggleBenefit = (id) => {
     setForm({
       ...form,
@@ -341,6 +443,7 @@ function StepCompensation({ form, setForm }) {
         ? form.benefits.filter((b) => b !== id)
         : [...form.benefits, id],
     });
+    clearError("benefits");
   };
 
   return (
@@ -365,28 +468,46 @@ function StepCompensation({ form, setForm }) {
       <div className="grid gap-6 sm:grid-cols-2">
         <InputField
           label="Minimum Salary ($)"
+          required
           placeholder="e.g. 120000"
           type="number"
           min="0"
           value={form.salaryMin}
-          onChange={(e) => setForm({ ...form, salaryMin: e.target.value })}
+          error={errors.salaryMin}
+          onChange={(e) => {
+            setForm({ ...form, salaryMin: e.target.value });
+            clearError("salaryMin");
+            clearError("salaryMax");
+          }}
         />
         <InputField
           label="Maximum Salary ($)"
+          required
           placeholder="e.g. 180000"
           type="number"
           min="0"
           value={form.salaryMax}
-          onChange={(e) => setForm({ ...form, salaryMax: e.target.value })}
+          error={errors.salaryMax}
+          onChange={(e) => {
+            setForm({ ...form, salaryMax: e.target.value });
+            clearError("salaryMax");
+          }}
         />
       </div>
 
       {/* Benefits */}
       <div>
-        <label className="mb-3 block text-sm font-medium text-heading">
-          Benefits
+        <label id="benefits-label" className="mb-3 block text-sm font-medium text-heading">
+          Benefits <span className="ml-1 text-danger">*</span>
         </label>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+        <div
+          role="group"
+          aria-labelledby="benefits-label"
+          aria-describedby={errors.benefits ? "benefits-error" : undefined}
+          className={`grid grid-cols-1 gap-3 rounded-xl sm:grid-cols-2 md:grid-cols-3 ${
+            errors.benefits ? "ring-1 ring-danger/40 p-2 -m-2" : ""
+          }`}
+        >
           {benefitOptions.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -405,12 +526,13 @@ function StepCompensation({ form, setForm }) {
             </button>
           ))}
         </div>
+        <ErrorMessage id="benefits-error">{errors.benefits}</ErrorMessage>
       </div>
 
       {/* Application Deadline */}
       <div>
         <label htmlFor="input-deadline" className="mb-2 block text-sm font-medium text-heading">
-          Application Deadline
+          Application Deadline <span className="ml-1 text-danger">*</span>
         </label>
         <div className="relative max-w-xs">
           <input
@@ -418,10 +540,20 @@ function StepCompensation({ form, setForm }) {
             type="date"
             value={form.deadline}
             min={new Date().toISOString().split("T")[0]}
-            onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-            className="w-full h-11 rounded-xl border border-border bg-surface-elevated px-4 text-heading outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+            aria-invalid={!!errors.deadline}
+            aria-describedby={errors.deadline ? "input-deadline-error" : undefined}
+            onChange={(e) => {
+              setForm({ ...form, deadline: e.target.value });
+              clearError("deadline");
+            }}
+            className={`w-full h-11 rounded-xl border bg-surface-elevated px-4 text-heading outline-none transition-colors focus:ring-2 ${
+              errors.deadline
+                ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10"
+                : "border-border focus:border-primary/40 focus:ring-primary/10"
+            }`}
           />
         </div>
+        <ErrorMessage id="input-deadline-error">{errors.deadline}</ErrorMessage>
       </div>
     </motion.div>
   );
@@ -724,73 +856,154 @@ const initialForm = {
   deadline: "",
 };
 
+/** Field order per step, used to focus the first invalid field after a failed validation. */
+const FIELD_ORDER = {
+  1: ["title", "category", "workMode", "location", "jobType"],
+  2: ["description", "requirements", "skills", "experienceLevel"],
+  3: ["salaryMin", "salaryMax", "benefits", "deadline"],
+};
+
+/** Maps a field key to the DOM id of the element that should receive focus. */
+const FIELD_FOCUS_ID = {
+  title: "input-job-title",
+  category: "select-category",
+  location: "input-location",
+  description: "textarea-job-description",
+  requirements: "textarea-requirements",
+  skills: "input-skills",
+  experienceLevel: "select-experience-level",
+  salaryMin: "input-minimum-salary-($)",
+  salaryMax: "input-maximum-salary-($)",
+  deadline: "input-deadline",
+};
+
+function validateStep(step, form) {
+  const errors = {};
+
+  if (step === 1) {
+    if (!form.title.trim()) errors.title = "Job title is required.";
+    if (!form.category) errors.category = "Please select a category.";
+    if (!form.workMode) errors.workMode = "Please select a work mode.";
+    if (!form.location.trim()) errors.location = "Location is required.";
+    if (!form.jobType) errors.jobType = "Please select a job type.";
+  }
+
+  if (step === 2) {
+    if (!form.description.trim()) {
+      errors.description = "Job description is required.";
+    } else if (form.description.trim().length < MIN_DESCRIPTION_LENGTH) {
+      errors.description = `Description should be at least ${MIN_DESCRIPTION_LENGTH} characters.`;
+    }
+
+    if (!form.requirements.trim()) {
+      errors.requirements = "Requirements are required.";
+    } else if (form.requirements.trim().length < MIN_REQUIREMENTS_LENGTH) {
+      errors.requirements = `Requirements should be at least ${MIN_REQUIREMENTS_LENGTH} characters.`;
+    }
+
+    if (form.skills.length === 0) errors.skills = "Add at least one skill.";
+    if (!form.experienceLevel) errors.experienceLevel = "Please select an experience level.";
+  }
+
+  if (step === 3) {
+    const min = Number(form.salaryMin);
+    const max = Number(form.salaryMax);
+
+    if (!form.salaryMin) {
+      errors.salaryMin = "Minimum salary is required.";
+    } else if (min <= 0) {
+      errors.salaryMin = "Enter a salary greater than 0.";
+    }
+
+    if (!form.salaryMax) {
+      errors.salaryMax = "Maximum salary is required.";
+    } else if (max <= 0) {
+      errors.salaryMax = "Enter a salary greater than 0.";
+    } else if (form.salaryMin && min > max) {
+      errors.salaryMax = "Maximum salary must be greater than or equal to the minimum.";
+    }
+
+    if (form.benefits.length === 0) errors.benefits = "Select at least one benefit.";
+
+    if (!form.deadline) {
+      errors.deadline = "Application deadline is required.";
+    } else {
+      const today = new Date().toISOString().split("T")[0];
+      if (form.deadline < today) {
+        errors.deadline = "Deadline can't be in the past.";
+      }
+    }
+  }
+
+  return errors;
+}
+
 function UploadJob() {
   const [currentStep, setCurrentStep] = useState(1);
   const [form, setForm] = useState(initialForm);
+  const [errors, setErrors] = useState({});
   const [published, setPublished] = useState(false);
+  const stepCardRef = useRef(null);
 
-  const validateCurrentStep = () => {
-  if (currentStep === 1) {
-    if (
-      !form.title.trim() ||
-      !form.category ||
-      !form.workMode ||
-      !form.location.trim() ||
-      !form.jobType
-    ) {
-      alert("Please fill in all required Job Details fields.");
-      return false;
+  const clearError = useCallback((key) => {
+    setErrors((prev) => {
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }, []);
+
+  const focusFirstError = (stepErrors, step) => {
+    const order = FIELD_ORDER[step] || [];
+    const firstKey = order.find((key) => stepErrors[key]);
+    const focusId = firstKey && FIELD_FOCUS_ID[firstKey];
+    if (focusId) {
+      // Wait a tick so the field has re-rendered with its error state first.
+      requestAnimationFrame(() => {
+        document.getElementById(focusId)?.focus();
+      });
     }
-  }
+  };
 
-  if (currentStep === 2) {
-    if (
-      !form.description.trim() ||
-      !form.requirements.trim() ||
-      form.skills.length === 0 ||
-      !form.experienceLevel
-    ) {
-      alert("Please fill in all required Description & Requirements fields.");
-      return false;
+  const goNext = () => {
+    const stepErrors = validateStep(currentStep, form);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      focusFirstError(stepErrors, currentStep);
+      return;
     }
-  }
+    setErrors({});
+    setCurrentStep((step) => Math.min(step + 1, 4));
+  };
 
-  if (currentStep === 3) {
-    if (
-      !form.salaryMin ||
-      !form.salaryMax ||
-      form.benefits.length === 0 ||
-      !form.deadline
-    ) {
-      alert("Please fill in all required Compensation & Benefits fields.");
-      return false;
-    }
+  const goBack = () => {
+    setErrors({});
+    setCurrentStep((s) => Math.max(s - 1, 1));
+  };
 
-    if (Number(form.salaryMin) > Number(form.salaryMax)) {
-      alert("Minimum salary cannot be greater than maximum salary.");
-      return false;
-    }
-  }
-
-  return true;
-};
-
-const goNext = () => {
-  if (!validateCurrentStep()) {
-    return;
-  }
-
-  setCurrentStep((step) => Math.min(step + 1, 4));
-};
-  const goBack = () => setCurrentStep((s) => Math.max(s - 1, 1));
-  const goToStep = (step) => setCurrentStep(step);
+  const goToStep = (step) => {
+    setErrors({});
+    setCurrentStep(step);
+  };
 
   const handlePublish = () => {
+    // Defensive re-check of every step in case something upstream mutated the form.
+    for (let step = 1; step <= 3; step++) {
+      const stepErrors = validateStep(step, form);
+      if (Object.keys(stepErrors).length > 0) {
+        setErrors(stepErrors);
+        setCurrentStep(step);
+        focusFirstError(stepErrors, step);
+        return;
+      }
+    }
     setPublished(true);
   };
 
   const handleReset = useCallback(() => {
     setForm(initialForm);
+    setErrors({});
     setCurrentStep(1);
     setPublished(false);
   }, []);
@@ -809,6 +1022,8 @@ const goNext = () => {
       </section>
     );
   }
+
+  const stepHasErrors = Object.keys(errors).length > 0;
 
   return (
     <section className="relative min-h-screen overflow-x-hidden">
@@ -928,20 +1143,43 @@ const goNext = () => {
               STEP CONTENT
           ══════════════════════════════════════════ */}
           <motion.div
+            ref={stepCardRef}
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.25 }}
+            animate={
+              stepHasErrors
+                ? { opacity: 1, y: 0, x: [0, -6, 6, -4, 4, 0] }
+                : { opacity: 1, y: 0 }
+            }
+            transition={{ duration: 0.5, delay: stepHasErrors ? 0 : 0.25 }}
             className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
           >
             <AnimatePresence mode="wait">
               {currentStep === 1 && (
-                <StepJobDetails key="step1" form={form} setForm={setForm} />
+                <StepJobDetails
+                  key="step1"
+                  form={form}
+                  setForm={setForm}
+                  errors={errors}
+                  clearError={clearError}
+                />
               )}
               {currentStep === 2 && (
-                <StepDescription key="step2" form={form} setForm={setForm} />
+                <StepDescription
+                  key="step2"
+                  form={form}
+                  setForm={setForm}
+                  errors={errors}
+                  clearError={clearError}
+                />
               )}
               {currentStep === 3 && (
-                <StepCompensation key="step3" form={form} setForm={setForm} />
+                <StepCompensation
+                  key="step3"
+                  form={form}
+                  setForm={setForm}
+                  errors={errors}
+                  clearError={clearError}
+                />
               )}
               {currentStep === 4 && (
                 <StepPreview key="step4" form={form} onEdit={goToStep} />
