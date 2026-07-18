@@ -7,7 +7,7 @@ function PostedJobPage() {
   return (
     <div className='min-h-[90vh] px-4'>
         <Divider size="xs"/>
-        <div className='flex gap-5 justify-between'>
+        <div className='flex gap-5'>
             <PostedJob/>
             <PostedJobDesc/>
         </div>
