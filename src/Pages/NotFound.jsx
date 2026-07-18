@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Home, Briefcase, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@mantine/core";
-import React from "react";
 
 /* ===========================
     Floating Dot
@@ -186,15 +185,4 @@ function NotFound() {
   );
 }
 
-export default NotFound;export function JobDescPage() {
-    return (
-        <div className='min-h-[90vh] p-4'>
-            <Link className='my-5 inline-block' to="/find-jobs">
-                <Button />
-
-            </Link>
-
-        </div>
-    )
-}
 

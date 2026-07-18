@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 import Home from './Pages/Home';
 import Profile from './Pages/TalentProfile/Profile';
 import TalentProfilePage from './Pages/TalentProfile/TalentProfilePage';
+import ApplyJobPage from './Pages/ApplyJobPage';
 
 /* ──────────────────────────────────────────────
    Lazy-loaded routes — large pages loaded on demand
@@ -135,6 +136,7 @@ function App() {
                 <Route path='/talent-profile' element={<TalentProfilePage/>}/>
                 <Route path="/about" element={<About />} />
                 <Route path="/jobs/:id" element={<JobDetail />} />
+                <Route path='/apply-jobs' element={<ApplyJobPage/>}/>
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

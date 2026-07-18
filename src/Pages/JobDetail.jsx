@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
@@ -663,6 +663,8 @@ function JobDetail() {
 
   const similarJobs = getSimilarJobs(job.id);
 
+  const navigate = useNavigate();
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -750,7 +752,9 @@ function JobDetail() {
                   {saved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
                   {saved ? "Saved" : "Save"}
                 </button>
-                <button className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature h-11 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer">
+                <button
+                onClick={()=> navigate("/apply-jobs")}
+                 className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature h-11 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer">
                   <Sparkles size={16} />
                   Apply Now
                 </button>
