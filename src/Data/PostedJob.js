@@ -1,109 +1,52 @@
 export const activeJobs = [
   {
     jobTitle: "Cybersecurity Specialist",
-    company: "Microsoft",
     location: "Paris, France",
     posted: "10 days ago",
-    applicants: 86,
-    status: "Active",
   },
   {
     jobTitle: "Frontend Developer",
-    company: "Google",
     location: "Bangalore, India",
     posted: "3 days ago",
-    applicants: 148,
-    status: "Active",
   },
   {
     jobTitle: "Backend Java Developer",
-    company: "Amazon",
     location: "Hyderabad, India",
     posted: "1 week ago",
-    applicants: 72,
-    status: "Active",
+    
   },
   {
     jobTitle: "UI/UX Designer",
-    company: "Adobe",
     location: "San Francisco, USA",
     posted: "5 days ago",
-    applicants: 54,
-    status: "Active",
   },
   {
     jobTitle: "Data Scientist",
-    company: "Netflix",
     location: "Los Angeles, USA",
     posted: "2 weeks ago",
-    applicants: 112,
-    status: "Active",
   },
   {
     jobTitle: "DevOps Engineer",
-    company: "IBM",
     location: "Pune, India",
     posted: "4 days ago",
-    applicants: 43,
-    status: "Active",
   },
 ];
 
 export const drafts = [
   {
     jobTitle: "Machine Learning Engineer",
-    company: "Meta",
     location: "London, UK",
-    lastEdited: "2 hours ago",
-    status: "Draft",
+    posted: "4 days ago"
   },
   {
     jobTitle: "Full Stack Developer",
-    company: "Infosys",
     location: "Mumbai, India",
-    lastEdited: "Yesterday",
-    status: "Draft",
+    posted: "8 days ago"
   },
   {
     jobTitle: "Cloud Solutions Architect",
-    company: "Oracle",
     location: "Singapore",
-    lastEdited: "3 days ago",
-    status: "Draft",
+    posted: "6 days ago"
   },
-  {
-    jobTitle: "React Developer",
-    company: "Adobe",
-    location: "Noida, India",
-    lastEdited: "5 hours ago",
-    status: "Draft",
-  },
-  {
-    jobTitle: "Java Spring Boot Developer",
-    company: "TCS",
-    location: "Pune, India",
-    lastEdited: "1 day ago",
-    status: "Draft",
-  },
-  {
-    jobTitle: "DevOps Engineer",
-    company: "IBM",
-    location: "Bangalore, India",
-    lastEdited: "4 days ago",
-    status: "Draft",
-  },
-  {
-    jobTitle: "UI/UX Designer",
-    company: "Figma",
-    location: "San Francisco, USA",
-    lastEdited: "6 days ago",
-    status: "Draft",
-  },
-  {
-    jobTitle: "Data Analyst",
-    company: "Accenture",
-    location: "Hyderabad, India",
-    lastEdited: "1 week ago",
-    status: "Draft",
-  },
+ 
 ];
