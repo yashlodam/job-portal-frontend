@@ -1,5 +1,6 @@
-import { Badge } from '@mantine/core'
+import { Badge, Tabs } from '@mantine/core'
 import React from 'react'
+import JobDetail from '../Pages/JobDetail'
 
 function PostedJobDesc() {
   return (
@@ -9,7 +10,35 @@ function PostedJobDesc() {
         </div>
         <div className='font-medium mb-5'>New York, United States</div>
         <div>
+            <Tabs autoContrast variant='pills' defaultValue="overview">
+                  <Tabs.List>
+                    <Tabs.Tab value="overview" >
+                      OverView
+                    </Tabs.Tab>
+                    <Tabs.Tab value="applicants" >
+                      Applicants
+                    </Tabs.Tab>
+                    <Tabs.Tab value="invited" >
+                      Invited
+                    </Tabs.Tab>
+                    
+                  </Tabs.List>
             
+                  <Tabs.Panel value="overview">
+                    <JobDetail/>
+                    
+                  </Tabs.Panel>
+            
+                  <Tabs.Panel value="applicants">
+                
+                  </Tabs.Panel>
+
+                  <Tabs.Panel value="invited">
+                
+                  </Tabs.Panel>
+            
+                 
+                </Tabs>
         </div>
     </div>
   )
