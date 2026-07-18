@@ -1097,7 +1097,7 @@ function JobDetail() {
 
                   {/* View All Jobs */}
                   <Link
-                    to="/find-jobs"
+                    to="/company"
                     className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface hover:bg-surface-elevated py-2.5 text-sm font-semibold text-muted hover:text-primary-light hover:border-primary/20 transition-all"
                   >
                     View all jobs from {job.company}
