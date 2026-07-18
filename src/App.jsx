@@ -8,6 +8,7 @@ import Profile from './Pages/TalentProfile/Profile';
 import TalentProfilePage from './Pages/TalentProfile/TalentProfilePage';
 import ApplyJobPage from './Pages/ApplyJobPage';
 import CompanyPage from './Pages/CompanyPage';
+import PostedJobPage from './Pages/PostedJobPage';
 
 /* ──────────────────────────────────────────────
    Lazy-loaded routes — large pages loaded on demand
@@ -140,6 +141,7 @@ function App() {
                 <Route path='/apply-jobs' element={<ApplyJobPage/>}/>
                 <Route path='/company' element={<CompanyPage/>}/>
                 <Route path="*" element={<NotFound />} />
+                <Route path='/posted-job' element={<PostedJobPage/>} />
               </Route>
             </Routes>
           </Suspense>
