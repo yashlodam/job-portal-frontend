@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Sparkles, ArrowRight, Send } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 /* ===========================
     Footer Link Columns
@@ -92,6 +92,7 @@ const socialIcons = [
 function Footer() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const location = useLocation();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -101,7 +102,7 @@ function Footer() {
     }
   };
 
-  return (
+  return location.pathname !="/signup" && (
     <footer
       className="relative border-t"
       style={{

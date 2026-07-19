@@ -10,6 +10,7 @@ const links = [
   { name: "Find Talent", url: "/find-talent" },
   { name: "Post Job",  url: "/upload-job" },
   { name: "Posted Job",    url: "/posted-job" },
+   {name:"Signup" , url:"/signup"}
 ];
 
 /* ─── User Data ─── */
@@ -46,6 +47,7 @@ const FOCUS_RING =
 
 /* ─── Header Component ─── */
 function Header() {
+  
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled,   setScrolled]   = useState(false);
   const location     = useLocation();
@@ -99,7 +101,7 @@ function Header() {
     };
   }, [mobileOpen, handleKeyDown]);
 
-  return (
+  return location.pathname !="/signup" && (
     <header
       ref={menuRef}
       role="banner"
