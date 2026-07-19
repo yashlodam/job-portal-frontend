@@ -12,6 +12,7 @@ import PostedJobPage from './Pages/PostedJobPage';
 import SignUp from './SignUpLogin/SignUp';
 import SignUpPage from './Pages/SignUpPage';
 import Login from './SignUpLogin/Login';
+import ProfilePage from './Pages/ProfilePage';
 
 /* ──────────────────────────────────────────────
    Lazy-loaded routes — large pages loaded on demand
@@ -147,6 +148,7 @@ function App() {
                 <Route path='/posted-job' element={<PostedJobPage/>} />
                 <Route path='/signup' element={<SignUpPage/>}/>
                 <Route path='/login' element={<Login/>}/>
+                <Route path='/profiles' element={<ProfilePage/>}/>
               </Route>
             </Routes>
           </Suspense>

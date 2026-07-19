@@ -180,7 +180,7 @@ console.log(profile)
   </h2>
 
   <div className="mt-4 flex flex-wrap gap-2.5">
-    {profile?.skills.map((skill) => (
+    {profile?.skills?.map((skill) => (
       <span
         key={skill}
         className="
@@ -219,7 +219,7 @@ console.log(profile)
     Experience
   </h2>
 {
-    profile.experience.map((item,index)=> 
+    profile?.experience?.map((item,index)=> 
         <section>
   
 
@@ -292,7 +292,7 @@ console.log(profile)
     Education
   </h2>
 {
-    profile.education.map((item,index)=>
+    profile?.education?.map((item,index)=>
 <section key={index}>
   
 

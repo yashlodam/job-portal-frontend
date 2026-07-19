@@ -1,65 +1,127 @@
-import React from 'react'
-import { Menu, Button, Text, Avatar, Switch } from '@mantine/core';
-import { ChatCircleIcon, GearSixIcon, ImageIcon, MagnifyingGlassIcon, TrashIcon } from '@phosphor-icons/react';
-import { IconArrowsLeftRight, IconFileText, IconMoon, IconUserCircle } from '@tabler/icons-react';
-
-
+import React, { useState } from "react";
+import { Menu, Button, Avatar, Switch } from "@mantine/core";
+import {
+  IconUserCircle,
+  IconMessageCircle,
+  IconFileText,
+  IconMoon,
+  IconSun,
+  IconArrowsLeftRight,
+  IconTrash,
+  IconSettings,
+  IconLogout2,
+} from "@tabler/icons-react";
+import { Link } from "react-router-dom";
 
 function ProfileMenu() {
-    return (
-        <div>
-            <Menu shadow="md" width={200}>
-                <Menu.Target>
-                    <Button>
-                        <Avatar
-                            src="/avatar.jpg"
-                            radius="xl"
-                            size={34}
-                            className="ring-2 ring-white/10"
-                        >
-                            M
-                        </Avatar>
-                    </Button>
-                </Menu.Target>
+    const USER = { name: "Marshal", role: "Software Engineer" };
+    const [checked,setChecked] = useState(false);
+    const [opened,setOpened] = useState(false)
 
-                <Menu.Dropdown>
-                    <Menu.Item leftSection={<IconUserCircle size={14} />}>
-                        Profile
-                    </Menu.Item>
-                    <Menu.Item leftSection={<ChatCircleIcon size={14} />}>
-                        Messages
-                    </Menu.Item>
-                    <Menu.Item leftSection={<IconFileText size={14} />}>
-                        Resume
-                    </Menu.Item>
-                    <Menu.Item
-                        leftSection={<IconMoon size={14} />}
-                        rightSection={
-                            <Switch size='md' color='black'/>
-                        }
-                    >
-                        White Mode
-                    </Menu.Item>
+  return (
+    <Menu
+      opened={opened}
+      onChange={setOpened}
+      shadow="xl"
+      width={250}
+      position="bottom-end"
+      withArrow
+      arrowPosition="center"
+    >
+      <Menu.Target>
+        <Button
+          variant="subtle"
+          p={0}
+          className="rounded-full hover:bg-white/5"
+        >
+         <Button
+      variant="subtle"
+      p={0}
+      className="rounded-2xl"
+    >
 
-                    <Menu.Divider />
+      <div className="flex items-center gap-3 rounded-2xl px-3 py-2 hover:bg-white/5">
 
-                    <Menu.Label>Danger zone</Menu.Label>
-                    <Menu.Item
-                        leftSection={<IconArrowsLeftRight size={14} />}
-                    >
-                        Transfer my data
-                    </Menu.Item>
-                    <Menu.Item
-                        color="red"
-                        leftSection={<TrashIcon size={14} />}
-                    >
-                        Delete my account
-                    </Menu.Item>
-                </Menu.Dropdown>
-            </Menu>
+        <Avatar
+          src="/avatar.jpg"
+          radius="xl"
+          size={42}
+        >
+          Y
+        </Avatar>
+
+        <div className="text-left">
+
+          <p className="text-sm font-semibold text-white">
+            {USER.name}
+          </p>
+
+          <p className="text-xs text-slate-400">
+            {USER.role}
+          </p>
 
         </div>
-    )
+
+      </div>
+
+    </Button>
+
+
+        </Button>
+      </Menu.Target>
+
+      <Menu.Dropdown onChange={()=> setOpened(true)} className="!bg-slate-900 !border !border-white/10 rounded-xl">
+
+        <Link to="/profiles">
+        <Menu.Item
+          leftSection={<IconUserCircle size={18} />}
+        >
+          My Profile
+        </Menu.Item>
+        </Link>
+
+        <Menu.Item
+          leftSection={<IconMessageCircle size={18} />}
+        >
+          Messages
+        </Menu.Item>
+
+        <Menu.Item
+          leftSection={<IconFileText size={18} />}
+        >
+          My Resume
+        </Menu.Item>
+
+        <Menu.Divider />
+
+        <Menu.Item
+          leftSection={<IconMoon size={18} />}
+          rightSection={
+            <Switch
+              checked={checked}
+              onChange={(event)=> setChecked(event.currentTarget.checked)}
+              size="sm"
+              color="cyan"
+              onLabel={<IconSun size={12} />}
+              offLabel={<IconMoon size={12} />}
+            />
+          }
+        >
+          Dark Mode
+        </Menu.Item>
+
+        <Menu.Divider />
+
+        <Menu.Item
+          color="red"
+          leftSection={<IconLogout2 size={18} />}
+        >
+          Logout
+        </Menu.Item>
+
+      </Menu.Dropdown>
+    </Menu>
+  );
 }
 
-export default ProfileMenu
+export default ProfileMenu;

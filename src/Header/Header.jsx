@@ -7,11 +7,11 @@ import ProfileMenu from "./ProfileMenu";
 
 /* ─── Navigation Links ─── */
 const links = [
-  { name: "Find Jobs",   url: "/find-jobs" },
+  { name: "Find Jobs", url: "/find-jobs" },
   { name: "Find Talent", url: "/find-talent" },
-  { name: "Post Job",  url: "/upload-job" },
-  { name: "Posted Job",    url: "/posted-job" },
-   {name:"Signup" , url:"/signup"}
+  { name: "Post Job", url: "/upload-job" },
+  { name: "Posted Job", url: "/posted-job" },
+  { name: "Signup", url: "/signup" }
 ];
 
 /* ─── User Data ─── */
@@ -33,7 +33,7 @@ const mobileMenuVariants = {
 };
 
 const mobileLinkVariants = {
-  hidden:  { opacity: 0, x: -10 },
+  hidden: { opacity: 0, x: -10 },
   visible: (i) => ({
     opacity: 1,
     x: 0,
@@ -48,11 +48,11 @@ const FOCUS_RING =
 
 /* ─── Header Component ─── */
 function Header() {
-  
+
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled,   setScrolled]   = useState(false);
-  const location     = useLocation();
-  const menuRef      = useRef(null);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  const menuRef = useRef(null);
   const toggleBtnRef = useRef(null);
 
   /* Close on route change */
@@ -102,15 +102,14 @@ function Header() {
     };
   }, [mobileOpen, handleKeyDown]);
 
-  return location.pathname !="/signup" && (
+  return location.pathname != "/signup" && (
     <header
       ref={menuRef}
       role="banner"
-      className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
-        scrolled
+      className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${scrolled
           ? "border-white/[0.08] bg-[#06080F]/92 shadow-[0_4px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
           : "border-white/[0.05] bg-[#06080F]/72 backdrop-blur-xl"
-      }`}
+        }`}
     >
       {/* Top gradient accent line */}
       <div
@@ -148,20 +147,20 @@ function Header() {
         </Link>
 
         {/* Column 2: Desktop Navigation */}
-       <nav
-  role="navigation"
-  aria-label="Main navigation"
-  className="hidden items-center justify-center gap-12   rounded-2xl border border-white/[0.06] bg-white/[0.025] p-1.5 backdrop-blur-xl md:flex lg:gap-15"
->
-  {links.map((item) => {
-    const active = location.pathname === item.url;
+        <nav
+          role="navigation"
+          aria-label="Main navigation"
+          className="hidden items-center justify-center gap-12   rounded-2xl border border-white/[0.06] bg-white/[0.025] p-1.5 backdrop-blur-xl md:flex lg:gap-15"
+        >
+          {links.map((item) => {
+            const active = location.pathname === item.url;
 
-    return (
-      <Link
-        key={item.url}
-        to={item.url}
-        aria-current={active ? "page" : undefined}
-        className={`
+            return (
+              <Link
+                key={item.url}
+                to={item.url}
+                aria-current={active ? "page" : undefined}
+                className={`
           group relative
           flex h-10 items-center justify-center
           whitespace-nowrap rounded-xl
@@ -169,35 +168,34 @@ function Header() {
           text-sm font-medium
           transition-colors duration-300
           ${FOCUS_RING}
-          ${
-            active
-              ? "text-white"
-              : "text-[#94A3B8] hover:text-[#F1F5F9]"
-          }
+          ${active
+                    ? "text-white"
+                    : "text-[#94A3B8] hover:text-[#F1F5F9]"
+                  }
         `}
-      >
-        {/* Active Background */}
-        {active && (
-          <motion.span
-            layoutId="nav-active-bg"
-            className="
+              >
+                {/* Active Background */}
+                {active && (
+                  <motion.span
+                    layoutId="nav-active-bg"
+                    className="
               absolute inset-0
               rounded-xl
               border border-white/[0.07]
               bg-[#161B22]
               shadow-[0_4px_16px_rgba(0,0,0,0.25)]
             "
-            transition={{
-              type: "spring",
-              stiffness: 400,
-              damping: 35,
-            }}
-          />
-        )}
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 35,
+                    }}
+                  />
+                )}
 
-        {/* Hover Background */}
-        <span
-          className="
+                {/* Hover Background */}
+                <span
+                  className="
             absolute inset-0
             rounded-xl
             bg-white/[0.04]
@@ -205,44 +203,42 @@ function Header() {
             transition-opacity duration-300
             group-hover:opacity-100
           "
-        />
+                />
 
-        {/* Navigation Text */}
-        <span
-          className={`
+                {/* Navigation Text */}
+                <span
+                  className={`
             relative z-10
             transition-all duration-300
-            ${
-              active
-                ? "font-semibold text-white"
-                : "group-hover:text-white"
-            }
+            ${active
+                      ? "font-semibold text-white"
+                      : "group-hover:text-white"
+                    }
           `}
-        >
-          {item.name}
-        </span>
+                >
+                  {item.name}
+                </span>
 
-        {/* Active Gradient Indicator */}
-        <span
-          className={`
+                {/* Active Gradient Indicator */}
+                <span
+                  className={`
             absolute bottom-1 left-1/2 z-10
             h-[2px] -translate-x-1/2
             rounded-full
             bg-gradient-to-r
             from-indigo-500 via-violet-500 to-cyan-400
             transition-all duration-300
-            ${
-              active
-                ? "w-5 opacity-100"
-                : "w-0 opacity-0 group-hover:w-3 group-hover:opacity-50"
-            }
+            ${active
+                      ? "w-5 opacity-100"
+                      : "w-0 opacity-0 group-hover:w-3 group-hover:opacity-50"
+                    }
           `}
-        />
+                />
 
-        {/* Active Glow */}
-        {active && (
-          <span
-            className="
+                {/* Active Glow */}
+                {active && (
+                  <span
+                    className="
               pointer-events-none
               absolute -bottom-2 left-1/2
               h-4 w-12
@@ -251,35 +247,33 @@ function Header() {
               bg-indigo-500/10
               blur-xl
             "
-            aria-hidden="true"
-          />
-        )}
-      </Link>
-    );
-  })}
-</nav>
+                    aria-hidden="true"
+                  />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
 
         {/* Column 3: Right section */}
         <div className="flex shrink-0 items-center justify-end gap-0.5 sm:gap-1 lg:gap-1.5">
 
           {/* Avatar: md = icon only, lg = chip with name */}
-          <motion.button
-            whileHover={{ backgroundColor: "#161B22" }}
-            whileTap={{ scale: 0.97 }}
-            className={`hidden cursor-pointer items-center gap-2.5 rounded-xl py-1.5 pl-1.5 pr-1.5 transition-colors duration-200 md:flex lg:pr-3 ${FOCUS_RING}`}
+          <motion.div
+            whileHover={{
+              scale: 1.02,
+              backgroundColor: "rgba(255,255,255,0.06)",
+            }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+            className={`hidden items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-2 py-2 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-cyan-500/30 hover:shadow-cyan-500/10 md:flex ${FOCUS_RING}`}
             aria-label="User profile menu"
             aria-haspopup="true"
           >
-            <ProfileMenu/>
-            <div className="hidden min-w-0 leading-tight text-left lg:block">
-              <p className="max-w-[100px] truncate text-sm font-semibold text-[#F1F5F9] xl:max-w-[130px]">
-                {USER.name}
-              </p>
-              <p className="mt-0.5 max-w-[100px] truncate text-xs text-[#708090] xl:max-w-[130px]">
-                {USER.role}
-              </p>
-            </div>
-          </motion.button>
+            <ProfileMenu />
+
+            
+          </motion.div>
 
           {/* Divider — lg only */}
           <div
@@ -388,11 +382,10 @@ function Header() {
                     <Link
                       to={item.url}
                       aria-current={active ? "page" : undefined}
-                      className={`relative flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition-colors duration-200 active:scale-[0.98] ${FOCUS_RING} ${
-                        active
+                      className={`relative flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition-colors duration-200 active:scale-[0.98] ${FOCUS_RING} ${active
                           ? "bg-[#161B22] text-[#F1F5F9]"
                           : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
-                      }`}
+                        }`}
                     >
                       {active && (
                         <span
