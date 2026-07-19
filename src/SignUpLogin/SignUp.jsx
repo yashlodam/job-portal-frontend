@@ -4,7 +4,6 @@ import {
   PasswordInput,
   Button,
   Checkbox,
-  Divider,
 } from "@mantine/core";
 import {
   User,
@@ -13,80 +12,88 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+const fieldStyles = {
+  label: { color: "#CBD5E1", fontSize: 13, fontWeight: 500, marginBottom: 6 },
+  input: {
+    backgroundColor: "rgba(255,255,255,0.03)",
+    borderColor: "rgba(255,255,255,0.1)",
+    color: "#fff",
+    "&::placeholder": {
+      color: "#7C8AA0",
+      opacity: 1,
+    },
+  },
+};
+
 function SignUp({ setIsLogin }) {
   return (
-    <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/70 backdrop-blur-3xl shadow-[0_25px_80px_rgba(0,0,0,0.45)] p-8">
+    <div className="w-full">
 
       {/* Header */}
-
-      <div className="text-center">
-
-        <h1 className="text-4xl font-bold text-white">
-          Create Account
+      <div>
+        <h1 className="font-serif text-3xl text-white">
+          Create your account
         </h1>
-
-        <p className="mt-3 text-slate-400">
+        <p className="mt-2 text-sm text-slate-500">
           Join Velora and discover your next career opportunity.
         </p>
-
       </div>
 
-      <Divider
-        my="xl"
-        label="OR"
-        labelPosition="center"
-      />
-
       {/* Form */}
-
-      <div className="space-y-5">
+      <div className="mt-8 space-y-4">
 
         <TextInput
-          label="Full Name"
+          label="Full name"
           placeholder="John Doe"
-          leftSection={<User size={18} />}
-          radius="xl"
+          leftSection={<User size={16} className="text-slate-500" />}
+          radius="md"
           size="md"
+          styles={fieldStyles}
         />
 
         <TextInput
-          label="Email Address"
+          label="Email address"
           placeholder="john@example.com"
-          leftSection={<Mail size={18} />}
-          radius="xl"
+          leftSection={<Mail size={16} className="text-slate-500" />}
+          radius="md"
           size="md"
+          styles={fieldStyles}
         />
 
         <PasswordInput
           label="Password"
           placeholder="Create a strong password"
-          leftSection={<Lock size={18} />}
-          radius="xl"
+          leftSection={<Lock size={16} className="text-slate-500" />}
+          radius="md"
           size="md"
+          styles={fieldStyles}
         />
 
         <PasswordInput
-          label="Confirm Password"
+          label="Confirm password"
           placeholder="Confirm password"
-          leftSection={<Lock size={18} />}
-          radius="xl"
+          leftSection={<Lock size={16} className="text-slate-500" />}
+          radius="md"
           size="md"
+          styles={fieldStyles}
         />
 
         <Checkbox
+          radius="sm"
+          color="#C8A24A"
           label={
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-slate-500">
               I agree to the{" "}
               <button
                 type="button"
-                className="text-cyan-400 hover:underline"
+                className="text-[#C8A24A] hover:underline"
               >
                 Terms
               </button>{" "}
               and{" "}
               <button
                 type="button"
-                className="text-cyan-400 hover:underline"
+                className="text-[#C8A24A] hover:underline"
               >
                 Privacy Policy
               </button>
@@ -96,30 +103,26 @@ function SignUp({ setIsLogin }) {
 
         <Button
           fullWidth
-          radius="xl"
-          size="lg"
-          rightSection={<ArrowRight size={18} />}
-          className="!bg-gradient-to-r !from-blue-600 !to-cyan-500 hover:scale-[1.02] transition-all duration-300 font-semibold shadow-lg"
+          radius="md"
+          size="md"
+          rightSection={<ArrowRight size={16} />}
+          className="!bg-[#C8A24A] hover:!bg-[#B8923F] !text-[#0B1220] !font-medium transition-colors"
         >
-          Create Account
+          Create account
         </Button>
 
       </div>
 
       {/* Footer */}
-
-      <p className="mt-8 text-center text-sm text-slate-400">
-
+      <p className="mt-8 text-center text-sm text-slate-500">
         Already have an account?{" "}
-
         <button
           type="button"
           onClick={() => setIsLogin(true)}
-          className="font-semibold text-cyan-400 hover:text-cyan-300 hover:underline transition-colors"
+          className="font-medium text-[#C8A24A] hover:text-[#DDBB63] transition-colors"
         >
-          Sign In
+          Sign in
         </button>
-
       </p>
 
     </div>

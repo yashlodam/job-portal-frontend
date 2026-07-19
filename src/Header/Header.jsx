@@ -3,6 +3,7 @@ import { Avatar, Indicator } from "@mantine/core";
 import { Sparkles, Bell, Settings, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import ProfileMenu from "./ProfileMenu";
 
 /* ─── Navigation Links ─── */
 const links = [
@@ -269,14 +270,7 @@ function Header() {
             aria-label="User profile menu"
             aria-haspopup="true"
           >
-            <Avatar
-              src="/avatar.jpg"
-              radius="xl"
-              size={34}
-              className="ring-2 ring-white/10"
-            >
-              M
-            </Avatar>
+            <ProfileMenu/>
             <div className="hidden min-w-0 leading-tight text-left lg:block">
               <p className="max-w-[100px] truncate text-sm font-semibold text-[#F1F5F9] xl:max-w-[130px]">
                 {USER.name}

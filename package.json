@@ -13,6 +13,7 @@
     "@emotion/react": "^11.14.0",
     "@mantine/core": "^9.4.1",
     "@mantine/hooks": "^9.4.1",
+    "@phosphor-icons/react": "^2.1.10",
     "@tabler/icons-react": "^3.44.0",
     "@tailwindcss/vite": "^4.3.2",
     "framer-motion": "^12.42.2",

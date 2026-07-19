@@ -1,9 +1,9 @@
 import { useState } from "react";
 import {
-  Sparkles,
   BriefcaseBusiness,
-  BrainCircuit,
-  BadgeCheck,
+  ShieldCheck,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 
 import SignUp from "../SignUpLogin/SignUp";
@@ -13,155 +13,105 @@ function SignUpPage() {
   const [isLogin, setIsLogin] = useState(false);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#020817]">
+    <div className="min-h-screen bg-[#0B1220] font-[Inter,sans-serif]">
+      <div className="flex min-h-screen">
 
-      {/* Background */}
-      <div className="absolute inset-0 mesh-gradient" />
+        {/* LEFT — brand panel */}
+        <div className="hidden lg:flex w-[46%] flex-col bg-[#0F1B2E] border-r border-white/[0.06] px-14 py-14">
 
-      <div className="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full bg-blue-600/10 blur-[180px]" />
-
-      <div className="absolute bottom-0 right-0 h-[520px] w-[520px] rounded-full bg-cyan-500/10 blur-[180px]" />
-
-      <div className="absolute top-1/2 left-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/5 blur-[160px]" />
-
-      <div
-        className="absolute inset-0 opacity-[0.035]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle,#64748B 1px,transparent 1px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
-
-      <div className="relative z-10 flex min-h-screen">
-
-        {/* LEFT */}
-
-        <div className="hidden lg:flex w-1/2 flex-col justify-between rounded-r-[60px] border-r border-white/10 bg-gradient-to-br from-[#0F172A] via-[#172554] to-[#1E3A8A] p-16 overflow-hidden relative">
-
-          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-blue-400/20 blur-[120px]" />
-
-          <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-cyan-400/10 blur-[150px]" />
-
-          <div className="relative z-10">
-
-            <div className="flex items-center gap-3">
-
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/10 backdrop-blur-xl">
-
-                <Sparkles className="text-cyan-300" size={22} />
-
-              </div>
-
-              <h1 className="text-3xl font-bold text-white">
-                Velora
-              </h1>
-
+          {/* Wordmark */}
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#C8A24A]">
+              <span className="font-serif text-lg text-[#0B1220]">V</span>
             </div>
+            <span className="text-xl tracking-tight text-white font-serif">
+              Velora
+            </span>
+          </div>
 
-            <div className="mt-12 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2">
-
-              <BadgeCheck size={18} className="text-cyan-300" />
-
-              <span className="text-sm text-cyan-100">
-                Trusted by 50,000+ Professionals
-              </span>
-
-            </div>
-
-            <h2 className="mt-10 text-6xl font-extrabold text-white leading-tight">
-
-              Find Your
-
-              <br />
-
-              <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent">
-
-                Dream Career
-
-              </span>
-
-            </h2>
-
-            <p className="mt-8 text-lg text-slate-300 leading-8 max-w-xl">
-              Build AI-powered resumes, discover verified companies,
-              prepare for interviews, and land your dream job faster.
+          {/* Headline — vertically centered in the remaining space */}
+          <div className="flex-1 flex flex-col justify-center max-w-lg">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#C8A24A] mb-5">
+              Career platform for professionals
             </p>
 
-            <div className="mt-12 space-y-4">
+            <h1 className="font-serif text-[42px] leading-[1.15] text-white">
+              The role that moves your career forward is here.
+            </h1>
 
-              <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p className="mt-6 text-[15px] leading-7 text-slate-400 max-w-md">
+              Build a resume recruiters trust, get matched with vetted
+              companies, and prepare for interviews with confidence.
+            </p>
 
-                <BrainCircuit className="text-cyan-300" />
-
-                <div>
-
-                  <h3 className="text-white font-semibold">
-                    AI Resume Builder
-                  </h3>
-
-                  <p className="text-sm text-slate-300">
-                    Create ATS-friendly resumes.
-                  </p>
-
+            <div className="mt-10 space-y-5">
+              <div className="flex items-start gap-3.5">
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10">
+                  <ShieldCheck size={16} className="text-[#C8A24A]" />
                 </div>
-
+                <div>
+                  <p className="text-sm font-medium text-white">
+                    Verified employers only
+                  </p>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    Every company on Velora is background-checked.
+                  </p>
+                </div>
               </div>
 
-              <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-5">
-
-                <BriefcaseBusiness className="text-blue-300" />
-
-                <div>
-
-                  <h3 className="text-white font-semibold">
-                    Smart Job Matching
-                  </h3>
-
-                  <p className="text-sm text-slate-300">
-                    Personalized job recommendations.
-                  </p>
-
+              <div className="flex items-start gap-3.5">
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10">
+                  <BriefcaseBusiness size={16} className="text-[#C8A24A]" />
                 </div>
-
+                <div>
+                  <p className="text-sm font-medium text-white">
+                    Curated job matching
+                  </p>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    Roles ranked by real fit, not keyword volume.
+                  </p>
+                </div>
               </div>
-
             </div>
-
           </div>
 
-          <div className="grid grid-cols-3 gap-5">
-
-            <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-              <h2 className="text-4xl text-cyan-300 font-bold">50K+</h2>
-              <p className="text-sm text-slate-300 mt-2">
-                Members
-              </p>
+          {/* Stats + social proof */}
+          <div className="mt-14">
+            <div className="grid grid-cols-3 gap-8 border-t border-white/[0.06] pt-8">
+              <div>
+                <p className="font-serif text-2xl text-white">50K+</p>
+                <p className="text-xs text-slate-500 mt-1">Members</p>
+              </div>
+              <div>
+                <p className="font-serif text-2xl text-white">8K+</p>
+                <p className="text-xs text-slate-500 mt-1">Companies</p>
+              </div>
+              <div>
+                <p className="font-serif text-2xl text-white">120K+</p>
+                <p className="text-xs text-slate-500 mt-1">Open roles</p>
+              </div>
             </div>
 
-            <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-              <h2 className="text-4xl text-cyan-300 font-bold">8K+</h2>
-              <p className="text-sm text-slate-300 mt-2">
-                Companies
-              </p>
+            <div className="mt-7 flex items-center gap-2 text-slate-500">
+              <Users size={14} />
+              <span className="text-xs">
+                Trusted by hiring teams at Fortune 500 companies
+              </span>
             </div>
-
-            <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-              <h2 className="text-4xl text-cyan-300 font-bold">120K+</h2>
-              <p className="text-sm text-slate-300 mt-2">
-                Jobs
-              </p>
-            </div>
-
           </div>
-
         </div>
 
-        {/* RIGHT */}
+        {/* RIGHT — auth form */}
+        <div className="flex w-full lg:w-[54%] items-center justify-center bg-[#0B1220] px-6 py-10">
+          <div className="w-full max-w-[400px]">
 
-        <div className="flex w-full lg:w-1/2 items-center justify-center p-10">
-
-          <div className="w-full max-w-md">
+            {/* Mobile-only compact brand mark */}
+            <div className="lg:hidden flex items-center gap-2.5 mb-10">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#C8A24A]">
+                <span className="font-serif text-base text-[#0B1220]">V</span>
+              </div>
+              <span className="text-lg text-white font-serif">Velora</span>
+            </div>
 
             {isLogin ? (
               <Login setIsLogin={setIsLogin} />
@@ -169,12 +119,13 @@ function SignUpPage() {
               <SignUp setIsLogin={setIsLogin} />
             )}
 
+            <p className="mt-10 text-center text-xs text-slate-600">
+              Protected by industry-standard encryption
+            </p>
           </div>
-
         </div>
 
       </div>
-
     </div>
   );
 }
