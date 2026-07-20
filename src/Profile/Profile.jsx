@@ -12,6 +12,10 @@ import {
   IconX,
 } from "@tabler/icons-react";
 
+import { MonthPickerInput } from "@mantine/dates";
+import "@mantine/dates/styles.css";
+import dayjs from "dayjs";
+
 import React, { useRef, useState } from "react";
 import { profile } from "../Data/Data";
 
@@ -586,23 +590,38 @@ function Profile() {
                       </button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Field label="Start date">
-                        <input
-                          className={`${inputClass} max-w-[140px]`}
-                          value={item.startDate}
-                          placeholder="e.g. Jan 2023"
-                          onChange={(e) =>
-                            updateListItem("experience", index, "startDate", e.target.value)
+                      <Field label="Start Date">
+                        <MonthPickerInput
+                          value={item.startDate ? new Date(item.startDate) : null}
+                          valueFormat="MMM YYYY"
+                          placeholder="Select month"
+                          className="max-w-[180px]"
+                          clearable
+                          onChange={(value) =>
+                            updateListItem(
+                              "experience",
+                              index,
+                              "startDate",
+                              value || ""
+                            )
                           }
                         />
                       </Field>
-                      <Field label="End date">
-                        <input
-                          className={`${inputClass} max-w-[140px]`}
-                          value={item.endDate}
-                          placeholder="e.g. Present"
-                          onChange={(e) =>
-                            updateListItem("experience", index, "endDate", e.target.value)
+
+                      <Field label="End Date">
+                        <MonthPickerInput
+                          value={item.endDate ? new Date(item.endDate) : null}
+                          valueFormat="MMM YYYY"
+                          placeholder="Select month"
+                          className="max-w-[180px]"
+                          clearable
+                          onChange={(value) =>
+                            updateListItem(
+                              "experience",
+                              index,
+                              "endDate",
+                              value || ""
+                            )
                           }
                         />
                       </Field>
@@ -651,7 +670,15 @@ function Profile() {
                         </p>
                       </div>
                       <span className="text-sm text-muted">
-                        {item.startDate} {item.endDate}
+                        {item.startDate
+                          ? dayjs(item.startDate).format("MMM YYYY")
+                          : "Start"}
+
+                        {" - "}
+
+                        {item.endDate
+                          ? dayjs(item.endDate).format("MMM YYYY")
+                          : "Present"}
                       </span>
                     </div>
 
