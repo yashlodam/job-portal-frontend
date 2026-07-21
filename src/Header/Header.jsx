@@ -11,7 +11,7 @@ const links = [
   { name: "Find Talent", url: "/find-talent" },
   { name: "Post Job", url: "/upload-job" },
   { name: "Posted Job", url: "/posted-job" },
-  { name: "Signup", url: "/signup" }
+  { name: "Signup", url: "/auth" }
 ];
 
 /* ─── User Data ─── */
@@ -102,7 +102,7 @@ function Header() {
     };
   }, [mobileOpen, handleKeyDown]);
 
-  return location.pathname != "/signup" && (
+  return location.pathname != "/auth" && (
     <header
       ref={menuRef}
       role="banner"

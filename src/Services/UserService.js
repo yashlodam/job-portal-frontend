@@ -59,3 +59,76 @@ export const loginUser = async (login) => {
     }
   }
 };
+
+export const sendOtp = async (email) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/sendOtp/${email}`);
+    console.log("Otp send sucessfully",response.data)
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data;
+    } else if (error.request) {
+      throw {
+        message: "No response from server. Please try again later.",
+      };
+    } else {
+      throw {
+        message: error.message,
+      };
+    }
+  }
+};
+
+/**
+ * Verify OTP
+ */
+export const verifyOtp = async (request) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/verify-otp`,
+      request
+    );
+     console.log(response.data)
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data;
+    } else if (error.request) {
+      throw {
+        message: "No response from server. Please try again later.",
+      };
+    } else {
+      throw {
+        message: error.message,
+      };
+    }
+  }
+};
+
+/**
+ * Reset Password
+ */
+export const resetPassword = async (request) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/reset-password`,
+      request
+    );
+    console.log(response.data)
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data;
+    } else if (error.request) {
+      throw {
+        message: "No response from server. Please try again later.",
+      };
+    } else {
+      throw {
+        message: error.message,
+      };
+    }
+  }
+};
+

@@ -146,7 +146,7 @@ function App() {
                 <Route path='/company' element={<CompanyPage/>}/>
                 <Route path="*" element={<NotFound />} />
                 <Route path='/posted-job' element={<PostedJobPage/>} />
-                <Route path='/signup' element={<SignUpPage/>}/>
+                <Route path='/auth' element={<SignUpPage/>}/>
                 <Route path='/login' element={<Login/>}/>
                 <Route path='/profiles' element={<ProfilePage/>}/>
               </Route>

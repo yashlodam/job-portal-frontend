@@ -88,7 +88,16 @@ function SignUp({ setIsLogin }) {
   };
 
 const handleRegister = async () => {
-  if (!validateForm()) return;
+  if (!validateForm()) {
+        notifications.show({
+          title: "Incomplete Form",
+          message: "Please enter your email and password.",
+          color: "yellow",
+          radius: "md",
+          autoClose: 2500,
+        });
+        return;
+      }
 
   try {
     await registerUser(formData);
