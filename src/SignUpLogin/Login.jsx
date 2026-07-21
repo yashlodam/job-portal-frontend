@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   TextInput,
   PasswordInput,
@@ -25,6 +25,50 @@ const fieldStyles = {
 };
 
 function Login({ setIsLogin }) {
+
+  const [errors, setErrors] = useState({});
+
+  const [formData, setFormData] = useState({
+    "email": "",
+    "password": ""
+  })
+
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }
+
+  const handleSubmit = () => {
+
+    if (!validateForm()) return;
+
+    console.log("Login Success", formData);
+
+    // axios.post(...)
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (
+      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)
+    ) {
+      newErrors.email = "Please enter a valid email";
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
   return (
     <div className="w-full">
 
@@ -43,20 +87,26 @@ function Login({ setIsLogin }) {
 
         <TextInput
           label="Email address"
+          value={formData.email}
+          onChange={(e) => handleChange("email", e.target.value)}
           placeholder="john@example.com"
           leftSection={<Mail size={16} className="text-slate-500" />}
           radius="md"
           size="md"
           styles={fieldStyles}
+          error={errors.email}
         />
 
         <PasswordInput
           label="Password"
+          value={formData.password}
+          onChange={(e) => handleChange("password", e.target.value)}
           placeholder="Enter your password"
           leftSection={<Lock size={16} className="text-slate-500" />}
           radius="md"
           size="md"
           styles={fieldStyles}
+          error={errors.password}
         />
 
         <div className="flex items-center justify-between pt-1">
@@ -75,6 +125,7 @@ function Login({ setIsLogin }) {
         </div>
 
         <Button
+          onClick={() => handleSubmit()}
           fullWidth
           radius="md"
           size="md"
