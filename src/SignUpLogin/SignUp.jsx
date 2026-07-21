@@ -13,6 +13,7 @@ import {
   Lock,
   ArrowRight,
 } from "lucide-react";
+import { registerUser } from "../Services/UserService";
 
 const fieldStyles = {
   label: {
@@ -102,7 +103,8 @@ function SignUp({ setIsLogin }) {
   try {
 
     console.log(formData);
-
+     
+    await registerUser(formData);
     // axios.post(...)
 
     setIsLogin(true);
