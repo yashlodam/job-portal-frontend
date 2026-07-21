@@ -169,6 +169,7 @@ function Login({ setIsLogin }) {
           />
 
           <button
+          onClick={()=> navigate("/reset-password")}
             type="button"
             className="text-sm text-[#C8A24A] hover:text-[#DDBB63] transition-colors"
           >

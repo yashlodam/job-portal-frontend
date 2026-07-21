@@ -13,6 +13,7 @@ import SignUp from './SignUpLogin/SignUp';
 import SignUpPage from './Pages/SignUpPage';
 import Login from './SignUpLogin/Login';
 import ProfilePage from './Pages/ProfilePage';
+import ResetPassword from './SignUpLogin/ResetPassword';
 
 /* ──────────────────────────────────────────────
    Lazy-loaded routes — large pages loaded on demand
@@ -149,6 +150,7 @@ function App() {
                 <Route path='/auth' element={<SignUpPage/>}/>
                 <Route path='/login' element={<Login/>}/>
                 <Route path='/profiles' element={<ProfilePage/>}/>
+                <Route path='/reset-password' element={<ResetPassword/>}/>
               </Route>
             </Routes>
           </Suspense>

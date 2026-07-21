@@ -1,10 +1,14 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Header from "../Header/Header";
 import Footer from "../LandingPage/Footer";
 import ScrollToTop from "./ScrollToTop";
 
 function Layout() {
+
+  const location = useLocation();
+
+const hideLayout = ["/auth", "/reset-password"].includes(location.pathname);
   return (
     <div className="min-h-screen w-full bg-background font-inter text-body">
       {/* Accessibility */}
@@ -15,7 +19,7 @@ function Layout() {
       <ScrollToTop />
 
       {/* Header */}
-      <Header />
+      {!hideLayout && <Header />}
 
       {/* Main Page Content */}
       <main
@@ -26,7 +30,7 @@ function Layout() {
       </main>
 
       {/* Footer */}
-      <Footer />
+       {!hideLayout && <Footer />}
     </div>
   );
 }

@@ -102,7 +102,7 @@ function Header() {
     };
   }, [mobileOpen, handleKeyDown]);
 
-  return location.pathname != "/auth" && (
+  return (
     <header
       ref={menuRef}
       role="banner"
