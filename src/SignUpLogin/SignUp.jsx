@@ -14,28 +14,19 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { registerUser } from "../Services/UserService";
+import { notifications } from "@mantine/notifications";
+import { CheckCircle2, CircleAlert } from "lucide-react";
 
 const fieldStyles = {
-  label: {
-    color: "#CBD5E1",
-    fontSize: 13,
-    fontWeight: 500,
-    marginBottom: 6,
-  },
+  label: { color: "#CBD5E1", fontSize: 13, fontWeight: 500, marginBottom: 6 },
   input: {
+    backgroundColor: "rgba(255,255,255,0.03)",
     borderColor: "rgba(255,255,255,0.1)",
-    color: "#CBD5E1",
-
+    color: "#fff",
     "&::placeholder": {
-      color: "#ffffff",
+      color: "#7C8AA0",
       opacity: 1,
     },
-  },
-  error: {
-    color: "#FACC15", // Yellow
-    fontSize: "12px",
-    marginTop: "4px",
-    fontWeight: 500,
   },
 };
 
@@ -96,27 +87,36 @@ function SignUp({ setIsLogin }) {
     }));
   };
 
- const handleRegister = async () => {
-
+const handleRegister = async () => {
   if (!validateForm()) return;
 
   try {
-
-    console.log(formData);
-     
     await registerUser(formData);
-    // axios.post(...)
 
-    setIsLogin(true);
+    notifications.show({
+      title: "Welcome to Velora! 🎉",
+      message:
+        "Your account has been created successfully. Please sign in to continue.",
+      color: "green",
+      radius: "md",
+      autoClose: 3000,
+      icon: <CheckCircle2 size={18} />,
+    });
 
+    setTimeout(() => {
+      setIsLogin(true);
+    }, 1500);
   } catch (error) {
-
-    if (error.response) {
-      alert(error.response.data.errorMessage);
-    } else {
-      alert("Something went wrong");
-    }
-
+    notifications.show({
+      title: "Registration Failed",
+      message:
+        error?.response?.data?.errorMessage ||
+        "Unable to create your account. Please try again.",
+      color: "red",
+      radius: "md",
+      autoClose: 4000,
+      icon: <CircleAlert size={18} />,
+    });
   }
 };
 
