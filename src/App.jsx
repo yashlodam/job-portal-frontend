@@ -14,6 +14,8 @@ import SignUpPage from './Pages/SignUpPage';
 import Login from './SignUpLogin/Login';
 import ProfilePage from './Pages/ProfilePage';
 import ResetPassword from './SignUpLogin/ResetPassword';
+import { Provider } from 'react-redux';
+import Store from './State/Store';
 
 /* ──────────────────────────────────────────────
    Lazy-loaded routes — large pages loaded on demand
@@ -129,6 +131,7 @@ function PageLoader() {
 
 function App() {
   return (
+    <Provider store={Store}>
     <ErrorBoundary>
       <MantineProvider theme={mantineTheme} forceColorScheme="dark">
         <BrowserRouter>
@@ -157,6 +160,7 @@ function App() {
         </BrowserRouter>
       </MantineProvider>
     </ErrorBoundary>
+    </Provider>
   );
 }
 

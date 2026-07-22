@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Avatar, Indicator } from "@mantine/core";
+import { Avatar, Button, Indicator } from "@mantine/core";
 import { Sparkles, Bell, Settings, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ProfileMenu from "./ProfileMenu";
+import { useSelector } from "react-redux";
 
 /* ─── Navigation Links ─── */
 const links = [
@@ -48,7 +49,7 @@ const FOCUS_RING =
 
 /* ─── Header Component ─── */
 function Header() {
-
+  const user = useSelector((state) => state.user);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -107,8 +108,8 @@ function Header() {
       ref={menuRef}
       role="banner"
       className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${scrolled
-          ? "border-white/[0.08] bg-[#06080F]/92 shadow-[0_4px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
-          : "border-white/[0.05] bg-[#06080F]/72 backdrop-blur-xl"
+        ? "border-white/[0.08] bg-[#06080F]/92 shadow-[0_4px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
+        : "border-white/[0.05] bg-[#06080F]/72 backdrop-blur-xl"
         }`}
     >
       {/* Top gradient accent line */}
@@ -270,9 +271,46 @@ function Header() {
             aria-label="User profile menu"
             aria-haspopup="true"
           >
-            <ProfileMenu />
+            {user ? (
+              <ProfileMenu />
+            ) : (
+              <Link to="/auth">
+                <Button
+                  radius="xl"
+                  size="md"
+                  variant="filled"
+                  styles={{
+                    root: {
+                      height: 42,
+                      paddingInline: 26,
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      background:
+                        "linear-gradient(135deg,#6366F1 0%,#7C3AED 55%,#8B5CF6 100%)",
+                      color: "#fff",
+                      fontWeight: 700,
+                      letterSpacing: "0.3px",
+                      boxShadow:
+                        "0 10px 28px rgba(99,102,241,.35), inset 0 1px 0 rgba(255,255,255,.12)",
+                      transition: "all .3s cubic-bezier(.4,0,.2,1)",
+                    },
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px) scale(1.02)";
+                    e.currentTarget.style.boxShadow =
+                      "0 16px 36px rgba(99,102,241,.45), inset 0 1px 0 rgba(255,255,255,.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0) scale(1)";
+                    e.currentTarget.style.boxShadow =
+                      "0 10px 28px rgba(99,102,241,.35), inset 0 1px 0 rgba(255,255,255,.12)";
+                  }}
+                >
+                  Login
+                </Button>
+              </Link>
+            )}
 
-            
+
           </motion.div>
 
           {/* Divider — lg only */}
@@ -383,8 +421,8 @@ function Header() {
                       to={item.url}
                       aria-current={active ? "page" : undefined}
                       className={`relative flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition-colors duration-200 active:scale-[0.98] ${FOCUS_RING} ${active
-                          ? "bg-[#161B22] text-[#F1F5F9]"
-                          : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
+                        ? "bg-[#161B22] text-[#F1F5F9]"
+                        : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
                         }`}
                     >
                       {active && (

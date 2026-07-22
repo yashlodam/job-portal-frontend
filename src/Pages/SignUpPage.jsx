@@ -11,7 +11,7 @@ import SignUp from "../SignUpLogin/SignUp";
 import Login from "../SignUpLogin/Login";
 
 function SignUpPage() {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
 
   return (

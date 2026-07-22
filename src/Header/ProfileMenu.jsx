@@ -12,11 +12,25 @@ import {
   IconLogout2,
 } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { removeUser } from "../Slices/UserSlice";
 
 function ProfileMenu() {
     const USER = { name: "Marshal", role: "Software Engineer" };
+    const user = useSelector((store)=> store.user);
+
     const [checked,setChecked] = useState(false);
     const [opened,setOpened] = useState(false)
+
+    const dispatch = useDispatch();
+    console.log(user);
+
+
+    const handleLogout = ()=>{
+
+      dispatch(removeUser())
+
+    }
 
   return (
     <Menu
@@ -53,11 +67,11 @@ function ProfileMenu() {
         <div className="text-left">
 
           <p className="text-sm font-semibold text-white">
-            {USER.name}
+            {user.name}
           </p>
 
           <p className="text-xs text-slate-400">
-            {USER.role}
+            {user.role}
           </p>
 
         </div>
@@ -74,6 +88,7 @@ function ProfileMenu() {
 
         <Link to="/profiles">
         <Menu.Item
+         color="white"
           leftSection={<IconUserCircle size={18} />}
         >
           My Profile
@@ -81,12 +96,14 @@ function ProfileMenu() {
         </Link>
 
         <Menu.Item
+          color="white"
           leftSection={<IconMessageCircle size={18} />}
         >
           Messages
         </Menu.Item>
 
         <Menu.Item
+          color="white"
           leftSection={<IconFileText size={18} />}
         >
           My Resume
@@ -95,6 +112,7 @@ function ProfileMenu() {
         <Menu.Divider />
 
         <Menu.Item
+          color="white"
           leftSection={<IconMoon size={18} />}
           rightSection={
             <Switch
@@ -113,6 +131,7 @@ function ProfileMenu() {
         <Menu.Divider />
 
         <Menu.Item
+        onClick={handleLogout}
           color="red"
           leftSection={<IconLogout2 size={18} />}
         >

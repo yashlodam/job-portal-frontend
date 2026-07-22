@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { loginUser } from "../Services/UserService";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setUser } from "../Slices/UserSlice";
 
 const fieldStyles = {
   label: {
@@ -35,6 +37,7 @@ const fieldStyles = {
 };
 
 function Login({ setIsLogin }) {
+  const dispatch = useDispatch();
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
@@ -87,8 +90,8 @@ function Login({ setIsLogin }) {
       const response = await loginUser(formData);
 
       // Save JWT (change key according to your backend response)
-      if (response.jwt) {
-        localStorage.setItem("token", response.jwt);
+      if (response) {
+        dispatch(setUser(response));
       }
 
       notifications.show({
@@ -101,9 +104,11 @@ function Login({ setIsLogin }) {
       });
 
       
-
-      // TODO:
+     
+      
       navigate("/");
+     
+     
     } catch (error) {
       notifications.show({
         title: "Sign in Failed",
