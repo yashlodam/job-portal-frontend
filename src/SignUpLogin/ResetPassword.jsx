@@ -16,6 +16,14 @@ const MIN_PASSWORD_LENGTH = 8;
 const RESEND_COOLDOWN_SECONDS = 30;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/* Single source of truth for the accent gradient — light blue → deep blue,
+   reused across the icon badge, the top accent bar, and both CTA buttons
+   so the theme reads as one deliberate palette instead of ad-hoc colors. */
+const ACCENT_GRADIENT = "linear-gradient(135deg, #38BDF8 0%, #3B82F6 55%, #1D4ED8 100%)";
+
+const INPUT_CLASSES =
+    "w-full rounded-xl border border-white/10 bg-white/5 py-4 text-white placeholder:text-slate-500 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-400/20 disabled:opacity-60";
+
 function ResetPassword() {
     const navigate = useNavigate();
 
@@ -26,11 +34,6 @@ function ResetPassword() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
 
-    const [verifyRequest, setVerifyRequest] = useState({
-        email: "",
-        otp: " "
-    })
-
     const [formData, setFormData] = useState({
         email: "",
         otp: "",
@@ -38,18 +41,17 @@ function ResetPassword() {
         confirmPassword: "",
     });
 
-    const handleVerifyRequest = (e) => {
-        setVerifyRequest((prev) => ({
-            ...prev,
-            [e.target.name]: e.target.value,
-        }));
-    }
-
     const handleChange = (e) => {
         setFormData((prev) => ({
             ...prev,
             [e.target.name]: e.target.value,
         }));
+    };
+
+    // Keep the OTP field numeric-only, regardless of what the keyboard allows through.
+    const handleOtpChange = (e) => {
+        const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 6);
+        setFormData((prev) => ({ ...prev, otp: digitsOnly }));
     };
 
     // Cooldown ticks down once a second while active.
@@ -145,16 +147,15 @@ function ResetPassword() {
 
         try {
             setLoading(true);
+
             const verifyRequest = {
                 email: formData.email,
-                otp: formData.otp
+                otp: formData.otp,
             };
             const resetRequest = {
                 email: formData.email,
-                newPassword: formData.newPassword
+                newPassword: formData.newPassword,
             };
-
-
 
             await verifyOtp(verifyRequest);
             await resetPassword(resetRequest);
@@ -180,26 +181,30 @@ function ResetPassword() {
     return (
         <div className="relative min-h-screen overflow-hidden bg-[#0B1220] flex items-center justify-center px-6 py-10 font-[Inter,sans-serif]">
 
-            {/* Ambient glow — same gold accent as the sign-up flow, kept consistent across the auth experience */}
+            {/* Ambient glow — light blue top-left fading into a deeper navy-blue
+                bottom-right, so the backdrop itself carries the light→dark blue story. */}
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -top-32 -left-20 h-96 w-96 rounded-full bg-blue-400 blur-[120px]"
+                className="pointer-events-none absolute -top-32 -left-20 h-96 w-96 rounded-full bg-sky-400/40 blur-[120px]"
             />
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-green-200 blur-[120px]"
+                className="pointer-events-none absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-blue-900/50 blur-[120px]"
             />
 
             <div className="relative w-full max-w-lg rounded-3xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-2xl shadow-[0_25px_80px_rgba(0,0,0,0.45)] overflow-hidden">
 
                 {/* Top accent */}
-                <div className="h-1.5 bg-[#C8A24A]" />
+                <div className="h-1.5" style={{ background: ACCENT_GRADIENT }} />
 
                 <div className="p-8 sm:p-10">
 
                     {/* Logo */}
                     <div className="flex justify-center">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#C8A24A] shadow-lg shadow-[#C8A24A]/20">
+                        <div
+                            className="flex h-16 w-16 items-center justify-center rounded-full shadow-lg shadow-blue-500/20"
+                            style={{ background: ACCENT_GRADIENT }}
+                        >
                             <ShieldCheck size={30} className="text-[#0B1220]" />
                         </div>
                     </div>
@@ -225,7 +230,7 @@ function ResetPassword() {
                                     <button
                                         type="button"
                                         onClick={handleChangeEmail}
-                                        className="flex items-center gap-1 text-xs font-medium text-[#C8A24A] hover:text-[#dab868] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A24A]/60 rounded"
+                                        className="flex items-center gap-1 text-xs font-medium text-sky-400 hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 rounded"
                                     >
                                         <Pencil size={12} />
                                         Change
@@ -244,7 +249,7 @@ function ResetPassword() {
                                     disabled={otpSent}
                                     onChange={handleChange}
                                     placeholder="john@example.com"
-                                    className="w-full rounded-xl border border-white/10 bg-white/5 py-4 pl-12 pr-4 text-white placeholder:text-slate-500 outline-none transition focus:border-[#C8A24A] focus:ring-4 focus:ring-[#C8A24A]/20 disabled:opacity-60"
+                                    className={`${INPUT_CLASSES} pl-12 pr-4`}
                                 />
                             </div>
                         </div>
@@ -254,26 +259,8 @@ function ResetPassword() {
                                 type="button"
                                 onClick={handleSendOtp}
                                 disabled={loading}
-                                className="
-w-full
-rounded-xl
-border
-border-blue-500/30
-bg-gradient-to-r
-from-blue-600
-via-blue-500
-to-cyan-500
-py-4
-font-semibold
-text-white
-transition-all
-duration-300
-hover:shadow-[0_0_35px_rgba(59,130,246,0.45)]
-hover:scale-[1.02]
-active:scale-100
-disabled:cursor-not-allowed
-disabled:opacity-60
- font-semibold text-white transition hover:bg-[#dab868] disabled:cursor-not-allowed disabled:opacity-60"
+                                style={{ background: ACCENT_GRADIENT }}
+                                className="w-full rounded-xl border border-sky-400/30 py-4 font-semibold text-white transition-all duration-300 hover:shadow-[0_0_35px_rgba(59,130,246,0.45)] hover:scale-[1.02] active:scale-100 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:shadow-none"
                             >
                                 {loading ? "Sending code…" : "Send verification code"}
                             </button>
@@ -281,7 +268,7 @@ disabled:opacity-60
                             <>
                                 {/* OTP */}
                                 <div>
-                                    <label htmlFor="otp" className=" mb-2 block text-sm text-slate-300">
+                                    <label htmlFor="otp" className="mb-2 block text-sm text-slate-300">
                                         Verification code
                                     </label>
 
@@ -293,10 +280,10 @@ disabled:opacity-60
                                         name="otp"
                                         autoComplete="one-time-code"
                                         value={formData.otp}
-                                        onChange={handleChange}
+                                        onChange={handleOtpChange}
                                         placeholder="123456"
                                         maxLength={6}
-                                        className="w-full rounded-xl border border-white/10 bg-white/5 py-4 text-center text-2xl tracking-[10px] text-white placeholder:text-slate-600 outline-none transition focus:border-[#C8A24A] focus:ring-4 focus:ring-[#C8A24A]/20"
+                                        className={`${INPUT_CLASSES} text-center text-2xl tracking-[10px] placeholder:text-slate-600`}
                                     />
 
                                     <div className="mt-2 text-center">
@@ -304,7 +291,7 @@ disabled:opacity-60
                                             type="button"
                                             onClick={handleSendOtp}
                                             disabled={resendCooldown > 0 || loading}
-                                            className="text-xs font-medium text-slate-400 transition hover:text-[#C8A24A] disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="text-xs font-medium text-slate-400 transition hover:text-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             {resendCooldown > 0
                                                 ? `Resend code in ${resendCooldown}s`
@@ -329,13 +316,13 @@ disabled:opacity-60
                                             value={formData.newPassword}
                                             onChange={handleChange}
                                             placeholder="Enter new password"
-                                            className="w-full rounded-xl border border-white/10 bg-white/5 py-4 pl-12 pr-12 text-white placeholder:text-slate-500 outline-none transition focus:border-[#C8A24A] focus:ring-4 focus:ring-[#C8A24A]/20"
+                                            className={`${INPUT_CLASSES} pl-12 pr-12`}
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
+                                            onClick={() => setShowPassword((v) => !v)}
                                             aria-label={showPassword ? "Hide password" : "Show password"}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A24A]/60 rounded"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 rounded"
                                         >
                                             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                         </button>
@@ -361,23 +348,30 @@ disabled:opacity-60
                                             value={formData.confirmPassword}
                                             onChange={handleChange}
                                             placeholder="Confirm password"
-                                            className="w-full rounded-xl border border-white/10 bg-white/5 py-4 pl-12 pr-12 text-white placeholder:text-slate-500 outline-none transition focus:border-[#C8A24A] focus:ring-4 focus:ring-[#C8A24A]/20"
+                                            className={`${INPUT_CLASSES} pl-12 pr-12`}
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => setShowConfirm(!showConfirm)}
+                                            onClick={() => setShowConfirm((v) => !v)}
                                             aria-label={showConfirm ? "Hide password" : "Show password"}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A24A]/60 rounded"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 rounded"
                                         >
                                             {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
                                         </button>
                                     </div>
+                                    {formData.confirmPassword.length > 0 &&
+                                        formData.newPassword !== formData.confirmPassword && (
+                                            <p className="mt-1.5 text-xs text-red-400">
+                                                Passwords don't match yet.
+                                            </p>
+                                        )}
                                 </div>
 
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full rounded-xl bg-[#C8A24A] py-4 font-semibold text-[#0B1220] transition hover:bg-[#dab868] disabled:cursor-not-allowed disabled:opacity-60"
+                                    style={{ background: ACCENT_GRADIENT }}
+                                    className="w-full rounded-xl py-4 font-semibold text-white transition-all duration-300 hover:shadow-[0_0_35px_rgba(59,130,246,0.45)] hover:scale-[1.02] active:scale-100 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 disabled:hover:shadow-none"
                                 >
                                     {loading ? "Updating password…" : "Reset password"}
                                 </button>
@@ -388,7 +382,7 @@ disabled:opacity-60
                     <div className="mt-8 flex justify-center">
                         <Link
                             to="/auth"
-                            className="flex items-center gap-2 text-sm text-slate-400 transition hover:text-[#C8A24A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A24A]/60 rounded"
+                            className="flex items-center gap-2 text-sm text-slate-400 transition hover:text-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 rounded"
                         >
                             <ArrowLeft size={16} />
                             Back to login

@@ -39,6 +39,7 @@ const fieldStyles = {
 function Login({ setIsLogin }) {
   const dispatch = useDispatch();
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -86,10 +87,11 @@ function Login({ setIsLogin }) {
       return;
     }
 
+    setLoading(true);
+
     try {
       const response = await loginUser(formData);
 
-      // Save JWT (change key according to your backend response)
       if (response) {
         dispatch(setUser(response));
       }
@@ -103,12 +105,7 @@ function Login({ setIsLogin }) {
         icon: <CheckCircle2 size={18} />,
       });
 
-      
-     
-      
       navigate("/");
-     
-     
     } catch (error) {
       notifications.show({
         title: "Sign in Failed",
@@ -121,6 +118,8 @@ function Login({ setIsLogin }) {
         autoClose: 4000,
         icon: <CircleAlert size={18} />,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -174,7 +173,7 @@ function Login({ setIsLogin }) {
           />
 
           <button
-          onClick={()=> navigate("/reset-password")}
+            onClick={() => navigate("/reset-password")}
             type="button"
             className="text-sm text-[#C8A24A] hover:text-[#DDBB63] transition-colors"
           >
@@ -186,11 +185,14 @@ function Login({ setIsLogin }) {
           fullWidth
           radius="md"
           size="md"
-          rightSection={<ArrowRight size={16} />}
+          loading={loading}
+          loaderProps={{ type: "dots" }}
+          disabled={loading}
+          rightSection={!loading && <ArrowRight size={16} />}
           className="!bg-[#C8A24A] hover:!bg-[#B8923F] !text-[#0B1220] !font-medium transition-colors"
           onClick={handleSubmit}
         >
-          Sign In
+          {loading ? "Signing In..." : "Sign In"}
         </Button>
       </div>
 
