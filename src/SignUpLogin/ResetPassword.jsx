@@ -26,9 +26,9 @@ function ResetPassword() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
 
-    const [verifyRequest,setVerifyRequest] = useState({
-        email:"",
-        otp:" "
+    const [verifyRequest, setVerifyRequest] = useState({
+        email: "",
+        otp: " "
     })
 
     const [formData, setFormData] = useState({
@@ -38,8 +38,8 @@ function ResetPassword() {
         confirmPassword: "",
     });
 
-    const handleVerifyRequest = (e)=>{
-        setVerifyRequest((prev)=> ({
+    const handleVerifyRequest = (e) => {
+        setVerifyRequest((prev) => ({
             ...prev,
             [e.target.name]: e.target.value,
         }));
@@ -145,9 +145,19 @@ function ResetPassword() {
 
         try {
             setLoading(true);
+            const verifyRequest = {
+                email: formData.email,
+                otp: formData.otp
+            };
+            const resetRequest = {
+                email: formData.email,
+                newPassword: formData.newPassword
+            };
 
-            await verifyOtp(formData.email, formData.otp);
-            await resetPassword(formData.email, formData.newPassword);
+
+
+            await verifyOtp(verifyRequest);
+            await resetPassword(resetRequest);
 
             notifications.show({
                 color: "green",

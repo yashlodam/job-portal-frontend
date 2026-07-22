@@ -11,7 +11,7 @@ const links = [
   { name: "Find Talent", url: "/find-talent" },
   { name: "Post Job", url: "/upload-job" },
   { name: "Posted Job", url: "/posted-job" },
-  { name: "Signup", url: "/auth" }
+  { name: "Job History", url: "/auth" }
 ];
 
 /* ─── User Data ─── */
