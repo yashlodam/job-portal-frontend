@@ -1,35 +1,76 @@
-import { ActionIcon, Divider } from "@mantine/core";
+import { ActionIcon, Divider, Modal, Notification } from "@mantine/core";
 import {
   IconBriefcase,
   IconCamera,
   IconCertificate,
+  IconCheck,
+  IconCode,
   IconDeviceFloppy,
   IconExternalLink,
+  IconGlobe,
+  IconLanguage,
   IconMapPin,
   IconPencil,
   IconPlus,
+  IconBrandGithub,
+  IconBrandLinkedin,
   IconSchool,
+  IconTrash,
   IconX,
+  IconUser,
+  IconStar,
 } from "@tabler/icons-react";
 
 import { MonthPickerInput } from "@mantine/dates";
 import "@mantine/dates/styles.css";
 import dayjs from "dayjs";
 
-import React, { useRef, useState } from "react";
-import { profile } from "../Data/Data";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useId,
+} from "react";
+import { profile as defaultProfile } from "../Data/Data";
 
-const inputClass =
-  "w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-heading placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors";
+/* ============================================================
+   Helpers
+   ============================================================ */
 
-const textareaClass = `${inputClass} resize-none leading-6`;
+/** Stable ID generator for new list items */
+let _counter = Date.now();
+const uid = () => `id_${(_counter++).toString(36)}`;
 
-const labelClass = "mb-1 block text-xs font-medium text-muted";
+/** Revoke a blob URL safely */
+const revokeBlob = (url) => {
+  if (url && url.startsWith("blob:")) URL.revokeObjectURL(url);
+};
 
-function Field({ label, children }) {
+/* ============================================================
+   Design tokens (inline-shared constants)
+   ============================================================ */
+
+const inputCls =
+  "w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-heading placeholder:text-muted focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all duration-200";
+
+const textareaCls = `${inputCls} resize-none leading-6`;
+const labelCls = "mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted";
+const sectionHeadingCls =
+  "font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl";
+
+/* ============================================================
+   Small reusable primitives  (defined OUTSIDE Profile so they
+   are stable references and won't re-mount on every render)
+   ============================================================ */
+
+function Field({ label, htmlFor, children, required }) {
   return (
     <div>
-      <label className={labelClass}>{label}</label>
+      <label htmlFor={htmlFor} className={labelCls}>
+        {label}
+        {required && <span className="ml-0.5 text-danger">*</span>}
+      </label>
       {children}
     </div>
   );
@@ -37,199 +78,483 @@ function Field({ label, children }) {
 
 function EmptyState({ text }) {
   return (
-    <p className="mt-3 text-sm italic text-muted">
-      {text}
-    </p>
+    <p className="mt-3 text-sm italic text-muted/70">{text}</p>
   );
 }
 
-function Profile() {
-  // 0: header  1: about  2: skills  3: experience  4: education  5: certifications
-  const [edit, setEdit] = useState([false, false, false, false, false, false]);
-  const [data, setData] = useState(profile);
-  const [skillDraft, setSkillDraft] = useState("");
+/** Small inline toast shown for 2.5 s after a section save */
+function SaveToast({ visible, onClose }) {
+  useEffect(() => {
+    if (!visible) return;
+    const t = setTimeout(onClose, 2500);
+    return () => clearTimeout(t);
+  }, [visible, onClose]);
 
+  if (!visible) return null;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-6 right-6 z-50 animate-fade-in-up"
+    >
+      <Notification
+        icon={<IconCheck size={18} />}
+        color="teal"
+        title="Saved"
+        withCloseButton={false}
+        className="shadow-elevated"
+      >
+        Your changes have been saved.
+      </Notification>
+    </div>
+  );
+}
+
+/** Confirm delete modal */
+function ConfirmModal({ opened, onClose, onConfirm, title, message }) {
+  return (
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={title}
+      centered
+      size="sm"
+      overlayProps={{ blur: 4 }}
+    >
+      <p className="text-sm text-body">{message}</p>
+      <div className="mt-5 flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="btn btn-secondary btn-sm"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => { onConfirm(); onClose(); }}
+          className="btn btn-sm rounded-xl bg-danger/90 text-white hover:bg-danger"
+        >
+          Delete
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+/* ============================================================
+   Section wrapper
+   ============================================================ */
+
+function Section({ children }) {
+  return (
+    <>
+      <section className="relative rounded-2xl border border-white/[0.06] bg-surface/50 p-5 sm:p-6 backdrop-blur-sm">
+        {children}
+      </section>
+    </>
+  );
+}
+
+/* ============================================================
+   EditButton / AddButton / DeleteButton
+   ============================================================ */
+
+function EditButton({ editing, onToggle, label }) {
+  return (
+    <ActionIcon
+      variant="light"
+      radius="xl"
+      size="lg"
+      aria-label={editing ? `Save ${label}` : `Edit ${label}`}
+      className="!bg-white/5 hover:!bg-cyan-500/15 border border-white/10 hover:border-cyan-400/40 transition-all duration-300 shrink-0"
+      onClick={onToggle}
+    >
+      {editing ? (
+        <IconDeviceFloppy size={20} className="text-cyan-300" />
+      ) : (
+        <IconPencil size={20} className="text-slate-400" />
+      )}
+    </ActionIcon>
+  );
+}
+
+function AddButton({ onClick, label }) {
+  return (
+    <ActionIcon
+      variant="light"
+      radius="xl"
+      size="lg"
+      aria-label={label}
+      className="!bg-white/5 hover:!bg-primary/15 border border-white/10 hover:border-primary/40 transition-all duration-300"
+      onClick={onClick}
+    >
+      <IconPlus size={20} className="text-slate-400" />
+    </ActionIcon>
+  );
+}
+
+function DeleteButton({ onClick, label }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className="shrink-0 rounded-lg p-1 text-muted hover:text-danger hover:bg-danger/10 transition-all duration-200"
+    >
+      <IconTrash size={16} />
+    </button>
+  );
+}
+
+/* ============================================================
+   Availability badge options
+   ============================================================ */
+
+const AVAILABILITY_OPTIONS = [
+  { value: "Open to Work", color: "bg-success/15 border-success/30 text-success-light" },
+  { value: "Open to Opportunities", color: "bg-primary/15 border-primary/30 text-primary-light" },
+  { value: "Not Looking", color: "bg-white/5 border-white/10 text-muted" },
+];
+
+const EXPERIENCE_LEVELS = [
+  "Fresher",
+  "Entry Level",
+  "Mid Level",
+  "Senior Level",
+  "Lead / Principal",
+  "Executive",
+];
+
+const JOB_TYPES = [
+  "Full Time",
+  "Part Time",
+  "Internship",
+  "Freelance",
+  "Contract",
+  "Remote",
+];
+
+/* ============================================================
+   Main Profile Component
+   ============================================================ */
+
+function Profile() {
+  const [data, setData] = useState(() => ({
+    ...defaultProfile,
+    // Ensure arrays exist
+    skills: defaultProfile.skills ?? [],
+    experience: (defaultProfile.experience ?? []).map((e) => ({
+      ...e,
+      _id: e.id ? `id_${e.id}` : uid(),
+    })),
+    education: (defaultProfile.education ?? []).map((e) => ({
+      ...e,
+      _id: e.id ? `id_${e.id}` : uid(),
+    })),
+    certifications: (defaultProfile.certifications ?? []).map((c) => ({
+      ...c,
+      _id: c.id ? `id_${c.id}` : uid(),
+    })),
+    projects: (defaultProfile.projects ?? []).map((p) => ({
+      ...p,
+      _id: p.id ? `id_${p.id}` : uid(),
+    })),
+    languages: defaultProfile.languages ?? [],
+    socialLinks: defaultProfile.socialLinks ?? {},
+    availability: defaultProfile.availability ?? "Open to Work",
+    experienceLevel: defaultProfile.experienceLevel ?? "Mid Level",
+  }));
+
+  // Section edit states
+  const [editHeader, setEditHeader] = useState(false);
+  const [editAbout, setEditAbout] = useState(false);
+  const [editSkills, setEditSkills] = useState(false);
+  const [editExp, setEditExp] = useState(false);
+  const [editEdu, setEditEdu] = useState(false);
+  const [editCert, setEditCert] = useState(false);
+  const [editProjects, setEditProjects] = useState(false);
+  const [editSocial, setEditSocial] = useState(false);
+  const [editMisc, setEditMisc] = useState(false);
+
+  // UI state
+  const [skillDraft, setSkillDraft] = useState("");
+  const [langDraft, setLangDraft] = useState("");
+  const [toast, setToast] = useState(false);
+  const [confirm, setConfirm] = useState(null); // { title, message, onConfirm }
+
+  // Image refs & blob tracking
   const bannerInputRef = useRef(null);
   const avatarInputRef = useRef(null);
+  const prevBannerRef = useRef(data.bannerImage);
+  const prevAvatarRef = useRef(data.profileImage);
 
-  const handleEdit = (index) => {
-    const newEdit = [...edit];
-    newEdit[index] = !newEdit[index];
-    setEdit(newEdit);
-  };
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      revokeBlob(prevBannerRef.current);
+      revokeBlob(prevAvatarRef.current);
+    };
+  }, []);
 
-  const updateField = (field, value) => {
+  /* ── Generic updaters ── */
+
+  const updateField = useCallback((field, value) => {
     setData((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
-  const updateListItem = (listKey, index, field, value) => {
-    setData((prev) => {
-      const list = [...prev[listKey]];
-      list[index] = { ...list[index], [field]: value };
-      return { ...prev, [listKey]: list };
-    });
-  };
+  const updateListItem = useCallback((listKey, id, field, value) => {
+    setData((prev) => ({
+      ...prev,
+      [listKey]: prev[listKey].map((item) =>
+        item._id === id ? { ...item, [field]: value } : item
+      ),
+    }));
+  }, []);
 
-  const handleImageSelect = (e, field) => {
+  const showToast = useCallback(() => setToast(true), []);
+  const hideToast = useCallback(() => setToast(false), []);
+
+  const handleSave = useCallback(
+    (closeFn) => () => {
+      closeFn(false);
+      showToast();
+    },
+    [showToast]
+  );
+
+  /* ── Image handling ── */
+
+  const handleImageSelect = useCallback((e, field, prevRef) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const previewUrl = URL.createObjectURL(file);
-    updateField(field, previewUrl);
+    revokeBlob(prevRef.current);
+    const url = URL.createObjectURL(file);
+    prevRef.current = url;
+    setData((prev) => ({ ...prev, [field]: url }));
     e.target.value = "";
-  };
+  }, []);
 
-  const addSkill = () => {
+  /* ── Skills ── */
+
+  const addSkill = useCallback(() => {
     const value = skillDraft.trim();
     if (!value) return;
-    setData((prev) => ({ ...prev, skills: [...(prev.skills || []), value] }));
+    if (data.skills.includes(value)) {
+      setSkillDraft("");
+      return;
+    }
+    setData((prev) => ({ ...prev, skills: [...prev.skills, value] }));
     setSkillDraft("");
-  };
+  }, [skillDraft, data.skills]);
 
-  const removeSkill = (skill) => {
+  const removeSkill = useCallback((skill) => {
     setData((prev) => ({
       ...prev,
       skills: prev.skills.filter((s) => s !== skill),
     }));
-  };
+  }, []);
 
-  const addExperience = () => {
+  /* ── Languages ── */
+
+  const addLanguage = useCallback(() => {
+    const value = langDraft.trim();
+    if (!value || data.languages.includes(value)) {
+      setLangDraft("");
+      return;
+    }
+    setData((prev) => ({ ...prev, languages: [...prev.languages, value] }));
+    setLangDraft("");
+  }, [langDraft, data.languages]);
+
+  const removeLanguage = useCallback((lang) => {
     setData((prev) => ({
       ...prev,
-      experience: [
-        ...(prev.experience || []),
-        {
-          role: "",
-          company: "",
-          startDate: "",
-          endDate: "",
-          type: "",
-          location: "",
-          description: "",
-          logo: "",
-        },
-      ],
+      languages: prev.languages.filter((l) => l !== lang),
     }));
-    if (!edit[3]) handleEdit(3);
-  };
+  }, []);
 
-  const removeExperience = (index) => {
+  /* ── Experience ── */
+
+  const addExperience = useCallback(() => {
+    const newItem = {
+      _id: uid(),
+      role: "",
+      company: "",
+      startDate: "",
+      endDate: "",
+      type: "",
+      location: "",
+      description: "",
+      logo: "",
+    };
+    setData((prev) => ({ ...prev, experience: [...prev.experience, newItem] }));
+    setEditExp(true);
+  }, []);
+
+  const confirmRemoveExperience = useCallback((id, role) => {
+    setConfirm({
+      title: "Remove Experience",
+      message: `Are you sure you want to remove "${role || "this role"}"?`,
+      onConfirm: () =>
+        setData((prev) => ({
+          ...prev,
+          experience: prev.experience.filter((e) => e._id !== id),
+        })),
+    });
+  }, []);
+
+  /* ── Education ── */
+
+  const addEducation = useCallback(() => {
+    const newItem = {
+      _id: uid(),
+      degree: "",
+      college: "",
+      university: "",
+      startYear: "",
+      endYear: "",
+      location: "",
+    };
+    setData((prev) => ({ ...prev, education: [...prev.education, newItem] }));
+    setEditEdu(true);
+  }, []);
+
+  const confirmRemoveEducation = useCallback((id, degree) => {
+    setConfirm({
+      title: "Remove Education",
+      message: `Are you sure you want to remove "${degree || "this entry"}"?`,
+      onConfirm: () =>
+        setData((prev) => ({
+          ...prev,
+          education: prev.education.filter((e) => e._id !== id),
+        })),
+    });
+  }, []);
+
+  /* ── Certifications ── */
+
+  const addCertification = useCallback(() => {
+    const newItem = {
+      _id: uid(),
+      title: "",
+      issuer: "",
+      issuedDate: "",
+      credentialId: "",
+      credentialUrl: "",
+    };
     setData((prev) => ({
       ...prev,
-      experience: prev.experience.filter((_, i) => i !== index),
+      certifications: [...prev.certifications, newItem],
     }));
-  };
+    setEditCert(true);
+  }, []);
 
-  const addEducation = () => {
+  const confirmRemoveCertification = useCallback((id, title) => {
+    setConfirm({
+      title: "Remove Certification",
+      message: `Are you sure you want to remove "${title || "this certification"}"?`,
+      onConfirm: () =>
+        setData((prev) => ({
+          ...prev,
+          certifications: prev.certifications.filter((c) => c._id !== id),
+        })),
+    });
+  }, []);
+
+  /* ── Projects ── */
+
+  const addProject = useCallback(() => {
+    const newItem = {
+      _id: uid(),
+      title: "",
+      description: "",
+      technologies: [],
+      url: "",
+    };
+    setData((prev) => ({ ...prev, projects: [...prev.projects, newItem] }));
+    setEditProjects(true);
+  }, []);
+
+  const confirmRemoveProject = useCallback((id, title) => {
+    setConfirm({
+      title: "Remove Project",
+      message: `Are you sure you want to remove "${title || "this project"}"?`,
+      onConfirm: () =>
+        setData((prev) => ({
+          ...prev,
+          projects: prev.projects.filter((p) => p._id !== id),
+        })),
+    });
+  }, []);
+
+  const updateProjectTech = useCallback((id, rawValue) => {
+    const technologies = rawValue.split(",").map((t) => t.trim()).filter(Boolean);
     setData((prev) => ({
       ...prev,
-      education: [
-        ...(prev.education || []),
-        {
-          degree: "",
-          college: "",
-          university: "",
-          startYear: "",
-          endYear: "",
-          location: "",
-        },
-      ],
+      projects: prev.projects.map((p) =>
+        p._id === id ? { ...p, technologies } : p
+      ),
     }));
-    if (!edit[4]) handleEdit(4);
-  };
+  }, []);
 
-  const removeEducation = (index) => {
+  /* ── Social Links ── */
+
+  const updateSocialLink = useCallback((key, value) => {
     setData((prev) => ({
       ...prev,
-      education: prev.education.filter((_, i) => i !== index),
+      socialLinks: { ...prev.socialLinks, [key]: value },
     }));
-  };
+  }, []);
 
-  const addCertification = () => {
-    setData((prev) => ({
-      ...prev,
-      certifications: [
-        ...(prev.certifications || []),
-        {
-          title: "",
-          issuer: "",
-          issuedDate: "",
-          credentialId: "",
-          credentialUrl: "",
-        },
-      ],
-    }));
-    if (!edit[5]) handleEdit(5);
-  };
+  /* ── Availability badge color ── */
+  const availBadge =
+    AVAILABILITY_OPTIONS.find((o) => o.value === data.availability) ??
+    AVAILABILITY_OPTIONS[0];
 
-  const removeCertification = (index) => {
-    setData((prev) => ({
-      ...prev,
-      certifications: prev.certifications.filter((_, i) => i !== index),
-    }));
-  };
-
-  const EditButton = ({ index }) => (
-    <ActionIcon
-      variant="light"
-      radius="xl"
-      size="lg"
-      className="!bg-white/5 hover:!bg-cyan-500/15 border border-white/10 hover:border-cyan-400/40 transition-all duration-300"
-      onClick={() => handleEdit(index)}
-    >
-      {edit[index] ? (
-        <IconDeviceFloppy size={20} className="text-cyan-300" />
-      ) : (
-        <IconPencil size={20} className="text-slate-300" />
-      )}
-    </ActionIcon>
-  );
-
-  const AddButton = ({ onClick }) => (
-    <ActionIcon
-      variant="light"
-      radius="xl"
-      size="lg"
-      className="!bg-white/5 hover:!bg-cyan-500/15 border border-white/10 hover:border-cyan-400/40 transition-all duration-300"
-      onClick={onClick}
-    >
-      <IconPlus size={20} className="text-slate-300" />
-    </ActionIcon>
-  );
+  /* ======================================================
+     RENDER
+     ====================================================== */
 
   return (
-    <div className="w-4/5 mx-auto">
+    <div className="w-full max-w-4xl mx-auto space-y-5 pb-16">
 
-      {/* Banner + Profile Image */}
-      <div className="relative">
+      {/* ── Toast ── */}
+      <SaveToast visible={toast} onClose={hideToast} />
+
+      {/* ── Confirm Modal ── */}
+      <ConfirmModal
+        opened={!!confirm}
+        onClose={() => setConfirm(null)}
+        onConfirm={confirm?.onConfirm}
+        title={confirm?.title}
+        message={confirm?.message}
+      />
+
+      {/* ════════════════════════════════════════════════
+          HEADER — Banner + Avatar + Identity
+          ════════════════════════════════════════════════ */}
+      <div className="relative rounded-2xl overflow-hidden border border-white/[0.06] bg-surface">
 
         {/* Banner */}
-        <div className="group relative h-64 w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-surface">
-          {data.bannerImage ? (
+        <div className="group relative h-52 sm:h-60 w-full bg-gradient-to-br from-primary/20 via-violet/10 to-accent/15">
+          {data.bannerImage && (
             <img
               src={data.bannerImage}
               alt="Profile banner"
               className="h-full w-full object-cover"
             />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-muted">
-              No banner uploaded yet
-            </div>
           )}
+          {/* Overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-surface/60 to-transparent pointer-events-none" />
 
           <button
             type="button"
             onClick={() => bannerInputRef.current?.click()}
-            className="
-              absolute right-4 top-4
-              inline-flex items-center gap-1.5
-              rounded-lg border border-white/15
-              bg-black/50 backdrop-blur-md
-              px-3 py-1.5 text-xs font-medium text-white
-              opacity-0 group-hover:opacity-100
-              transition-opacity duration-200
-            "
+            aria-label="Change banner image"
+            className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/50 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-200"
           >
-            <IconCamera size={15} />
+            <IconCamera size={14} />
             Change banner
           </button>
           <input
@@ -237,423 +562,545 @@ function Profile() {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => handleImageSelect(e, "bannerImage")}
+            onChange={(e) =>
+              handleImageSelect(e, "bannerImage", prevBannerRef)
+            }
           />
         </div>
 
-        {/* Profile Image */}
-        <div className="absolute -bottom-20 left-8">
-          <div className="group relative">
-            <div
-              className="
-                h-40 w-40
-                overflow-hidden
-                rounded-full
-                border-[5px]
-                border-background
-                bg-surface
-                shadow-[0_12px_40px_rgba(0,0,0,0.35)]
-                sm:h-44
-                sm:w-44
-                flex items-center justify-center
-              "
-            >
-              {data.profileImage ? (
-                <img
-                  src={data.profileImage}
-                  alt={data.name || "Profile"}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-xs text-muted px-4 text-center">
-                  Add photo
+        {/* Avatar + Name row */}
+        <div className="px-5 sm:px-7 pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-14 sm:-mt-16">
+
+            {/* Avatar */}
+            <div className="group relative w-fit">
+              <div className="h-28 w-28 sm:h-32 sm:w-32 overflow-hidden rounded-2xl border-[4px] border-surface bg-surface-elevated shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center justify-center">
+                {data.profileImage ? (
+                  <img
+                    src={data.profileImage}
+                    alt={data.name || "Profile photo"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <IconUser size={40} className="text-muted/50" />
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                aria-label="Change profile photo"
+                className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 text-white text-xs font-medium gap-1"
+              >
+                <IconCamera size={18} />
+              </button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) =>
+                  handleImageSelect(e, "profileImage", prevAvatarRef)
+                }
+              />
+            </div>
+
+            {/* Availability badge + Edit button */}
+            <div className="flex items-center gap-2 sm:mb-1">
+              {!editHeader && (
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${availBadge.color}`}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+                  {data.availability}
                 </span>
               )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => avatarInputRef.current?.click()}
-              className="
-                absolute bottom-1 right-1
-                flex h-9 w-9 items-center justify-center
-                rounded-full border border-white/15
-                bg-black/60 backdrop-blur-md
-                text-white
-                opacity-0 group-hover:opacity-100
-                transition-opacity duration-200
-              "
-            >
-              <IconCamera size={16} />
-            </button>
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => handleImageSelect(e, "profileImage")}
-            />
-          </div>
-        </div>
-
-      </div>
-
-      {/* Space for Profile Image */}
-      <div className="h-24" />
-
-      {/* Profile Information */}
-      <div className="px-3 sm:px-4">
-
-        {/* Name + Edit Button */}
-        <div className="flex items-center justify-between gap-6">
-
-          {/* Name */}
-          {edit[0] ? (
-            <div className="w-full max-w-sm">
-              <Field label="Name">
-                <input
-                  className={`${inputClass} font-satoshi text-2xl font-bold`}
-                  value={data.name}
-                  placeholder="e.g. Yash Lodam"
-                  onChange={(e) => updateField("name", e.target.value)}
-                />
-              </Field>
-            </div>
-          ) : (
-            <h1
-              className="
-                font-satoshi
-                text-2xl
-                font-bold
-                tracking-tight
-                text-heading
-                sm:text-3xl
-              "
-            >
-              {data.name || (
-                <span className="text-muted font-normal">Add your name</span>
-              )}
-            </h1>
-          )}
-
-          <EditButton index={0} />
-
-        </div>
-
-        {/* Role + Company */}
-        {edit[0] ? (
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Field label="Role">
-              <input
-                className={`${inputClass} max-w-[220px]`}
-                value={data.role}
-                placeholder="e.g. Product Designer"
-                onChange={(e) => updateField("role", e.target.value)}
+              <EditButton
+                editing={editHeader}
+                onToggle={
+                  editHeader
+                    ? handleSave(setEditHeader)
+                    : () => setEditHeader(true)
+                }
+                label="header"
               />
-            </Field>
-            <Field label="Company">
-              <input
-                className={`${inputClass} max-w-[220px]`}
-                value={data.company}
-                placeholder="e.g. Acme Inc."
-                onChange={(e) => updateField("company", e.target.value)}
-              />
-            </Field>
+            </div>
           </div>
-        ) : data.role || data.company ? (
-          <div className="mt-2 flex items-center gap-2 text-sm text-body sm:text-base">
-            <IconBriefcase
-              size={18}
-              stroke={1.7}
-              className="shrink-0 text-muted"
-            />
-            <span className="font-medium">{data.role}</span>
-            {data.role && data.company && (
-              <span className="text-muted">•</span>
+
+          {/* Identity info */}
+          <div className="mt-4">
+            {editHeader ? (
+              <div className="space-y-4 max-w-2xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="Full Name" required>
+                    <input
+                      className={inputCls}
+                      value={data.name}
+                      placeholder="e.g. Yash Lodam"
+                      onChange={(e) => updateField("name", e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Location">
+                    <input
+                      className={inputCls}
+                      value={data.location}
+                      placeholder="e.g. Pune, India"
+                      onChange={(e) => updateField("location", e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Current Role">
+                    <input
+                      className={inputCls}
+                      value={data.role}
+                      placeholder="e.g. Software Developer"
+                      onChange={(e) => updateField("role", e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Company">
+                    <input
+                      className={inputCls}
+                      value={data.company}
+                      placeholder="e.g. Google"
+                      onChange={(e) => updateField("company", e.target.value)}
+                    />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="Availability">
+                    <select
+                      className={inputCls}
+                      value={data.availability}
+                      onChange={(e) => updateField("availability", e.target.value)}
+                    >
+                      {AVAILABILITY_OPTIONS.map((o) => (
+                        <option
+                          key={o.value}
+                          value={o.value}
+                          className="text-black"
+                        >
+                          {o.value}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Experience Level">
+                    <select
+                      className={inputCls}
+                      value={data.experienceLevel}
+                      onChange={(e) =>
+                        updateField("experienceLevel", e.target.value)
+                      }
+                    >
+                      {EXPERIENCE_LEVELS.map((l) => (
+                        <option className="text-black" key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h1 className="font-satoshi text-2xl sm:text-3xl font-bold tracking-tight text-heading">
+                  {data.name || (
+                    <span className="text-muted font-normal italic">
+                      Add your name
+                    </span>
+                  )}
+                </h1>
+
+                {(data.role || data.company) && (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm text-body">
+                    <IconBriefcase size={15} className="shrink-0 text-muted" />
+                    {data.role && <span className="font-medium">{data.role}</span>}
+                    {data.role && data.company && (
+                      <span className="text-muted">at</span>
+                    )}
+                    {data.company && (
+                      <span className="font-semibold text-primary-light">
+                        {data.company}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
+                  {data.location && (
+                    <span className="flex items-center gap-1">
+                      <IconMapPin size={14} />
+                      {data.location}
+                    </span>
+                  )}
+                  {data.experienceLevel && (
+                    <span className="flex items-center gap-1 ">
+                      <IconStar size={14} />
+                      {data.experienceLevel}
+                    </span>
+                  )}
+                </div>
+              </>
             )}
-            <span className="font-medium text-primary-light">
-              {data.company}
-            </span>
           </div>
-        ) : (
-          <p className="mt-2 text-sm text-muted italic">
-            Add your role and company
-          </p>
-        )}
-
-        {/* Location */}
-        {edit[0] ? (
-          <div className="mt-2 max-w-[280px]">
-            <Field label="Location">
-              <input
-                className={inputClass}
-                value={data.location}
-                placeholder="e.g. Pune, India"
-                onChange={(e) => updateField("location", e.target.value)}
-              />
-            </Field>
-          </div>
-        ) : data.location ? (
-          <div className="mt-1.5 flex items-center gap-2 text-sm text-muted sm:text-base">
-            <IconMapPin size={18} stroke={1.7} className="shrink-0" />
-            <span>{data.location}</span>
-          </div>
-        ) : (
-          <p className="mt-1.5 text-sm text-muted italic">Add your location</p>
-        )}
-
+        </div>
       </div>
 
-      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
-
-      {/* About Section */}
-      <section>
-        <div className="flex items-center justify-between">
-          <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
-            About
-          </h2>
-          <EditButton index={1} />
+      {/* ════════════════════════════════════════════════
+          SOCIAL LINKS
+          ════════════════════════════════════════════════ */}
+      <Section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={sectionHeadingCls}>Links</h2>
+          <EditButton
+            editing={editSocial}
+            onToggle={
+              editSocial
+                ? handleSave(setEditSocial)
+                : () => setEditSocial(true)
+            }
+            label="links"
+          />
         </div>
 
-        {edit[1] ? (
-          <div className="mt-3 max-w-3xl">
-            <Field label="About">
-              <textarea
-                className={textareaClass}
-                rows={5}
-                value={data.about}
-                placeholder="Tell people about your experience, what you're looking for, and what makes you, you."
-                onChange={(e) => updateField("about", e.target.value)}
-              />
+        {editSocial ? (
+          <div className="space-y-3 max-w-lg">
+            <Field label="LinkedIn">
+              <div className="relative">
+                <IconBrandLinkedin
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
+                />
+                <input
+                  className={`${inputCls} pl-9`}
+                  value={data.socialLinks.linkedin ?? ""}
+                  placeholder="https://linkedin.com/in/username"
+                  onChange={(e) => updateSocialLink("linkedin", e.target.value)}
+                />
+              </div>
+            </Field>
+            <Field label="GitHub">
+              <div className="relative">
+                <IconBrandGithub
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
+                />
+                <input
+                  className={`${inputCls} pl-9`}
+                  value={data.socialLinks.github ?? ""}
+                  placeholder="https://github.com/username"
+                  onChange={(e) => updateSocialLink("github", e.target.value)}
+                />
+              </div>
+            </Field>
+            <Field label="Portfolio / Website">
+              <div className="relative">
+                <IconGlobe
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
+                />
+                <input
+                  className={`${inputCls} pl-9`}
+                  value={data.socialLinks.portfolio ?? ""}
+                  placeholder="https://yourwebsite.com"
+                  onChange={(e) =>
+                    updateSocialLink("portfolio", e.target.value)
+                  }
+                />
+              </div>
             </Field>
           </div>
+        ) : (
+          <div className="flex flex-wrap gap-2.5">
+            {data.socialLinks.linkedin && (
+              <a
+                href={data.socialLinks.linkedin}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-body hover:border-primary/30 hover:text-primary-light hover:bg-primary/5 transition-all duration-200"
+              >
+                <IconBrandLinkedin size={16} className="text-[#0A66C2]" />
+                LinkedIn
+                <IconExternalLink size={13} className="text-muted" />
+              </a>
+            )}
+            {data.socialLinks.github && (
+              <a
+                href={data.socialLinks.github}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-body hover:border-white/20 hover:text-heading hover:bg-white/5 transition-all duration-200"
+              >
+                <IconBrandGithub size={16} />
+                GitHub
+                <IconExternalLink size={13} className="text-muted" />
+              </a>
+            )}
+            {data.socialLinks.portfolio && (
+              <a
+                href={data.socialLinks.portfolio}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-body hover:border-accent/30 hover:text-accent-light hover:bg-accent/5 transition-all duration-200"
+              >
+                <IconGlobe size={16} className="text-accent" />
+                Portfolio
+                <IconExternalLink size={13} className="text-muted" />
+              </a>
+            )}
+            {!data.socialLinks.linkedin &&
+              !data.socialLinks.github &&
+              !data.socialLinks.portfolio && (
+                <EmptyState text="No links added yet. Click the pencil to add your profiles." />
+              )}
+          </div>
+        )}
+      </Section>
+
+      {/* ════════════════════════════════════════════════
+          ABOUT
+          ════════════════════════════════════════════════ */}
+      <Section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={sectionHeadingCls}>About</h2>
+          <EditButton
+            editing={editAbout}
+            onToggle={
+              editAbout
+                ? handleSave(setEditAbout)
+                : () => setEditAbout(true)
+            }
+            label="about"
+          />
+        </div>
+        {editAbout ? (
+          <Field label="Bio">
+            <textarea
+              className={textareaCls}
+              rows={5}
+              value={data.about}
+              placeholder="Tell people about your experience, what you're looking for, and what makes you unique."
+              onChange={(e) => updateField("about", e.target.value)}
+            />
+          </Field>
         ) : data.about ? (
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-body sm:text-[15px]">
+          <p className="text-sm leading-7 text-body sm:text-[15px] whitespace-pre-line">
             {data.about}
           </p>
         ) : (
           <EmptyState text="You haven't added a bio yet. Click the pencil to introduce yourself." />
         )}
-      </section>
+      </Section>
 
-      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
-
-      {/* Skills Section */}
-      <section>
-        <div className="flex items-center justify-between">
-          <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
-            Skills
-          </h2>
-          <EditButton index={2} />
+      {/* ════════════════════════════════════════════════
+          SKILLS
+          ════════════════════════════════════════════════ */}
+      <Section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={sectionHeadingCls}>Skills</h2>
+          <EditButton
+            editing={editSkills}
+            onToggle={
+              editSkills
+                ? handleSave(setEditSkills)
+                : () => setEditSkills(true)
+            }
+            label="skills"
+          />
         </div>
 
-        {data?.skills?.length > 0 ? (
-          <div className="mt-4 flex flex-wrap gap-2.5">
+        {data.skills.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
             {data.skills.map((skill) => (
               <span
                 key={skill}
-                className="
-                  inline-flex
-                  items-center
-                  gap-1.5
-                  rounded-lg
-                  border
-                  border-primary/20
-                  bg-primary/10
-                  px-3.5
-                  py-1.5
-                  text-sm
-                  font-medium
-                  text-primary-light
-                  transition-all
-                  duration-300
-                  hover:border-primary/40
-                  hover:bg-primary/15
-                "
+                className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-sm font-medium text-primary-light transition-all duration-300 hover:border-primary/40 hover:bg-primary/15"
               >
                 {skill}
-                {edit[2] && (
+                {editSkills && (
                   <button
                     type="button"
+                    aria-label={`Remove ${skill}`}
                     onClick={() => removeSkill(skill)}
-                    className="text-primary-light/70 hover:text-red-400 transition-colors"
+                    className="ml-0.5 rounded text-primary-light/60 hover:text-danger transition-colors"
                   >
-                    <IconX size={14} />
+                    <IconX size={13} />
                   </button>
                 )}
               </span>
             ))}
           </div>
         ) : (
-          !edit[2] && (
+          !editSkills && (
             <EmptyState text="No skills added yet. Click the pencil to add what you're good at." />
           )
         )}
 
-        {edit[2] && (
-          <div className="mt-3 max-w-sm">
+        {editSkills && (
+          <div className="mt-4 max-w-sm">
             <Field label="Add a skill">
               <div className="flex gap-2">
                 <input
-                  className={inputClass}
+                  className={inputCls}
                   placeholder="e.g. Figma, React, SQL"
                   value={skillDraft}
                   onChange={(e) => setSkillDraft(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addSkill()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addSkill();
+                    }
+                  }}
                 />
                 <ActionIcon
                   variant="light"
                   radius="xl"
                   size="lg"
-                  className="!bg-white/5 hover:!bg-cyan-500/15 border border-white/10 shrink-0"
+                  aria-label="Add skill"
+                  className="!bg-primary/10 hover:!bg-primary/20 border border-primary/20 shrink-0"
                   onClick={addSkill}
                 >
-                  <IconPlus size={18} className="text-slate-300" />
+                  <IconPlus size={18} className="text-primary-light" />
                 </ActionIcon>
               </div>
             </Field>
           </div>
         )}
-      </section>
+      </Section>
 
-      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
-
-      {/* Experience Section */}
-      <div className="flex items-center justify-between">
-        <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
-          Experience
-        </h2>
-        <div className="flex items-center gap-2">
-          <AddButton onClick={addExperience} />
-          <EditButton index={3} />
+      {/* ════════════════════════════════════════════════
+          EXPERIENCE
+          ════════════════════════════════════════════════ */}
+      <Section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={sectionHeadingCls}>Experience</h2>
+          <div className="flex items-center gap-2">
+            <AddButton onClick={addExperience} label="Add experience" />
+            <EditButton
+              editing={editExp}
+              onToggle={
+                editExp
+                  ? handleSave(setEditExp)
+                  : () => setEditExp(true)
+              }
+              label="experience"
+            />
+          </div>
         </div>
-      </div>
 
-      {data?.experience?.length === 0 && (
-        <EmptyState text="No experience added yet. Click the + to add your first role." />
-      )}
+        {data.experience.length === 0 && (
+          <EmptyState text="No experience added yet. Click the + to add your first role." />
+        )}
 
-      {data?.experience?.map((item, index) => (
-        <section key={index}>
-          <div className="mt-6 space-y-8">
-
-            {/* Experience Item */}
-            <div className="flex gap-4">
-
-              {/* Company Logo */}
-              <div className="flex h-15 w-15 shrink-0 items-center justify-center rounded-xl border border-border bg-surface p-2">
+        <div className="space-y-6">
+          {data.experience.map((item) => (
+            <div key={item._id} className="flex gap-4">
+              {/* Logo */}
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-elevated">
                 {item.logo ? (
                   <img
                     src={item.logo}
                     alt={item.company}
-                    className="h-full w-full object-contain"
+                    className="h-8 w-8 object-contain"
                   />
                 ) : (
-                  <IconBriefcase size={22} className="text-muted" />
+                  <IconBriefcase size={20} className="text-muted" />
                 )}
               </div>
 
-              {/* Experience Details */}
-              <div className="flex-1">
-
-                {edit[3] ? (
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="flex flex-wrap gap-2">
-                        <Field label="Role">
-                          <input
-                            className={`${inputClass} max-w-[220px]`}
-                            value={item.role}
-                            placeholder="e.g. Software Engineer"
-                            onChange={(e) =>
-                              updateListItem("experience", index, "role", e.target.value)
-                            }
-                          />
-                        </Field>
-                        <Field label="Company">
-                          <input
-                            className={`${inputClass} max-w-[220px]`}
-                            value={item.company}
-                            placeholder="e.g. Google"
-                            onChange={(e) =>
-                              updateListItem("experience", index, "company", e.target.value)
-                            }
-                          />
-                        </Field>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeExperience(index)}
-                        className="shrink-0 text-muted hover:text-red-400 transition-colors"
-                      >
-                        <IconX size={18} />
-                      </button>
+              <div className="flex-1 min-w-0">
+                {editExp ? (
+                  <div className="space-y-3 rounded-xl border border-white/[0.06] bg-surface-elevated/40 p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs font-semibold text-muted uppercase tracking-wider">
+                        Edit Entry
+                      </p>
+                      <DeleteButton
+                        onClick={() =>
+                          confirmRemoveExperience(item._id, item.role)
+                        }
+                        label="Remove experience"
+                      />
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Field label="Role">
+                        <input
+                          className={inputCls}
+                          value={item.role}
+                          placeholder="e.g. Software Engineer"
+                          onChange={(e) =>
+                            updateListItem("experience", item._id, "role", e.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field label="Company">
+                        <input
+                          className={inputCls}
+                          value={item.company}
+                          placeholder="e.g. Google"
+                          onChange={(e) =>
+                            updateListItem("experience", item._id, "company", e.target.value)
+                          }
+                        />
+                      </Field>
                       <Field label="Start Date">
                         <MonthPickerInput
                           value={item.startDate ? new Date(item.startDate) : null}
                           valueFormat="MMM YYYY"
                           placeholder="Select month"
-                          className="max-w-[180px]"
                           clearable
                           onChange={(value) =>
-                            updateListItem(
-                              "experience",
-                              index,
-                              "startDate",
-                              value || ""
-                            )
+                            updateListItem("experience", item._id, "startDate", value || "")
                           }
                         />
                       </Field>
-
                       <Field label="End Date">
                         <MonthPickerInput
                           value={item.endDate ? new Date(item.endDate) : null}
                           valueFormat="MMM YYYY"
-                          placeholder="Select month"
-                          className="max-w-[180px]"
+                          placeholder="Present"
                           clearable
                           onChange={(value) =>
-                            updateListItem(
-                              "experience",
-                              index,
-                              "endDate",
-                              value || ""
-                            )
+                            updateListItem("experience", item._id, "endDate", value || "")
                           }
                         />
                       </Field>
                       <Field label="Type">
-                        <input
-                          className={`${inputClass} max-w-[140px]`}
+                        <select
+                          className={inputCls}
                           value={item.type}
-                          placeholder="e.g. Full-time"
                           onChange={(e) =>
-                            updateListItem("experience", index, "type", e.target.value)
+                            updateListItem("experience", item._id, "type", e.target.value)
                           }
-                        />
+                        >
+                          <option value="" className="text-black">
+                            Select type
+                          </option>
+
+                          {JOB_TYPES.map((t) => (
+                            <option key={t} value={t} className="text-black">
+                              {t}
+                            </option>
+                          ))}
+                        </select>
                       </Field>
                       <Field label="Location">
                         <input
-                          className={`${inputClass} max-w-[180px]`}
+                          className={inputCls}
                           value={item.location}
                           placeholder="e.g. Remote"
                           onChange={(e) =>
-                            updateListItem("experience", index, "location", e.target.value)
+                            updateListItem("experience", item._id, "location", e.target.value)
                           }
                         />
                       </Field>
                     </div>
                     <Field label="Description">
                       <textarea
-                        className={`${textareaClass} max-w-3xl`}
+                        className={textareaCls}
                         rows={3}
                         value={item.description}
                         placeholder="What did you work on? What did you ship or improve?"
                         onChange={(e) =>
-                          updateListItem("experience", index, "description", e.target.value)
+                          updateListItem("experience", item._id, "description", e.target.value)
                         }
                       />
                     </Field>
@@ -662,161 +1109,156 @@ function Profile() {
                   <>
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg">
+                        <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg leading-snug">
                           {item.role || "Untitled role"}
                         </h3>
-                        <p className="mt-1 text-sm font-medium text-primary-light">
+                        <p className="mt-0.5 text-sm font-medium text-primary-light">
                           {item.company}
                         </p>
                       </div>
-                      <span className="text-sm text-muted">
+                      <span className="shrink-0 text-xs font-medium text-muted bg-surface-elevated border border-white/[0.06] rounded-lg px-2.5 py-1">
                         {item.startDate
                           ? dayjs(item.startDate).format("MMM YYYY")
-                          : "Start"}
-
-                        {" - "}
-
+                          : "Start"}{" "}
+                        —{" "}
                         {item.endDate
                           ? dayjs(item.endDate).format("MMM YYYY")
                           : "Present"}
                       </span>
                     </div>
-
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted sm:text-sm">
-                      <span>{item.type}</span>
-                      <span>•</span>
-                      <span>{item.location}</span>
-                    </div>
-
-                    <p className="mt-3 max-w-3xl text-sm leading-6 text-body">
-                      {item.description}
-                    </p>
+                    {(item.type || item.location) && (
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-muted">
+                        {item.type && (
+                          <span className="rounded-full border border-white/10 px-2 py-0.5">
+                            {item.type}
+                          </span>
+                        )}
+                        {item.location && (
+                          <span className="flex items-center gap-1">
+                            <IconMapPin size={12} />
+                            {item.location}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {item.description && (
+                      <p className="mt-2.5 text-sm leading-6 text-body">
+                        {item.description}
+                      </p>
+                    )}
                   </>
                 )}
-
               </div>
-
             </div>
-
-          </div>
-        </section>
-      ))}
-
-      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
-
-      {/* Education Section */}
-      <div className="flex items-center justify-between">
-        <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
-          Education
-        </h2>
-        <div className="flex items-center gap-2">
-          <AddButton onClick={addEducation} />
-          <EditButton index={4} />
+          ))}
         </div>
-      </div>
+      </Section>
 
-      {data?.education?.length === 0 && (
-        <EmptyState text="No education added yet. Click the + to add your first degree." />
-      )}
+      {/* ════════════════════════════════════════════════
+          EDUCATION
+          ════════════════════════════════════════════════ */}
+      <Section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={sectionHeadingCls}>Education</h2>
+          <div className="flex items-center gap-2">
+            <AddButton onClick={addEducation} label="Add education" />
+            <EditButton
+              editing={editEdu}
+              onToggle={
+                editEdu
+                  ? handleSave(setEditEdu)
+                  : () => setEditEdu(true)
+              }
+              label="education"
+            />
+          </div>
+        </div>
 
-      {data?.education?.map((item, index) => (
-        <section key={index}>
-          <div className="mt-6 space-y-8">
+        {data.education.length === 0 && (
+          <EmptyState text="No education added yet. Click the + to add your first degree." />
+        )}
 
-            {/* Education Item */}
-            <div className="flex items-start gap-4">
-
-              {/* Education Icon */}
-              <div
-                className="
-                  flex
-                  h-12
-                  w-12
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-xl
-                  border
-                  border-primary/20
-                  bg-primary/10
-                  text-primary-light
-                "
-              >
-                <IconSchool size={24} stroke={1.6} />
+        <div className="space-y-6">
+          {data.education.map((item) => (
+            <div key={item._id} className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary-light">
+                <IconSchool size={22} stroke={1.6} />
               </div>
 
-              {/* Education Details */}
               <div className="min-w-0 flex-1">
-
-                {edit[4] ? (
-                  <div className="space-y-3">
+                {editEdu ? (
+                  <div className="space-y-3 rounded-xl border border-white/[0.06] bg-surface-elevated/40 p-4">
                     <div className="flex items-start justify-between gap-2">
-                      <Field label="Degree">
-                        <input
-                          className={`${inputClass} max-w-sm`}
-                          value={item.degree}
-                          placeholder="e.g. B.E. Computer Engineering"
-                          onChange={(e) =>
-                            updateListItem("education", index, "degree", e.target.value)
-                          }
-                        />
-                      </Field>
-                      <button
-                        type="button"
-                        onClick={() => removeEducation(index)}
-                        className="shrink-0 text-muted hover:text-red-400 transition-colors mt-6"
-                      >
-                        <IconX size={18} />
-                      </button>
+                      <p className="text-xs font-semibold text-muted uppercase tracking-wider">
+                        Edit Entry
+                      </p>
+                      <DeleteButton
+                        onClick={() =>
+                          confirmRemoveEducation(item._id, item.degree)
+                        }
+                        label="Remove education"
+                      />
                     </div>
-                    <Field label="College">
+                    <Field label="Degree / Program">
                       <input
-                        className={`${inputClass} max-w-sm`}
-                        value={item.college}
-                        placeholder="e.g. Late G.N. Sapkal College of Engineering"
+                        className={inputCls}
+                        value={item.degree}
+                        placeholder="e.g. B.E. Computer Engineering"
                         onChange={(e) =>
-                          updateListItem("education", index, "college", e.target.value)
+                          updateListItem("education", item._id, "degree", e.target.value)
                         }
                       />
                     </Field>
-                    <Field label="University">
+                    <Field label="College / Institution">
                       <input
-                        className={`${inputClass} max-w-sm`}
-                        value={item.university}
+                        className={inputCls}
+                        value={item.college}
+                        placeholder="e.g. GNSC Engineering"
+                        onChange={(e) =>
+                          updateListItem("education", item._id, "college", e.target.value)
+                        }
+                      />
+                    </Field>
+                    <Field label="University / Board">
+                      <input
+                        className={inputCls}
+                        value={item.university ?? ""}
                         placeholder="e.g. Savitribai Phule Pune University"
                         onChange={(e) =>
-                          updateListItem("education", index, "university", e.target.value)
+                          updateListItem("education", item._id, "university", e.target.value)
                         }
                       />
                     </Field>
-                    <div className="flex flex-wrap gap-2">
-                      <Field label="Start year">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <Field label="Start Year">
                         <input
-                          className={`${inputClass} max-w-[120px]`}
+                          className={inputCls}
                           value={item.startYear}
-                          placeholder="e.g. 2019"
+                          placeholder="2019"
+                          maxLength={4}
                           onChange={(e) =>
-                            updateListItem("education", index, "startYear", e.target.value)
+                            updateListItem("education", item._id, "startYear", e.target.value)
                           }
                         />
                       </Field>
-                      <Field label="End year">
+                      <Field label="End Year">
                         <input
-                          className={`${inputClass} max-w-[120px]`}
+                          className={inputCls}
                           value={item.endYear}
-                          placeholder="e.g. 2023"
+                          placeholder="2023"
+                          maxLength={4}
                           onChange={(e) =>
-                            updateListItem("education", index, "endYear", e.target.value)
+                            updateListItem("education", item._id, "endYear", e.target.value)
                           }
                         />
                       </Field>
                       <Field label="Location">
                         <input
-                          className={`${inputClass} max-w-[180px]`}
+                          className={inputCls}
                           value={item.location}
-                          placeholder="e.g. Pune, India"
+                          placeholder="e.g. Pune"
                           onChange={(e) =>
-                            updateListItem("education", index, "location", e.target.value)
+                            updateListItem("education", item._id, "location", e.target.value)
                           }
                         />
                       </Field>
@@ -824,197 +1266,254 @@ function Profile() {
                   </div>
                 ) : (
                   <>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg">
+                        <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg leading-snug">
                           {item.degree || "Untitled degree"}
                         </h3>
-                        <p className="mt-1 text-sm font-medium text-primary-light">
+                        <p className="mt-0.5 text-sm font-medium text-primary-light">
                           {item.college}
                         </p>
                       </div>
-                      <span className="shrink-0 text-sm text-muted">
+                      <span className="shrink-0 text-xs font-medium text-muted bg-surface-elevated border border-white/[0.06] rounded-lg px-2.5 py-1">
                         {item.startYear} — {item.endYear}
                       </span>
                     </div>
-
-                    <p className="mt-2 text-sm text-body">{item.university}</p>
-
-                    <div className="mt-2 flex items-center gap-1.5 text-sm text-muted">
-                      <IconMapPin size={16} stroke={1.7} />
-                      <span>{item.location}</span>
-                    </div>
+                    {item.university && (
+                      <p className="mt-1 text-sm text-body">{item.university}</p>
+                    )}
+                    {item.location && (
+                      <div className="mt-1.5 flex items-center gap-1 text-xs text-muted">
+                        <IconMapPin size={12} />
+                        <span>{item.location}</span>
+                      </div>
+                    )}
                   </>
                 )}
-
               </div>
-
             </div>
+          ))}
+        </div>
+      </Section>
 
-          </div>
-        </section>
-      ))}
 
-      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
 
-      {/* Certifications Section */}
-      <section>
-        <div className="flex items-center justify-between">
-          <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
-            Certifications
-          </h2>
+      {/* ════════════════════════════════════════════════
+          CERTIFICATIONS
+          ════════════════════════════════════════════════ */}
+      <Section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={sectionHeadingCls}>Certifications</h2>
           <div className="flex items-center gap-2">
-            <AddButton onClick={addCertification} />
-            <EditButton index={5} />
+            <AddButton onClick={addCertification} label="Add certification" />
+            <EditButton
+              editing={editCert}
+              onToggle={
+                editCert
+                  ? handleSave(setEditCert)
+                  : () => setEditCert(true)
+              }
+              label="certifications"
+            />
           </div>
         </div>
 
-        {data?.certifications?.length === 0 && (
+        {data.certifications.length === 0 && (
           <EmptyState text="No certifications added yet. Click the + to add one." />
         )}
 
-        <div className="mt-6 space-y-6">
-
-          {data?.certifications?.map((cert, index) => (
-            <div key={index} className="flex items-start gap-4">
-
-              {/* Certificate Icon */}
-              <div
-                className="
-                  flex
-                  h-12
-                  w-12
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-xl
-                  border
-                  border-primary/20
-                  bg-primary/10
-                  text-primary-light
-                "
-              >
-                <IconCertificate size={24} stroke={1.6} />
+        <div className="space-y-5">
+          {data.certifications.map((cert) => (
+            <div key={cert._id} className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-accent-warm/20 bg-accent-warm/10 text-accent-warm-light">
+                <IconCertificate size={22} stroke={1.6} />
               </div>
 
-              {/* Certificate Information */}
               <div className="min-w-0 flex-1">
-
-                {edit[5] ? (
-                  <div className="space-y-3">
+                {editCert ? (
+                  <div className="space-y-3 rounded-xl border border-white/[0.06] bg-surface-elevated/40 p-4">
                     <div className="flex items-start justify-between gap-2">
-                      <Field label="Certificate title">
+                      <p className="text-xs font-semibold text-muted uppercase tracking-wider">
+                        Edit Entry
+                      </p>
+                      <DeleteButton
+                        onClick={() =>
+                          confirmRemoveCertification(cert._id, cert.title)
+                        }
+                        label="Remove certification"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Field label="Certificate Title">
                         <input
-                          className={`${inputClass} max-w-sm`}
+                          className={inputCls}
                           value={cert.title}
-                          placeholder="e.g. Google Cloud Professional Developer"
+                          placeholder="e.g. AWS Solutions Architect"
                           onChange={(e) =>
-                            updateListItem("certifications", index, "title", e.target.value)
+                            updateListItem("certifications", cert._id, "title", e.target.value)
                           }
                         />
                       </Field>
-                      <button
-                        type="button"
-                        onClick={() => removeCertification(index)}
-                        className="shrink-0 text-muted hover:text-red-400 transition-colors mt-6"
-                      >
-                        <IconX size={18} />
-                      </button>
-                    </div>
-                    <Field label="Issuer">
-                      <input
-                        className={`${inputClass} max-w-sm`}
-                        value={cert.issuer}
-                        placeholder="e.g. Google Cloud"
-                        onChange={(e) =>
-                          updateListItem("certifications", index, "issuer", e.target.value)
-                        }
-                      />
-                    </Field>
-                    <div className="flex flex-wrap gap-2">
-                      <Field label="Issued date">
+                      <Field label="Issuer">
                         <input
-                          className={`${inputClass} max-w-[180px]`}
+                          className={inputCls}
+                          value={cert.issuer}
+                          placeholder="e.g. Amazon Web Services"
+                          onChange={(e) =>
+                            updateListItem("certifications", cert._id, "issuer", e.target.value)
+                          }
+                        />
+                      </Field>
+                      <Field label="Issued Date">
+                        <input
+                          className={inputCls}
                           value={cert.issuedDate}
                           placeholder="e.g. Jan 2025"
                           onChange={(e) =>
-                            updateListItem("certifications", index, "issuedDate", e.target.value)
+                            updateListItem("certifications", cert._id, "issuedDate", e.target.value)
                           }
                         />
                       </Field>
                       <Field label="Credential ID">
                         <input
-                          className={`${inputClass} max-w-[220px]`}
+                          className={inputCls}
                           value={cert.credentialId}
-                          placeholder="e.g. GCP-DEV-2025"
+                          placeholder="e.g. AWS-SAA-2025"
                           onChange={(e) =>
-                            updateListItem("certifications", index, "credentialId", e.target.value)
-                          }
-                        />
-                      </Field>
-                      <Field label="Credential URL">
-                        <input
-                          className={`${inputClass} max-w-[240px]`}
-                          value={cert.credentialUrl}
-                          placeholder="https://..."
-                          onChange={(e) =>
-                            updateListItem("certifications", index, "credentialUrl", e.target.value)
+                            updateListItem("certifications", cert._id, "credentialId", e.target.value)
                           }
                         />
                       </Field>
                     </div>
+                    <Field label="Credential URL">
+                      <input
+                        className={inputCls}
+                        value={cert.credentialUrl}
+                        placeholder="https://..."
+                        onChange={(e) =>
+                          updateListItem("certifications", cert._id, "credentialUrl", e.target.value)
+                        }
+                      />
+                    </Field>
                   </div>
                 ) : (
                   <>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg">
+                        <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg leading-snug">
                           {cert.title || "Untitled certificate"}
                         </h3>
-                        <p className="mt-1 text-sm font-medium text-primary-light">
+                        <p className="mt-0.5 text-sm font-medium text-accent-warm-light">
                           {cert.issuer}
                         </p>
                       </div>
-                      <span className="shrink-0 text-sm text-muted">
-                        Issued {cert.issuedDate}
-                      </span>
+                      {cert.issuedDate && (
+                        <span className="shrink-0 text-xs font-medium text-muted bg-surface-elevated border border-white/[0.06] rounded-lg px-2.5 py-1">
+                          Issued {cert.issuedDate}
+                        </span>
+                      )}
                     </div>
-
-                    <p className="mt-2 text-sm text-muted">
-                      Credential ID: {cert.credentialId}
-                    </p>
-
+                    {cert.credentialId && (
+                      <p className="mt-1.5 text-xs text-muted font-mono">
+                        ID: {cert.credentialId}
+                      </p>
+                    )}
                     {cert.credentialUrl && (
                       <a
                         href={cert.credentialUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="
-                          mt-3
-                          inline-flex
-                          items-center
-                          gap-1.5
-                          text-sm
-                          font-semibold
-                          text-primary-light
-                          transition-colors
-                          hover:text-primary
-                        "
+                        className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-light hover:text-primary transition-colors"
                       >
                         Show credential
-                        <IconExternalLink size={15} stroke={1.8} />
+                        <IconExternalLink size={14} stroke={1.8} />
                       </a>
                     )}
                   </>
                 )}
-
               </div>
-
             </div>
           ))}
-
         </div>
-      </section>
+      </Section>
+
+      {/* ════════════════════════════════════════════════
+          LANGUAGES & MISC
+          ════════════════════════════════════════════════ */}
+      <Section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={sectionHeadingCls}>Languages</h2>
+          <EditButton
+            editing={editMisc}
+            onToggle={
+              editMisc
+                ? handleSave(setEditMisc)
+                : () => setEditMisc(true)
+            }
+            label="languages"
+          />
+        </div>
+
+        {data.languages.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {data.languages.map((lang) => (
+              <span
+                key={lang}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-sm font-medium text-body transition-all duration-200 hover:border-white/20"
+              >
+                <IconLanguage size={14} className="text-muted" />
+                {lang}
+                {editMisc && (
+                  <button
+                    type="button"
+                    aria-label={`Remove ${lang}`}
+                    onClick={() => removeLanguage(lang)}
+                    className="ml-0.5 rounded text-muted hover:text-danger transition-colors"
+                  >
+                    <IconX size={13} />
+                  </button>
+                )}
+              </span>
+            ))}
+          </div>
+        ) : (
+          !editMisc && (
+            <EmptyState text="No languages added. Click the pencil to add the languages you speak." />
+          )
+        )}
+
+        {editMisc && (
+          <div className="mt-4 max-w-sm">
+            <Field label="Add a language">
+              <div className="flex gap-2">
+                <input
+                  className={inputCls}
+                  placeholder="e.g. English, Hindi"
+                  value={langDraft}
+                  onChange={(e) => setLangDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addLanguage();
+                    }
+                  }}
+                />
+                <ActionIcon
+                  variant="light"
+                  radius="xl"
+                  size="lg"
+                  aria-label="Add language"
+                  className="!bg-white/5 hover:!bg-white/10 border border-white/10 shrink-0"
+                  onClick={addLanguage}
+                >
+                  <IconPlus size={18} className="text-slate-400" />
+                </ActionIcon>
+              </div>
+            </Field>
+          </div>
+        )}
+      </Section>
+
     </div>
   );
 }

@@ -325,6 +325,7 @@ export const profile = {
         "PostgreSQL",
         "Spring AI",
       ],
+      url: "https://github.com/yashlodam",
     },
     {
       id: 2,
@@ -337,6 +338,26 @@ export const profile = {
         "Spring Boot",
         "PostgreSQL",
       ],
+      url: "",
+    },
+  ],
+
+  certifications: [
+    {
+      id: 1,
+      title: "AWS Certified Solutions Architect – Associate",
+      issuer: "Amazon Web Services",
+      issuedDate: "Mar 2024",
+      credentialId: "AWS-SAA-C03-2024",
+      credentialUrl: "https://aws.amazon.com/certification/",
+    },
+    {
+      id: 2,
+      title: "Google Cloud Professional Developer",
+      issuer: "Google Cloud",
+      issuedDate: "Jan 2025",
+      credentialId: "GCP-PD-2025",
+      credentialUrl: "https://cloud.google.com/certification",
     },
   ],
 
