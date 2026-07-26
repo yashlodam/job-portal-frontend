@@ -1,6 +1,4 @@
-import React, { Suspense } from 'react';
-import { MantineProvider, createTheme } from '@mantine/core';
-import '@mantine/core/styles.css';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './Pages/Home';
@@ -14,8 +12,7 @@ import SignUpPage from './Pages/SignUpPage';
 import Login from './SignUpLogin/Login';
 import ProfilePage from './Pages/ProfilePage';
 import ResetPassword from './SignUpLogin/ResetPassword';
-import { Provider } from 'react-redux';
-import Store from './State/Store';
+
 
 /* ──────────────────────────────────────────────
    Lazy-loaded routes — large pages loaded on demand
@@ -32,26 +29,7 @@ const NotFound = React.lazy(() => import('./Pages/NotFound'));
    Mantine theme — dark mode matching design tokens
    ────────────────────────────────────────────── */
 
-const mantineTheme = createTheme({
-  primaryColor: 'indigo',
-  fontFamily: 'Satoshi, Inter, system-ui, sans-serif',
-  headings: { fontFamily: 'Satoshi, Inter, system-ui, sans-serif' },
-  defaultRadius: 'md',
-  colors: {
-    dark: [
-      '#F1F5F9', // 0 - heading text
-      '#94A3B8', // 1 - body text
-      '#708090', // 2 - muted text
-      '#1C2333', // 3 - surface hover
-      '#161B22', // 4 - surface elevated
-      '#0D1117', // 5 - surface
-      '#0a0e17', // 6 - body bg (slightly lighter)
-      '#06080F', // 7 - background (deepest)
-      '#050710', // 8
-      '#030408', // 9
-    ],
-  },
-});
+
 
 /* ──────────────────────────────────────────────
    Error Boundary — graceful crash handling
@@ -130,10 +108,12 @@ function PageLoader() {
    ────────────────────────────────────────────── */
 
 function App() {
+
+  
+
   return (
-    <Provider store={Store}>
+    
     <ErrorBoundary>
-      <MantineProvider theme={mantineTheme} forceColorScheme="dark">
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -158,9 +138,8 @@ function App() {
             </Routes>
           </Suspense>
         </BrowserRouter>
-      </MantineProvider>
     </ErrorBoundary>
-    </Provider>
+    
   );
 }
 

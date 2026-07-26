@@ -13,9 +13,10 @@ import {
   Lock,
   ArrowRight,
 } from "lucide-react";
-import { registerUser } from "../Services/UserService";
 import { notifications } from "@mantine/notifications";
 import { CheckCircle2, CircleAlert } from "lucide-react";
+import { useAppDispatch } from "../State/Store";
+import { signup } from "../State/AuthSlic";
 
 const fieldStyles = {
   label: { color: "#CBD5E1", fontSize: 13, fontWeight: 500, marginBottom: 6 },
@@ -34,6 +35,8 @@ function SignUp({ setIsLogin }) {
 
   const [accepted, setAccepted] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const dispatch = useAppDispatch();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -100,8 +103,8 @@ const handleRegister = async () => {
       }
 
   try {
-    await registerUser(formData);
-
+    
+    await dispatch(signup(formData));
     notifications.show({
       title: "Welcome to Velora! 🎉",
       message:

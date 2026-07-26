@@ -13,10 +13,10 @@ import {
   CheckCircle2,
   CircleAlert,
 } from "lucide-react";
-import { loginUser } from "../Services/UserService";
+
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { setUser } from "../Slices/UserSlice";
+import { useAppDispatch } from "../State/Store";
+import { getUserProfile, signin, signup } from "../State/AuthSlic";
 
 const fieldStyles = {
   label: {
@@ -37,7 +37,7 @@ const fieldStyles = {
 };
 
 function Login({ setIsLogin }) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -90,11 +90,9 @@ function Login({ setIsLogin }) {
     setLoading(true);
 
     try {
-      const response = await loginUser(formData);
 
-      if (response) {
-        dispatch(setUser(response));
-      }
+      const response = await dispatch(signin(formData));
+       await dispatch(getUserProfile()).unwrap();
 
       notifications.show({
         title: `Welcome back, ${response.user?.name || "User"} 👋`,

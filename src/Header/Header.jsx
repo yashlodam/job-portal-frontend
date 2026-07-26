@@ -4,7 +4,7 @@ import { Sparkles, Bell, Settings, Menu, X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ProfileMenu from "./ProfileMenu";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "../State/Store";
 
 /* ────────────────────────────────────────────────────────────
    Constants
@@ -80,7 +80,10 @@ const IconButton = memo(function IconButton({
    Header
    ──────────────────────────────────────────────────────────── */
 function Header() {
-  const user = useSelector((state) => state.user);
+ 
+  const user = useAppSelector((state) => state.auth.profile);
+
+console.log("Header user:", user);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -275,7 +278,7 @@ function Header() {
             className={`hidden items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-2 py-2 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-cyan-500/30 hover:shadow-cyan-500/10 md:flex`}
           >
             {user ? (
-              <ProfileMenu />
+              <ProfileMenu user={user} />
             ) : (
               <Link to="/auth" className={`rounded-xl ${FOCUS_RING}`}>
                 <Button

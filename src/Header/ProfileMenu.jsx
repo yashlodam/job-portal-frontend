@@ -12,24 +12,20 @@ import {
   IconLogout2,
 } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { removeUser } from "../Slices/UserSlice";
+import { useAppDispatch } from "../State/Store";
+import { logout } from "../State/AuthSlic";
 
-function ProfileMenu() {
+function ProfileMenu({user}) {
     const USER = { name: "Marshal", role: "Software Engineer" };
-    const user = useSelector((store)=> store.user);
-
+    
     const [checked,setChecked] = useState(false);
     const [opened,setOpened] = useState(false)
-
-    const dispatch = useDispatch();
-    console.log(user);
+    const dispatch = useAppDispatch();
 
 
     const handleLogout = ()=>{
 
-      dispatch(removeUser())
-
+      dispatch(logout())
     }
 
   return (

@@ -10,7 +10,7 @@ import {
     Pencil,
 } from "lucide-react";
 import { notifications } from "@mantine/notifications";
-import { resetPassword, sendOtp, verifyOtp } from "../Services/UserService";
+
 
 const MIN_PASSWORD_LENGTH = 8;
 const RESEND_COOLDOWN_SECONDS = 30;
@@ -86,7 +86,7 @@ function ResetPassword() {
         try {
             setLoading(true);
 
-            await sendOtp(formData.email);
+            
 
             notifications.show({
                 color: "green",
@@ -157,8 +157,7 @@ function ResetPassword() {
                 newPassword: formData.newPassword,
             };
 
-            await verifyOtp(verifyRequest);
-            await resetPassword(resetRequest);
+            
 
             notifications.show({
                 color: "green",
