@@ -1,4 +1,5 @@
-import { ActionIcon, Divider, Modal, Notification } from "@mantine/core";
+import { ActionIcon, Divider, Loader, Modal, Notification } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import {
   IconBriefcase,
   IconCamera,
@@ -30,15 +31,48 @@ import React, {
   useEffect,
   useRef,
   useState,
-  useId,
 } from "react";
-import { profile as defaultProfile } from "../Data/Data";
+
+
+import { useAppDispatch, useAppSelector } from "../State/Store";
+
+// ── Thunks ────────────────────────────────────────────────────────────────────
+import {
+  fetchMyProfileThunk,
+  uploadProfileImageThunk,
+  uploadBannerImageThunk,
+  updateHeaderThunk,
+  updateLinksThunk,
+  updateAboutThunk,
+  addSkillThunk,
+  deleteSkillThunk,
+  addExperienceThunk,
+  updateExperienceThunk,
+  deleteExperienceThunk,
+  addEducationThunk,
+  deleteEducationThunk,
+  addCertificationThunk,
+  updateCertificationThunk,
+  deleteCertificationThunk,
+  addLanguageThunk,
+  deleteLanguageThunk,
+} from "../State/profileThunk";
+
+// ── Selectors ─────────────────────────────────────────────────────────────────
+import {
+  selectProfile,
+  selectProfileLoading,
+  selectProfileError,
+  selectProfileSuccess,
+  clearProfileSuccess,
+  clearProfileError,
+} from "../State/profileSlice";
 
 /* ============================================================
    Helpers
    ============================================================ */
 
-/** Stable ID generator for new list items */
+/** Stable ID generator for optimistic new list items */
 let _counter = Date.now();
 const uid = () => `id_${(_counter++).toString(36)}`;
 
@@ -55,12 +89,13 @@ const inputCls =
   "w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-heading placeholder:text-muted focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all duration-200";
 
 const textareaCls = `${inputCls} resize-none leading-6`;
-const labelCls = "mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted";
+const labelCls =
+  "mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted";
 const sectionHeadingCls =
   "font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl";
 
 /* ============================================================
-   Small reusable primitives  (defined OUTSIDE Profile so they
+   Small reusable primitives (defined OUTSIDE Profile so they
    are stable references and won't re-mount on every render)
    ============================================================ */
 
@@ -77,37 +112,7 @@ function Field({ label, htmlFor, children, required }) {
 }
 
 function EmptyState({ text }) {
-  return (
-    <p className="mt-3 text-sm italic text-muted/70">{text}</p>
-  );
-}
-
-/** Small inline toast shown for 2.5 s after a section save */
-function SaveToast({ visible, onClose }) {
-  useEffect(() => {
-    if (!visible) return;
-    const t = setTimeout(onClose, 2500);
-    return () => clearTimeout(t);
-  }, [visible, onClose]);
-
-  if (!visible) return null;
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="fixed bottom-6 right-6 z-50 animate-fade-in-up"
-    >
-      <Notification
-        icon={<IconCheck size={18} />}
-        color="teal"
-        title="Saved"
-        withCloseButton={false}
-        className="shadow-elevated"
-      >
-        Your changes have been saved.
-      </Notification>
-    </div>
-  );
+  return <p className="mt-3 text-sm italic text-muted/70">{text}</p>;
 }
 
 /** Confirm delete modal */
@@ -132,7 +137,10 @@ function ConfirmModal({ opened, onClose, onConfirm, title, message }) {
         </button>
         <button
           type="button"
-          onClick={() => { onConfirm(); onClose(); }}
+          onClick={() => {
+            onConfirm();
+            onClose();
+          }}
           className="btn btn-sm rounded-xl bg-danger/90 text-white hover:bg-danger"
         >
           Delete
@@ -160,7 +168,7 @@ function Section({ children }) {
    EditButton / AddButton / DeleteButton
    ============================================================ */
 
-function EditButton({ editing, onToggle, label }) {
+function EditButton({ editing, onToggle, label, loading }) {
   return (
     <ActionIcon
       variant="light"
@@ -169,6 +177,7 @@ function EditButton({ editing, onToggle, label }) {
       aria-label={editing ? `Save ${label}` : `Edit ${label}`}
       className="!bg-white/5 hover:!bg-cyan-500/15 border border-white/10 hover:border-cyan-400/40 transition-all duration-300 shrink-0"
       onClick={onToggle}
+      loading={loading}
     >
       {editing ? (
         <IconDeviceFloppy size={20} className="text-cyan-300" />
@@ -208,13 +217,22 @@ function DeleteButton({ onClick, label }) {
 }
 
 /* ============================================================
-   Availability badge options
+   Availability / Level constants
    ============================================================ */
 
 const AVAILABILITY_OPTIONS = [
-  { value: "Open to Work", color: "bg-success/15 border-success/30 text-success-light" },
-  { value: "Open to Opportunities", color: "bg-primary/15 border-primary/30 text-primary-light" },
-  { value: "Not Looking", color: "bg-white/5 border-white/10 text-muted" },
+  {
+    value: "Open to Work",
+    color: "bg-success/15 border-success/30 text-success-light",
+  },
+  {
+    value: "Open to Opportunities",
+    color: "bg-primary/15 border-primary/30 text-primary-light",
+  },
+  {
+    value: "Not Looking",
+    color: "bg-white/5 border-white/10 text-muted",
+  },
 ];
 
 const EXPERIENCE_LEVELS = [
@@ -236,60 +254,155 @@ const JOB_TYPES = [
 ];
 
 /* ============================================================
+   Profile skeleton — shown while the first fetch is in-flight
+   ============================================================ */
+
+function ProfileSkeleton() {
+  return (
+    <div className="w-full max-w-4xl mx-auto space-y-5 pb-16 animate-pulse">
+      {/* Banner + Avatar */}
+      <div className="rounded-2xl overflow-hidden border border-white/[0.06] bg-surface">
+        <div className="h-52 sm:h-60 bg-white/[0.04]" />
+        <div className="px-5 sm:px-7 pb-6 -mt-14">
+          <div className="h-28 w-28 rounded-2xl bg-white/[0.08]" />
+          <div className="mt-4 space-y-2">
+            <div className="h-7 w-48 rounded-xl bg-white/[0.06]" />
+            <div className="h-4 w-36 rounded-xl bg-white/[0.04]" />
+          </div>
+        </div>
+      </div>
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="h-28 rounded-2xl border border-white/[0.06] bg-white/[0.03]"
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ============================================================
    Main Profile Component
    ============================================================ */
 
 function Profile() {
-  const [data, setData] = useState(() => ({
-    ...defaultProfile,
-    // Ensure arrays exist
-    skills: defaultProfile.skills ?? [],
-    experience: (defaultProfile.experience ?? []).map((e) => ({
-      ...e,
-      _id: e.id ? `id_${e.id}` : uid(),
-    })),
-    education: (defaultProfile.education ?? []).map((e) => ({
-      ...e,
-      _id: e.id ? `id_${e.id}` : uid(),
-    })),
-    certifications: (defaultProfile.certifications ?? []).map((c) => ({
-      ...c,
-      _id: c.id ? `id_${c.id}` : uid(),
-    })),
-    projects: (defaultProfile.projects ?? []).map((p) => ({
-      ...p,
-      _id: p.id ? `id_${p.id}` : uid(),
-    })),
-    languages: defaultProfile.languages ?? [],
-    socialLinks: defaultProfile.socialLinks ?? {},
-    availability: defaultProfile.availability ?? "Open to Work",
-    experienceLevel: defaultProfile.experienceLevel ?? "Mid Level",
-  }));
+  const dispatch = useAppDispatch();
 
-  // Section edit states
-  const [editHeader, setEditHeader] = useState(false);
-  const [editAbout, setEditAbout] = useState(false);
-  const [editSkills, setEditSkills] = useState(false);
-  const [editExp, setEditExp] = useState(false);
-  const [editEdu, setEditEdu] = useState(false);
-  const [editCert, setEditCert] = useState(false);
-  const [editProjects, setEditProjects] = useState(false);
-  const [editSocial, setEditSocial] = useState(false);
-  const [editMisc, setEditMisc] = useState(false);
+  // ── Redux state ──────────────────────────────────────────────────────────
+  const reduxProfile = useAppSelector(selectProfile);
+  const isLoading    = useAppSelector(selectProfileLoading);
+  const reduxError   = useAppSelector(selectProfileError);
+  const reduxSuccess = useAppSelector(selectProfileSuccess);
 
-  // UI state
+  // ── Local UI state — mirrors the backend data while editing ──────────────
+  // Initialised from Redux; reset whenever Redux profile changes (e.g. after save).
+  const [data, setData] = useState(null);
+
+  // Section edit mode flags
+  const [editHeader,  setEditHeader]  = useState(false);
+  const [editAbout,   setEditAbout]   = useState(false);
+  const [editSkills,  setEditSkills]  = useState(false);
+  const [editExp,     setEditExp]     = useState(false);
+  const [editEdu,     setEditEdu]     = useState(false);
+  const [editCert,    setEditCert]    = useState(false);
+  const [editSocial,  setEditSocial]  = useState(false);
+  const [editMisc,    setEditMisc]    = useState(false);
+
+  // Per-section saving spinners (separate from the global loading flag)
+  const [savingSection, setSavingSection] = useState("");
+
+  // Skill / Language input drafts
   const [skillDraft, setSkillDraft] = useState("");
-  const [langDraft, setLangDraft] = useState("");
-  const [toast, setToast] = useState(false);
+  const [langDraft,  setLangDraft]  = useState("");
+
+  // Confirm-delete modal
   const [confirm, setConfirm] = useState(null); // { title, message, onConfirm }
 
   // Image refs & blob tracking
-  const bannerInputRef = useRef(null);
-  const avatarInputRef = useRef(null);
-  const prevBannerRef = useRef(data.bannerImage);
-  const prevAvatarRef = useRef(data.profileImage);
+  const bannerInputRef  = useRef(null);
+  const avatarInputRef  = useRef(null);
+  const prevBannerRef   = useRef(null);
+  const prevAvatarRef   = useRef(null);
 
-  // Cleanup blob URLs on unmount
+  // ── Fetch profile on mount ───────────────────────────────────────────────
+  useEffect(() => {
+    dispatch(fetchMyProfileThunk());
+  }, [dispatch]);
+
+  // ── Hydrate local state when Redux profile arrives/changes ───────────────
+  useEffect(() => {
+    // profile loaded
+    if (!reduxProfile) return;
+
+    setData({
+      id:             reduxProfile.id,
+      name:           reduxProfile.name           ?? "",
+      role:           reduxProfile.role           ?? "",
+      company:        reduxProfile.company        ?? "",
+      location:       reduxProfile.location       ?? "",
+      about:          reduxProfile.about          ?? "",
+      availability:   reduxProfile.availability   ?? "Open to Work",
+      experienceLevel:reduxProfile.experienceLevel ?? "Mid Level",
+      profileImage:   reduxProfile.profileImage   ?? null,
+      bannerImage:    reduxProfile.bannerImage    ?? null,
+
+      // Normalise arrays — add _id for stable React keys during editing
+      skills: Array.isArray(reduxProfile.skills) ? reduxProfile.skills : [],
+
+      experience: (reduxProfile.experiences ?? reduxProfile.experience ?? []).map((e) => ({
+        ...e,
+        _id: e.id ? `id_${e.id}` : uid(),
+      })),
+
+      education: (reduxProfile.educations ?? reduxProfile.education ?? []).map((e) => ({
+        ...e,
+        _id: e.id ? `id_${e.id}` : uid(),
+      })),
+
+      certifications: (reduxProfile.certifications ?? []).map((c) => ({
+        ...c,
+        _id: c.id ? `id_${c.id}` : uid(),
+      })),
+
+      languages: Array.isArray(reduxProfile.languages) ? reduxProfile.languages : [],
+
+      socialLinks: {
+        linkedin:  reduxProfile.links?.linkedin  ?? reduxProfile.socialLinks?.linkedin  ?? "",
+        github:    reduxProfile.links?.github    ?? reduxProfile.socialLinks?.github    ?? "",
+        portfolio: reduxProfile.links?.portfolio ?? reduxProfile.socialLinks?.portfolio ?? "",
+      },
+    });
+
+    // Sync image refs
+    prevBannerRef.current = reduxProfile.bannerImage ?? null;
+    prevAvatarRef.current = reduxProfile.profileImage ?? null;
+  }, [reduxProfile]);
+
+  // ── Toast on Redux success ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!reduxSuccess) return;
+    notifications.show({
+      title: "Saved successfully",
+      message: "Your profile has been updated.",
+      color: "teal",
+      autoClose: 2500,
+    });
+    dispatch(clearProfileSuccess());
+  }, [reduxSuccess, dispatch]);
+
+  // ── Toast on Redux error ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!reduxError) return;
+    notifications.show({
+      title: "Something went wrong",
+      message: reduxError,
+      color: "red",
+      autoClose: 4000,
+    });
+    dispatch(clearProfileError());
+  }, [reduxError, dispatch]);
+
+  // ── Cleanup blob URLs on unmount ─────────────────────────────────────────
   useEffect(() => {
     return () => {
       revokeBlob(prevBannerRef.current);
@@ -297,7 +410,7 @@ function Profile() {
     };
   }, []);
 
-  /* ── Generic updaters ── */
+  /* ── Generic local updaters ── */
 
   const updateField = useCallback((field, value) => {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -312,136 +425,383 @@ function Profile() {
     }));
   }, []);
 
-  const showToast = useCallback(() => setToast(true), []);
-  const hideToast = useCallback(() => setToast(false), []);
+  /* ── Section save helpers ── */
 
-  const handleSave = useCallback(
-    (closeFn) => () => {
-      closeFn(false);
-      showToast();
+  /**
+   * Wraps a thunk dispatch with:
+   * - section saving spinner
+   * - auto-close the edit panel on success
+   */
+  const saveSection = useCallback(
+    async (sectionKey, thunk, closeFn) => {
+      setSavingSection(sectionKey);
+      try {
+        await dispatch(thunk).unwrap();
+        closeFn(false);
+      } catch {
+        // Error already handled by the Redux error effect above
+      } finally {
+        setSavingSection("");
+      }
     },
-    [showToast]
+    [dispatch]
   );
 
   /* ── Image handling ── */
 
-  const handleImageSelect = useCallback((e, field, prevRef) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    revokeBlob(prevRef.current);
-    const url = URL.createObjectURL(file);
-    prevRef.current = url;
-    setData((prev) => ({ ...prev, [field]: url }));
-    e.target.value = "";
-  }, []);
+  // ── Image URL helpers ─────────────────────────────────────────────────────
+  // Backend stores only filenames; construct the full URL here.
+  // This is the ONLY place these paths are defined — never hardcode elsewhere.
+  const getProfileImageUrl = (filename) =>
+    filename ? `http://localhost:8080/uploads/profile/${filename}` : null;
+  const getBannerImageUrl = (filename) =>
+    filename ? `http://localhost:8080/uploads/banner/${filename}` : null;
+
+  const handleBannerSelect = useCallback(
+    async (e) => {
+      const file = e.target.files?.[0];
+      if (!file || !data?.id) return;
+
+      // 1. Show an instant blob preview (optimistic UI)
+      const blobUrl = URL.createObjectURL(file);
+      const previousUrl = data.bannerImage; // keep for rollback
+      setData((prev) => ({ ...prev, bannerImage: blobUrl }));
+      e.target.value = "";
+
+      try {
+        // 2. Upload — backend returns the filename string (e.g. "xyz987.webp")
+        const filename = await dispatch(
+          uploadBannerImageThunk({ id: data.id, file })
+        ).unwrap();
+
+        // 3. Replace blob with permanent backend URL & revoke blob memory
+        const permanentUrl = getBannerImageUrl(filename);
+        prevBannerRef.current = permanentUrl;
+        setData((prev) => ({ ...prev, bannerImage: permanentUrl }));
+        revokeBlob(blobUrl);
+      } catch {
+        // 4. Upload failed — rollback to previous image
+        revokeBlob(blobUrl);
+        setData((prev) => ({ ...prev, bannerImage: previousUrl }));
+      }
+    },
+    [data?.id, data?.bannerImage, dispatch]
+  );
+
+  const handleAvatarSelect = useCallback(
+    async (e) => {
+      const file = e.target.files?.[0];
+      if (!file || !data?.id) return;
+
+      // 1. Instant blob preview
+      const blobUrl = URL.createObjectURL(file);
+      const previousUrl = data.profileImage;
+      setData((prev) => ({ ...prev, profileImage: blobUrl }));
+      e.target.value = "";
+
+      try {
+        // 2. Upload — backend returns filename string
+        const filename = await dispatch(
+          uploadProfileImageThunk({ id: data.id, file })
+        ).unwrap();
+
+        // 3. Replace blob with backend URL
+        const permanentUrl = getProfileImageUrl(filename);
+        prevAvatarRef.current = permanentUrl;
+        setData((prev) => ({ ...prev, profileImage: permanentUrl }));
+        revokeBlob(blobUrl);
+      } catch {
+        // 4. Rollback
+        revokeBlob(blobUrl);
+        setData((prev) => ({ ...prev, profileImage: previousUrl }));
+      }
+    },
+    [data?.id, data?.profileImage, dispatch]
+  );
+
+  /* ── Header save ── */
+
+  const handleSaveHeader = useCallback(() => {
+    if (!data?.id) return;
+    saveSection(
+      "header",
+      updateHeaderThunk({
+        id: data.id,
+        data: {
+          name:           data.name,
+          role:           data.role,
+          company:        data.company,
+          location:       data.location,
+          availability:   data.availability,
+          experienceLevel:data.experienceLevel,
+        },
+      }),
+      setEditHeader
+    );
+  }, [data, saveSection]);
+
+  /* ── About save ── */
+
+  const handleSaveAbout = useCallback(() => {
+    if (!data?.id) return;
+    saveSection(
+      "about",
+      updateAboutThunk({ id: data.id, data: { about: data.about } }),
+      setEditAbout
+    );
+  }, [data, saveSection]);
+
+  /* ── Links save ── */
+
+  const handleSaveLinks = useCallback(() => {
+    if (!data?.id) return;
+    saveSection(
+      "links",
+      updateLinksThunk({ id: data.id, data: data.socialLinks }),
+      setEditSocial
+    );
+  }, [data, saveSection]);
 
   /* ── Skills ── */
 
-  const addSkill = useCallback(() => {
+  const addSkillLocal = useCallback(() => {
     const value = skillDraft.trim();
     if (!value) return;
-    if (data.skills.includes(value)) {
+
+    // Duplicate check works for both string arrays and object arrays
+    const alreadyExists = data.skills.some((s) =>
+      (typeof s === "object" ? s.name : s).toLowerCase() === value.toLowerCase()
+    );
+    if (alreadyExists) {
       setSkillDraft("");
       return;
     }
+
+    // Optimistic local add
     setData((prev) => ({ ...prev, skills: [...prev.skills, value] }));
     setSkillDraft("");
-  }, [skillDraft, data.skills]);
 
-  const removeSkill = useCallback((skill) => {
-    setData((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((s) => s !== skill),
-    }));
+    // POST to backend; rollback on failure
+    if (data?.id) {
+      dispatch(addSkillThunk({ id: data.id, data: { name: value } }))
+        .unwrap()
+        .catch(() => {
+          setData((prev) => ({
+            ...prev,
+            skills: prev.skills.filter((s) =>
+              (typeof s === "object" ? s.name : s) !== value
+            ),
+          }));
+        });
+    }
+  }, [skillDraft, data, dispatch]);
+
+  const removeSkillLocal = useCallback(
+    (skill) => {
+      // skill may be a plain string or an object { id, name }
+      const skillName = typeof skill === "object" ? skill.name : skill;
+
+      // Optimistic local remove
+      setData((prev) => ({
+        ...prev,
+        skills: prev.skills.filter((s) =>
+          (typeof s === "object" ? s.name : s) !== skillName
+        ),
+      }));
+
+      // DELETE /profile/skills/{profileId}?skill=React
+      if (data?.id) {
+        dispatch(deleteSkillThunk({ profileId: data.id, skill: skillName }))
+          .unwrap()
+          .catch(() => {
+            // Rollback — re-add the skill
+            setData((prev) => ({ ...prev, skills: [...prev.skills, skill] }));
+          });
+      }
+    },
+    [data?.id, data?.skills, dispatch]
+  );
+
+  const handleSaveSkills = useCallback(() => {
+    setEditSkills(false);
   }, []);
 
   /* ── Languages ── */
 
-  const addLanguage = useCallback(() => {
+  const addLanguageLocal = useCallback(() => {
     const value = langDraft.trim();
-    if (!value || data.languages.includes(value)) {
+    if (!value) return;
+
+    // Duplicate check — works for string arrays (GET /languages returns List<String>)
+    const alreadyExists = data.languages.some((l) =>
+      l.toLowerCase() === value.toLowerCase()
+    );
+    if (alreadyExists) {
       setLangDraft("");
       return;
     }
+
+    // Optimistic local add
     setData((prev) => ({ ...prev, languages: [...prev.languages, value] }));
     setLangDraft("");
-  }, [langDraft, data.languages]);
 
-  const removeLanguage = useCallback((lang) => {
-    setData((prev) => ({
-      ...prev,
-      languages: prev.languages.filter((l) => l !== lang),
-    }));
-  }, []);
+    // POST to backend; rollback on failure
+    if (data?.id) {
+      dispatch(addLanguageThunk({ id: data.id, data: { language: value } }))
+        .unwrap()
+        .catch(() => {
+          setData((prev) => ({
+            ...prev,
+            languages: prev.languages.filter((l) => l !== value),
+          }));
+        });
+    }
+  }, [langDraft, data, dispatch]);
+
+  const removeLanguageLocal = useCallback(
+    (lang) => {
+      // Backend GET /languages returns List<String>, so lang is always a plain string.
+      // DELETE /profile/languages/{profileId}?language=English
+      const languageName = typeof lang === "string" ? lang : lang.language ?? lang.name ?? "";
+
+      // Optimistic local remove
+      setData((prev) => ({
+        ...prev,
+        languages: prev.languages.filter((l) => l !== languageName),
+      }));
+
+      if (data?.id) {
+        dispatch(deleteLanguageThunk({ profileId: data.id, language: languageName }))
+          .unwrap()
+          .catch(() => {
+            // Rollback — re-add the language
+            setData((prev) => ({ ...prev, languages: [...prev.languages, languageName] }));
+          });
+      }
+    },
+    [data?.id, dispatch]
+  );
 
   /* ── Experience ── */
 
-  const addExperience = useCallback(() => {
+  const addExperienceLocal = useCallback(() => {
     const newItem = {
       _id: uid(),
-      role: "",
-      company: "",
-      startDate: "",
-      endDate: "",
-      type: "",
-      location: "",
-      description: "",
-      logo: "",
+      role: "", company: "", startDate: "", endDate: "",
+      type: "", location: "", description: "", logo: "",
+      isNew: true, // flag so we know to POST vs PUT on save
     };
     setData((prev) => ({ ...prev, experience: [...prev.experience, newItem] }));
     setEditExp(true);
   }, []);
 
-  const confirmRemoveExperience = useCallback((id, role) => {
-    setConfirm({
-      title: "Remove Experience",
-      message: `Are you sure you want to remove "${role || "this role"}"?`,
-      onConfirm: () =>
-        setData((prev) => ({
-          ...prev,
-          experience: prev.experience.filter((e) => e._id !== id),
-        })),
+  const handleSaveExperience = useCallback(() => {
+    if (!data?.id) return;
+
+    data.experience.forEach((item) => {
+      const payload = {
+        role:        item.role,
+        company:     item.company,
+        startDate:   item.startDate,
+        endDate:     item.endDate,
+        type:        item.type,
+        location:    item.location,
+        description: item.description,
+      };
+
+      if (item.isNew || !item.id) {
+        // New entry — POST
+        dispatch(addExperienceThunk({ id: data.id, data: payload }));
+      } else {
+        // Existing entry — PUT
+        dispatch(updateExperienceThunk({ experienceId: item.id, data: payload }));
+      }
     });
-  }, []);
+
+    setEditExp(false);
+  }, [data, dispatch]);
+
+  const confirmRemoveExperience = useCallback(
+    (localId, role, backendId) => {
+      setConfirm({
+        title: "Remove Experience",
+        message: `Are you sure you want to remove "${role || "this role"}"?`,
+        onConfirm: () => {
+          setData((prev) => ({
+            ...prev,
+            experience: prev.experience.filter((e) => e._id !== localId),
+          }));
+          if (backendId) {
+            dispatch(deleteExperienceThunk(backendId));
+          }
+        },
+      });
+    },
+    [dispatch]
+  );
 
   /* ── Education ── */
 
-  const addEducation = useCallback(() => {
+  const addEducationLocal = useCallback(() => {
     const newItem = {
       _id: uid(),
-      degree: "",
-      college: "",
-      university: "",
-      startYear: "",
-      endYear: "",
-      location: "",
+      degree: "", college: "", university: "",
+      startYear: "", endYear: "", location: "",
+      isNew: true,
     };
     setData((prev) => ({ ...prev, education: [...prev.education, newItem] }));
     setEditEdu(true);
   }, []);
 
-  const confirmRemoveEducation = useCallback((id, degree) => {
-    setConfirm({
-      title: "Remove Education",
-      message: `Are you sure you want to remove "${degree || "this entry"}"?`,
-      onConfirm: () =>
-        setData((prev) => ({
-          ...prev,
-          education: prev.education.filter((e) => e._id !== id),
-        })),
+  const handleSaveEducation = useCallback(() => {
+    if (!data?.id) return;
+
+    data.education.forEach((item) => {
+      const payload = {
+        degree:     item.degree,
+        college:    item.college,
+        university: item.university,
+        startYear:  item.startYear,
+        endYear:    item.endYear,
+        location:   item.location,
+      };
+
+      if (item.isNew || !item.id) {
+        dispatch(addEducationThunk({ id: data.id, data: payload }));
+      }
+      // Note: Backend has no PUT /education; only POST + DELETE
     });
-  }, []);
+
+    setEditEdu(false);
+  }, [data, dispatch]);
+
+  const confirmRemoveEducation = useCallback(
+    (localId, degree, backendId) => {
+      setConfirm({
+        title: "Remove Education",
+        message: `Are you sure you want to remove "${degree || "this entry"}"?`,
+        onConfirm: () => {
+          setData((prev) => ({
+            ...prev,
+            education: prev.education.filter((e) => e._id !== localId),
+          }));
+          if (backendId) {
+            dispatch(deleteEducationThunk(backendId));
+          }
+        },
+      });
+    },
+    [dispatch]
+  );
 
   /* ── Certifications ── */
 
-  const addCertification = useCallback(() => {
+  const addCertificationLocal = useCallback(() => {
     const newItem = {
       _id: uid(),
-      title: "",
-      issuer: "",
-      issuedDate: "",
-      credentialId: "",
-      credentialUrl: "",
+      title: "", issuer: "", issuedDate: "",
+      credentialId: "", credentialUrl: "",
+      isNew: true,
     };
     setData((prev) => ({
       ...prev,
@@ -450,55 +810,52 @@ function Profile() {
     setEditCert(true);
   }, []);
 
-  const confirmRemoveCertification = useCallback((id, title) => {
-    setConfirm({
-      title: "Remove Certification",
-      message: `Are you sure you want to remove "${title || "this certification"}"?`,
-      onConfirm: () =>
-        setData((prev) => ({
-          ...prev,
-          certifications: prev.certifications.filter((c) => c._id !== id),
-        })),
+  const handleSaveCertifications = useCallback(() => {
+    if (!data?.id) return;
+
+    data.certifications.forEach((cert) => {
+      const payload = {
+        title:         cert.title,
+        issuer:        cert.issuer,
+        issuedDate:    cert.issuedDate,
+        credentialId:  cert.credentialId,
+        credentialUrl: cert.credentialUrl,
+      };
+
+      if (cert.isNew || !cert.id) {
+        dispatch(addCertificationThunk({ id: data.id, data: payload }));
+      } else {
+        dispatch(
+          updateCertificationThunk({ certificationId: cert.id, data: payload })
+        );
+      }
     });
-  }, []);
 
-  /* ── Projects ── */
+    setEditCert(false);
+  }, [data, dispatch]);
 
-  const addProject = useCallback(() => {
-    const newItem = {
-      _id: uid(),
-      title: "",
-      description: "",
-      technologies: [],
-      url: "",
-    };
-    setData((prev) => ({ ...prev, projects: [...prev.projects, newItem] }));
-    setEditProjects(true);
-  }, []);
+  const confirmRemoveCertification = useCallback(
+    (localId, title, backendId) => {
+      setConfirm({
+        title: "Remove Certification",
+        message: `Are you sure you want to remove "${title || "this certification"}"?`,
+        onConfirm: () => {
+          setData((prev) => ({
+            ...prev,
+            certifications: prev.certifications.filter(
+              (c) => c._id !== localId
+            ),
+          }));
+          if (backendId) {
+            dispatch(deleteCertificationThunk(backendId));
+          }
+        },
+      });
+    },
+    [dispatch]
+  );
 
-  const confirmRemoveProject = useCallback((id, title) => {
-    setConfirm({
-      title: "Remove Project",
-      message: `Are you sure you want to remove "${title || "this project"}"?`,
-      onConfirm: () =>
-        setData((prev) => ({
-          ...prev,
-          projects: prev.projects.filter((p) => p._id !== id),
-        })),
-    });
-  }, []);
-
-  const updateProjectTech = useCallback((id, rawValue) => {
-    const technologies = rawValue.split(",").map((t) => t.trim()).filter(Boolean);
-    setData((prev) => ({
-      ...prev,
-      projects: prev.projects.map((p) =>
-        p._id === id ? { ...p, technologies } : p
-      ),
-    }));
-  }, []);
-
-  /* ── Social Links ── */
+  /* ── Social link helper ── */
 
   const updateSocialLink = useCallback((key, value) => {
     setData((prev) => ({
@@ -507,10 +864,26 @@ function Profile() {
     }));
   }, []);
 
-  /* ── Availability badge color ── */
+  /* ── Availability badge colour ── */
   const availBadge =
-    AVAILABILITY_OPTIONS.find((o) => o.value === data.availability) ??
+    AVAILABILITY_OPTIONS.find((o) => o.value === data?.availability) ??
     AVAILABILITY_OPTIONS[0];
+
+  /* ======================================================
+     LOADING SKELETON
+     ====================================================== */
+
+  if (isLoading && !data) return <ProfileSkeleton />;
+
+  if (!data) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <p className="text-sm text-muted">
+          Profile not found. Please try again.
+        </p>
+      </div>
+    );
+  }
 
   /* ======================================================
      RENDER
@@ -518,9 +891,6 @@ function Profile() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-5 pb-16">
-
-      {/* ── Toast ── */}
-      <SaveToast visible={toast} onClose={hideToast} />
 
       {/* ── Confirm Modal ── */}
       <ConfirmModal
@@ -545,7 +915,6 @@ function Profile() {
               className="h-full w-full object-cover"
             />
           )}
-          {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-surface/60 to-transparent pointer-events-none" />
 
           <button
@@ -562,9 +931,7 @@ function Profile() {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) =>
-              handleImageSelect(e, "bannerImage", prevBannerRef)
-            }
+            onChange={handleBannerSelect}
           />
         </div>
 
@@ -598,9 +965,7 @@ function Profile() {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) =>
-                  handleImageSelect(e, "profileImage", prevAvatarRef)
-                }
+                onChange={handleAvatarSelect}
               />
             </div>
 
@@ -616,11 +981,8 @@ function Profile() {
               )}
               <EditButton
                 editing={editHeader}
-                onToggle={
-                  editHeader
-                    ? handleSave(setEditHeader)
-                    : () => setEditHeader(true)
-                }
+                loading={savingSection === "header"}
+                onToggle={editHeader ? handleSaveHeader : () => setEditHeader(true)}
                 label="header"
               />
             </div>
@@ -669,14 +1031,12 @@ function Profile() {
                     <select
                       className={inputCls}
                       value={data.availability}
-                      onChange={(e) => updateField("availability", e.target.value)}
+                      onChange={(e) =>
+                        updateField("availability", e.target.value)
+                      }
                     >
                       {AVAILABILITY_OPTIONS.map((o) => (
-                        <option
-                          key={o.value}
-                          value={o.value}
-                          className="text-black"
-                        >
+                        <option key={o.value} value={o.value} className="text-black">
                           {o.value}
                         </option>
                       ))}
@@ -712,7 +1072,9 @@ function Profile() {
                 {(data.role || data.company) && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm text-body">
                     <IconBriefcase size={15} className="shrink-0 text-muted" />
-                    {data.role && <span className="font-medium">{data.role}</span>}
+                    {data.role && (
+                      <span className="font-medium">{data.role}</span>
+                    )}
                     {data.role && data.company && (
                       <span className="text-muted">at</span>
                     )}
@@ -732,7 +1094,7 @@ function Profile() {
                     </span>
                   )}
                   {data.experienceLevel && (
-                    <span className="flex items-center gap-1 ">
+                    <span className="flex items-center gap-1">
                       <IconStar size={14} />
                       {data.experienceLevel}
                     </span>
@@ -752,11 +1114,8 @@ function Profile() {
           <h2 className={sectionHeadingCls}>Links</h2>
           <EditButton
             editing={editSocial}
-            onToggle={
-              editSocial
-                ? handleSave(setEditSocial)
-                : () => setEditSocial(true)
-            }
+            loading={savingSection === "links"}
+            onToggle={editSocial ? handleSaveLinks : () => setEditSocial(true)}
             label="links"
           />
         </div>
@@ -863,11 +1222,8 @@ function Profile() {
           <h2 className={sectionHeadingCls}>About</h2>
           <EditButton
             editing={editAbout}
-            onToggle={
-              editAbout
-                ? handleSave(setEditAbout)
-                : () => setEditAbout(true)
-            }
+            loading={savingSection === "about"}
+            onToggle={editAbout ? handleSaveAbout : () => setEditAbout(true)}
             label="about"
           />
         </div>
@@ -900,7 +1256,7 @@ function Profile() {
             editing={editSkills}
             onToggle={
               editSkills
-                ? handleSave(setEditSkills)
+                ? handleSaveSkills
                 : () => setEditSkills(true)
             }
             label="skills"
@@ -909,24 +1265,28 @@ function Profile() {
 
         {data.skills.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {data.skills.map((skill) => (
-              <span
-                key={skill}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-sm font-medium text-primary-light transition-all duration-300 hover:border-primary/40 hover:bg-primary/15"
-              >
-                {skill}
-                {editSkills && (
-                  <button
-                    type="button"
-                    aria-label={`Remove ${skill}`}
-                    onClick={() => removeSkill(skill)}
-                    className="ml-0.5 rounded text-primary-light/60 hover:text-danger transition-colors"
-                  >
-                    <IconX size={13} />
-                  </button>
-                )}
-              </span>
-            ))}
+            {data.skills.map((skill) => {
+              const label = typeof skill === "object" ? skill.name : skill;
+              const key   = typeof skill === "object" ? skill.id : skill;
+              return (
+                <span
+                  key={key}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-sm font-medium text-primary-light transition-all duration-300 hover:border-primary/40 hover:bg-primary/15"
+                >
+                  {label}
+                  {editSkills && (
+                    <button
+                      type="button"
+                      aria-label={`Remove ${label}`}
+                      onClick={() => removeSkillLocal(skill)}
+                      className="ml-0.5 rounded text-primary-light/60 hover:text-danger transition-colors"
+                    >
+                      <IconX size={13} />
+                    </button>
+                  )}
+                </span>
+              );
+            })}
           </div>
         ) : (
           !editSkills && (
@@ -946,7 +1306,7 @@ function Profile() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      addSkill();
+                      addSkillLocal();
                     }
                   }}
                 />
@@ -956,7 +1316,7 @@ function Profile() {
                   size="lg"
                   aria-label="Add skill"
                   className="!bg-primary/10 hover:!bg-primary/20 border border-primary/20 shrink-0"
-                  onClick={addSkill}
+                  onClick={addSkillLocal}
                 >
                   <IconPlus size={18} className="text-primary-light" />
                 </ActionIcon>
@@ -973,12 +1333,13 @@ function Profile() {
         <div className="flex items-center justify-between mb-4">
           <h2 className={sectionHeadingCls}>Experience</h2>
           <div className="flex items-center gap-2">
-            <AddButton onClick={addExperience} label="Add experience" />
+            <AddButton onClick={addExperienceLocal} label="Add experience" />
             <EditButton
               editing={editExp}
+              loading={savingSection === "experience"}
               onToggle={
                 editExp
-                  ? handleSave(setEditExp)
+                  ? handleSaveExperience
                   : () => setEditExp(true)
               }
               label="experience"
@@ -1015,7 +1376,7 @@ function Profile() {
                       </p>
                       <DeleteButton
                         onClick={() =>
-                          confirmRemoveExperience(item._id, item.role)
+                          confirmRemoveExperience(item._id, item.role, item.id)
                         }
                         label="Remove experience"
                       />
@@ -1074,7 +1435,6 @@ function Profile() {
                           <option value="" className="text-black">
                             Select type
                           </option>
-
                           {JOB_TYPES.map((t) => (
                             <option key={t} value={t} className="text-black">
                               {t}
@@ -1161,12 +1521,13 @@ function Profile() {
         <div className="flex items-center justify-between mb-4">
           <h2 className={sectionHeadingCls}>Education</h2>
           <div className="flex items-center gap-2">
-            <AddButton onClick={addEducation} label="Add education" />
+            <AddButton onClick={addEducationLocal} label="Add education" />
             <EditButton
               editing={editEdu}
+              loading={savingSection === "education"}
               onToggle={
                 editEdu
-                  ? handleSave(setEditEdu)
+                  ? handleSaveEducation
                   : () => setEditEdu(true)
               }
               label="education"
@@ -1194,7 +1555,7 @@ function Profile() {
                       </p>
                       <DeleteButton
                         onClick={() =>
-                          confirmRemoveEducation(item._id, item.degree)
+                          confirmRemoveEducation(item._id, item.degree, item.id)
                         }
                         label="Remove education"
                       />
@@ -1296,8 +1657,6 @@ function Profile() {
         </div>
       </Section>
 
-
-
       {/* ════════════════════════════════════════════════
           CERTIFICATIONS
           ════════════════════════════════════════════════ */}
@@ -1305,12 +1664,13 @@ function Profile() {
         <div className="flex items-center justify-between mb-4">
           <h2 className={sectionHeadingCls}>Certifications</h2>
           <div className="flex items-center gap-2">
-            <AddButton onClick={addCertification} label="Add certification" />
+            <AddButton onClick={addCertificationLocal} label="Add certification" />
             <EditButton
               editing={editCert}
+              loading={savingSection === "certification"}
               onToggle={
                 editCert
-                  ? handleSave(setEditCert)
+                  ? handleSaveCertifications
                   : () => setEditCert(true)
               }
               label="certifications"
@@ -1338,7 +1698,7 @@ function Profile() {
                       </p>
                       <DeleteButton
                         onClick={() =>
-                          confirmRemoveCertification(cert._id, cert.title)
+                          confirmRemoveCertification(cert._id, cert.title, cert.id)
                         }
                         label="Remove certification"
                       />
@@ -1438,43 +1798,43 @@ function Profile() {
       </Section>
 
       {/* ════════════════════════════════════════════════
-          LANGUAGES & MISC
+          LANGUAGES
           ════════════════════════════════════════════════ */}
       <Section>
         <div className="flex items-center justify-between mb-4">
           <h2 className={sectionHeadingCls}>Languages</h2>
           <EditButton
             editing={editMisc}
-            onToggle={
-              editMisc
-                ? handleSave(setEditMisc)
-                : () => setEditMisc(true)
-            }
+            onToggle={() => setEditMisc((v) => !v)}
             label="languages"
           />
         </div>
 
         {data.languages.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {data.languages.map((lang) => (
-              <span
-                key={lang}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-sm font-medium text-body transition-all duration-200 hover:border-white/20"
-              >
-                <IconLanguage size={14} className="text-muted" />
-                {lang}
-                {editMisc && (
-                  <button
-                    type="button"
-                    aria-label={`Remove ${lang}`}
-                    onClick={() => removeLanguage(lang)}
-                    className="ml-0.5 rounded text-muted hover:text-danger transition-colors"
-                  >
-                    <IconX size={13} />
-                  </button>
-                )}
-              </span>
-            ))}
+            {data.languages.map((lang) => {
+              const label = typeof lang === "object" ? lang.language ?? lang.name : lang;
+              const key   = typeof lang === "object" ? lang.id : lang;
+              return (
+                <span
+                  key={key}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-sm font-medium text-body transition-all duration-200 hover:border-white/20"
+                >
+                  <IconLanguage size={14} className="text-muted" />
+                  {label}
+                  {editMisc && (
+                    <button
+                      type="button"
+                      aria-label={`Remove ${label}`}
+                      onClick={() => removeLanguageLocal(lang)}
+                      className="ml-0.5 rounded text-muted hover:text-danger transition-colors"
+                    >
+                      <IconX size={13} />
+                    </button>
+                  )}
+                </span>
+              );
+            })}
           </div>
         ) : (
           !editMisc && (
@@ -1494,7 +1854,7 @@ function Profile() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      addLanguage();
+                      addLanguageLocal();
                     }
                   }}
                 />
@@ -1504,7 +1864,7 @@ function Profile() {
                   size="lg"
                   aria-label="Add language"
                   className="!bg-white/5 hover:!bg-white/10 border border-white/10 shrink-0"
-                  onClick={addLanguage}
+                  onClick={addLanguageLocal}
                 >
                   <IconPlus size={18} className="text-slate-400" />
                 </ActionIcon>

@@ -25,6 +25,7 @@ import { api } from "../config/Api";
  */
 export const fetchMyProfile = async () => {
   const res = await api.get("/profile");
+  console.log("Profile fetch sucess",res.data)
   return res.data;
 };
 
@@ -142,12 +143,15 @@ export const addSkill = async (id, data) => {
 };
 
 /**
- * Delete a skill (or all skills) from the profile.
- * Endpoint: DELETE /profile/skills/{id}
- * @param {number|string} id — profile ID
+ * Delete a specific skill from the profile by name.
+ * Endpoint: DELETE /profile/skills/{profileId}?skill=React
+ * @param {number|string} profileId — profile ID
+ * @param {string}        skill     — the skill name to delete
  */
-export const deleteSkill = async (id) => {
-  const res = await api.delete(`/profile/skills/${id}`);
+export const deleteSkill = async (profileId, skill) => {
+  const res = await api.delete(`/profile/skills/${profileId}`, {
+    params: { skill },
+  });
   return res.data;
 };
 
@@ -304,11 +308,14 @@ export const fetchLanguages = async (id) => {
 };
 
 /**
- * Delete a specific language entry.
- * Endpoint: DELETE /profile/languages/{id}
- * @param {number|string} id — language ID (not profile ID)
+ * Delete a specific language from the profile by name.
+ * Endpoint: DELETE /profile/languages/{profileId}?language=English
+ * @param {number|string} profileId — profile ID
+ * @param {string}        language  — the language name to delete
  */
-export const deleteLanguage = async (id) => {
-  const res = await api.delete(`/profile/languages/${id}`);
+export const deleteLanguage = async (profileId, language) => {
+  const res = await api.delete(`/profile/languages/${profileId}`, {
+    params: { language },
+  });
   return res.data;
 };

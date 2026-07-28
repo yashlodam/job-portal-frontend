@@ -209,14 +209,14 @@ export const addSkillThunk = createAsyncThunk(
 );
 
 /**
- * DELETE /profile/skills/{id}
- * @param {number|string} id — profile ID
+ * DELETE /profile/skills/{profileId}?skill=React
+ * @param {{ profileId: number|string, skill: string }} payload
  */
 export const deleteSkillThunk = createAsyncThunk(
   "profile/deleteSkill",
-  async (id, { rejectWithValue }) => {
+  async ({ profileId, skill }, { rejectWithValue }) => {
     try {
-      return await deleteSkill(id);
+      return await deleteSkill(profileId, skill);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
@@ -435,14 +435,14 @@ export const fetchLanguagesThunk = createAsyncThunk(
 );
 
 /**
- * DELETE /profile/languages/{id}
- * @param {number|string} id — language entry ID
+ * DELETE /profile/languages/{profileId}?language=English
+ * @param {{ profileId: number|string, language: string }} payload
  */
 export const deleteLanguageThunk = createAsyncThunk(
   "profile/deleteLanguage",
-  async (id, { rejectWithValue }) => {
+  async ({ profileId, language }, { rejectWithValue }) => {
     try {
-      return await deleteLanguage(id);
+      return await deleteLanguage(profileId, language);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
