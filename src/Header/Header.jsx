@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ProfileMenu from "./ProfileMenu";
 import { useAppSelector } from "../State/Store";
+import { useSelector } from "react-redux";
 
 /* ────────────────────────────────────────────────────────────
    Constants
