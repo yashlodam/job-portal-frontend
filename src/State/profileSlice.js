@@ -136,6 +136,17 @@ const profileSlice = createSlice({
       .addCase(fetchMyProfileThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.profile = action.payload;
+        
+      })
+      .addCase(fetchMyProfileThunk.rejected, setError)
+
+      // ══════════════════════════════════════════════════════════════════════
+      // GET /profile/{email} — public profile lookup
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(fetchProfileByEmailThunk.pending, startLoading)
+      .addCase(fetchProfileByEmailThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.profile = action.payload;
         // Hydrate section caches from the full profile response
         state.header         = action.payload?.header         ?? state.header;
         state.about          = action.payload?.about          ?? state.about;
@@ -147,16 +158,6 @@ const profileSlice = createSlice({
         state.languages      = action.payload?.languages      ?? state.languages;
         state.profileImage   = action.payload?.profileImage   ?? state.profileImage;
         state.bannerImage    = action.payload?.bannerImage    ?? state.bannerImage;
-      })
-      .addCase(fetchMyProfileThunk.rejected, setError)
-
-      // ══════════════════════════════════════════════════════════════════════
-      // GET /profile/{email} — public profile lookup
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(fetchProfileByEmailThunk.pending, startLoading)
-      .addCase(fetchProfileByEmailThunk.fulfilled, (state, action) => {
-        state.loading = false;
-        state.profile = action.payload;
       })
       .addCase(fetchProfileByEmailThunk.rejected, setError)
 

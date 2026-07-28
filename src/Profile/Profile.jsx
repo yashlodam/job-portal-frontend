@@ -34,7 +34,7 @@ import React, {
 } from "react";
 
 
-import { useAppDispatch, useAppSelector } from "../State/Store";
+import { store, useAppDispatch, useAppSelector } from "../State/Store";
 
 // ── Thunks ────────────────────────────────────────────────────────────────────
 import {
@@ -56,6 +56,7 @@ import {
   deleteCertificationThunk,
   addLanguageThunk,
   deleteLanguageThunk,
+  fetchProfileByEmailThunk,
 } from "../State/profileThunk";
 
 // ── Selectors ─────────────────────────────────────────────────────────────────
@@ -289,9 +290,10 @@ function Profile() {
   const dispatch = useAppDispatch();
 
   // ── Redux state ──────────────────────────────────────────────────────────
+  const auth = useAppSelector((store)=> store.auth.profile);
   const reduxProfile = useAppSelector(selectProfile);
-  const isLoading    = useAppSelector(selectProfileLoading);
-  const reduxError   = useAppSelector(selectProfileError);
+  const isLoading = useAppSelector(selectProfileLoading);
+  const reduxError = useAppSelector(selectProfileError);
   const reduxSuccess = useAppSelector(selectProfileSuccess);
 
   // ── Local UI state — mirrors the backend data while editing ──────────────
@@ -299,52 +301,52 @@ function Profile() {
   const [data, setData] = useState(null);
 
   // Section edit mode flags
-  const [editHeader,  setEditHeader]  = useState(false);
-  const [editAbout,   setEditAbout]   = useState(false);
-  const [editSkills,  setEditSkills]  = useState(false);
-  const [editExp,     setEditExp]     = useState(false);
-  const [editEdu,     setEditEdu]     = useState(false);
-  const [editCert,    setEditCert]    = useState(false);
-  const [editSocial,  setEditSocial]  = useState(false);
-  const [editMisc,    setEditMisc]    = useState(false);
+  const [editHeader, setEditHeader] = useState(false);
+  const [editAbout, setEditAbout] = useState(false);
+  const [editSkills, setEditSkills] = useState(false);
+  const [editExp, setEditExp] = useState(false);
+  const [editEdu, setEditEdu] = useState(false);
+  const [editCert, setEditCert] = useState(false);
+  const [editSocial, setEditSocial] = useState(false);
+  const [editMisc, setEditMisc] = useState(false);
 
   // Per-section saving spinners (separate from the global loading flag)
   const [savingSection, setSavingSection] = useState("");
 
   // Skill / Language input drafts
   const [skillDraft, setSkillDraft] = useState("");
-  const [langDraft,  setLangDraft]  = useState("");
+  const [langDraft, setLangDraft] = useState("");
 
   // Confirm-delete modal
   const [confirm, setConfirm] = useState(null); // { title, message, onConfirm }
 
   // Image refs & blob tracking
-  const bannerInputRef  = useRef(null);
-  const avatarInputRef  = useRef(null);
-  const prevBannerRef   = useRef(null);
-  const prevAvatarRef   = useRef(null);
+  const bannerInputRef = useRef(null);
+  const avatarInputRef = useRef(null);
+  const prevBannerRef = useRef(null);
+  const prevAvatarRef = useRef(null);
 
   // ── Fetch profile on mount ───────────────────────────────────────────────
   useEffect(() => {
-    dispatch(fetchMyProfileThunk());
+    dispatch(fetchProfileByEmailThunk(auth.email));
   }, [dispatch]);
 
   // ── Hydrate local state when Redux profile arrives/changes ───────────────
   useEffect(() => {
-    // profile loaded
+    console.log("reduxProfile:", reduxProfile);
     if (!reduxProfile) return;
 
     setData({
-      id:             reduxProfile.id,
-      name:           reduxProfile.name           ?? "",
-      role:           reduxProfile.role           ?? "",
-      company:        reduxProfile.company        ?? "",
-      location:       reduxProfile.location       ?? "",
-      about:          reduxProfile.about          ?? "",
-      availability:   reduxProfile.availability   ?? "Open to Work",
-      experienceLevel:reduxProfile.experienceLevel ?? "Mid Level",
-      profileImage:   reduxProfile.profileImage   ?? null,
-      bannerImage:    reduxProfile.bannerImage    ?? null,
+      id: reduxProfile.id,
+      name: reduxProfile.name ?? "",
+      role: reduxProfile.role ?? "",
+      company: reduxProfile.company ?? "",
+      location: reduxProfile.location ?? "",
+      about: reduxProfile.about ?? "",
+      availability: reduxProfile.availability ?? "Open to Work",
+      experienceLevel: reduxProfile.experienceLevel ?? "Mid Level",
+      profileImage: reduxProfile.profileImage ?? null,
+      bannerImage: reduxProfile.bannerImage ?? null,
 
       // Normalise arrays — add _id for stable React keys during editing
       skills: Array.isArray(reduxProfile.skills) ? reduxProfile.skills : [],
@@ -367,8 +369,8 @@ function Profile() {
       languages: Array.isArray(reduxProfile.languages) ? reduxProfile.languages : [],
 
       socialLinks: {
-        linkedin:  reduxProfile.links?.linkedin  ?? reduxProfile.socialLinks?.linkedin  ?? "",
-        github:    reduxProfile.links?.github    ?? reduxProfile.socialLinks?.github    ?? "",
+        linkedin: reduxProfile.links?.linkedin ?? reduxProfile.socialLinks?.linkedin ?? "",
+        github: reduxProfile.links?.github ?? reduxProfile.socialLinks?.github ?? "",
         portfolio: reduxProfile.links?.portfolio ?? reduxProfile.socialLinks?.portfolio ?? "",
       },
     });
@@ -449,74 +451,46 @@ function Profile() {
 
   /* ── Image handling ── */
 
-  // ── Image URL helpers ─────────────────────────────────────────────────────
-  // Backend stores only filenames; construct the full URL here.
-  // This is the ONLY place these paths are defined — never hardcode elsewhere.
-  const getProfileImageUrl = (filename) =>
-    filename ? `http://localhost:8080/uploads/profile/${filename}` : null;
-  const getBannerImageUrl = (filename) =>
-    filename ? `http://localhost:8080/uploads/banner/${filename}` : null;
-
   const handleBannerSelect = useCallback(
     async (e) => {
       const file = e.target.files?.[0];
       if (!file || !data?.id) return;
 
-      // 1. Show an instant blob preview (optimistic UI)
-      const blobUrl = URL.createObjectURL(file);
-      const previousUrl = data.bannerImage; // keep for rollback
-      setData((prev) => ({ ...prev, bannerImage: blobUrl }));
+      // Optimistic preview
+      revokeBlob(prevBannerRef.current);
+      const url = URL.createObjectURL(file);
+      prevBannerRef.current = url;
+      setData((prev) => ({ ...prev, bannerImage: url }));
       e.target.value = "";
 
-      try {
-        // 2. Upload — backend returns the filename string (e.g. "xyz987.webp")
-        const filename = await dispatch(
-          uploadBannerImageThunk({ id: data.id, file })
-        ).unwrap();
-
-        // 3. Replace blob with permanent backend URL & revoke blob memory
-        const permanentUrl = getBannerImageUrl(filename);
-        prevBannerRef.current = permanentUrl;
-        setData((prev) => ({ ...prev, bannerImage: permanentUrl }));
-        revokeBlob(blobUrl);
-      } catch {
-        // 4. Upload failed — rollback to previous image
-        revokeBlob(blobUrl);
-        setData((prev) => ({ ...prev, bannerImage: previousUrl }));
-      }
+      // Upload to backend
+      dispatch(uploadBannerImageThunk({ id: data.id, file }));
     },
-    [data?.id, data?.bannerImage, dispatch]
+    [data?.id, dispatch]
   );
 
   const handleAvatarSelect = useCallback(
     async (e) => {
       const file = e.target.files?.[0];
+      console.log("handleAvatarSelect called");
+      console.log("file:", file);
+      console.log("data:", data);
+      console.log("data.id:", data?.id);
+
       if (!file || !data?.id) return;
 
-      // 1. Instant blob preview
-      const blobUrl = URL.createObjectURL(file);
-      const previousUrl = data.profileImage;
-      setData((prev) => ({ ...prev, profileImage: blobUrl }));
+      // Optimistic preview
+      revokeBlob(prevAvatarRef.current);
+      const url = URL.createObjectURL(file);
+      prevAvatarRef.current = url;
+      setData((prev) => ({ ...prev, profileImage: url }));
       e.target.value = "";
 
-      try {
-        // 2. Upload — backend returns filename string
-        const filename = await dispatch(
-          uploadProfileImageThunk({ id: data.id, file })
-        ).unwrap();
-
-        // 3. Replace blob with backend URL
-        const permanentUrl = getProfileImageUrl(filename);
-        prevAvatarRef.current = permanentUrl;
-        setData((prev) => ({ ...prev, profileImage: permanentUrl }));
-        revokeBlob(blobUrl);
-      } catch {
-        // 4. Rollback
-        revokeBlob(blobUrl);
-        setData((prev) => ({ ...prev, profileImage: previousUrl }));
-      }
+      // Upload to backend
+      console.log("image uploading ", data.id);
+      dispatch(uploadProfileImageThunk({ id: data.id, file }));
     },
-    [data?.id, data?.profileImage, dispatch]
+    [data?.id, dispatch]
   );
 
   /* ── Header save ── */
@@ -528,12 +502,12 @@ function Profile() {
       updateHeaderThunk({
         id: data.id,
         data: {
-          name:           data.name,
-          role:           data.role,
-          company:        data.company,
-          location:       data.location,
-          availability:   data.availability,
-          experienceLevel:data.experienceLevel,
+          name: data.name,
+          jobTitle: data.role,
+          company: data.company,
+          location: data.location,
+          availability: data.availability,
+          experienceLevel: data.experienceLevel,
         },
       }),
       setEditHeader
@@ -557,7 +531,14 @@ function Profile() {
     if (!data?.id) return;
     saveSection(
       "links",
-      updateLinksThunk({ id: data.id, data: data.socialLinks }),
+      updateLinksThunk({
+        id: data.id,
+        data: {
+          linkedinUrl: data.socialLinks.linkedin,
+          githubUrl: data.socialLinks.github,
+          portfolioUrl: data.socialLinks.portfolio,
+        },
+      }),
       setEditSocial
     );
   }, [data, saveSection]);
@@ -567,59 +548,32 @@ function Profile() {
   const addSkillLocal = useCallback(() => {
     const value = skillDraft.trim();
     if (!value) return;
-
-    // Duplicate check works for both string arrays and object arrays
-    const alreadyExists = data.skills.some((s) =>
-      (typeof s === "object" ? s.name : s).toLowerCase() === value.toLowerCase()
-    );
-    if (alreadyExists) {
+    if (data.skills.includes(value)) {
       setSkillDraft("");
       return;
     }
-
-    // Optimistic local add
     setData((prev) => ({ ...prev, skills: [...prev.skills, value] }));
     setSkillDraft("");
 
-    // POST to backend; rollback on failure
+    // Immediately POST to backend
     if (data?.id) {
-      dispatch(addSkillThunk({ id: data.id, data: { name: value } }))
-        .unwrap()
-        .catch(() => {
-          setData((prev) => ({
-            ...prev,
-            skills: prev.skills.filter((s) =>
-              (typeof s === "object" ? s.name : s) !== value
-            ),
-          }));
-        });
+      dispatch(addSkillThunk({ id: data.id, data: { name: value } }));
     }
   }, [skillDraft, data, dispatch]);
 
   const removeSkillLocal = useCallback(
     (skill) => {
-      // skill may be a plain string or an object { id, name }
-      const skillName = typeof skill === "object" ? skill.name : skill;
-
-      // Optimistic local remove
       setData((prev) => ({
         ...prev,
-        skills: prev.skills.filter((s) =>
-          (typeof s === "object" ? s.name : s) !== skillName
-        ),
+        skills: prev.skills.filter((s) => s !== skill),
       }));
-
-      // DELETE /profile/skills/{profileId}?skill=React
+      // DELETE from backend — passing profile id as the skill identifier
+      // Adjust if your backend identifies skills by their own id
       if (data?.id) {
-        dispatch(deleteSkillThunk({ profileId: data.id, skill: skillName }))
-          .unwrap()
-          .catch(() => {
-            // Rollback — re-add the skill
-            setData((prev) => ({ ...prev, skills: [...prev.skills, skill] }));
-          });
+        dispatch(deleteSkillThunk(data.id));
       }
     },
-    [data?.id, data?.skills, dispatch]
+    [data?.id, dispatch]
   );
 
   const handleSaveSkills = useCallback(() => {
@@ -630,53 +584,34 @@ function Profile() {
 
   const addLanguageLocal = useCallback(() => {
     const value = langDraft.trim();
-    if (!value) return;
-
-    // Duplicate check — works for string arrays (GET /languages returns List<String>)
-    const alreadyExists = data.languages.some((l) =>
-      l.toLowerCase() === value.toLowerCase()
-    );
-    if (alreadyExists) {
+    if (!value || data.languages.includes(value)) {
       setLangDraft("");
       return;
     }
-
-    // Optimistic local add
     setData((prev) => ({ ...prev, languages: [...prev.languages, value] }));
     setLangDraft("");
 
-    // POST to backend; rollback on failure
     if (data?.id) {
-      dispatch(addLanguageThunk({ id: data.id, data: { language: value } }))
-        .unwrap()
-        .catch(() => {
-          setData((prev) => ({
-            ...prev,
-            languages: prev.languages.filter((l) => l !== value),
-          }));
-        });
+      dispatch(addLanguageThunk({ id: data.id, data: { language: value } }));
     }
   }, [langDraft, data, dispatch]);
 
   const removeLanguageLocal = useCallback(
     (lang) => {
-      // Backend GET /languages returns List<String>, so lang is always a plain string.
-      // DELETE /profile/languages/{profileId}?language=English
-      const languageName = typeof lang === "string" ? lang : lang.language ?? lang.name ?? "";
+      // We need the language's backend id to delete it.
+      // If the backend returns objects with ids, use those; otherwise adapt.
+      const langObj = typeof lang === "object" ? lang : null;
+      const langId = langObj?.id ?? lang;
 
-      // Optimistic local remove
       setData((prev) => ({
         ...prev,
-        languages: prev.languages.filter((l) => l !== languageName),
+        languages: prev.languages.filter((l) =>
+          typeof l === "object" ? l.id !== langId : l !== lang
+        ),
       }));
 
       if (data?.id) {
-        dispatch(deleteLanguageThunk({ profileId: data.id, language: languageName }))
-          .unwrap()
-          .catch(() => {
-            // Rollback — re-add the language
-            setData((prev) => ({ ...prev, languages: [...prev.languages, languageName] }));
-          });
+        dispatch(deleteLanguageThunk(langId));
       }
     },
     [data?.id, dispatch]
@@ -700,12 +635,12 @@ function Profile() {
 
     data.experience.forEach((item) => {
       const payload = {
-        role:        item.role,
-        company:     item.company,
-        startDate:   item.startDate,
-        endDate:     item.endDate,
-        type:        item.type,
-        location:    item.location,
+        role: item.role,
+        company: item.company,
+        startDate: item.startDate,
+        endDate: item.endDate,
+        type: item.type,
+        location: item.location,
         description: item.description,
       };
 
@@ -758,12 +693,12 @@ function Profile() {
 
     data.education.forEach((item) => {
       const payload = {
-        degree:     item.degree,
-        college:    item.college,
+        degree: item.degree,
+        college: item.college,
         university: item.university,
-        startYear:  item.startYear,
-        endYear:    item.endYear,
-        location:   item.location,
+        startYear: item.startYear,
+        endYear: item.endYear,
+        location: item.location,
       };
 
       if (item.isNew || !item.id) {
@@ -815,10 +750,10 @@ function Profile() {
 
     data.certifications.forEach((cert) => {
       const payload = {
-        title:         cert.title,
-        issuer:        cert.issuer,
-        issuedDate:    cert.issuedDate,
-        credentialId:  cert.credentialId,
+        title: cert.title,
+        issuer: cert.issuer,
+        issuedDate: cert.issuedDate,
+        credentialId: cert.credentialId,
         credentialUrl: cert.credentialUrl,
       };
 
@@ -889,7 +824,9 @@ function Profile() {
      RENDER
      ====================================================== */
 
+     
   return (
+
     <div className="w-full max-w-4xl mx-auto space-y-5 pb-16">
 
       {/* ── Confirm Modal ── */}
@@ -908,12 +845,21 @@ function Profile() {
 
         {/* Banner */}
         <div className="group relative h-52 sm:h-60 w-full bg-gradient-to-br from-primary/20 via-violet/10 to-accent/15">
+        
           {data.bannerImage && (
+            
             <img
-              src={data.bannerImage}
-              alt="Profile banner"
-              className="h-full w-full object-cover"
-            />
+            
+                    src={
+                      data.bannerImage
+                        ? data.bannerImage.startsWith("blob:")
+                          ? data.bannerImage
+                          : `http://localhost:8080/uploads/profile/${data.bannerImage}`
+                        : ""
+                    }
+                    alt={data.name || "Profile"}
+                    className="h-full w-full object-cover"
+                  />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-surface/60 to-transparent pointer-events-none" />
 
@@ -944,8 +890,14 @@ function Profile() {
               <div className="h-28 w-28 sm:h-32 sm:w-32 overflow-hidden rounded-2xl border-[4px] border-surface bg-surface-elevated shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center justify-center">
                 {data.profileImage ? (
                   <img
-                    src={data.profileImage}
-                    alt={data.name || "Profile photo"}
+                    src={
+                      data.profileImage
+                        ? data.profileImage.startsWith("blob:")
+                          ? data.profileImage
+                          : `http://localhost:8080/uploads/profile/${data.profileImage}`
+                        : ""
+                    }
+                    alt={data.name || "Profile"}
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -1267,7 +1219,7 @@ function Profile() {
           <div className="flex flex-wrap gap-2">
             {data.skills.map((skill) => {
               const label = typeof skill === "object" ? skill.name : skill;
-              const key   = typeof skill === "object" ? skill.id : skill;
+              const key = typeof skill === "object" ? skill.id : skill;
               return (
                 <span
                   key={key}
@@ -1814,7 +1766,7 @@ function Profile() {
           <div className="flex flex-wrap gap-2">
             {data.languages.map((lang) => {
               const label = typeof lang === "object" ? lang.language ?? lang.name : lang;
-              const key   = typeof lang === "object" ? lang.id : lang;
+              const key = typeof lang === "object" ? lang.id : lang;
               return (
                 <span
                   key={key}

@@ -36,6 +36,7 @@ export const fetchMyProfile = async () => {
  */
 export const fetchProfileByEmail = async (email) => {
   const res = await api.get(`/profile/${email}`);
+  console.log("X",res.data)
   return res.data;
 };
 
