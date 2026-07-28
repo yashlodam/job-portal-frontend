@@ -90,12 +90,14 @@ function Login({ setIsLogin }) {
     setLoading(true);
 
     try {
+      // .unwrap() throws on rejection so we abort before getUserProfile
+      await dispatch(signin(formData)).unwrap();
 
-      const response = await dispatch(signin(formData));
-       await dispatch(getUserProfile()).unwrap();
+      // Token is now in localStorage — fetch the profile to populate Redux
+      const profile = await dispatch(getUserProfile()).unwrap();
 
       notifications.show({
-        title: `Welcome back, ${response.user?.name || "User"} 👋`,
+        title: `Welcome back, ${profile?.name || "User"} 👋`,
         message: "You have successfully signed in.",
         color: "green",
         radius: "md",

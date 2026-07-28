@@ -81,10 +81,12 @@ const IconButton = memo(function IconButton({
    Header
    ──────────────────────────────────────────────────────────── */
 function Header() {
- 
   const user = useAppSelector((state) => state.auth.profile);
+  // isAuthRestored is false until the startup /profile check resolves.
+  // We use it to render a neutral skeleton instead of the Login button
+  // while the async check is in flight, preventing any visual flash.
+  const isAuthRestored = useSelector((state) => state.auth.isAuthRestored);
 
-console.log("Header user:", user);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -278,7 +280,10 @@ console.log("Header user:", user);
           <div
             className={`hidden items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-2 py-2 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-cyan-500/30 hover:shadow-cyan-500/10 md:flex`}
           >
-            {user ? (
+            {/* Show nothing while auth state is being determined — prevents flash */}
+            {!isAuthRestored ? (
+              <div className="h-[42px] w-24 animate-pulse rounded-xl bg-white/[0.06]" />
+            ) : user ? (
               <ProfileMenu user={user} />
             ) : (
               <Link to="/auth" className={`rounded-xl ${FOCUS_RING}`}>

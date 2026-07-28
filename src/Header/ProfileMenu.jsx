@@ -16,11 +16,10 @@ import { useAppDispatch } from "../State/Store";
 import { logout } from "../State/AuthSlic";
 
 function ProfileMenu({user}) {
-    const USER = { name: "Marshal", role: "Software Engineer" };
-    
     const [checked,setChecked] = useState(false);
     const [opened,setOpened] = useState(false)
     const dispatch = useAppDispatch();
+
 
 
     const handleLogout = ()=>{
