@@ -342,7 +342,7 @@ function Profile() {
       role: reduxProfile.role ?? "",
       company: reduxProfile.company ?? "",
       location: reduxProfile.location ?? "",
-      about: reduxProfile.about ?? "",
+      about: reduxProfile.about ?? reduxProfile.about?.about ?? "",
       availability: reduxProfile.availability ?? "Open to Work",
       experienceLevel: reduxProfile.experienceLevel ?? "Mid Level",
       profileImage: reduxProfile.profileImage ?? null,
@@ -369,10 +369,21 @@ function Profile() {
       languages: Array.isArray(reduxProfile.languages) ? reduxProfile.languages : [],
 
       socialLinks: {
-        linkedin: reduxProfile.links?.linkedin ?? reduxProfile.socialLinks?.linkedin ?? "",
-        github: reduxProfile.links?.github ?? reduxProfile.socialLinks?.github ?? "",
-        portfolio: reduxProfile.links?.portfolio ?? reduxProfile.socialLinks?.portfolio ?? "",
-      },
+  linkedin:
+    reduxProfile.linkedinUrl ??
+    reduxProfile.links?.linkedinUrl ??
+    "",
+
+  github:
+    reduxProfile.githubUrl ??
+    reduxProfile.links?.githubUrl ??
+    "",
+
+  portfolio:
+    reduxProfile.portfolioUrl ??
+    reduxProfile.links?.portfolioUrl ??
+    "",
+},
     });
 
     // Sync image refs
@@ -548,7 +559,7 @@ function Profile() {
   const addSkillLocal = useCallback(() => {
     const value = skillDraft.trim();
     if (!value) return;
-    if (data.skills.includes(value)) {
+    if (data.skills.some((s) => (typeof s === "string" ? s : s.skill) === value)) {
       setSkillDraft("");
       return;
     }
@@ -557,24 +568,36 @@ function Profile() {
 
     // Immediately POST to backend
     if (data?.id) {
-      dispatch(addSkillThunk({ id: data.id, data: { name: value } }));
+      dispatch(addSkillThunk({
+  id: data.id,
+  data: {
+    skill: value
+  }
+}));
     }
   }, [skillDraft, data, dispatch]);
 
-  const removeSkillLocal = useCallback(
-    (skill) => {
-      setData((prev) => ({
-        ...prev,
-        skills: prev.skills.filter((s) => s !== skill),
-      }));
-      // DELETE from backend — passing profile id as the skill identifier
-      // Adjust if your backend identifies skills by their own id
-      if (data?.id) {
-        dispatch(deleteSkillThunk(data.id));
-      }
-    },
-    [data?.id, dispatch]
-  );
+ const removeSkillLocal = useCallback(
+  (skill) => {
+    const skillName = typeof skill === "object" ? skill.skill : skill;
+
+    setData((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((s) => {
+        const current = typeof s === "object" ? s.skill : s;
+        return current !== skillName;
+      }),
+    }));
+
+    dispatch(
+      deleteSkillThunk({
+        profileId: data.id,
+        skill: skillName,
+      })
+    );
+  },
+  [data, dispatch]
+);
 
   const handleSaveSkills = useCallback(() => {
     setEditSkills(false);
@@ -635,7 +658,7 @@ function Profile() {
 
     data.experience.forEach((item) => {
       const payload = {
-        role: item.role,
+        title: item.title,
         company: item.company,
         startDate: item.startDate,
         endDate: item.endDate,
@@ -1218,6 +1241,7 @@ function Profile() {
         {data.skills.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {data.skills.map((skill) => {
+              console.log(data.skills);
               const label = typeof skill === "object" ? skill.name : skill;
               const key = typeof skill === "object" ? skill.id : skill;
               return (
@@ -1337,10 +1361,10 @@ function Profile() {
                       <Field label="Role">
                         <input
                           className={inputCls}
-                          value={item.role}
+                          value={item.title}
                           placeholder="e.g. Software Engineer"
                           onChange={(e) =>
-                            updateListItem("experience", item._id, "role", e.target.value)
+                            updateListItem("experience", item._id, "title", e.target.value)
                           }
                         />
                       </Field>
@@ -1422,7 +1446,7 @@ function Profile() {
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg leading-snug">
-                          {item.role || "Untitled role"}
+                          {item.title || "Untitled role"}
                         </h3>
                         <p className="mt-0.5 text-sm font-medium text-primary-light">
                           {item.company}

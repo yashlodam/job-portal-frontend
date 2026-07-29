@@ -136,7 +136,7 @@ const profileSlice = createSlice({
       .addCase(fetchMyProfileThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.profile = action.payload;
-        
+
       })
       .addCase(fetchMyProfileThunk.rejected, setError)
 
@@ -148,16 +148,16 @@ const profileSlice = createSlice({
         state.loading = false;
         state.profile = action.payload;
         // Hydrate section caches from the full profile response
-        state.header         = action.payload?.header         ?? state.header;
-        state.about          = action.payload?.about          ?? state.about;
-        state.links          = action.payload?.links          ?? state.links;
-        state.skills         = action.payload?.skills         ?? state.skills;
-        state.experiences    = action.payload?.experiences    ?? state.experiences;
-        state.educations     = action.payload?.educations     ?? state.educations;
+        state.header = action.payload?.header ?? state.header;
+        state.about = action.payload?.about ?? state.about;
+        state.links = action.payload?.links ?? state.links;
+        state.skills = action.payload?.skills ?? state.skills;
+        state.experiences = action.payload?.experiences ?? state.experiences;
+        state.educations = action.payload?.educations ?? state.educations;
         state.certifications = action.payload?.certifications ?? state.certifications;
-        state.languages      = action.payload?.languages      ?? state.languages;
-        state.profileImage   = action.payload?.profileImage   ?? state.profileImage;
-        state.bannerImage    = action.payload?.bannerImage    ?? state.bannerImage;
+        state.languages = action.payload?.languages ?? state.languages;
+        state.profileImage = action.payload?.profileImage ?? state.profileImage;
+        state.bannerImage = action.payload?.bannerImage ?? state.bannerImage;
       })
       .addCase(fetchProfileByEmailThunk.rejected, setError)
 
@@ -227,237 +227,237 @@ const profileSlice = createSlice({
       .addCase(updateAboutThunk.pending, startLoading)
       .addCase(updateAboutThunk.fulfilled, (state, action) => {
         setSuccess(state);
-        state.about = action.payload;
-        if (state.profile) state.profile.about = action.payload;
+
+        state.about = action.payload.about;
+
+        if (state.profile) {
+          state.profile.about = action.payload.about;
+        }
       })
       .addCase(updateAboutThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // PUT /profile/skills/{id} — full replacement
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(updateSkillsThunk.pending, startLoading)
-      .addCase(updateSkillsThunk.fulfilled, (state, action) => {
-        setSuccess(state);
+    // ══════════════════════════════════════════════════════════════════════
+    // PUT /profile/skills/{id} — full replacement
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(updateSkillsThunk.pending, startLoading)
+    .addCase(updateSkillsThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      state.skills = action.payload;
+      if (state.profile) state.profile.skills = action.payload;
+    })
+    .addCase(updateSkillsThunk.rejected, setError)
+
+    // ══════════════════════════════════════════════════════════════════════
+    // POST /profile/skill/{id} — add single skill
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(addSkillThunk.pending, startLoading)
+    .addCase(addSkillThunk.fulfilled, (state, action) => {
+    setSuccess(state);
+
+    if (Array.isArray(action.payload)) {
         state.skills = action.payload;
-        if (state.profile) state.profile.skills = action.payload;
-      })
-      .addCase(updateSkillsThunk.rejected, setError)
+    } else {
+        state.skills.push(action.payload.skill);
+    }
 
-      // ══════════════════════════════════════════════════════════════════════
-      // POST /profile/skill/{id} — add single skill
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(addSkillThunk.pending, startLoading)
-      .addCase(addSkillThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        // Backend returns the newly created skill or the updated full list
-        if (Array.isArray(action.payload)) {
-          state.skills = action.payload;
-        } else {
-          state.skills.push(action.payload);
-        }
-        if (state.profile) state.profile.skills = state.skills;
-      })
-      .addCase(addSkillThunk.rejected, setError)
+    if (state.profile) {
+        state.profile.skills = state.skills;
+    }
+})
+    .addCase(addSkillThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // DELETE /profile/skills/{id}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(deleteSkillThunk.pending, startLoading)
-      .addCase(deleteSkillThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        // If backend returns the updated list, use it; otherwise clear
-        if (Array.isArray(action.payload)) {
-          state.skills = action.payload;
-        } else {
-          state.skills = [];
-        }
-        if (state.profile) state.profile.skills = state.skills;
-      })
-      .addCase(deleteSkillThunk.rejected, setError)
+    // ══════════════════════════════════════════════════════════════════════
+    // DELETE /profile/skills/{id}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(deleteSkillThunk.pending, startLoading)
+    .addCase(deleteSkillThunk.fulfilled, (state) => {
+  setSuccess(state);
+})
+    .addCase(deleteSkillThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // POST /profile/experience/{id}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(addExperienceThunk.pending, startLoading)
-      .addCase(addExperienceThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        if (Array.isArray(action.payload)) {
-          state.experiences = action.payload;
-        } else {
-          state.experiences.push(action.payload);
-        }
-        if (state.profile) state.profile.experiences = state.experiences;
-      })
-      .addCase(addExperienceThunk.rejected, setError)
-
-      // ══════════════════════════════════════════════════════════════════════
-      // PUT /profile/experience/{experienceId}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(updateExperienceThunk.pending, startLoading)
-      .addCase(updateExperienceThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        const updated = action.payload;
-        const idx = state.experiences.findIndex((e) => e.id === updated.id);
-        if (idx !== -1) {
-          state.experiences[idx] = updated;
-        }
-        if (state.profile) state.profile.experiences = state.experiences;
-      })
-      .addCase(updateExperienceThunk.rejected, setError)
-
-      // ══════════════════════════════════════════════════════════════════════
-      // GET /profile/experience/{id}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(fetchExperiencesThunk.pending, startLoading)
-      .addCase(fetchExperiencesThunk.fulfilled, (state, action) => {
-        state.loading = false;
+    // ══════════════════════════════════════════════════════════════════════
+    // POST /profile/experience/{id}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(addExperienceThunk.pending, startLoading)
+    .addCase(addExperienceThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      if (Array.isArray(action.payload)) {
         state.experiences = action.payload;
-      })
-      .addCase(fetchExperiencesThunk.rejected, setError)
+      } else {
+        state.experiences.push(action.payload);
+      }
+      if (state.profile) state.profile.experiences = state.experiences;
+    })
+    .addCase(addExperienceThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // DELETE /profile/experience/{experienceId}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(deleteExperienceThunk.pending, startLoading)
-      .addCase(deleteExperienceThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        // action.meta.arg is the experienceId passed to the thunk
-        state.experiences = state.experiences.filter(
-          (e) => e.id !== action.meta.arg
-        );
-        if (state.profile) state.profile.experiences = state.experiences;
-      })
-      .addCase(deleteExperienceThunk.rejected, setError)
+    // ══════════════════════════════════════════════════════════════════════
+    // PUT /profile/experience/{experienceId}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(updateExperienceThunk.pending, startLoading)
+    .addCase(updateExperienceThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      const updated = action.payload;
+      const idx = state.experiences.findIndex((e) => e.id === updated.id);
+      if (idx !== -1) {
+        state.experiences[idx] = updated;
+      }
+      if (state.profile) state.profile.experiences = state.experiences;
+    })
+    .addCase(updateExperienceThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // POST /profile/education/{id}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(addEducationThunk.pending, startLoading)
-      .addCase(addEducationThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        if (Array.isArray(action.payload)) {
-          state.educations = action.payload;
-        } else {
-          state.educations.push(action.payload);
-        }
-        if (state.profile) state.profile.educations = state.educations;
-      })
-      .addCase(addEducationThunk.rejected, setError)
+    // ══════════════════════════════════════════════════════════════════════
+    // GET /profile/experience/{id}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(fetchExperiencesThunk.pending, startLoading)
+    .addCase(fetchExperiencesThunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.experiences = action.payload;
+    })
+    .addCase(fetchExperiencesThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // GET /profile/education/{id}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(fetchEducationsThunk.pending, startLoading)
-      .addCase(fetchEducationsThunk.fulfilled, (state, action) => {
-        state.loading = false;
+    // ══════════════════════════════════════════════════════════════════════
+    // DELETE /profile/experience/{experienceId}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(deleteExperienceThunk.pending, startLoading)
+    .addCase(deleteExperienceThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      // action.meta.arg is the experienceId passed to the thunk
+      state.experiences = state.experiences.filter(
+        (e) => e.id !== action.meta.arg
+      );
+      if (state.profile) state.profile.experiences = state.experiences;
+    })
+    .addCase(deleteExperienceThunk.rejected, setError)
+
+    // ══════════════════════════════════════════════════════════════════════
+    // POST /profile/education/{id}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(addEducationThunk.pending, startLoading)
+    .addCase(addEducationThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      if (Array.isArray(action.payload)) {
         state.educations = action.payload;
-      })
-      .addCase(fetchEducationsThunk.rejected, setError)
+      } else {
+        state.educations.push(action.payload);
+      }
+      if (state.profile) state.profile.educations = state.educations;
+    })
+    .addCase(addEducationThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // DELETE /profile/education/{educationId}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(deleteEducationThunk.pending, startLoading)
-      .addCase(deleteEducationThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        state.educations = state.educations.filter(
-          (e) => e.id !== action.meta.arg
-        );
-        if (state.profile) state.profile.educations = state.educations;
-      })
-      .addCase(deleteEducationThunk.rejected, setError)
+    // ══════════════════════════════════════════════════════════════════════
+    // GET /profile/education/{id}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(fetchEducationsThunk.pending, startLoading)
+    .addCase(fetchEducationsThunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.educations = action.payload;
+    })
+    .addCase(fetchEducationsThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // POST /profile/certification/{id}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(addCertificationThunk.pending, startLoading)
-      .addCase(addCertificationThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        if (Array.isArray(action.payload)) {
-          state.certifications = action.payload;
-        } else {
-          state.certifications.push(action.payload);
-        }
-        if (state.profile) state.profile.certifications = state.certifications;
-      })
-      .addCase(addCertificationThunk.rejected, setError)
+    // ══════════════════════════════════════════════════════════════════════
+    // DELETE /profile/education/{educationId}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(deleteEducationThunk.pending, startLoading)
+    .addCase(deleteEducationThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      state.educations = state.educations.filter(
+        (e) => e.id !== action.meta.arg
+      );
+      if (state.profile) state.profile.educations = state.educations;
+    })
+    .addCase(deleteEducationThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // PUT /profile/certification/{certificationId}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(updateCertificationThunk.pending, startLoading)
-      .addCase(updateCertificationThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        const updated = action.payload;
-        const idx = state.certifications.findIndex((c) => c.id === updated.id);
-        if (idx !== -1) {
-          state.certifications[idx] = updated;
-        }
-        if (state.profile) state.profile.certifications = state.certifications;
-      })
-      .addCase(updateCertificationThunk.rejected, setError)
-
-      // ══════════════════════════════════════════════════════════════════════
-      // GET /profile/certification/{id}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(fetchCertificationsThunk.pending, startLoading)
-      .addCase(fetchCertificationsThunk.fulfilled, (state, action) => {
-        state.loading = false;
+    // ══════════════════════════════════════════════════════════════════════
+    // POST /profile/certification/{id}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(addCertificationThunk.pending, startLoading)
+    .addCase(addCertificationThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      if (Array.isArray(action.payload)) {
         state.certifications = action.payload;
-      })
-      .addCase(fetchCertificationsThunk.rejected, setError)
+      } else {
+        state.certifications.push(action.payload);
+      }
+      if (state.profile) state.profile.certifications = state.certifications;
+    })
+    .addCase(addCertificationThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // DELETE /profile/certification/{certificationId}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(deleteCertificationThunk.pending, startLoading)
-      .addCase(deleteCertificationThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        state.certifications = state.certifications.filter(
-          (c) => c.id !== action.meta.arg
-        );
-        if (state.profile) state.profile.certifications = state.certifications;
-      })
-      .addCase(deleteCertificationThunk.rejected, setError)
+    // ══════════════════════════════════════════════════════════════════════
+    // PUT /profile/certification/{certificationId}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(updateCertificationThunk.pending, startLoading)
+    .addCase(updateCertificationThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      const updated = action.payload;
+      const idx = state.certifications.findIndex((c) => c.id === updated.id);
+      if (idx !== -1) {
+        state.certifications[idx] = updated;
+      }
+      if (state.profile) state.profile.certifications = state.certifications;
+    })
+    .addCase(updateCertificationThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // POST /profile/languages/{id}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(addLanguageThunk.pending, startLoading)
-      .addCase(addLanguageThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        if (Array.isArray(action.payload)) {
-          state.languages = action.payload;
-        } else {
-          state.languages.push(action.payload);
-        }
-        if (state.profile) state.profile.languages = state.languages;
-      })
-      .addCase(addLanguageThunk.rejected, setError)
+    // ══════════════════════════════════════════════════════════════════════
+    // GET /profile/certification/{id}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(fetchCertificationsThunk.pending, startLoading)
+    .addCase(fetchCertificationsThunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.certifications = action.payload;
+    })
+    .addCase(fetchCertificationsThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // GET /profile/languages/{id}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(fetchLanguagesThunk.pending, startLoading)
-      .addCase(fetchLanguagesThunk.fulfilled, (state, action) => {
-        state.loading = false;
+    // ══════════════════════════════════════════════════════════════════════
+    // DELETE /profile/certification/{certificationId}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(deleteCertificationThunk.pending, startLoading)
+    .addCase(deleteCertificationThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      state.certifications = state.certifications.filter(
+        (c) => c.id !== action.meta.arg
+      );
+      if (state.profile) state.profile.certifications = state.certifications;
+    })
+    .addCase(deleteCertificationThunk.rejected, setError)
+
+    // ══════════════════════════════════════════════════════════════════════
+    // POST /profile/languages/{id}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(addLanguageThunk.pending, startLoading)
+    .addCase(addLanguageThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      if (Array.isArray(action.payload)) {
         state.languages = action.payload;
-      })
-      .addCase(fetchLanguagesThunk.rejected, setError)
+      } else {
+        state.languages.push(action.payload);
+      }
+      if (state.profile) state.profile.languages = state.languages;
+    })
+    .addCase(addLanguageThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // DELETE /profile/languages/{id}
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(deleteLanguageThunk.pending, startLoading)
-      .addCase(deleteLanguageThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        state.languages = state.languages.filter(
-          (l) => l.id !== action.meta.arg
-        );
-        if (state.profile) state.profile.languages = state.languages;
-      })
-      .addCase(deleteLanguageThunk.rejected, setError);
-  },
+    // ══════════════════════════════════════════════════════════════════════
+    // GET /profile/languages/{id}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(fetchLanguagesThunk.pending, startLoading)
+    .addCase(fetchLanguagesThunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.languages = action.payload;
+    })
+    .addCase(fetchLanguagesThunk.rejected, setError)
+
+    // ══════════════════════════════════════════════════════════════════════
+    // DELETE /profile/languages/{id}
+    // ══════════════════════════════════════════════════════════════════════
+    .addCase(deleteLanguageThunk.pending, startLoading)
+    .addCase(deleteLanguageThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      state.languages = state.languages.filter(
+        (l) => l.id !== action.meta.arg
+      );
+      if (state.profile) state.profile.languages = state.languages;
+    })
+    .addCase(deleteLanguageThunk.rejected, setError);
+},
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
