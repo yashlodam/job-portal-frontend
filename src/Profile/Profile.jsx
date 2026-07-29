@@ -854,7 +854,7 @@ function Profile() {
                       data.bannerImage
                         ? data.bannerImage.startsWith("blob:")
                           ? data.bannerImage
-                          : `http://localhost:8080/uploads/profile/${data.bannerImage}`
+                          : `http://localhost:8080/uploads/banner/${data.bannerImage}`
                         : ""
                     }
                     alt={data.name || "Profile"}
