@@ -755,6 +755,12 @@ button {
   100% { background-position: 200% 0; }
 }
 
+/* Profile banner shimmer — uses translateX approach */
+@keyframes shimmer-slide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 @keyframes gradient-shift {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }

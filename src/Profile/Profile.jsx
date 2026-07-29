@@ -20,6 +20,10 @@ import {
   IconX,
   IconUser,
   IconStar,
+  IconPhoto,
+  IconMaximize,
+  IconArrowLeft,
+  IconArrowRight,
 } from "@tabler/icons-react";
 
 import { MonthPickerInput } from "@mantine/dates";
@@ -31,8 +35,8 @@ import React, {
   useEffect,
   useRef,
   useState,
+  memo,
 } from "react";
-
 
 import { store, useAppDispatch, useAppSelector } from "../State/Store";
 
@@ -152,6 +156,61 @@ function ConfirmModal({ opened, onClose, onConfirm, title, message }) {
 }
 
 /* ============================================================
+   Certificate Fullscreen Preview Modal
+   ============================================================ */
+
+const CertificatePreviewModal = memo(function CertificatePreviewModal({
+  src,
+  alt,
+  onClose,
+}) {
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  if (!src) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Certificate preview: ${alt}`}
+    >
+      {/* Close button */}
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close preview"
+        className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary/60"
+      >
+        <IconX size={18} />
+      </button>
+
+      {/* Image container — stops click propagation so clicking image doesn't close */}
+      <div
+        className="relative max-h-[90vh] max-w-[90vw] flex items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          className="max-h-[88vh] max-w-[88vw] w-auto h-auto object-contain rounded-2xl shadow-2xl"
+          style={{ imageOrientation: "from-image" }}
+        />
+      </div>
+    </div>
+  );
+});
+
+/* ============================================================
    Section wrapper
    ============================================================ */
 
@@ -255,6 +314,35 @@ const JOB_TYPES = [
 ];
 
 /* ============================================================
+   Banner Placeholder SVG — shown when no banner image exists
+   ============================================================ */
+
+function BannerPlaceholder() {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none select-none">
+      {/* Animated gradient mesh */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-violet/10 to-accent/15 opacity-80" />
+      {/* Subtle grid overlay */}
+      <div
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
+      {/* Icon + text */}
+      <div className="relative z-10 flex flex-col items-center gap-2 opacity-40">
+        <IconPhoto size={40} stroke={1.2} className="text-white" />
+        <span className="text-xs font-medium text-white tracking-widest uppercase">
+          Add a banner image
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
    Profile skeleton — shown while the first fetch is in-flight
    ============================================================ */
 
@@ -263,7 +351,10 @@ function ProfileSkeleton() {
     <div className="w-full max-w-4xl mx-auto space-y-5 pb-16 animate-pulse">
       {/* Banner + Avatar */}
       <div className="rounded-2xl overflow-hidden border border-white/[0.06] bg-surface">
-        <div className="h-52 sm:h-60 bg-white/[0.04]" />
+        {/* Banner shimmer */}
+        <div className="relative h-60 sm:h-72 bg-white/[0.04] overflow-hidden">
+          <div className="absolute inset-0 animate-[shimmer-slide_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+        </div>
         <div className="px-5 sm:px-7 pb-6 -mt-14">
           <div className="h-28 w-28 rounded-2xl bg-white/[0.08]" />
           <div className="mt-4 space-y-2">
@@ -283,6 +374,74 @@ function ProfileSkeleton() {
 }
 
 /* ============================================================
+   Certificate Card — lazy-loaded, with fullscreen preview
+   ============================================================ */
+
+const CertificateImageCard = memo(function CertificateImageCard({
+  src,
+  alt,
+  onOpenPreview,
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  return (
+    <button
+      type="button"
+      aria-label={`Preview certificate: ${alt}`}
+      onClick={() => onOpenPreview(src, alt)}
+      className="group relative block w-full overflow-hidden rounded-xl border border-white/[0.08] bg-surface-elevated shadow-[0_4px_24px_rgba(0,0,0,0.35)] hover:border-primary/30 hover:shadow-[0_8px_40px_rgba(99,102,241,0.15)] transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary/60"
+      style={{ aspectRatio: "auto" }}
+    >
+      {/* Loading skeleton */}
+      {!loaded && !error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-surface-elevated animate-pulse">
+          <div className="h-8 w-8 rounded-full bg-white/10 animate-ping" />
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && (
+        <div className="flex h-48 items-center justify-center bg-surface-elevated">
+          <div className="flex flex-col items-center gap-2 text-muted">
+            <IconPhoto size={32} stroke={1.2} />
+            <span className="text-xs">Image not available</span>
+          </div>
+        </div>
+      )}
+
+      {/* The actual image */}
+      {!error && (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+          className={[
+            "max-h-[420px] w-full object-contain rounded-xl bg-neutral-900",
+            "transition-all duration-500 group-hover:scale-[1.02]",
+            loaded ? "opacity-100" : "opacity-0",
+          ].join(" ")}
+          style={{ imageOrientation: "from-image" }}
+        />
+      )}
+
+      {/* Hover overlay — fullscreen icon */}
+      {loaded && !error && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/0 group-hover:bg-black/40 transition-all duration-300">
+          <div className="flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 px-3 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+            <IconMaximize size={14} />
+            View full size
+          </div>
+        </div>
+      )}
+    </button>
+  );
+});
+
+/* ============================================================
    Main Profile Component
    ============================================================ */
 
@@ -290,14 +449,13 @@ function Profile() {
   const dispatch = useAppDispatch();
 
   // ── Redux state ──────────────────────────────────────────────────────────
-  const auth = useAppSelector((store)=> store.auth.profile);
+  const auth = useAppSelector((store) => store.auth.profile);
   const reduxProfile = useAppSelector(selectProfile);
   const isLoading = useAppSelector(selectProfileLoading);
   const reduxError = useAppSelector(selectProfileError);
   const reduxSuccess = useAppSelector(selectProfileSuccess);
 
   // ── Local UI state — mirrors the backend data while editing ──────────────
-  // Initialised from Redux; reset whenever Redux profile changes (e.g. after save).
   const [data, setData] = useState(null);
 
   // Section edit mode flags
@@ -310,7 +468,7 @@ function Profile() {
   const [editSocial, setEditSocial] = useState(false);
   const [editMisc, setEditMisc] = useState(false);
 
-  // Per-section saving spinners (separate from the global loading flag)
+  // Per-section saving spinners
   const [savingSection, setSavingSection] = useState("");
 
   // Skill / Language input drafts
@@ -318,7 +476,13 @@ function Profile() {
   const [langDraft, setLangDraft] = useState("");
 
   // Confirm-delete modal
-  const [confirm, setConfirm] = useState(null); // { title, message, onConfirm }
+  const [confirm, setConfirm] = useState(null);
+
+  // Certificate fullscreen preview
+  const [certPreview, setCertPreview] = useState(null); // { src, alt }
+
+  // Banner image loading state
+  const [bannerLoaded, setBannerLoaded] = useState(false);
 
   // Image refs & blob tracking
   const bannerInputRef = useRef(null);
@@ -348,7 +512,6 @@ function Profile() {
       profileImage: reduxProfile.profileImage ?? null,
       bannerImage: reduxProfile.bannerImage ?? null,
 
-      // Normalise arrays — add _id for stable React keys during editing
       skills: Array.isArray(reduxProfile.skills) ? reduxProfile.skills : [],
 
       experience: (reduxProfile.experiences ?? reduxProfile.experience ?? []).map((e) => ({
@@ -369,26 +532,28 @@ function Profile() {
       languages: Array.isArray(reduxProfile.languages) ? reduxProfile.languages : [],
 
       socialLinks: {
-  linkedin:
-    reduxProfile.linkedinUrl ??
-    reduxProfile.links?.linkedinUrl ??
-    "",
+        linkedin:
+          reduxProfile.linkedinUrl ??
+          reduxProfile.links?.linkedinUrl ??
+          "",
 
-  github:
-    reduxProfile.githubUrl ??
-    reduxProfile.links?.githubUrl ??
-    "",
+        github:
+          reduxProfile.githubUrl ??
+          reduxProfile.links?.githubUrl ??
+          "",
 
-  portfolio:
-    reduxProfile.portfolioUrl ??
-    reduxProfile.links?.portfolioUrl ??
-    "",
-},
+        portfolio:
+          reduxProfile.portfolioUrl ??
+          reduxProfile.links?.portfolioUrl ??
+          "",
+      },
     });
 
     // Sync image refs
     prevBannerRef.current = reduxProfile.bannerImage ?? null;
     prevAvatarRef.current = reduxProfile.profileImage ?? null;
+    // Reset banner loaded state when profile changes
+    setBannerLoaded(false);
   }, [reduxProfile]);
 
   // ── Toast on Redux success ────────────────────────────────────────────────
@@ -423,6 +588,18 @@ function Profile() {
     };
   }, []);
 
+  // ── Lock body scroll when certificate preview is open ───────────────────
+  useEffect(() => {
+    if (certPreview) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [certPreview]);
+
   /* ── Generic local updaters ── */
 
   const updateField = useCallback((field, value) => {
@@ -440,11 +617,6 @@ function Profile() {
 
   /* ── Section save helpers ── */
 
-  /**
-   * Wraps a thunk dispatch with:
-   * - section saving spinner
-   * - auto-close the edit panel on success
-   */
   const saveSection = useCallback(
     async (sectionKey, thunk, closeFn) => {
       setSavingSection(sectionKey);
@@ -471,6 +643,7 @@ function Profile() {
       revokeBlob(prevBannerRef.current);
       const url = URL.createObjectURL(file);
       prevBannerRef.current = url;
+      setBannerLoaded(false);
       setData((prev) => ({ ...prev, bannerImage: url }));
       e.target.value = "";
 
@@ -566,38 +739,35 @@ function Profile() {
     setData((prev) => ({ ...prev, skills: [...prev.skills, value] }));
     setSkillDraft("");
 
-    // Immediately POST to backend
     if (data?.id) {
       dispatch(addSkillThunk({
-  id: data.id,
-  data: {
-    skill: value
-  }
-}));
+        id: data.id,
+        data: { skill: value }
+      }));
     }
   }, [skillDraft, data, dispatch]);
 
- const removeSkillLocal = useCallback(
-  (skill) => {
-    const skillName = typeof skill === "object" ? skill.skill : skill;
+  const removeSkillLocal = useCallback(
+    (skill) => {
+      const skillName = typeof skill === "object" ? skill.skill : skill;
 
-    setData((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((s) => {
-        const current = typeof s === "object" ? s.skill : s;
-        return current !== skillName;
-      }),
-    }));
+      setData((prev) => ({
+        ...prev,
+        skills: prev.skills.filter((s) => {
+          const current = typeof s === "object" ? s.skill : s;
+          return current !== skillName;
+        }),
+      }));
 
-    dispatch(
-      deleteSkillThunk({
-        profileId: data.id,
-        skill: skillName,
-      })
-    );
-  },
-  [data, dispatch]
-);
+      dispatch(
+        deleteSkillThunk({
+          profileId: data.id,
+          skill: skillName,
+        })
+      );
+    },
+    [data, dispatch]
+  );
 
   const handleSaveSkills = useCallback(() => {
     setEditSkills(false);
@@ -621,8 +791,6 @@ function Profile() {
 
   const removeLanguageLocal = useCallback(
     (lang) => {
-      // We need the language's backend id to delete it.
-      // If the backend returns objects with ids, use those; otherwise adapt.
       const langObj = typeof lang === "object" ? lang : null;
       const langId = langObj?.id ?? lang;
 
@@ -647,7 +815,7 @@ function Profile() {
       _id: uid(),
       role: "", company: "", startDate: "", endDate: "",
       type: "", location: "", description: "", logo: "",
-      isNew: true, // flag so we know to POST vs PUT on save
+      isNew: true,
     };
     setData((prev) => ({ ...prev, experience: [...prev.experience, newItem] }));
     setEditExp(true);
@@ -668,10 +836,8 @@ function Profile() {
       };
 
       if (item.isNew || !item.id) {
-        // New entry — POST
         dispatch(addExperienceThunk({ id: data.id, data: payload }));
       } else {
-        // Existing entry — PUT
         dispatch(updateExperienceThunk({ experienceId: item.id, data: payload }));
       }
     });
@@ -727,7 +893,6 @@ function Profile() {
       if (item.isNew || !item.id) {
         dispatch(addEducationThunk({ id: data.id, data: payload }));
       }
-      // Note: Backend has no PUT /education; only POST + DELETE
     });
 
     setEditEdu(false);
@@ -822,10 +987,33 @@ function Profile() {
     }));
   }, []);
 
+  /* ── Certificate preview handlers ── */
+  const openCertPreview = useCallback((src, alt) => {
+    setCertPreview({ src, alt });
+  }, []);
+
+  const closeCertPreview = useCallback(() => {
+    setCertPreview(null);
+  }, []);
+
   /* ── Availability badge colour ── */
   const availBadge =
     AVAILABILITY_OPTIONS.find((o) => o.value === data?.availability) ??
     AVAILABILITY_OPTIONS[0];
+
+  /* ── Banner image src resolver ── */
+  const bannerSrc = data?.bannerImage
+    ? data.bannerImage.startsWith("blob:")
+      ? data.bannerImage
+      : `http://localhost:8080/uploads/banner/${data.bannerImage}`
+    : null;
+
+  /* ── Profile image src resolver ── */
+  const avatarSrc = data?.profileImage
+    ? data.profileImage.startsWith("blob:")
+      ? data.profileImage
+      : `http://localhost:8080/uploads/profile/${data.profileImage}`
+    : null;
 
   /* ======================================================
      LOADING SKELETON
@@ -847,9 +1035,7 @@ function Profile() {
      RENDER
      ====================================================== */
 
-     
   return (
-
     <div className="w-full max-w-4xl mx-auto space-y-5 pb-16">
 
       {/* ── Confirm Modal ── */}
@@ -861,36 +1047,59 @@ function Profile() {
         message={confirm?.message}
       />
 
+      {/* ── Certificate Fullscreen Preview ── */}
+      {certPreview && (
+        <CertificatePreviewModal
+          src={certPreview.src}
+          alt={certPreview.alt}
+          onClose={closeCertPreview}
+        />
+      )}
+
       {/* ════════════════════════════════════════════════
           HEADER — Banner + Avatar + Identity
           ════════════════════════════════════════════════ */}
-      <div className="relative rounded-2xl overflow-hidden border border-white/[0.06] bg-surface">
+      <div className="relative rounded-2xl overflow-hidden border border-white/[0.06] bg-surface shadow-[0_4px_40px_rgba(0,0,0,0.35)]">
 
-        {/* Banner */}
-        <div className="group relative h-52 sm:h-60 w-full bg-gradient-to-br from-primary/20 via-violet/10 to-accent/15">
-        
-          {data.bannerImage && (
-            
-            <img
-            
-                    src={
-                      data.bannerImage
-                        ? data.bannerImage.startsWith("blob:")
-                          ? data.bannerImage
-                          : `http://localhost:8080/uploads/banner/${data.bannerImage}`
-                        : ""
-                    }
-                    alt={data.name || "Profile"}
-                    className="h-full w-full object-cover"
-                  />
+        {/* ── Banner ── */}
+        <div className="group relative h-60 md:h-72 w-full overflow-hidden rounded-t-2xl bg-gradient-to-br from-primary/20 via-violet/10 to-accent/15">
+
+          {/* Placeholder shown when no banner */}
+          {!bannerSrc && <BannerPlaceholder />}
+
+          {/* Banner image — only rendered when src exists */}
+          {bannerSrc && (
+            <>
+              {/* Shimmer skeleton while loading */}
+              {!bannerLoaded && (
+                <div className="absolute inset-0 bg-white/[0.04] overflow-hidden">
+                  <div className="absolute inset-0 animate-[shimmer-slide_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+                </div>
+              )}
+              <img
+                src={bannerSrc}
+                alt={`${data.name || "Profile"} banner`}
+                onLoad={() => setBannerLoaded(true)}
+                className={[
+                  /* ✅ Fixed: object-cover + object-center prevents stretching */
+                  "absolute inset-0 h-full w-full object-cover object-center",
+                  "transition-all duration-500 group-hover:scale-[1.03]",
+                  bannerLoaded ? "opacity-100" : "opacity-0",
+                ].join(" ")}
+                style={{ imageOrientation: "from-image" }}
+              />
+            </>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-surface/60 to-transparent pointer-events-none" />
 
+          {/* Gradient overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-surface/70 via-transparent to-transparent pointer-events-none" />
+
+          {/* Change banner button */}
           <button
             type="button"
             onClick={() => bannerInputRef.current?.click()}
             aria-label="Change banner image"
-            className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/50 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-200"
+            className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/50 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-200 hover:bg-black/70 hover:border-white/40"
           >
             <IconCamera size={14} />
             Change banner
@@ -901,39 +1110,46 @@ function Profile() {
             accept="image/*"
             className="hidden"
             onChange={handleBannerSelect}
+            aria-label="Upload banner image"
           />
         </div>
 
-        {/* Avatar + Name row */}
+        {/* ── Avatar + Name row ── */}
         <div className="px-5 sm:px-7 pb-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-14 sm:-mt-16">
 
-            {/* Avatar */}
+            {/* ── Avatar ── */}
             <div className="group relative w-fit">
-              <div className="h-28 w-28 sm:h-32 sm:w-32 overflow-hidden rounded-2xl border-[4px] border-surface bg-surface-elevated shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center justify-center">
-                {data.profileImage ? (
+              {/*
+                ✅ Fixed: Perfect square container with overflow-hidden.
+                object-cover ensures any aspect ratio fills without distortion.
+              */}
+              <div className="h-28 w-28 sm:h-32 sm:w-32 shrink-0 overflow-hidden rounded-2xl border-[3px] border-surface bg-surface-elevated shadow-[0_8px_32px_rgba(0,0,0,0.45)] flex items-center justify-center">
+                {avatarSrc ? (
                   <img
-                    src={
-                      data.profileImage
-                        ? data.profileImage.startsWith("blob:")
-                          ? data.profileImage
-                          : `http://localhost:8080/uploads/profile/${data.profileImage}`
-                        : ""
-                    }
-                    alt={data.name || "Profile"}
-                    className="h-full w-full object-cover"
+                    src={avatarSrc}
+                    alt={`${data.name || "User"} profile photo`}
+                    className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.06]"
+                    style={{ imageOrientation: "from-image" }}
+                    loading="eager"
+                    decoding="async"
                   />
                 ) : (
-                  <IconUser size={40} className="text-muted/50" />
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-violet/20">
+                    <IconUser size={44} className="text-primary-light/60" stroke={1.5} />
+                  </div>
                 )}
               </div>
+
+              {/* Upload overlay */}
               <button
                 type="button"
                 onClick={() => avatarInputRef.current?.click()}
                 aria-label="Change profile photo"
-                className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 text-white text-xs font-medium gap-1"
+                className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-black/55 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-200 text-white text-xs font-medium gap-1.5 backdrop-blur-[2px]"
               >
-                <IconCamera size={18} />
+                <IconCamera size={20} stroke={1.8} />
+                <span className="text-[10px] tracking-wide font-semibold">Change</span>
               </button>
               <input
                 ref={avatarInputRef}
@@ -941,10 +1157,11 @@ function Profile() {
                 accept="image/*"
                 className="hidden"
                 onChange={handleAvatarSelect}
+                aria-label="Upload profile photo"
               />
             </div>
 
-            {/* Availability badge + Edit button */}
+            {/* ── Availability badge + Edit button ── */}
             <div className="flex items-center gap-2 sm:mb-1">
               {!editHeader && (
                 <span
@@ -963,7 +1180,7 @@ function Profile() {
             </div>
           </div>
 
-          {/* Identity info */}
+          {/* ── Identity info ── */}
           <div className="mt-4">
             {editHeader ? (
               <div className="space-y-4 max-w-2xl">
@@ -1143,17 +1360,19 @@ function Profile() {
             </Field>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2.5">
+          /* ✅ Fixed: flex-wrap with equal pill buttons, brand colors, hover lift */
+          <div className="flex flex-wrap gap-3">
             {data.socialLinks.linkedin && (
               <a
                 href={data.socialLinks.linkedin}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-body hover:border-primary/30 hover:text-primary-light hover:bg-primary/5 transition-all duration-200"
+                aria-label="Visit LinkedIn profile (opens in new tab)"
+                className="group inline-flex items-center gap-2 rounded-full border border-[#0A66C2]/30 bg-[#0A66C2]/10 px-4 py-2 text-sm font-medium text-[#70B5F9] hover:border-[#0A66C2]/60 hover:bg-[#0A66C2]/20 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(10,102,194,0.25)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#0A66C2]/50"
               >
                 <IconBrandLinkedin size={16} className="text-[#0A66C2]" />
                 LinkedIn
-                <IconExternalLink size={13} className="text-muted" />
+                <IconExternalLink size={12} className="text-[#70B5F9]/60 group-hover:text-[#70B5F9]" />
               </a>
             )}
             {data.socialLinks.github && (
@@ -1161,11 +1380,12 @@ function Profile() {
                 href={data.socialLinks.github}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-body hover:border-white/20 hover:text-heading hover:bg-white/5 transition-all duration-200"
+                aria-label="Visit GitHub profile (opens in new tab)"
+                className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-heading hover:border-white/30 hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(255,255,255,0.08)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-white/30"
               >
-                <IconBrandGithub size={16} />
+                <IconBrandGithub size={16} className="text-white" />
                 GitHub
-                <IconExternalLink size={13} className="text-muted" />
+                <IconExternalLink size={12} className="text-muted group-hover:text-body" />
               </a>
             )}
             {data.socialLinks.portfolio && (
@@ -1173,11 +1393,12 @@ function Profile() {
                 href={data.socialLinks.portfolio}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-body hover:border-accent/30 hover:text-accent-light hover:bg-accent/5 transition-all duration-200"
+                aria-label="Visit portfolio website (opens in new tab)"
+                className="group inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-2 text-sm font-medium text-accent-light hover:border-accent/50 hover:bg-accent/20 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(6,182,212,0.2)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-accent/50"
               >
                 <IconGlobe size={16} className="text-accent" />
                 Portfolio
-                <IconExternalLink size={13} className="text-muted" />
+                <IconExternalLink size={12} className="text-accent-light/60 group-hover:text-accent-light" />
               </a>
             )}
             {!data.socialLinks.linkedin &&
@@ -1337,6 +1558,7 @@ function Profile() {
                     src={item.logo}
                     alt={item.company}
                     className="h-8 w-8 object-contain"
+                    loading="lazy"
                   />
                 ) : (
                   <IconBriefcase size={20} className="text-muted" />
@@ -1731,6 +1953,22 @@ function Profile() {
                         }
                       />
                     </Field>
+
+                    {/* ✅ Certificate image upload with correct orientation */}
+                    {cert.imageUrl && (
+                      <div className="mt-2">
+                        <p className={labelCls}>Certificate Image Preview</p>
+                        <CertificateImageCard
+                          src={
+                            cert.imageUrl.startsWith("blob:")
+                              ? cert.imageUrl
+                              : `http://localhost:8080/uploads/certificates/${cert.imageUrl}`
+                          }
+                          alt={cert.title || "Certificate"}
+                          onOpenPreview={openCertPreview}
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>
@@ -1760,10 +1998,26 @@ function Profile() {
                         target="_blank"
                         rel="noreferrer"
                         className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-light hover:text-primary transition-colors"
+                        aria-label={`View credential for ${cert.title} (opens in new tab)`}
                       >
                         Show credential
                         <IconExternalLink size={14} stroke={1.8} />
                       </a>
+                    )}
+
+                    {/* ✅ Fixed certificate image: object-contain, no rotation, lazy load, fullscreen on click */}
+                    {cert.imageUrl && (
+                      <div className="mt-4">
+                        <CertificateImageCard
+                          src={
+                            cert.imageUrl.startsWith("blob:")
+                              ? cert.imageUrl
+                              : `http://localhost:8080/uploads/certificates/${cert.imageUrl}`
+                          }
+                          alt={cert.title || "Certificate image"}
+                          onOpenPreview={openCertPreview}
+                        />
+                      </div>
                     )}
                   </>
                 )}
