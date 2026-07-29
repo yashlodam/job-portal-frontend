@@ -503,7 +503,7 @@ function Profile() {
     setData({
       id: reduxProfile.id,
       name: reduxProfile.name ?? "",
-      role: reduxProfile.role ?? "",
+      jobTitle: reduxProfile.jobTitle ?? "",
       company: reduxProfile.company ?? "",
       location: reduxProfile.location ?? "",
       about: reduxProfile.about ?? reduxProfile.about?.about ?? "",
@@ -1261,13 +1261,13 @@ function Profile() {
                   )}
                 </h1>
 
-                {(data.role || data.company) && (
+                {(data.jobTitle || data.company) && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm text-body">
                     <IconBriefcase size={15} className="shrink-0 text-muted" />
-                    {data.role && (
-                      <span className="font-medium">{data.role}</span>
+                    {data.jobTitle && (
+                      <span className="font-medium">{data.jobTitle}</span>
                     )}
-                    {data.role && data.company && (
+                    {data.jobTitle && data.company && (
                       <span className="text-muted">at</span>
                     )}
                     {data.company && (
