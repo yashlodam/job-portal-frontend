@@ -178,6 +178,11 @@ export const deleteLanguage = async (language) => {
   return res.data;
 };
 
+export const fetchLanguages = async () => {
+  const res = await api.get("/profile/me/languages");
+  return res.data;
+};
+
 // =======================
 // IMAGES
 // =======================

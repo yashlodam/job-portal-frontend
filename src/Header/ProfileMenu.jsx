@@ -31,7 +31,7 @@ function ProfileMenu({user}) {
 
 
     useEffect(() => {
-        dispatch(fetchProfileByEmailThunk(auth.data.email));
+        dispatch(fetchProfileByEmailThunk(auth?.email));
       }, [dispatch]);
 
     const handleLogout = ()=>{

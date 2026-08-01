@@ -39,6 +39,8 @@ import {
   deleteCertification,
   addLanguage,
   deleteLanguage,
+  uploadResume,
+  deleteResume,
 } from "../api/profileApi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -364,6 +366,31 @@ export const deleteLanguageThunk = createAsyncThunk(
   async (language, { rejectWithValue }) => {
     try {
       return await deleteLanguage(language);
+    } catch (error) {
+      return rejectWithValue(getErrorPayload(error));
+    }
+  }
+);
+
+
+/** POST /api/profile/me/resume */
+export const addResumeThunk = createAsyncThunk(
+  "profile/addResume",
+  async (file, { rejectWithValue }) => {
+    try {
+      return await uploadResume(file);
+    } catch (error) {
+      return rejectWithValue(getErrorPayload(error));
+    }
+  }
+);
+
+/** DELETE /api/profile/me/resume */
+export const deleteResumeThunk = createAsyncThunk(
+  "profile/deleteResume",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await deleteResume();
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }

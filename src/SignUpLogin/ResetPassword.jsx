@@ -10,6 +10,8 @@ import {
     Pencil,
 } from "lucide-react";
 import { notifications } from "@mantine/notifications";
+import { useAppDispatch } from "../State/Store";
+import { sendOtp, verifyOtp, resetPassword } from "../State/AuthSlic";
 
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -26,6 +28,7 @@ const INPUT_CLASSES =
 
 function ResetPassword() {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
 
     const [otpSent, setOtpSent] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -86,7 +89,7 @@ function ResetPassword() {
         try {
             setLoading(true);
 
-            
+            await dispatch(sendOtp(formData.email)).unwrap();
 
             notifications.show({
                 color: "green",
@@ -100,7 +103,7 @@ function ResetPassword() {
             notifications.show({
                 color: "red",
                 title: "Couldn't send code",
-                message: e.message || "Unable to send the verification code.",
+                message: e?.message || "Unable to send the verification code.",
             });
         } finally {
             setLoading(false);
@@ -157,7 +160,11 @@ function ResetPassword() {
                 newPassword: formData.newPassword,
             };
 
-            
+            // Step 1: verify OTP
+            await dispatch(verifyOtp(verifyRequest)).unwrap();
+
+            // Step 2: reset password
+            await dispatch(resetPassword(resetRequest)).unwrap();
 
             notifications.show({
                 color: "green",
@@ -170,7 +177,7 @@ function ResetPassword() {
             notifications.show({
                 color: "red",
                 title: "Reset failed",
-                message: e.message || "Something went wrong.",
+                message: e?.message || "Something went wrong.",
             });
         } finally {
             setLoading(false);

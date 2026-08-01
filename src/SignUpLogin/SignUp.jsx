@@ -103,8 +103,9 @@ const handleRegister = async () => {
       }
 
   try {
-    
-    await dispatch(signup(formData));
+    // Strip confirmPassword — backend doesn't expect it
+    const { confirmPassword: _, ...payload } = formData;
+    await dispatch(signup(payload)).unwrap();
     notifications.show({
       title: "Welcome to Velora! 🎉",
       message:

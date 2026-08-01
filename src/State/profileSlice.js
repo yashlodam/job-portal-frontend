@@ -7,7 +7,7 @@
  *  loading        — true while any profile request is in-flight
  *  error          — last error message string (or null)
  *  success        — true after any mutating operation succeeds (reset by clearProfileSuccess)
- *  profile        — full profile object (GET /profile)
+ *  profile        — full profile object (GET /profile/me)
  *  header         — header section (name, title, location…)
  *  about          — about/bio string or object
  *  links          — social links object
@@ -19,6 +19,10 @@
  *  profileImage   — URL of the profile avatar after upload
  *  bannerImage    — URL of the banner image after upload
  *
+ * IMPORTANT: All backend responses are wrapped as ApiResponse<T>:
+ *   { success, message, data: <actual payload> }
+ *   Every fulfilled handler must read action.payload.data (not action.payload).
+ *
  * Selectors are co-located at the bottom of this file.
  */
 
@@ -28,7 +32,6 @@ import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchMyProfileThunk,
   fetchProfileByEmailThunk,
-  fetchUserByEmailThunk,
   uploadProfileImageThunk,
   uploadBannerImageThunk,
   updateHeaderThunk,
@@ -42,6 +45,7 @@ import {
   fetchExperiencesThunk,
   deleteExperienceThunk,
   addEducationThunk,
+  updateEducationThunk,
   fetchEducationsThunk,
   deleteEducationThunk,
   addCertificationThunk,
@@ -49,8 +53,9 @@ import {
   fetchCertificationsThunk,
   deleteCertificationThunk,
   addLanguageThunk,
-  fetchLanguagesThunk,
   deleteLanguageThunk,
+  addResumeThunk,
+  deleteResumeThunk,
 } from "./profileThunk";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -78,6 +83,13 @@ const setError = (state, action) => {
     "An unexpected error occurred.";
 };
 
+/**
+ * Unwrap the ApiResponse envelope.
+ * Backend always returns: { success, message, data: <T> }
+ * This helper extracts <T>, falling back gracefully if the wrapper is absent.
+ */
+const unwrap = (payload) => payload?.data ?? payload;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Initial State
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,7 +98,7 @@ const initialState = {
   error: null,
   success: false,
 
-  // Core profile object returned by GET /profile
+  // Core profile object returned by GET /profile/me
   profile: null,
 
   // Granular section caches (populated by dedicated section fetches)
@@ -98,7 +110,7 @@ const initialState = {
   educations: [],
   certifications: [],
   languages: [],
-
+  resume: null,
   // Image URLs returned after successful upload
   profileImage: null,
   bannerImage: null,
@@ -130,69 +142,117 @@ const profileSlice = createSlice({
     builder
 
       // ══════════════════════════════════════════════════════════════════════
-      // GET /profile — fetch own profile
+      // GET /profile/me — fetch own full profile
+      // Response: ApiResponse<ProfileResponse>
       // ══════════════════════════════════════════════════════════════════════
       .addCase(fetchMyProfileThunk.pending, startLoading)
       .addCase(fetchMyProfileThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.profile = action.payload;
-
+        const data = unwrap(action.payload);
+        state.profile = data;
+        // Hydrate granular section caches
+        state.header         = data?.header         ?? state.header;
+        state.about          = data?.about          ?? state.about;
+        state.links          = data?.links          ?? state.links;
+        state.skills         = data?.skills         ?? state.skills;
+        state.experiences    = data?.experiences    ?? state.experiences;
+        state.educations     = data?.educations     ?? state.educations;
+        state.certifications = data?.certifications ?? state.certifications;
+        state.languages      = data?.languages      ?? state.languages;
+        state.profileImage   = data?.profileImage   ?? state.profileImage;
+        state.bannerImage    = data?.bannerImage    ?? state.bannerImage;
+        // Hydrate resume cache from root-level fields on ProfileResponse
+        if (data?.resumeUrl || data?.resumeName) {
+          state.resume = { resumeUrl: data.resumeUrl ?? null, resumeName: data.resumeName ?? null };
+        }
       })
       .addCase(fetchMyProfileThunk.rejected, setError)
 
       // ══════════════════════════════════════════════════════════════════════
       // GET /profile/{email} — public profile lookup
+      // Response: ApiResponse<ProfileResponse>
       // ══════════════════════════════════════════════════════════════════════
       .addCase(fetchProfileByEmailThunk.pending, startLoading)
       .addCase(fetchProfileByEmailThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.profile = action.payload;
-        // Hydrate section caches from the full profile response
-        state.header = action.payload?.header ?? state.header;
-        state.about = action.payload?.about ?? state.about;
-        state.links = action.payload?.links ?? state.links;
-        state.skills = action.payload?.skills ?? state.skills;
-        state.experiences = action.payload?.experiences ?? state.experiences;
-        state.educations = action.payload?.educations ?? state.educations;
-        state.certifications = action.payload?.certifications ?? state.certifications;
-        state.languages = action.payload?.languages ?? state.languages;
-        state.profileImage = action.payload?.profileImage ?? state.profileImage;
-        state.bannerImage = action.payload?.bannerImage ?? state.bannerImage;
+        const data = unwrap(action.payload);
+        state.profile        = data;
+        state.header         = data?.header         ?? state.header;
+        state.about          = data?.about          ?? state.about;
+        state.links          = data?.links          ?? state.links;
+        state.skills         = data?.skills         ?? state.skills;
+        state.experiences    = data?.experiences    ?? state.experiences;
+        state.educations     = data?.educations     ?? state.educations;
+        state.certifications = data?.certifications ?? state.certifications;
+        state.languages      = data?.languages      ?? state.languages;
+        state.profileImage   = data?.profileImage   ?? state.profileImage;
+        state.bannerImage    = data?.bannerImage    ?? state.bannerImage;
+        // Hydrate resume cache from root-level fields on ProfileResponse
+        if (data?.resumeUrl || data?.resumeName) {
+          state.resume = { resumeUrl: data.resumeUrl ?? null, resumeName: data.resumeName ?? null };
+        }
       })
       .addCase(fetchProfileByEmailThunk.rejected, setError)
 
-      // ══════════════════════════════════════════════════════════════════════
-      // GET /profile/user/{email} — user record linked to profile
-      // ══════════════════════════════════════════════════════════════════════
-      .addCase(fetchUserByEmailThunk.pending, startLoading)
-      .addCase(fetchUserByEmailThunk.fulfilled, (state, action) => {
-        state.loading = false;
-        // Merge user data into the profile object
-        state.profile = { ...state.profile, user: action.payload };
+
+
+
+      // Resume upload — merge returned resume fields into existing profile
+      .addCase(addResumeThunk.pending, startLoading)
+      .addCase(addResumeThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        // unwrap ApiResponse<ProfileResponse> → extract resumeUrl / resumeName
+        const data = unwrap(action.payload);
+        const resumeUrl  = data?.resumeUrl  ?? null;
+        const resumeName = data?.resumeName ?? null;
+
+        // Update the dedicated resume cache
+        state.resume = { resumeUrl, resumeName };
+
+        // Merge resume fields into the canonical profile object
+        if (state.profile) {
+          state.profile.resumeUrl  = resumeUrl;
+          state.profile.resumeName = resumeName;
+        } else {
+          state.profile = { resumeUrl, resumeName };
+        }
       })
-      .addCase(fetchUserByEmailThunk.rejected, setError)
+      .addCase(addResumeThunk.rejected, setError)
 
       // ══════════════════════════════════════════════════════════════════════
-      // PUT /profile/profile-image/{id}
+      // PUT /profile/me/profile-image
+      // Response: ApiResponse<ProfileResponse>
       // ══════════════════════════════════════════════════════════════════════
       .addCase(uploadProfileImageThunk.pending, startLoading)
       .addCase(uploadProfileImageThunk.fulfilled, (state, action) => {
         setSuccess(state);
-        // Backend typically returns the updated profile or the new image URL
-        state.profileImage = action.payload?.profileImage ?? action.payload;
+        const data = unwrap(action.payload);
+        state.profileImage = data?.profileImage ?? state.profileImage;
         if (state.profile) {
           state.profile.profileImage = state.profileImage;
         }
       })
       .addCase(uploadProfileImageThunk.rejected, setError)
 
+      .addCase(deleteResumeThunk.pending, startLoading)
+      .addCase(deleteResumeThunk.fulfilled, (state) => {
+        setSuccess(state);
+        state.resume = null;
+        if (state.profile) {
+          state.profile.resumeUrl = null;
+          state.profile.resumeName = null;
+        }
+      })
+      .addCase(deleteResumeThunk.rejected, setError)
       // ══════════════════════════════════════════════════════════════════════
-      // PUT /profile/banner-image/{id}
+      // PUT /profile/me/banner-image
+      // Response: ApiResponse<ProfileResponse>
       // ══════════════════════════════════════════════════════════════════════
       .addCase(uploadBannerImageThunk.pending, startLoading)
       .addCase(uploadBannerImageThunk.fulfilled, (state, action) => {
         setSuccess(state);
-        state.bannerImage = action.payload?.bannerImage ?? action.payload;
+        const data = unwrap(action.payload);
+        state.bannerImage = data?.bannerImage ?? state.bannerImage;
         if (state.profile) {
           state.profile.bannerImage = state.bannerImage;
         }
@@ -200,272 +260,317 @@ const profileSlice = createSlice({
       .addCase(uploadBannerImageThunk.rejected, setError)
 
       // ══════════════════════════════════════════════════════════════════════
-      // PUT /profile/header/{id}
+      // PUT /profile/me/header
+      // Response: ApiResponse<ProfileResponse>
       // ══════════════════════════════════════════════════════════════════════
       .addCase(updateHeaderThunk.pending, startLoading)
       .addCase(updateHeaderThunk.fulfilled, (state, action) => {
         setSuccess(state);
-        state.header = action.payload;
-        if (state.profile) state.profile.header = action.payload;
+        const data = unwrap(action.payload);
+        // Backend returns the full ProfileResponse; extract header sub-object
+        state.header = data?.header ?? data;
+        if (state.profile) state.profile.header = state.header;
       })
       .addCase(updateHeaderThunk.rejected, setError)
 
       // ══════════════════════════════════════════════════════════════════════
-      // PUT /profile/links/{id}
+      // PUT /profile/me/links
+      // Response: ApiResponse<ProfileResponse>
       // ══════════════════════════════════════════════════════════════════════
       .addCase(updateLinksThunk.pending, startLoading)
       .addCase(updateLinksThunk.fulfilled, (state, action) => {
         setSuccess(state);
-        state.links = action.payload;
-        if (state.profile) state.profile.links = action.payload;
+        const data = unwrap(action.payload);
+        state.links = data?.links ?? data;
+        if (state.profile) state.profile.links = state.links;
       })
       .addCase(updateLinksThunk.rejected, setError)
 
       // ══════════════════════════════════════════════════════════════════════
-      // PUT /profile/about/{id}
+      // PUT /profile/me/about
+      // Response: ApiResponse<ProfileResponse>
       // ══════════════════════════════════════════════════════════════════════
       .addCase(updateAboutThunk.pending, startLoading)
       .addCase(updateAboutThunk.fulfilled, (state, action) => {
         setSuccess(state);
-
-        state.about = action.payload.about;
-
+        const data = unwrap(action.payload);
+        state.about = data?.about ?? data;
         if (state.profile) {
-          state.profile.about = action.payload.about;
+          state.profile.about = state.about;
         }
       })
       .addCase(updateAboutThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PUT /profile/skills/{id} — full replacement
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(updateSkillsThunk.pending, startLoading)
-    .addCase(updateSkillsThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      state.skills = action.payload;
-      if (state.profile) state.profile.skills = action.payload;
-    })
-    .addCase(updateSkillsThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // PUT /profile/me/skills — full replacement
+      // Response: ApiResponse<ProfileResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(updateSkillsThunk.pending, startLoading)
+      .addCase(updateSkillsThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const data = unwrap(action.payload);
+        state.skills = data?.skills ?? data;
+        if (state.profile) state.profile.skills = state.skills;
+      })
+      .addCase(updateSkillsThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // POST /profile/skill/{id} — add single skill
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(addSkillThunk.pending, startLoading)
-    .addCase(addSkillThunk.fulfilled, (state, action) => {
-    setSuccess(state);
+      // ══════════════════════════════════════════════════════════════════════
+      // POST /profile/me/skills — add single skill
+      // Response: ApiResponse<ProfileResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(addSkillThunk.pending, startLoading)
+      .addCase(addSkillThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const data = unwrap(action.payload);
+        // Backend returns updated ProfileResponse — take skills array from it
+        if (data?.skills) {
+          state.skills = data.skills;
+        }
+        if (state.profile) {
+          state.profile.skills = state.skills;
+        }
+      })
+      .addCase(addSkillThunk.rejected, setError)
 
-    if (Array.isArray(action.payload)) {
-        state.skills = action.payload;
-    } else {
-        state.skills.push(action.payload.skill);
-    }
+      // ══════════════════════════════════════════════════════════════════════
+      // DELETE /profile/me/skills
+      // Response: ApiResponse<ProfileResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(deleteSkillThunk.pending, startLoading)
+      .addCase(deleteSkillThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const data = unwrap(action.payload);
+        if (data?.skills) {
+          // Use updated list from backend when available
+          state.skills = data.skills;
+        } else {
+          // Optimistic fallback — remove by the skill string passed to the thunk
+          const removedSkill = action.meta.arg;
+          state.skills = state.skills.filter((skill) => {
+            const current = typeof skill === "object" ? skill.skill ?? skill.name : skill;
+            return current !== removedSkill;
+          });
+        }
+        if (state.profile) state.profile.skills = state.skills;
+      })
+      .addCase(deleteSkillThunk.rejected, setError)
 
-    if (state.profile) {
-        state.profile.skills = state.skills;
-    }
-})
-    .addCase(addSkillThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // POST /profile/me/experiences
+      // Response: ApiResponse<ExperienceResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(addExperienceThunk.pending, startLoading)
+      .addCase(addExperienceThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const data = unwrap(action.payload);
+        if (Array.isArray(data)) {
+          state.experiences = data;
+        } else if (data) {
+          state.experiences.push(data);
+        }
+        if (state.profile) state.profile.experiences = state.experiences;
+      })
+      .addCase(addExperienceThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // DELETE /profile/skills/{id}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(deleteSkillThunk.pending, startLoading)
-    .addCase(deleteSkillThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      const removedSkill = action.meta.arg;
-      state.skills = state.skills.filter((skill) => {
-        const current = typeof skill === "object" ? skill.skill ?? skill.name : skill;
-        return current !== removedSkill;
-      });
-      if (state.profile) state.profile.skills = state.skills;
-    })
-    .addCase(deleteSkillThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // PUT /profile/me/experiences/{experienceId}
+      // Response: ApiResponse<ExperienceResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(updateExperienceThunk.pending, startLoading)
+      .addCase(updateExperienceThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const updated = unwrap(action.payload);
+        const idx = state.experiences.findIndex((e) => e.id === updated?.id);
+        if (idx !== -1 && updated) {
+          state.experiences[idx] = updated;
+        }
+        if (state.profile) state.profile.experiences = state.experiences;
+      })
+      .addCase(updateExperienceThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // POST /profile/experience/{id}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(addExperienceThunk.pending, startLoading)
-    .addCase(addExperienceThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      if (Array.isArray(action.payload)) {
-        state.experiences = action.payload;
-      } else {
-        state.experiences.push(action.payload);
-      }
-      if (state.profile) state.profile.experiences = state.experiences;
-    })
-    .addCase(addExperienceThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // GET /profile/me/experiences
+      // Response: ApiResponse<List<ExperienceResponse>>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(fetchExperiencesThunk.pending, startLoading)
+      .addCase(fetchExperiencesThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.experiences = unwrap(action.payload) ?? [];
+      })
+      .addCase(fetchExperiencesThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PUT /profile/experience/{experienceId}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(updateExperienceThunk.pending, startLoading)
-    .addCase(updateExperienceThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      const updated = action.payload;
-      const idx = state.experiences.findIndex((e) => e.id === updated.id);
-      if (idx !== -1) {
-        state.experiences[idx] = updated;
-      }
-      if (state.profile) state.profile.experiences = state.experiences;
-    })
-    .addCase(updateExperienceThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // DELETE /profile/me/experiences/{experienceId}
+      // Response: ApiResponse<Void>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(deleteExperienceThunk.pending, startLoading)
+      .addCase(deleteExperienceThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        // action.meta.arg is the experienceId passed to the thunk
+        state.experiences = state.experiences.filter(
+          (e) => e.id !== action.meta.arg
+        );
+        if (state.profile) state.profile.experiences = state.experiences;
+      })
+      .addCase(deleteExperienceThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // GET /profile/experience/{id}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(fetchExperiencesThunk.pending, startLoading)
-    .addCase(fetchExperiencesThunk.fulfilled, (state, action) => {
-      state.loading = false;
-      state.experiences = action.payload;
-    })
-    .addCase(fetchExperiencesThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // POST /profile/me/educations
+      // Response: ApiResponse<EducationResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(addEducationThunk.pending, startLoading)
+      .addCase(addEducationThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const data = unwrap(action.payload);
+        if (Array.isArray(data)) {
+          state.educations = data;
+        } else if (data) {
+          state.educations.push(data);
+        }
+        if (state.profile) state.profile.educations = state.educations;
+      })
+      .addCase(addEducationThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // DELETE /profile/experience/{experienceId}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(deleteExperienceThunk.pending, startLoading)
-    .addCase(deleteExperienceThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      // action.meta.arg is the experienceId passed to the thunk
-      state.experiences = state.experiences.filter(
-        (e) => e.id !== action.meta.arg
-      );
-      if (state.profile) state.profile.experiences = state.experiences;
-    })
-    .addCase(deleteExperienceThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // PUT /profile/me/educations/{educationId}
+      // Response: ApiResponse<EducationResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(updateEducationThunk.pending, startLoading)
+      .addCase(updateEducationThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const updated = unwrap(action.payload);
+        const idx = state.educations.findIndex((e) => e.id === updated?.id);
+        if (idx !== -1 && updated) {
+          state.educations[idx] = updated;
+        }
+        if (state.profile) state.profile.educations = state.educations;
+      })
+      .addCase(updateEducationThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // POST /profile/education/{id}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(addEducationThunk.pending, startLoading)
-    .addCase(addEducationThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      if (Array.isArray(action.payload)) {
-        state.educations = action.payload;
-      } else {
-        state.educations.push(action.payload);
-      }
-      if (state.profile) state.profile.educations = state.educations;
-    })
-    .addCase(addEducationThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // GET /profile/me/educations
+      // Response: ApiResponse<List<EducationResponse>>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(fetchEducationsThunk.pending, startLoading)
+      .addCase(fetchEducationsThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.educations = unwrap(action.payload) ?? [];
+      })
+      .addCase(fetchEducationsThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // GET /profile/education/{id}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(fetchEducationsThunk.pending, startLoading)
-    .addCase(fetchEducationsThunk.fulfilled, (state, action) => {
-      state.loading = false;
-      state.educations = action.payload;
-    })
-    .addCase(fetchEducationsThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // DELETE /profile/me/educations/{educationId}
+      // Response: ApiResponse<Void>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(deleteEducationThunk.pending, startLoading)
+      .addCase(deleteEducationThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        state.educations = state.educations.filter(
+          (e) => e.id !== action.meta.arg
+        );
+        if (state.profile) state.profile.educations = state.educations;
+      })
+      .addCase(deleteEducationThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // DELETE /profile/education/{educationId}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(deleteEducationThunk.pending, startLoading)
-    .addCase(deleteEducationThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      state.educations = state.educations.filter(
-        (e) => e.id !== action.meta.arg
-      );
-      if (state.profile) state.profile.educations = state.educations;
-    })
-    .addCase(deleteEducationThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // POST /profile/me/certifications
+      // Response: ApiResponse<CertificationResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(addCertificationThunk.pending, startLoading)
+      .addCase(addCertificationThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const data = unwrap(action.payload);
+        if (Array.isArray(data)) {
+          state.certifications = data;
+        } else if (data) {
+          state.certifications.push(data);
+        }
+        if (state.profile) state.profile.certifications = state.certifications;
+      })
+      .addCase(addCertificationThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // POST /profile/certification/{id}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(addCertificationThunk.pending, startLoading)
-    .addCase(addCertificationThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      if (Array.isArray(action.payload)) {
-        state.certifications = action.payload;
-      } else {
-        state.certifications.push(action.payload);
-      }
-      if (state.profile) state.profile.certifications = state.certifications;
-    })
-    .addCase(addCertificationThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // PUT /profile/me/certifications/{certificationId}
+      // Response: ApiResponse<CertificationResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(updateCertificationThunk.pending, startLoading)
+      .addCase(updateCertificationThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const updated = unwrap(action.payload);
+        const idx = state.certifications.findIndex((c) => c.id === updated?.id);
+        if (idx !== -1 && updated) {
+          state.certifications[idx] = updated;
+        }
+        if (state.profile) state.profile.certifications = state.certifications;
+      })
+      .addCase(updateCertificationThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // PUT /profile/certification/{certificationId}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(updateCertificationThunk.pending, startLoading)
-    .addCase(updateCertificationThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      const updated = action.payload;
-      const idx = state.certifications.findIndex((c) => c.id === updated.id);
-      if (idx !== -1) {
-        state.certifications[idx] = updated;
-      }
-      if (state.profile) state.profile.certifications = state.certifications;
-    })
-    .addCase(updateCertificationThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // GET /profile/me/certifications
+      // Response: ApiResponse<List<CertificationResponse>>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(fetchCertificationsThunk.pending, startLoading)
+      .addCase(fetchCertificationsThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.certifications = unwrap(action.payload) ?? [];
+      })
+      .addCase(fetchCertificationsThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // GET /profile/certification/{id}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(fetchCertificationsThunk.pending, startLoading)
-    .addCase(fetchCertificationsThunk.fulfilled, (state, action) => {
-      state.loading = false;
-      state.certifications = action.payload;
-    })
-    .addCase(fetchCertificationsThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // DELETE /profile/me/certifications/{certificationId}
+      // Response: ApiResponse<Void>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(deleteCertificationThunk.pending, startLoading)
+      .addCase(deleteCertificationThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        state.certifications = state.certifications.filter(
+          (c) => c.id !== action.meta.arg
+        );
+        if (state.profile) state.profile.certifications = state.certifications;
+      })
+      .addCase(deleteCertificationThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // DELETE /profile/certification/{certificationId}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(deleteCertificationThunk.pending, startLoading)
-    .addCase(deleteCertificationThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      state.certifications = state.certifications.filter(
-        (c) => c.id !== action.meta.arg
-      );
-      if (state.profile) state.profile.certifications = state.certifications;
-    })
-    .addCase(deleteCertificationThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // POST /profile/me/languages?language=English
+      // Response: ApiResponse<ProfileResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(addLanguageThunk.pending, startLoading)
+      .addCase(addLanguageThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const data = unwrap(action.payload);
+        // Backend returns updated ProfileResponse — take languages from it
+        if (data?.languages) {
+          state.languages = data.languages;
+        }
+        if (state.profile) state.profile.languages = state.languages;
+      })
+      .addCase(addLanguageThunk.rejected, setError)
 
-    // ══════════════════════════════════════════════════════════════════════
-    // POST /profile/languages/{id}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(addLanguageThunk.pending, startLoading)
-    .addCase(addLanguageThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      if (Array.isArray(action.payload)) {
-        state.languages = action.payload;
-      } else {
-        state.languages.push(action.payload);
-      }
-      if (state.profile) state.profile.languages = state.languages;
-    })
-    .addCase(addLanguageThunk.rejected, setError)
-
-    // ══════════════════════════════════════════════════════════════════════
-    // GET /profile/languages/{id}
-    // ══════════════════════════════════════════════════════════════════════
-    .addCase(fetchLanguagesThunk.pending, startLoading)
-    .addCase(fetchLanguagesThunk.fulfilled, (state, action) => {
-      state.loading = false;
-      state.languages = action.payload;
-    })
-    .addCase(fetchLanguagesThunk.rejected, setError)
-
-    // ══════════════════════════════════════════════════════════════════════
-    // DELETE /profile/languages/{id}
-    // ══════════════════════════════════════════════════════════════
-    .addCase(deleteLanguageThunk.pending, startLoading)
-    .addCase(deleteLanguageThunk.fulfilled, (state, action) => {
-      setSuccess(state);
-      const removedLanguage = action.meta.arg;
-      state.languages = state.languages.filter((language) => {
-        const current = typeof language === "object" ? language.language ?? language.name ?? language.id : language;
-        return current !== removedLanguage;
-      });
-      if (state.profile) state.profile.languages = state.languages;
-    })
-    .addCase(deleteLanguageThunk.rejected, setError);
-},
+      // ══════════════════════════════════════════════════════════════════════
+      // DELETE /profile/me/languages?language=English
+      // Response: ApiResponse<ProfileResponse>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(deleteLanguageThunk.pending, startLoading)
+      .addCase(deleteLanguageThunk.fulfilled, (state, action) => {
+        setSuccess(state);
+        const data = unwrap(action.payload);
+        if (data?.languages) {
+          // Use updated list from backend when available
+          state.languages = data.languages;
+        } else {
+          // Optimistic fallback
+          const removedLanguage = action.meta.arg;
+          state.languages = state.languages.filter((language) => {
+            const current = typeof language === "object"
+              ? language.language ?? language.name ?? language.id
+              : language;
+            return current !== removedLanguage;
+          });
+        }
+        if (state.profile) state.profile.languages = state.languages;
+      })
+      .addCase(deleteLanguageThunk.rejected, setError);
+  },
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -20,6 +20,9 @@ import {
   IconStar,
   IconPhoto,
   IconMaximize,
+  IconDownload,
+  IconEye,
+   IconFileCv
 } from "@tabler/icons-react";
 
 import { MonthPickerInput } from "@mantine/dates";
@@ -55,7 +58,9 @@ import {
   deleteCertificationThunk,
   addLanguageThunk,
   deleteLanguageThunk,
-  fetchProfileByEmailThunk,
+  fetchMyProfileThunk,
+  addResumeThunk,
+  deleteResumeThunk,
 } from "../State/profileThunk";
 
 // ── Selectors ─────────────────────────────────────────────────────────────────
@@ -290,15 +295,76 @@ function DeleteButton({ onClick, label }) {
    Constants
    ============================================================ */
 
-const AVAILABILITY_OPTIONS = [
-  { value: "Open to Work",          color: "bg-success/15 border-success/30 text-success-light" },
-  { value: "Open to Opportunities", color: "bg-primary/15 border-primary/30 text-primary-light" },
-  { value: "Not Looking",           color: "bg-white/5 border-white/10 text-muted" },
+export const AVAILABILITY_OPTIONS = [
+  {
+    label: "Open to Work",
+    value: "Open to Work",
+    color: "bg-success/15 border-success/30 text-success-light",
+  },
+  {
+    label: "Open to Opportunities",
+    value: "Open to Opportunities",
+    color: "bg-primary/15 border-primary/30 text-primary-light",
+  },
+  {
+    label: "Not Looking",
+    value: "NOT_LOOKING",
+    color: "bg-white/5 border-white/10 text-muted",
+  },
 ];
 
-const EXPERIENCE_LEVELS = ["Fresher", "Entry Level", "Mid Level", "Senior Level", "Lead / Principal", "Executive"];
-const JOB_TYPES        = ["Full Time", "Part Time", "Internship", "Freelance", "Contract", "Remote"];
-
+export const EXPERIENCE_LEVELS = [
+  {
+    label: "Internship",
+    value: "INTERNSHIP",
+  },
+  {
+    label: "Entry Level",
+    value: "ENTRY_LEVEL",
+  },
+  {
+    label: "Mid Level",
+    value: "MID_LEVEL",
+  },
+  {
+    label: "Senior Level",
+    value: "SENIOR_LEVEL",
+  },
+  {
+    label: "Lead",
+    value: "LEAD",
+  },
+  {
+    label: "Manager",
+    value: "MANAGER",
+  },
+  {
+    label: "Executive",
+    value: "EXECUTIVE",
+  },
+];
+export const JOB_TYPES = [
+  {
+    label: "Full Time",
+    value: "FULL_TIME",
+  },
+  {
+    label: "Part Time",
+    value: "PART_TIME",
+  },
+  {
+    label: "Internship",
+    value: "INTERNSHIP",
+  },
+  {
+    label: "Contract",
+    value: "CONTRACT",
+  },
+  {
+    label: "Freelance",
+    value: "FREELANCE",
+  },
+];
 /* ============================================================
    BannerPlaceholder
    ============================================================ */
@@ -357,7 +423,7 @@ function ProfileSkeleton() {
 
 const CertificateImageCard = memo(function CertificateImageCard({ src, alt, onOpenPreview }) {
   const [loaded, setLoaded] = useState(false);
-  const [error,  setError]  = useState(false);
+  const [error, setError] = useState(false);
 
   return (
     <button
@@ -424,7 +490,7 @@ const CertificateImageCard = memo(function CertificateImageCard({ src, alt, onOp
 
 function useEditableSection({ dispatch, sectionKey }) {
   const [editing, setEditing] = useState(false);
-  const [saving,  setSaving]  = useState(false);
+  const [saving, setSaving] = useState(false);
   const snapshotRef = useRef(null); // deep clone of data at edit-start
 
   const startEdit = useCallback((currentData) => {
@@ -469,10 +535,9 @@ function Profile() {
   const dispatch = useAppDispatch();
 
   // ── Redux state ─────────────────────────────────────────────────────────
-  const auth         = useAppSelector((s) => s.auth.profile);
   const reduxProfile = useAppSelector(selectProfile);
-  const isLoading    = useAppSelector(selectProfileLoading);
-  const reduxError   = useAppSelector(selectProfileError);
+  const isLoading = useAppSelector(selectProfileLoading);
+  const reduxError = useAppSelector(selectProfileError);
   const reduxSuccess = useAppSelector(selectProfileSuccess);
 
   // ── Canonical local data (synced from Redux) ─────────────────────────────
@@ -482,83 +547,125 @@ function Profile() {
   // Each section stores its own editable copy separately from `data`,
   // so Cancel can restore cleanly without touching other sections.
 
-  const [headerDraft, setHeaderDraft]   = useState(null);
-  const [aboutDraft,  setAboutDraft]    = useState(null);
-  const [linksDraft,  setLinksDraft]    = useState(null);
-  const [skillsDraft, setSkillsDraft]   = useState(null);
-  const [skillInput,  setSkillInput]    = useState("");
-  const [expDraft,    setExpDraft]      = useState(null);
-  const [eduDraft,    setEduDraft]      = useState(null);
-  const [certDraft,   setCertDraft]     = useState(null);
-  const [langDraft,   setLangDraft]     = useState(null);
-  const [langInput,   setLangInput]     = useState("");
+  const [headerDraft, setHeaderDraft] = useState(null);
+  const [aboutDraft, setAboutDraft] = useState(null);
+  const [linksDraft, setLinksDraft] = useState(null);
+  const [skillsDraft, setSkillsDraft] = useState(null);
+  const [skillInput, setSkillInput] = useState("");
+  const [expDraft, setExpDraft] = useState(null);
+  const [eduDraft, setEduDraft] = useState(null);
+  const [certDraft, setCertDraft] = useState(null);
+  const [langDraft, setLangDraft] = useState(null);
+  const [langInput, setLangInput] = useState("");
 
   // ── Misc UI state ─────────────────────────────────────────────────────────
-  const [confirm,      setConfirm]      = useState(null);
-  const [certPreview,  setCertPreview]  = useState(null);
+  const [confirm, setConfirm] = useState(null);
+  const [certPreview, setCertPreview] = useState(null);
   const [bannerLoaded, setBannerLoaded] = useState(false);
 
   // ── Image refs ────────────────────────────────────────────────────────────
   const bannerInputRef = useRef(null);
   const avatarInputRef = useRef(null);
-  const prevBannerRef  = useRef(null);
-  const prevAvatarRef  = useRef(null);
+  const prevBannerRef = useRef(null);
+  const prevAvatarRef = useRef(null);
 
   // ── Per-section hooks ────────────────────────────────────────────────────
   const headerSection = useEditableSection({ dispatch, sectionKey: "header" });
-  const aboutSection  = useEditableSection({ dispatch, sectionKey: "about"  });
-  const linksSection  = useEditableSection({ dispatch, sectionKey: "links"  });
+  const aboutSection = useEditableSection({ dispatch, sectionKey: "about" });
+  const linksSection = useEditableSection({ dispatch, sectionKey: "links" });
   const skillsSection = useEditableSection({ dispatch, sectionKey: "skills" });
-  const expSection    = useEditableSection({ dispatch, sectionKey: "experience" });
-  const eduSection    = useEditableSection({ dispatch, sectionKey: "education"  });
-  const certSection   = useEditableSection({ dispatch, sectionKey: "certifications" });
-  const langSection   = useEditableSection({ dispatch, sectionKey: "languages" });
+  const expSection = useEditableSection({ dispatch, sectionKey: "experience" });
+  const eduSection = useEditableSection({ dispatch, sectionKey: "education" });
+  const certSection = useEditableSection({ dispatch, sectionKey: "certifications" });
+  const langSection = useEditableSection({ dispatch, sectionKey: "languages" });
+
+  const resumeInputRef = useRef(null);
+
+
+ 
 
   // ── Fetch on mount ────────────────────────────────────────────────────────
-  // useEffect(() => {
-  //   dispatch(fetchProfileByEmailThunk(auth.email));
-  // }, [dispatch]);
+  useEffect(() => {
+    dispatch(fetchMyProfileThunk());
+  }, [dispatch]);
 
   // ── Normalise & hydrate from Redux ────────────────────────────────────────
   const normalise = useCallback((rp) => ({
-    id:              rp.id,
-    name:            rp.name            ?? "",
-    jobTitle:        rp.jobTitle        ?? rp.role ?? "",
-    company:         rp.company         ?? "",
-    location:        rp.location        ?? "",
-    about:           rp.about           ?? rp.about?.about ?? "",
-    availability:    rp.availability    ?? "Open to Work",
-    experienceLevel: rp.experienceLevel ?? "Mid Level",
-    profileImage:    rp.profileImage    ?? null,
-    bannerImage:     rp.bannerImage     ?? null,
+    id: rp.id,
+    name: rp.name ?? "",
+    jobTitle: rp.headline ?? rp.role ?? "",
+    company: rp.company ?? "",
+    location: rp.location ?? "",
+    about: typeof rp.about === "string" ? rp.about : rp.about?.about ?? "",
+    availability: rp.availability ?? "OPEN_TO_WORK",
+    experienceLevel: rp.experienceLevel ?? "MID_LEVEL",
+    profileImage: rp.profileImage ?? null,
+    bannerImage: rp.bannerImage ?? null,
 
     skills: Array.isArray(rp.skills) ? rp.skills : [],
 
+    // Map ExperienceResponse fields → local UI fields
     experience: (rp.experiences ?? rp.experience ?? []).map((e) => ({
-      ...e, _id: e.id ? `id_${e.id}` : uid(),
+      _id: e.id ? `id_${e.id}` : uid(),
+      id: e.id,
+      title: e.title ?? "",
+      company: e.company ?? "",
+      location: e.location ?? "",
+      startDate: e.startDate ?? "",
+      endDate: e.endDate ?? "",
+      working: e.working ?? false,
+      description: e.description ?? "",
+      employmentType: e.employmentType ?? "",
     })),
+
+    // Map EducationResponse fields → local UI fields
     education: (rp.educations ?? rp.education ?? []).map((e) => ({
-      ...e, _id: e.id ? `id_${e.id}` : uid(),
+      _id: e.id ? `id_${e.id}` : uid(),
+      id: e.id,
+      degree: e.degree ?? "",
+      collegeName: e.collegeName ?? "",
+      university: e.university ?? "",
+      startDate: e.startDate ?? "",
+      endDate: e.endDate ?? "",
+      location: e.location ?? "",
+      grade: e.grade ?? "",
     })),
+
+    // Map CertificationResponse fields → local UI fields
     certifications: (rp.certifications ?? []).map((c) => ({
-      ...c, _id: c.id ? `id_${c.id}` : uid(),
+      _id: c.id ? `id_${c.id}` : uid(),
+      id: c.id,
+      title: c.title ?? "",
+      issuer: c.issuer ?? "",
+      issueDate: c.issueDate ?? "",
+      certificateId: c.certificateId ?? "",
+      certificateUrl: c.certificateUrl ?? "",
     })),
+
     languages: Array.isArray(rp.languages) ? rp.languages : [],
 
     socialLinks: {
-      linkedin:  rp.linkedinUrl  ?? rp.links?.linkedinUrl  ?? "",
-      github:    rp.githubUrl    ?? rp.links?.githubUrl    ?? "",
+      linkedin: rp.linkedinUrl ?? rp.links?.linkedinUrl ?? "",
+      github: rp.githubUrl ?? rp.links?.githubUrl ?? "",
       portfolio: rp.portfolioUrl ?? rp.links?.portfolioUrl ?? "",
     },
+
+    resume: {
+      resumeUrl: rp.resumeUrl ?? null,
+      resumeName: rp.resumeName ?? null,
+    }
   }), []);
 
   useEffect(() => {
     if (!reduxProfile) return;
     const normalised = normalise(reduxProfile);
     setData(normalised);
+    // Only reset bannerLoaded when the actual banner URL changes
+    if (reduxProfile.bannerImage !== prevBannerRef.current) {
+      setBannerLoaded(false);
+    }
     prevBannerRef.current = reduxProfile.bannerImage ?? null;
     prevAvatarRef.current = reduxProfile.profileImage ?? null;
-    setBannerLoaded(false);
   }, [reduxProfile, normalise]);
 
   // ── Toast handlers ────────────────────────────────────────────────────────
@@ -609,7 +716,7 @@ function Profile() {
     setData((prev) => ({ ...prev, bannerImage: url }));
     e.target.value = "";
     dispatch(uploadBannerImageThunk(file));
-  }, [dispatch]);
+  }, [data, dispatch]);
 
   const handleAvatarSelect = useCallback(async (e) => {
     const file = e.target.files?.[0];
@@ -620,19 +727,66 @@ function Profile() {
     setData((prev) => ({ ...prev, profileImage: url }));
     e.target.value = "";
     dispatch(uploadProfileImageThunk(file));
-  }, [dispatch]);
+  }, [data, dispatch]);
 
+
+ const handleResumeUpload = useCallback(
+  async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Optimistically show the file name right away
+    setData((prev) => ({
+      ...prev,
+      resume: {
+        resumeUrl: prev?.resume?.resumeUrl ?? null,
+        resumeName: file.name,
+      },
+    }));
+
+    try {
+      await dispatch(addResumeThunk(file)).unwrap();
+      // Re-fetch the full profile so resumeUrl comes from the server
+      // (the upload response may not always include all fields)
+      dispatch(fetchMyProfileThunk());
+    } catch (error) {
+      // Revert optimistic update on failure
+      setData((prev) => ({
+        ...prev,
+        resume: { resumeUrl: null, resumeName: null },
+      }));
+      console.error("Resume upload failed:", error);
+    } finally {
+      e.target.value = "";
+    }
+  },
+  [dispatch]
+);
+
+const deleteResume = useCallback(async () => {
+  try {
+    await dispatch(deleteResumeThunk()).unwrap();
+    setData((prev) => ({
+      ...prev,
+      resume: { resumeUrl: null, resumeName: null },
+    }));
+    // Re-fetch to keep Redux and local state in sync
+    dispatch(fetchMyProfileThunk());
+  } catch (error) {
+    console.error("Resume delete failed:", error);
+  }
+}, [dispatch]);
   /* ================================================================
      HEADER section handlers
      ================================================================ */
 
   const onEditHeader = useCallback(() => {
     setHeaderDraft({
-      name:            data.name,
-      jobTitle:        data.jobTitle,
-      company:         data.company,
-      location:        data.location,
-      availability:    data.availability,
+      name: data.name,
+      jobTitle: data.jobTitle,
+      company: data.company,
+      location: data.location,
+      availability: data.availability,
       experienceLevel: data.experienceLevel,
     });
     headerSection.startEdit(null);
@@ -647,11 +801,10 @@ function Profile() {
     if (!data?.id || !headerDraft) return;
     headerSection.saveEdit(
       updateHeaderThunk({
-        name:            headerDraft.name,
-        jobTitle:        headerDraft.jobTitle,
-        company:         headerDraft.company,
-        location:        headerDraft.location,
-        availability:    headerDraft.availability,
+         headline: headerDraft.jobTitle,
+       currentCompany: headerDraft.company,
+       location: headerDraft.location,
+        availability: headerDraft.availability,
         experienceLevel: headerDraft.experienceLevel,
       }),
       () => {
@@ -705,8 +858,8 @@ function Profile() {
     if (!data?.id || !linksDraft) return;
     linksSection.saveEdit(
       updateLinksThunk({
-        linkedinUrl:  linksDraft.linkedin,
-        githubUrl:    linksDraft.github,
+        linkedinUrl: linksDraft.linkedin,
+        githubUrl: linksDraft.github,
         portfolioUrl: linksDraft.portfolio,
       }),
       () => {
@@ -791,16 +944,17 @@ function Profile() {
 
   const onSaveExp = useCallback(() => {
     if (!data?.id) return;
-    // Flush all dirty rows to API
+    // Flush all dirty rows to API — field names match ExperienceRequest DTO
     data.experience.forEach((item) => {
       const payload = {
-        title:       item.title,
-        company:     item.company,
-        startDate:   item.startDate,
-        endDate:     item.endDate,
-        type:        item.type,
-        location:    item.location,
+        title: item.title,
+        company: item.company,
+        location: item.location,
+        startDate: item.startDate || null,
+        endDate: item.endDate || null,
+        working: item.working ?? false,
         description: item.description,
+        employmentType: item.employmentType,
       };
       if (item.isNew || !item.id) {
         dispatch(addExperienceThunk(payload));
@@ -809,13 +963,14 @@ function Profile() {
       }
     });
     setExpDraft(null);
-    expSection.cancelEdit(null); // close immediately (optimistic)
+    expSection.cancelEdit(null);
   }, [data, expSection, dispatch]);
 
   const addExpItem = useCallback(() => {
     const newItem = {
-      _id: uid(), title: "", company: "", startDate: "", endDate: "",
-      type: "", location: "", description: "", logo: "", isNew: true,
+      _id: uid(), id: null, title: "", company: "", location: "",
+      startDate: "", endDate: "", working: false,
+      employmentType: "", description: "", isNew: true,
     };
     setData((prev) => ({ ...prev, experience: [...prev.experience, newItem] }));
     if (!expSection.editing) {
@@ -863,17 +1018,21 @@ function Profile() {
 
   const onSaveEdu = useCallback(() => {
     if (!data?.id) return;
+    // Field names match EducationRequest DTO
     data.education.forEach((item) => {
       const payload = {
-        degree:    item.degree,
-        college:   item.college,
+        degree: item.degree,
+        collegeName: item.collegeName,
         university: item.university,
-        startYear: item.startYear,
-        endYear:   item.endYear,
-        location:  item.location,
+        startDate: item.startDate || null,
+        endDate: item.endDate || null,
+        location: item.location,
+        grade: item.grade,
       };
       if (item.isNew || !item.id) {
         dispatch(addEducationThunk(payload));
+      } else {
+        dispatch(updateEducationThunk({ educationId: item.id, data: payload }));
       }
     });
     setEduDraft(null);
@@ -882,8 +1041,8 @@ function Profile() {
 
   const addEduItem = useCallback(() => {
     const newItem = {
-      _id: uid(), degree: "", college: "", university: "",
-      startYear: "", endYear: "", location: "", isNew: true,
+      _id: uid(), id: null, degree: "", collegeName: "", university: "",
+      startDate: "", endDate: "", location: "", grade: "", isNew: true,
     };
     setData((prev) => ({ ...prev, education: [...prev.education, newItem] }));
     if (!eduSection.editing) {
@@ -931,13 +1090,14 @@ function Profile() {
 
   const onSaveCert = useCallback(() => {
     if (!data?.id) return;
+    // Field names match CertificationRequest DTO
     data.certifications.forEach((cert) => {
       const payload = {
-        title:         cert.title,
-        issuer:        cert.issuer,
-        issuedDate:    cert.issuedDate,
-        credentialId:  cert.credentialId,
-        credentialUrl: cert.credentialUrl,
+        title: cert.title,
+        issuer: cert.issuer,
+        issueDate: cert.issueDate || null,
+        certificateId: cert.certificateId,
+        certificateUrl: cert.certificateUrl,
       };
       if (cert.isNew || !cert.id) {
         dispatch(addCertificationThunk(payload));
@@ -951,8 +1111,8 @@ function Profile() {
 
   const addCertItem = useCallback(() => {
     const newItem = {
-      _id: uid(), title: "", issuer: "", issuedDate: "",
-      credentialId: "", credentialUrl: "", isNew: true,
+      _id: uid(), id: null, title: "", issuer: "", issueDate: "",
+      certificateId: "", certificateUrl: "", isNew: true,
     };
     setData((prev) => ({ ...prev, certifications: [...prev.certifications, newItem] }));
     if (!certSection.editing) {
@@ -1035,21 +1195,21 @@ function Profile() {
   const availBadge = AVAILABILITY_OPTIONS.find((o) => o.value === data?.availability) ?? AVAILABILITY_OPTIONS[0];
 
   const bannerSrc = data?.bannerImage
-    ? data.bannerImage.startsWith("blob:") ? data.bannerImage : `http://localhost:8080/uploads/banner/${data.bannerImage}`
+    ? data.bannerImage.startsWith("blob:") ? data.bannerImage : `http://localhost:8080/uploads/${data.bannerImage}`
     : null;
 
   const avatarSrc = data?.profileImage
-    ? data.profileImage.startsWith("blob:") ? data.profileImage : `http://localhost:8080/uploads/profile/${data.profileImage}`
+    ? data.profileImage.startsWith("blob:") ? data.profileImage : `http://localhost:8080/uploads/${data.profileImage}`
     : null;
 
   /* ── Certificate preview ── */
-  const openCertPreview  = useCallback((src, alt) => setCertPreview({ src, alt }), []);
+  const openCertPreview = useCallback((src, alt) => setCertPreview({ src, alt }), []);
   const closeCertPreview = useCallback(() => setCertPreview(null), []);
 
   /* ── Display data (draft takes precedence while editing) ── */
-  const displayHeader = headerSection.editing ? headerDraft  : data;
-  const displayAbout  = aboutSection.editing  ? aboutDraft   : data?.about;
-  const displayLinks  = linksSection.editing  ? linksDraft   : data?.socialLinks;
+  const displayHeader = headerSection.editing ? headerDraft : data;
+  const displayAbout = aboutSection.editing ? aboutDraft : data?.about;
+  const displayLinks = linksSection.editing ? linksDraft : data?.socialLinks;
 
   /* ── Loading guard ── */
   if (isLoading && !data) return <ProfileSkeleton />;
@@ -1160,9 +1320,15 @@ function Profile() {
             {/* Availability badge + Header action buttons */}
             <div className="flex items-center gap-2 sm:mb-1">
               {!headerSection.editing && (
-                <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${availBadge.color}`}>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${availBadge.color}`}
+                >
                   <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
-                  {data.availability}
+                  {
+                    AVAILABILITY_OPTIONS.find(
+                      (option) => option.value === data.availability
+                    )?.label || data.availability
+                  }
                 </span>
               )}
               <ActionButtons
@@ -1199,18 +1365,39 @@ function Profile() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Availability">
-                    <select className={inputCls} value={headerDraft.availability}
-                      onChange={(e) => setHeaderDraft((p) => ({ ...p, availability: e.target.value }))}>
+                    <select
+                      className={inputCls}
+                      value={headerDraft.availability}
+                      onChange={(e) =>
+                        setHeaderDraft((p) => ({
+                          ...p,
+                          availability: e.target.value,
+                        }))
+                      }
+                    >
                       {AVAILABILITY_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value} className="text-black">{o.value}</option>
+                        <option key={o.value} value={o.value} className="text-black">
+                          {o.label}
+                        </option>
                       ))}
                     </select>
                   </Field>
                   <Field label="Experience Level">
-                    <select className={inputCls} value={headerDraft.experienceLevel}
-                      onChange={(e) => setHeaderDraft((p) => ({ ...p, experienceLevel: e.target.value }))}>
+                    <select
+                      className={inputCls}
+                      value={headerDraft.experienceLevel ?? ""}
+                      onChange={(e) =>
+                        setHeaderDraft((p) => ({
+                          ...p,
+                          experienceLevel: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="" className="text-black">Select level</option>
                       {EXPERIENCE_LEVELS.map((l) => (
-                        <option key={l} value={l} className="text-black">{l}</option>
+                        <option key={l.value} value={l.value} className="text-black">
+                          {l.label}
+                        </option>
                       ))}
                     </select>
                   </Field>
@@ -1231,10 +1418,24 @@ function Profile() {
                 )}
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
                   {data.location && (
-                    <span className="flex items-center gap-1"><IconMapPin size={14} />{data.location}</span>
+                    <span className="flex items-center gap-1">
+                      <IconMapPin size={14} />
+                      {data.location}
+                    </span>
                   )}
+
                   {data.experienceLevel && (
-                    <span className="flex items-center gap-1"><IconStar size={14} />{data.experienceLevel}</span>
+                    <span className="flex items-center gap-1">
+                      <IconStar size={14} />
+                      {EXPERIENCE_LEVELS.find((l) => l.value === data.experienceLevel)?.label ?? data.experienceLevel}
+                    </span>
+                  )}
+
+                  {data.jobType && (
+                    <span className="flex items-center gap-1">
+                      <IconBriefcase size={14} />
+                      {JOB_TYPES.find((j) => j.value === data.jobType)?.label ?? data.jobType}
+                    </span>
                   )}
                 </div>
               </>
@@ -1365,7 +1566,7 @@ function Profile() {
           <div className="flex flex-wrap gap-2">
             {data.skills.map((skill) => {
               const label = typeof skill === "object" ? skill.name ?? skill.skill : skill;
-              const key   = typeof skill === "object" ? skill.id   ?? skill.skill : skill;
+              const key = typeof skill === "object" ? skill.id ?? skill.skill : skill;
               return (
                 <span key={key} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-sm font-medium text-primary-light transition-all duration-300 hover:border-primary/40 hover:bg-primary/15">
                   {label}
@@ -1426,7 +1627,7 @@ function Profile() {
 
         <div className="space-y-6">
           {data.experience.map((item) => (
-            <div key={item._id} className="flex gap-4">
+          <div key={item._id} className="flex gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-elevated">
                 {item.logo
                   ? <img src={item.logo} alt={item.company} className="h-8 w-8 object-contain" loading="lazy" />
@@ -1458,11 +1659,11 @@ function Profile() {
                           valueFormat="MMM YYYY" placeholder="Present" clearable
                           onChange={(v) => updateExpItem(item._id, "endDate", v || "")} />
                       </Field>
-                      <Field label="Type">
-                        <select className={inputCls} value={item.type ?? ""}
-                          onChange={(e) => updateExpItem(item._id, "type", e.target.value)}>
+                      <Field label="Employment Type">
+                        <select className={inputCls} value={item.employmentType ?? ""}
+                          onChange={(e) => updateExpItem(item._id, "employmentType", e.target.value)}>
                           <option value="" className="text-black">Select type</option>
-                          {JOB_TYPES.map((t) => <option key={t} value={t} className="text-black">{t}</option>)}
+                          {JOB_TYPES.map((t) => <option key={t.value} value={t.value} className="text-black">{t.label}</option>)}
                         </select>
                       </Field>
                       <Field label="Location">
@@ -1489,9 +1690,9 @@ function Profile() {
                         {item.startDate ? dayjs(item.startDate).format("MMM YYYY") : "Start"} — {item.endDate ? dayjs(item.endDate).format("MMM YYYY") : "Present"}
                       </span>
                     </div>
-                    {(item.type || item.location) && (
+                    {(item.employmentType || item.location) && (
                       <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-muted">
-                        {item.type     && <span className="rounded-full border border-white/10 px-2 py-0.5">{item.type}</span>}
+                        {item.employmentType && <span className="rounded-full border border-white/10 px-2 py-0.5">{JOB_TYPES.find((t) => t.value === item.employmentType)?.label ?? item.employmentType}</span>}
                         {item.location && <span className="flex items-center gap-1"><IconMapPin size={12} />{item.location}</span>}
                       </div>
                     )}
@@ -1542,27 +1743,33 @@ function Profile() {
                         onChange={(e) => updateEduItem(item._id, "degree", e.target.value)} />
                     </Field>
                     <Field label="College / Institution">
-                      <input className={inputCls} value={item.college ?? ""} placeholder="e.g. GNSC Engineering"
-                        onChange={(e) => updateEduItem(item._id, "college", e.target.value)} />
+                      <input className={inputCls} value={item.collegeName ?? ""} placeholder="e.g. GNSC Engineering"
+                        onChange={(e) => updateEduItem(item._id, "collegeName", e.target.value)} />
                     </Field>
                     <Field label="University / Board">
                       <input className={inputCls} value={item.university ?? ""} placeholder="e.g. Savitribai Phule Pune University"
                         onChange={(e) => updateEduItem(item._id, "university", e.target.value)} />
                     </Field>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      <Field label="Start Year">
-                        <input className={inputCls} value={item.startYear ?? ""} placeholder="2019" maxLength={4}
-                          onChange={(e) => updateEduItem(item._id, "startYear", e.target.value)} />
+                      <Field label="Start Date">
+                        <MonthPickerInput value={item.startDate ? new Date(item.startDate) : null}
+                          valueFormat="MMM YYYY" placeholder="Select month" clearable
+                          onChange={(v) => updateEduItem(item._id, "startDate", v || "")} />
                       </Field>
-                      <Field label="End Year">
-                        <input className={inputCls} value={item.endYear ?? ""} placeholder="2023" maxLength={4}
-                          onChange={(e) => updateEduItem(item._id, "endYear", e.target.value)} />
+                      <Field label="End Date">
+                        <MonthPickerInput value={item.endDate ? new Date(item.endDate) : null}
+                          valueFormat="MMM YYYY" placeholder="Present" clearable
+                          onChange={(v) => updateEduItem(item._id, "endDate", v || "")} />
                       </Field>
                       <Field label="Location">
                         <input className={inputCls} value={item.location ?? ""} placeholder="e.g. Pune"
                           onChange={(e) => updateEduItem(item._id, "location", e.target.value)} />
                       </Field>
                     </div>
+                    <Field label="Grade / CGPA">
+                      <input className={inputCls} value={item.grade ?? ""} placeholder="e.g. 8.5 CGPA"
+                        onChange={(e) => updateEduItem(item._id, "grade", e.target.value)} />
+                    </Field>
                   </div>
                 ) : (
                   <>
@@ -1571,13 +1778,14 @@ function Profile() {
                         <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg leading-snug">
                           {item.degree || "Untitled degree"}
                         </h3>
-                        <p className="mt-0.5 text-sm font-medium text-primary-light">{item.college}</p>
+                        <p className="mt-0.5 text-sm font-medium text-primary-light">{item.collegeName}</p>
                       </div>
                       <span className="shrink-0 text-xs font-medium text-muted bg-surface-elevated border border-white/[0.06] rounded-lg px-2.5 py-1">
-                        {item.startYear} — {item.endYear}
+                        {item.startDate ? dayjs(item.startDate).format("MMM YYYY") : ""} {item.endDate ? `— ${dayjs(item.endDate).format("MMM YYYY")}` : item.startDate ? "— Present" : ""}
                       </span>
                     </div>
                     {item.university && <p className="mt-1 text-sm text-body">{item.university}</p>}
+                    {item.grade && <p className="mt-0.5 text-xs text-muted">Grade: {item.grade}</p>}
                     {item.location && (
                       <div className="mt-1.5 flex items-center gap-1 text-xs text-muted">
                         <IconMapPin size={12} /><span>{item.location}</span>
@@ -1633,18 +1841,19 @@ function Profile() {
                         <input className={inputCls} value={cert.issuer ?? ""} placeholder="e.g. Amazon Web Services"
                           onChange={(e) => updateCertItem(cert._id, "issuer", e.target.value)} />
                       </Field>
-                      <Field label="Issued Date">
-                        <input className={inputCls} value={cert.issuedDate ?? ""} placeholder="e.g. Jan 2025"
-                          onChange={(e) => updateCertItem(cert._id, "issuedDate", e.target.value)} />
+                      <Field label="Issue Date">
+                        <MonthPickerInput value={cert.issueDate ? new Date(cert.issueDate) : null}
+                          valueFormat="MMM YYYY" placeholder="Select month" clearable
+                          onChange={(v) => updateCertItem(cert._id, "issueDate", v || "")} />
                       </Field>
-                      <Field label="Credential ID">
-                        <input className={inputCls} value={cert.credentialId ?? ""} placeholder="e.g. AWS-SAA-2025"
-                          onChange={(e) => updateCertItem(cert._id, "credentialId", e.target.value)} />
+                      <Field label="Certificate ID">
+                        <input className={inputCls} value={cert.certificateId ?? ""} placeholder="e.g. AWS-SAA-2025"
+                          onChange={(e) => updateCertItem(cert._id, "certificateId", e.target.value)} />
                       </Field>
                     </div>
-                    <Field label="Credential URL">
-                      <input className={inputCls} value={cert.credentialUrl ?? ""} placeholder="https://..."
-                        onChange={(e) => updateCertItem(cert._id, "credentialUrl", e.target.value)} />
+                    <Field label="Certificate URL">
+                      <input className={inputCls} value={cert.certificateUrl ?? ""} placeholder="https://..."
+                        onChange={(e) => updateCertItem(cert._id, "certificateUrl", e.target.value)} />
                     </Field>
                     {cert.imageUrl && (
                       <div className="mt-2">
@@ -1666,15 +1875,15 @@ function Profile() {
                         </h3>
                         <p className="mt-0.5 text-sm font-medium text-accent-warm-light">{cert.issuer}</p>
                       </div>
-                      {cert.issuedDate && (
+                      {cert.issueDate && (
                         <span className="shrink-0 text-xs font-medium text-muted bg-surface-elevated border border-white/[0.06] rounded-lg px-2.5 py-1">
-                          Issued {cert.issuedDate}
+                          Issued {dayjs(cert.issueDate).isValid() ? dayjs(cert.issueDate).format("MMM YYYY") : cert.issueDate}
                         </span>
                       )}
                     </div>
-                    {cert.credentialId && <p className="mt-1.5 text-xs text-muted font-mono">ID: {cert.credentialId}</p>}
-                    {cert.credentialUrl && (
-                      <a href={cert.credentialUrl} target="_blank" rel="noreferrer"
+                    {cert.certificateId && <p className="mt-1.5 text-xs text-muted font-mono">ID: {cert.certificateId}</p>}
+                    {cert.certificateUrl && (
+                      <a href={cert.certificateUrl} target="_blank" rel="noreferrer"
                         className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-light hover:text-primary transition-colors"
                         aria-label={`View credential for ${cert.title} (opens in new tab)`}>
                         Show credential
@@ -1717,7 +1926,7 @@ function Profile() {
           <div className="flex flex-wrap gap-2">
             {data.languages.map((lang) => {
               const label = typeof lang === "object" ? lang.language ?? lang.name : lang;
-              const key   = typeof lang === "object" ? lang.id : lang;
+              const key = typeof lang === "object" ? lang.id : lang;
               return (
                 <span key={key} className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-sm font-medium text-body transition-all duration-200 hover:border-white/20">
                   <IconLanguage size={14} className="text-muted" />
@@ -1756,6 +1965,109 @@ function Profile() {
           </div>
         )}
       </Section>
+
+
+      {/* ════════════════════════════════════════════════
+    RESUME
+════════════════════════════════════════════════ */}
+<Section>
+  <div className="flex items-center justify-between mb-4">
+    <h2 className={sectionHeadingCls}>Resume</h2>
+
+    <div className="flex items-center gap-2">
+      <input
+        type="file"
+        accept=".pdf"
+        ref={resumeInputRef}
+        className="hidden"
+        onChange={handleResumeUpload}
+      />
+
+      <button
+        type="button"
+        onClick={() => resumeInputRef.current?.click()}
+        className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition"
+      >
+      {data.resume?.resumeUrl ? "Replace Resume" : "Upload Resume"}
+      </button>
+    </div>
+  </div>
+
+  {data.resume?.resumeUrl ? (
+    <div className="rounded-xl border border-white/10 bg-surface-elevated p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-red-500/10">
+            <IconFileCv
+              size={30}
+              className="text-red-400"
+            />
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-heading">
+              {data.resume.resumeName || "Resume.pdf"}
+            </h3>
+
+            <p className="mt-1 text-sm text-muted">
+              ATS Friendly Resume
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <a
+            href={`http://localhost:8080/uploads/${data.resume.resumeUrl}`}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-lg border border-white/10 p-2 hover:bg-white/5"
+          >
+            <IconEye size={18} />
+          </a>
+
+          <a
+            href={`http://localhost:8080/uploads/${data.resume.resumeUrl}`}
+            download
+            className="rounded-lg border border-white/10 p-2 hover:bg-white/5"
+          >
+            <IconDownload size={18} />
+          </a>
+
+          <button
+            type="button"
+            onClick={deleteResume}
+            className="rounded-lg border border-red-500/30 p-2 text-red-400 hover:bg-red-500/10"
+          >
+            <IconTrash size={18} />
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="rounded-xl border-2 border-dashed border-white/10 py-10 text-center">
+      <IconFileCv
+        size={42}
+        className="mx-auto mb-3 text-primary-light"
+      />
+
+      <h3 className="font-semibold text-heading">
+        No Resume Uploaded
+      </h3>
+
+      <p className="mt-2 text-sm text-muted">
+        Upload your latest resume in PDF format.
+      </p>
+
+      <button
+        type="button"
+        onClick={() => resumeInputRef.current?.click()}
+        className="mt-5 rounded-xl bg-primary px-5 py-2 font-semibold text-white hover:bg-primary-dark"
+      >
+        Upload Resume
+      </button>
+    </div>
+  )}
+</Section>
 
     </div>
   );
