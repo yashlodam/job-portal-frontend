@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Menu, Button, Avatar, Switch } from "@mantine/core";
 import {
   IconUserCircle,
@@ -12,20 +12,38 @@ import {
   IconLogout2,
 } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
-import { useAppDispatch } from "../State/Store";
+import { useAppDispatch, useAppSelector } from "../State/Store";
 import { logout } from "../State/AuthSlic";
+import { selectProfile } from "../State/profileSlice";
+import { fetchProfileByEmailThunk } from "../State/profileThunk";
 
 function ProfileMenu({user}) {
     const [checked,setChecked] = useState(false);
     const [opened,setOpened] = useState(false)
     const dispatch = useAppDispatch();
+     const auth = useAppSelector((s) => s.auth.profile);
+
+     console.log("Auth",auth)
+
+    const reduxProfile = useAppSelector(selectProfile);
+
+    console.log("From Profile Menu",reduxProfile)
 
 
+    useEffect(() => {
+        dispatch(fetchProfileByEmailThunk(auth.data.email));
+      }, [dispatch]);
 
     const handleLogout = ()=>{
 
       dispatch(logout())
     }
+
+    const avatarSrc = reduxProfile?.profileImage
+    ? reduxProfile.profileImage.startsWith("blob:")
+      ? reduxProfile.profileImage
+      : `http://localhost:8080/uploads/profile/${reduxProfile.profileImage}`
+    : null;
 
   return (
     <Menu
@@ -52,7 +70,7 @@ function ProfileMenu({user}) {
       <div className="flex items-center gap-3 rounded-2xl px-3 py-2 hover:bg-white/5">
 
         <Avatar
-          src="/avatar.jpg"
+          src={avatarSrc}
           radius="xl"
           size={42}
         >

@@ -7,13 +7,10 @@ export const signup = createAsyncThunk(
     "auth/signup",
     async (signupRequest, { rejectWithValue }) => {
         try {
-            const response = await api.post("/users/register", signupRequest);
+            const response = await api.post("/auth/register", signupRequest);
             console.log("User registered successfully:", response.data);
-
-            if (response.data.jwt) {
-                localStorage.setItem("jwt", response.data.jwt);
-            }
-
+            // Backend returns ApiResponse<UserResponse> — NO JWT on registration.
+            // User must login after registration.
             return response.data;
         } catch (error) {
             console.error("Signup failed:", error);
@@ -29,10 +26,11 @@ export const signin = createAsyncThunk(
     "auth/signin",
     async (loginRequest, { rejectWithValue }) => {
         try {
-            const response = await api.post("/users/login", loginRequest);
+            const response = await api.post("/auth/login", loginRequest);
             console.log("Login successful:", response.data);
 
-            const token = response.data.token || response.data.jwt;
+            // Backend: ApiResponse<AuthResponse> → response.data.data.token
+            const token = response.data?.data?.token || response.data?.data?.jwt;
             if (token) {
                 localStorage.setItem("jwt", token);
             }
@@ -47,17 +45,19 @@ export const signin = createAsyncThunk(
     }
 );
 
-// ─── Fetch Profile ───────────────────────────────────────────────────────────
+// ─── Fetch Current User ───────────────────────────────────────────────────────
+// GET /api/users/me — returns ApiResponse<UserResponse>
 export const getUserProfile = createAsyncThunk(
     "auth/getUserProfile",
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get("/profile");
-            console.log("Profile fetched successfully:", response.data);
-            return response.data;
+            const response = await api.get("/users/me");
+            console.log("User fetched successfully:", response.data);
+            // Unwrap ApiResponse wrapper — actual UserResponse is in .data
+            return response.data?.data ?? response.data;
         } catch (error) {
             return rejectWithValue(
-                error.response?.data || { message: "Failed to fetch profile" }
+                error.response?.data || { message: "Failed to fetch user" }
             );
         }
     }
@@ -65,8 +65,8 @@ export const getUserProfile = createAsyncThunk(
 
 // ─── Restore Auth on Startup ─────────────────────────────────────────────────
 // Called once when the app mounts. Reads the JWT from localStorage; if
-// present, validates it by hitting /profile. On success the profile lands in
-// Redux and the user stays logged in. On any failure (401, network error,
+// present, validates it by hitting /users/me. On success the user lands in
+// Redux and stays logged in. On any failure (401, network error,
 // no token) the token is removed and the user is treated as logged out.
 export const restoreAuthState = createAsyncThunk(
     "auth/restoreAuthState",
@@ -79,9 +79,11 @@ export const restoreAuthState = createAsyncThunk(
         }
 
         try {
-            const response = await api.get("/profile");
+            // GET /api/users/me — UserController, JWT-authenticated
+            const response = await api.get("/users/me");
             console.log("Auth restored from token:", response.data);
-            return response.data;
+            // Unwrap ApiResponse<UserResponse>
+            return response.data?.data ?? response.data;
         } catch (error) {
             console.warn("Token invalid or expired — clearing.");
             localStorage.removeItem("jwt");
@@ -97,7 +99,7 @@ export const sendOtp = createAsyncThunk(
     "auth/sendOtp",
     async (email, { rejectWithValue }) => {
         try {
-            const response = await api.post(`/users/sendOtp/${email}`);
+            const response = await api.post(`/auth/send-otp/${email}`);
             console.log("OTP sent successfully:", response.data);
             return response.data;
         } catch (error) {
@@ -113,7 +115,7 @@ export const verifyOtp = createAsyncThunk(
     "auth/verifyOtp",
     async (request, { rejectWithValue }) => {
         try {
-            const response = await api.post("/users/verify-otp", request);
+            const response = await api.post("/auth/verify-otp", request);
             console.log("OTP verified:", response.data);
             return response.data;
         } catch (error) {
@@ -129,7 +131,7 @@ export const resetPassword = createAsyncThunk(
     "auth/resetPassword",
     async (request, { rejectWithValue }) => {
         try {
-            const response = await api.post("/users/reset-password", request);
+            const response = await api.post("/auth/reset-password", request);
             console.log("Password reset successfully:", response.data);
             return response.data;
         } catch (error) {
@@ -188,11 +190,10 @@ const authSlice = createSlice({
         builder
 
             // ═══════════════════ RESTORE AUTH (startup) ══════════════════════
-            // pending: keep isAuthRestored=false (spinner stays visible)
             .addCase(restoreAuthState.pending, (state) => {
                 state.loading = true;
             })
-            // fulfilled: profile fetched → user is logged in
+            // fulfilled: user fetched → user is logged in
             .addCase(restoreAuthState.fulfilled, (state, action) => {
                 state.loading = false;
                 state.profile = action.payload;
@@ -215,7 +216,7 @@ const authSlice = createSlice({
             .addCase(signup.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = action.payload.message || "Registration successful";
+                state.message = action.payload?.message || "Registration successful";
             })
             .addCase(signup.rejected, (state, action) => {
                 state.loading = false;
@@ -257,14 +258,14 @@ const authSlice = createSlice({
             })
             .addCase(getUserProfile.fulfilled, (state, action) => {
                 state.loading = false;
+                // action.payload is already the unwrapped UserResponse
                 state.profile = action.payload;
-                // After a fresh login the auth is obviously restored
                 state.isAuthRestored = true;
             })
             .addCase(getUserProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error =
-                    action.payload?.message || "Failed to fetch profile";
+                    action.payload?.message || "Failed to fetch user";
             })
 
             // ═══════════════════════ SEND OTP ════════════════════════════════
@@ -277,7 +278,7 @@ const authSlice = createSlice({
             .addCase(sendOtp.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = action.payload.message || "OTP sent successfully";
+                state.message = action.payload?.message || "OTP sent successfully";
             })
             .addCase(sendOtp.rejected, (state, action) => {
                 state.loading = false;
@@ -299,7 +300,7 @@ const authSlice = createSlice({
             .addCase(verifyOtp.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = action.payload.message || "OTP verified successfully";
+                state.message = action.payload?.message || "OTP verified successfully";
             })
             .addCase(verifyOtp.rejected, (state, action) => {
                 state.loading = false;
@@ -321,7 +322,7 @@ const authSlice = createSlice({
             .addCase(resetPassword.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = action.payload.message || "Password reset successful";
+                state.message = action.payload?.message || "Password reset successful";
             })
             .addCase(resetPassword.rejected, (state, action) => {
                 state.loading = false;

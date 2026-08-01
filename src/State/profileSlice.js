@@ -270,9 +270,15 @@ const profileSlice = createSlice({
     // DELETE /profile/skills/{id}
     // ══════════════════════════════════════════════════════════════════════
     .addCase(deleteSkillThunk.pending, startLoading)
-    .addCase(deleteSkillThunk.fulfilled, (state) => {
-  setSuccess(state);
-})
+    .addCase(deleteSkillThunk.fulfilled, (state, action) => {
+      setSuccess(state);
+      const removedSkill = action.meta.arg;
+      state.skills = state.skills.filter((skill) => {
+        const current = typeof skill === "object" ? skill.skill ?? skill.name : skill;
+        return current !== removedSkill;
+      });
+      if (state.profile) state.profile.skills = state.skills;
+    })
     .addCase(deleteSkillThunk.rejected, setError)
 
     // ══════════════════════════════════════════════════════════════════════
@@ -447,13 +453,15 @@ const profileSlice = createSlice({
 
     // ══════════════════════════════════════════════════════════════════════
     // DELETE /profile/languages/{id}
-    // ══════════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════════
     .addCase(deleteLanguageThunk.pending, startLoading)
     .addCase(deleteLanguageThunk.fulfilled, (state, action) => {
       setSuccess(state);
-      state.languages = state.languages.filter(
-        (l) => l.id !== action.meta.arg
-      );
+      const removedLanguage = action.meta.arg;
+      state.languages = state.languages.filter((language) => {
+        const current = typeof language === "object" ? language.language ?? language.name ?? language.id : language;
+        return current !== removedLanguage;
+      });
       if (state.profile) state.profile.languages = state.languages;
     })
     .addCase(deleteLanguageThunk.rejected, setError);

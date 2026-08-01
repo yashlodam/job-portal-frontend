@@ -18,7 +18,7 @@ import { store } from "../State/Store";
 import { logout } from "../State/AuthSlic";
 
 // ─── Base URL ─────────────────────────────────────────────────────────────────
-const API_URL = "http://localhost:8080";
+const API_URL = "http://localhost:8080/api";
 
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 export const api = axios.create({

@@ -1,322 +1,228 @@
-/**
- * src/api/profileApi.js
- *
- * Pure API layer — Profile endpoints only.
- *
- * Rules enforced here:
- *  - Every function makes exactly ONE HTTP call and returns response.data.
- *  - No Redux imports. No dispatch. No side-effects.
- *  - FormData is constructed here for image uploads so the caller just passes a File.
- *  - Every function is async and throws on failure (the thunk catches it).
- *
- * Consumed by: src/State/profileThunk.js
- */
-
 import { api } from "../config/Api";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// READ OPERATIONS
-// ─────────────────────────────────────────────────────────────────────────────
+// =======================
+// PROFILE
+// =======================
 
-/**
- * Fetch the currently authenticated user's own profile.
- * Requires JWT in localStorage (attached automatically by the interceptor).
- * Endpoint: GET /profile
- */
 export const fetchMyProfile = async () => {
-  const res = await api.get("/profile");
-  console.log("Profile fetch sucess",res.data)
+  const res = await api.get("/profile/me");
   return res.data;
 };
 
-/**
- * Fetch a public profile by email address.
- * Endpoint: GET /profile/{email}
- * @param {string} email
- */
 export const fetchProfileByEmail = async (email) => {
   const res = await api.get(`/profile/${email}`);
-  console.log("X",res.data)
   return res.data;
 };
 
-/**
- * Fetch the user record linked to a profile by email.
- * Endpoint: GET /profile/user/{email}
- * @param {string} email
- */
-export const fetchUserByEmail = async (email) => {
-  const res = await api.get(`/profile/user/${email}`);
+// =======================
+// HEADER / LINKS / ABOUT
+// =======================
+
+export const updateHeader = async (data) => {
+  const res = await api.put("/profile/me/header", data);
   return res.data;
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// IMAGE UPLOADS
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Upload / replace the profile avatar image.
- * Endpoint: PUT /profile/profile-image/{id}
- * @param {number|string} id   — profile ID
- * @param {File}          file — the selected image File object
- */
-export const uploadProfileImage = async (id, file) => {
-  const formData = new FormData();
-  formData.append("file", file);
-  const res = await api.put(`/profile/profile-image/${id}`, formData);
+export const updateLinks = async (data) => {
+  const res = await api.put("/profile/me/links", data);
   return res.data;
 };
 
-/**
- * Upload / replace the profile banner image.
- * Endpoint: PUT /profile/banner-image/{id}
- * @param {number|string} id   — profile ID
- * @param {File}          file — the selected image File object
- */
-export const uploadBannerImage = async (id, file) => {
-  const formData = new FormData();
-  formData.append("file", file);
-  const res = await api.put(`/profile/banner-image/${id}`, formData);
+export const updateAbout = async (data) => {
+  const res = await api.put("/profile/me/about", data);
   return res.data;
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PROFILE SECTIONS — UPDATE
-// ─────────────────────────────────────────────────────────────────────────────
+// =======================
+// SKILLS
+// =======================
 
-/**
- * Update the header section (name, title, location, etc.).
- * Endpoint: PUT /profile/header/{id}
- * @param {number|string} id   — profile ID
- * @param {object}        data — header fields payload
- */
-export const updateHeader = async (id, data) => {
-  const res = await api.put(`/profile/header/${id}`, data);
+export const updateSkills = async (data) => {
+  const res = await api.put("/profile/me/skills", data);
   return res.data;
 };
 
-/**
- * Update social / professional links.
- * Endpoint: PUT /profile/links/{id}
- * @param {number|string} id   — profile ID
- * @param {object}        data — links payload (e.g. { github, linkedin, website })
- */
-export const updateLinks = async (id, data) => {
-  const res = await api.put(`/profile/links/${id}`, data);
-  return res.data;
-};
-
-/**
- * Update the About / bio section.
- * Endpoint: PUT /profile/about/{id}
- * @param {number|string} id   — profile ID
- * @param {object}        data — about payload (e.g. { bio })
- */
-export const updateAbout = async (id, data) => {
-  const res = await api.put(`/profile/about/${id}`, data);
-  return res.data;
-};
-
-/**
- * Replace the entire skills list.
- * Endpoint: PUT /profile/skills/{id}
- * @param {number|string} id   — profile ID
- * @param {object}        data — skills payload (e.g. { skills: [] })
- */
-export const updateSkills = async (id, data) => {
-  const res = await api.put(`/profile/skills/${id}`, data);
-  return res.data;
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SKILLS — ADD / DELETE
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Add a single skill to the profile.
- * Endpoint: POST /profile/skill/{id}
- * @param {number|string} id   — profile ID
- * @param {object}        data — new skill payload (e.g. { name, level })
- */
-export const addSkill = async (id, data) => {
-  const res = await api.post(`/profile/skill/${id}`, data);
-  return res.data;
-};
-
-/**
- * Delete a specific skill from the profile by name.
- * Endpoint: DELETE /profile/skills/{profileId}?skill=React
- * @param {number|string} profileId — profile ID
- * @param {string}        skill     — the skill name to delete
- */
-export const deleteSkill = async (profileId, skill) => {
-  const res = await api.delete(`/profile/skills/${profileId}`, {
+export const addSkill = async (skill) => {
+  const res = await api.post("/profile/me/skills", null, {
     params: { skill },
   });
   return res.data;
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// EXPERIENCE
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Add a new work experience entry.
- * Endpoint: POST /profile/experience/{id}
- * @param {number|string} id   — profile ID
- * @param {object}        data — experience payload
- */
-export const addExperience = async (id, data) => {
-  const res = await api.post(`/profile/experience/${id}`, data);
-  return res.data;
-};
-
-/**
- * Update an existing experience entry.
- * Endpoint: PUT /profile/experience/{experienceId}
- * @param {number|string} experienceId
- * @param {object}        data — updated experience payload
- */
-export const updateExperience = async (experienceId, data) => {
-  const res = await api.put(`/profile/experience/${experienceId}`, data);
-  return res.data;
-};
-
-/**
- * Fetch all experience entries for a profile.
- * Endpoint: GET /profile/experience/{id}
- * @param {number|string} id — profile ID
- */
-export const fetchExperiences = async (id) => {
-  const res = await api.get(`/profile/experience/${id}`);
-  return res.data;
-};
-
-/**
- * Delete a specific experience entry.
- * Endpoint: DELETE /profile/experience/{experienceId}
- * @param {number|string} experienceId
- */
-export const deleteExperience = async (experienceId) => {
-  const res = await api.delete(`/profile/experience/${experienceId}`);
-  return res.data;
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EDUCATION
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Add a new education entry.
- * Endpoint: POST /profile/education/{id}
- * @param {number|string} id   — profile ID
- * @param {object}        data — education payload
- */
-export const addEducation = async (id, data) => {
-  const res = await api.post(`/profile/education/${id}`, data);
-  return res.data;
-};
-
-/**
- * Fetch all education entries for a profile.
- * Endpoint: GET /profile/education/{id}
- * @param {number|string} id — profile ID
- */
-export const fetchEducations = async (id) => {
-  const res = await api.get(`/profile/education/${id}`);
-  return res.data;
-};
-
-/**
- * Delete a specific education entry.
- * Endpoint: DELETE /profile/education/{educationId}
- * @param {number|string} educationId
- */
-export const deleteEducation = async (educationId) => {
-  const res = await api.delete(`/profile/education/${educationId}`);
-  return res.data;
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CERTIFICATIONS
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Add a new certification.
- * Endpoint: POST /profile/certification/{id}
- * @param {number|string} id   — profile ID
- * @param {object}        data — certification payload
- */
-export const addCertification = async (id, data) => {
-  const res = await api.post(`/profile/certification/${id}`, data);
-  return res.data;
-};
-
-/**
- * Update an existing certification.
- * Endpoint: PUT /profile/certification/{certificationId}
- * @param {number|string} certificationId
- * @param {object}        data — updated certification payload
- */
-export const updateCertification = async (certificationId, data) => {
-  const res = await api.put(`/profile/certification/${certificationId}`, data);
-  return res.data;
-};
-
-/**
- * Fetch all certifications for a profile.
- * Endpoint: GET /profile/certification/{id}
- * @param {number|string} id — profile ID
- */
-export const fetchCertifications = async (id) => {
-  const res = await api.get(`/profile/certification/${id}`);
-  return res.data;
-};
-
-/**
- * Delete a specific certification.
- * Endpoint: DELETE /profile/certification/{certificationId}
- * @param {number|string} certificationId
- */
-export const deleteCertification = async (certificationId) => {
-  const res = await api.delete(`/profile/certification/${certificationId}`);
-  return res.data;
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// LANGUAGES
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Add a new language entry.
- * Endpoint: POST /profile/languages/{id}
- * @param {number|string} id   — profile ID
- * @param {object}        data — language payload (e.g. { language, proficiency })
- */
-export const addLanguage = async (id, data) => {
-  const res = await api.post(`/profile/languages/${id}`, data);
-  return res.data;
-};
-
-/**
- * Fetch all languages for a profile.
- * Endpoint: GET /profile/languages/{id}
- * @param {number|string} id — profile ID
- */
-export const fetchLanguages = async (id) => {
-  const res = await api.get(`/profile/languages/${id}`);
-  return res.data;
-};
-
-/**
- * Delete a specific language from the profile by name.
- * Endpoint: DELETE /profile/languages/{profileId}?language=English
- * @param {number|string} profileId — profile ID
- * @param {string}        language  — the language name to delete
- */
-export const deleteLanguage = async (profileId, language) => {
-  const res = await api.delete(`/profile/languages/${profileId}`, {
-    params: { language },
+export const deleteSkill = async (skill) => {
+  const res = await api.delete("/profile/me/skills", {
+    params: { skill },
   });
+  return res.data;
+};
+
+// =======================
+// EXPERIENCE
+// =======================
+
+export const addExperience = async (data) => {
+  const res = await api.post("/profile/me/experiences", data);
+  return res.data;
+};
+
+export const updateExperience = async (experienceId, data) => {
+  const res = await api.put(
+    `/profile/me/experiences/${experienceId}`,
+    data
+  );
+  return res.data;
+};
+
+export const fetchExperiences = async () => {
+  const res = await api.get("/profile/me/experiences");
+  return res.data;
+};
+
+export const deleteExperience = async (experienceId) => {
+  const res = await api.delete(
+    `/profile/me/experiences/${experienceId}`
+  );
+  return res.data;
+};
+
+// =======================
+// EDUCATION
+// =======================
+
+export const addEducation = async (data) => {
+  const res = await api.post("/profile/me/educations", data);
+  return res.data;
+};
+
+export const updateEducation = async (educationId, data) => {
+  const res = await api.put(
+    `/profile/me/educations/${educationId}`,
+    data
+  );
+  return res.data;
+};
+
+export const fetchEducations = async () => {
+  const res = await api.get("/profile/me/educations");
+  return res.data;
+};
+
+export const deleteEducation = async (educationId) => {
+  const res = await api.delete(
+    `/profile/me/educations/${educationId}`
+  );
+  return res.data;
+};
+
+// =======================
+// CERTIFICATIONS
+// =======================
+
+export const addCertification = async (data) => {
+  const res = await api.post(
+    "/profile/me/certifications",
+    data
+  );
+  return res.data;
+};
+
+export const updateCertification = async (
+  certificationId,
+  data
+) => {
+  const res = await api.put(
+    `/profile/me/certifications/${certificationId}`,
+    data
+  );
+  return res.data;
+};
+
+export const fetchCertifications = async () => {
+  const res = await api.get(
+    "/profile/me/certifications"
+  );
+  return res.data;
+};
+
+export const deleteCertification = async (
+  certificationId
+) => {
+  const res = await api.delete(
+    `/profile/me/certifications/${certificationId}`
+  );
+  return res.data;
+};
+
+// =======================
+// LANGUAGES
+// =======================
+
+export const addLanguage = async (language) => {
+  const res = await api.post(
+    "/profile/me/languages",
+    null,
+    {
+      params: { language },
+    }
+  );
+  return res.data;
+};
+
+export const deleteLanguage = async (language) => {
+  const res = await api.delete(
+    "/profile/me/languages",
+    {
+      params: { language },
+    }
+  );
+  return res.data;
+};
+
+// =======================
+// IMAGES
+// =======================
+
+export const uploadProfileImage = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await api.put(
+    "/profile/me/profile-image",
+    formData
+  );
+
+  return res.data;
+};
+
+export const uploadBannerImage = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await api.put(
+    "/profile/me/banner-image",
+    formData
+  );
+
+  return res.data;
+};
+
+// =======================
+// RESUME
+// =======================
+
+export const uploadResume = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await api.post(
+    "/profile/me/resume",
+    formData
+  );
+
+  return res.data;
+};
+
+export const deleteResume = async () => {
+  const res = await api.delete("/profile/me/resume");
   return res.data;
 };

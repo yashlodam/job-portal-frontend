@@ -7,7 +7,7 @@
  *  - Each thunk calls exactly ONE function from profileApi.js.
  *  - All errors are caught and forwarded with rejectWithValue().
  *  - No UI logic, no toast calls — that belongs in components.
- *  - Payloads are returned as-is from the API layer.
+ *  - Payloads are returned as-is from the API layer (ApiResponse wrapper).
  *
  * Consumed by: src/State/profileSlice.js (extraReducers)
  *              Components (via dispatch)
@@ -17,7 +17,6 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
   fetchMyProfile,
   fetchProfileByEmail,
-  fetchUserByEmail,
   uploadProfileImage,
   uploadBannerImage,
   updateHeader,
@@ -31,6 +30,7 @@ import {
   fetchExperiences,
   deleteExperience,
   addEducation,
+  updateEducation,
   fetchEducations,
   deleteEducation,
   addCertification,
@@ -38,7 +38,6 @@ import {
   fetchCertifications,
   deleteCertification,
   addLanguage,
-  fetchLanguages,
   deleteLanguage,
 } from "../api/profileApi";
 
@@ -55,7 +54,7 @@ const getErrorPayload = (error) =>
 // READ OPERATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** GET /profile — authenticated user's own profile */
+/** GET /api/profile/me — authenticated user's own profile */
 export const fetchMyProfileThunk = createAsyncThunk(
   "profile/fetchMyProfile",
   async (_, { rejectWithValue }) => {
@@ -67,7 +66,7 @@ export const fetchMyProfileThunk = createAsyncThunk(
   }
 );
 
-/** GET /profile/{email} — public profile lookup by email */
+/** GET /api/profile/{email} — public profile lookup by email */
 export const fetchProfileByEmailThunk = createAsyncThunk(
   "profile/fetchProfileByEmail",
   async (email, { rejectWithValue }) => {
@@ -79,46 +78,28 @@ export const fetchProfileByEmailThunk = createAsyncThunk(
   }
 );
 
-/** GET /profile/user/{email} — user record linked to a profile */
-export const fetchUserByEmailThunk = createAsyncThunk(
-  "profile/fetchUserByEmail",
-  async (email, { rejectWithValue }) => {
-    try {
-      return await fetchUserByEmail(email);
-    } catch (error) {
-      return rejectWithValue(getErrorPayload(error));
-    }
-  }
-);
-
 // ─────────────────────────────────────────────────────────────────────────────
 // IMAGE UPLOADS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * PUT /profile/profile-image/{id}
- * @param {{ id: number|string, file: File }} payload
- */
+/** PUT /api/profile/me/profile-image */
 export const uploadProfileImageThunk = createAsyncThunk(
   "profile/uploadProfileImage",
-  async ({ id, file }, { rejectWithValue }) => {
+  async (file, { rejectWithValue }) => {
     try {
-      return await uploadProfileImage(id, file);
+      return await uploadProfileImage(file);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * PUT /profile/banner-image/{id}
- * @param {{ id: number|string, file: File }} payload
- */
+/** PUT /api/profile/me/banner-image */
 export const uploadBannerImageThunk = createAsyncThunk(
   "profile/uploadBannerImage",
-  async ({ id, file }, { rejectWithValue }) => {
+  async (file, { rejectWithValue }) => {
     try {
-      return await uploadBannerImage(id, file);
+      return await uploadBannerImage(file);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
@@ -129,60 +110,48 @@ export const uploadBannerImageThunk = createAsyncThunk(
 // PROFILE SECTIONS — UPDATE
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * PUT /profile/header/{id}
- * @param {{ id: number|string, data: object }} payload
- */
+/** PUT /api/profile/me/header */
 export const updateHeaderThunk = createAsyncThunk(
   "profile/updateHeader",
-  async ({ id, data }, { rejectWithValue }) => {
+  async (data, { rejectWithValue }) => {
     try {
-      return await updateHeader(id, data);
+      return await updateHeader(data);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * PUT /profile/links/{id}
- * @param {{ id: number|string, data: object }} payload
- */
+/** PUT /api/profile/me/links */
 export const updateLinksThunk = createAsyncThunk(
   "profile/updateLinks",
-  async ({ id, data }, { rejectWithValue }) => {
+  async (data, { rejectWithValue }) => {
     try {
-      return await updateLinks(id, data);
+      return await updateLinks(data);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * PUT /profile/about/{id}
- * @param {{ id: number|string, data: object }} payload
- */
+/** PUT /api/profile/me/about */
 export const updateAboutThunk = createAsyncThunk(
   "profile/updateAbout",
-  async ({ id, data }, { rejectWithValue }) => {
+  async (data, { rejectWithValue }) => {
     try {
-      return await updateAbout(id, data);
+      return await updateAbout(data);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * PUT /profile/skills/{id} — replaces the entire skills list
- * @param {{ id: number|string, data: object }} payload
- */
+/** PUT /api/profile/me/skills — replaces the entire skills list */
 export const updateSkillsThunk = createAsyncThunk(
   "profile/updateSkills",
-  async ({ id, data }, { rejectWithValue }) => {
+  async (data, { rejectWithValue }) => {
     try {
-      return await updateSkills(id, data);
+      return await updateSkills(data);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
@@ -193,30 +162,24 @@ export const updateSkillsThunk = createAsyncThunk(
 // SKILLS — ADD / DELETE
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * POST /profile/skill/{id}
- * @param {{ id: number|string, data: object }} payload
- */
+/** POST /api/profile/me/skills?skill=React */
 export const addSkillThunk = createAsyncThunk(
   "profile/addSkill",
-  async ({ id, data }, { rejectWithValue }) => {
+  async (skill, { rejectWithValue }) => {
     try {
-      return await addSkill(id, data);
+      return await addSkill(skill);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * DELETE /profile/skills/{profileId}?skill=React
- * @param {{ profileId: number|string, skill: string }} payload
- */
+/** DELETE /api/profile/me/skills?skill=React */
 export const deleteSkillThunk = createAsyncThunk(
   "profile/deleteSkill",
-  async ({ profileId, skill }, { rejectWithValue }) => {
+  async (skill, { rejectWithValue }) => {
     try {
-      return await deleteSkill(profileId, skill);
+      return await deleteSkill(skill);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
@@ -227,25 +190,19 @@ export const deleteSkillThunk = createAsyncThunk(
 // EXPERIENCE
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * POST /profile/experience/{id}
- * @param {{ id: number|string, data: object }} payload
- */
+/** POST /api/profile/me/experiences */
 export const addExperienceThunk = createAsyncThunk(
   "profile/addExperience",
-  async ({ id, data }, { rejectWithValue }) => {
+  async (data, { rejectWithValue }) => {
     try {
-      return await addExperience(id, data);
+      return await addExperience(data);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * PUT /profile/experience/{experienceId}
- * @param {{ experienceId: number|string, data: object }} payload
- */
+/** PUT /api/profile/me/experiences/{experienceId} */
 export const updateExperienceThunk = createAsyncThunk(
   "profile/updateExperience",
   async ({ experienceId, data }, { rejectWithValue }) => {
@@ -257,25 +214,19 @@ export const updateExperienceThunk = createAsyncThunk(
   }
 );
 
-/**
- * GET /profile/experience/{id}
- * @param {number|string} id — profile ID
- */
+/** GET /api/profile/me/experiences */
 export const fetchExperiencesThunk = createAsyncThunk(
   "profile/fetchExperiences",
-  async (id, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      return await fetchExperiences(id);
+      return await fetchExperiences();
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * DELETE /profile/experience/{experienceId}
- * @param {number|string} experienceId
- */
+/** DELETE /api/profile/me/experiences/{experienceId} */
 export const deleteExperienceThunk = createAsyncThunk(
   "profile/deleteExperience",
   async (experienceId, { rejectWithValue }) => {
@@ -291,40 +242,43 @@ export const deleteExperienceThunk = createAsyncThunk(
 // EDUCATION
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * POST /profile/education/{id}
- * @param {{ id: number|string, data: object }} payload
- */
+/** POST /api/profile/me/educations */
 export const addEducationThunk = createAsyncThunk(
   "profile/addEducation",
-  async ({ id, data }, { rejectWithValue }) => {
+  async (data, { rejectWithValue }) => {
     try {
-      return await addEducation(id, data);
+      return await addEducation(data);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * GET /profile/education/{id}
- * @param {number|string} id — profile ID
- */
+/** PUT /api/profile/me/educations/{educationId} */
+export const updateEducationThunk = createAsyncThunk(
+  "profile/updateEducation",
+  async ({ educationId, data }, { rejectWithValue }) => {
+    try {
+      return await updateEducation(educationId, data);
+    } catch (error) {
+      return rejectWithValue(getErrorPayload(error));
+    }
+  }
+);
+
+/** GET /api/profile/me/educations */
 export const fetchEducationsThunk = createAsyncThunk(
   "profile/fetchEducations",
-  async (id, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      return await fetchEducations(id);
+      return await fetchEducations();
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * DELETE /profile/education/{educationId}
- * @param {number|string} educationId
- */
+/** DELETE /api/profile/me/educations/{educationId} */
 export const deleteEducationThunk = createAsyncThunk(
   "profile/deleteEducation",
   async (educationId, { rejectWithValue }) => {
@@ -340,25 +294,19 @@ export const deleteEducationThunk = createAsyncThunk(
 // CERTIFICATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * POST /profile/certification/{id}
- * @param {{ id: number|string, data: object }} payload
- */
+/** POST /api/profile/me/certifications */
 export const addCertificationThunk = createAsyncThunk(
   "profile/addCertification",
-  async ({ id, data }, { rejectWithValue }) => {
+  async (data, { rejectWithValue }) => {
     try {
-      return await addCertification(id, data);
+      return await addCertification(data);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * PUT /profile/certification/{certificationId}
- * @param {{ certificationId: number|string, data: object }} payload
- */
+/** PUT /api/profile/me/certifications/{certificationId} */
 export const updateCertificationThunk = createAsyncThunk(
   "profile/updateCertification",
   async ({ certificationId, data }, { rejectWithValue }) => {
@@ -370,25 +318,19 @@ export const updateCertificationThunk = createAsyncThunk(
   }
 );
 
-/**
- * GET /profile/certification/{id}
- * @param {number|string} id — profile ID
- */
+/** GET /api/profile/me/certifications */
 export const fetchCertificationsThunk = createAsyncThunk(
   "profile/fetchCertifications",
-  async (id, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      return await fetchCertifications(id);
+      return await fetchCertifications();
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * DELETE /profile/certification/{certificationId}
- * @param {number|string} certificationId
- */
+/** DELETE /api/profile/me/certifications/{certificationId} */
 export const deleteCertificationThunk = createAsyncThunk(
   "profile/deleteCertification",
   async (certificationId, { rejectWithValue }) => {
@@ -404,45 +346,24 @@ export const deleteCertificationThunk = createAsyncThunk(
 // LANGUAGES
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * POST /profile/languages/{id}
- * @param {{ id: number|string, data: object }} payload
- */
+/** POST /api/profile/me/languages?language=English */
 export const addLanguageThunk = createAsyncThunk(
   "profile/addLanguage",
-  async ({ id, data }, { rejectWithValue }) => {
+  async (language, { rejectWithValue }) => {
     try {
-      return await addLanguage(id, data);
+      return await addLanguage(language);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
   }
 );
 
-/**
- * GET /profile/languages/{id}
- * @param {number|string} id — profile ID
- */
-export const fetchLanguagesThunk = createAsyncThunk(
-  "profile/fetchLanguages",
-  async (id, { rejectWithValue }) => {
-    try {
-      return await fetchLanguages(id);
-    } catch (error) {
-      return rejectWithValue(getErrorPayload(error));
-    }
-  }
-);
-
-/**
- * DELETE /profile/languages/{profileId}?language=English
- * @param {{ profileId: number|string, language: string }} payload
- */
+/** DELETE /api/profile/me/languages?language=English */
 export const deleteLanguageThunk = createAsyncThunk(
   "profile/deleteLanguage",
-  async ({ profileId, language }, { rejectWithValue }) => {
+  async (language, { rejectWithValue }) => {
     try {
-      return await deleteLanguage(profileId, language);
+      return await deleteLanguage(language);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
