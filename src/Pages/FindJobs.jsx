@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useState, useMemo, useCallback, useEffect, use } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -20,6 +20,8 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
+import { useAppDispatch } from "../State/Store";
+import { getJobsByCategory, searchJobs } from "../State/JobSlice";
 
 /* ================================================================
    MOCK DATA — 18 diverse jobs
@@ -561,6 +563,8 @@ function JobCard({ job, view, index }) {
 
   const isList = view === "list";
 
+
+
   return (
     <motion.div variants={cardVariants} layout>
       <Link
@@ -734,6 +738,51 @@ export default function FindJobs() {
   const [view, setView] = useState("grid");
   const [page, setPage] = useState(1);
   const [mobileFilters, setMobileFilters] = useState(false);
+
+
+
+const [searchParams] = useSearchParams();
+
+const category = searchParams.get("category");
+const workingMode = searchParams.get("mode");
+const keyword = searchParams.get("keyword");
+const city = searchParams.get("city");
+
+  const dispatch = useAppDispatch();
+
+  
+
+ useEffect(() => {
+
+    const params = {};
+
+    if (keyword) {
+        params.keyword = keyword;
+    }
+
+    if (category) {
+        params.category = category;
+    }
+
+    if (workingMode) {
+        params.workingMode = workingMode;
+    }
+
+    if (city) {
+        params.city = city;
+    }
+
+    if (Object.keys(params).length > 0) {
+        dispatch(searchJobs(params));
+    }
+
+}, [
+    keyword,
+    category,
+    workingMode,
+    city,
+    dispatch
+]);
 
   /* ---------- filter helpers ---------- */
   const toggleFilter = useCallback((key, value) => {

@@ -104,7 +104,17 @@ const cardVariantsReduced = {
 function formatItems(list) {
   return list.map((item, index) => ({
     title: item.title,
-    jobs: `${item.count.toLocaleString()} ${item.count === 1 ? "Job" : "Jobs"}`,
+    jobs: `${item.count} ${item.count === 1 ? "Job" : "Jobs"}`,
+    icon: ICONS[index % ICONS.length],
+    gradient: GRADIENTS[index % GRADIENTS.length],
+  }));
+}
+
+
+function formatWorkMode(list) {
+  return list.map((item, index) => ({
+    title: item.workingMode,
+    jobs: `${item.jobCount} ${item.jobCount === 1 ? "Job" : "Jobs"}`,
     icon: ICONS[index % ICONS.length],
     gradient: GRADIENTS[index % GRADIENTS.length],
   }));
@@ -233,7 +243,7 @@ function JobCategory() {
     categoriesState?.status === "loading" || workModesState?.status === "loading";
 
   const formattedCategories = useMemo(() => formatItems(categories), [categories]);
-  const formattedWorkModes = useMemo(() => formatItems(workModes), [workModes]);
+  const formattedWorkModes = useMemo(() => formatWorkMode(workModes), [workModes]);
 
   const items = activeTab === "category" ? formattedCategories : formattedWorkModes;
   const activeTabMeta = TABS.find((tab) => tab.key === activeTab) ?? TABS[0];

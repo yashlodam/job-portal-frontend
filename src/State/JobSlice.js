@@ -168,31 +168,52 @@ export const getMyJobs = createAsyncThunk(
 
 export const searchJobs = createAsyncThunk(
   "jobs/searchJobs",
-  async (
-    {
-      keyword,
-      page = 0,
-      size = 10,
-    },
-    { rejectWithValue }
-  ) => {
+  async (searchParams = {}, { rejectWithValue }) => {
     try {
+
+      const params = {};
+
+      if (searchParams.keyword?.trim()) {
+        params.keyword = searchParams.keyword.trim();
+      }
+
+      if (searchParams.category?.trim()) {
+        params.category = searchParams.category.trim();
+      }
+
+      if (searchParams.workingMode?.trim()) {
+        params.workingMode = searchParams.workingMode.trim();
+      }
+
+      if (searchParams.city?.trim()) {
+        params.city = searchParams.city.trim();
+      }
+
+      if (searchParams.state?.trim()) {
+        params.state = searchParams.state.trim();
+      }
+
+      if (searchParams.country?.trim()) {
+        params.country = searchParams.country.trim();
+      }
+
+      console.log("Search Params:", params);
+
       const { data } = await api.get("/jobs/search", {
-        params: {
-          keyword,
-          page,
-          size,
-        },
+        params,
       });
 
       return data;
+
     } catch (error) {
+
       return rejectWithValue(
         error.response?.data ?? {
           success: false,
-          message: "Search failed.",
+          message: "Search failed",
         }
       );
+
     }
   }
 );
@@ -275,24 +296,17 @@ export const getJobsByCategory = createAsyncThunk(
   "jobs/getJobsByCategory",
   async (
     {
-      category,
-      page = 0,
-      size = 10,
-      sort = "createdAt,desc",
+      category
     },
     { rejectWithValue }
   ) => {
     try {
+        console.log("Fetching jobs for category:", category); // Debugging log
       const { data } = await api.get(
-        `/jobs/category/${category}`,
-        {
-          params: {
-            page,
-            size,
-            sort,
-          },
-        }
+        `/jobs/category/${category}`
       );
+
+      console.log("Fetched jobs by category:", data); // Debugging log
 
       return data;
     } catch (error) {
