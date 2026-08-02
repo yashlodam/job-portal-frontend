@@ -14,6 +14,8 @@ import Login from './SignUpLogin/Login';
 import ProfilePage from './Pages/ProfilePage';
 import ResetPassword from './SignUpLogin/ResetPassword';
 import { restoreAuthState } from './State/AuthSlic';
+import { getAllJobs, getCategories, getWorkModes } from './State/JobSlice';
+import { useAppSelector } from './State/Store';
 
 /* ──────────────────────────────────────────────
    Lazy-loaded routes — large pages loaded on demand
@@ -137,6 +139,20 @@ function App() {
   // isAuthRestored starts as false; becomes true once the startup check
   // (restoreAuthState thunk) resolves — whether the user is logged in or not.
   const isAuthRestored = useSelector((state) => state.auth.isAuthRestored);
+
+  const categories =  useAppSelector((state)=> state.job.categories);
+  const jobs = useAppSelector((state)=> state.job.jobs);
+  const workModes = useAppSelector((state)=> state.job.workModes);
+
+  console.log("Jobs state in App.jsx:", jobs); // Debugging log
+  console.log("Categories state in App.jsx:", categories); // Debugging log
+  console.log("Work Modes state in App.jsx:", workModes); // Debugging log
+
+  useEffect(()=>{
+    dispatch(getAllJobs())
+    dispatch(getCategories())
+    dispatch(getWorkModes())
+  },[dispatch])
 
   useEffect(() => {
     // Runs exactly once on mount. Reads the JWT from localStorage;

@@ -578,6 +578,7 @@ function Profile() {
   const eduSection = useEditableSection({ dispatch, sectionKey: "education" });
   const certSection = useEditableSection({ dispatch, sectionKey: "certifications" });
   const langSection = useEditableSection({ dispatch, sectionKey: "languages" });
+  const resumeSection = useEditableSection({ dispatch, sectionKey: "resume" });
 
   const resumeInputRef = useRef(null);
 
@@ -660,12 +661,9 @@ function Profile() {
     if (!reduxProfile) return;
     const normalised = normalise(reduxProfile);
     setData(normalised);
-    // Only reset bannerLoaded when the actual banner URL changes
-    if (reduxProfile.bannerImage !== prevBannerRef.current) {
-      setBannerLoaded(false);
-    }
     prevBannerRef.current = reduxProfile.bannerImage ?? null;
     prevAvatarRef.current = reduxProfile.profileImage ?? null;
+    setBannerLoaded(false);
   }, [reduxProfile, normalise]);
 
   // ── Toast handlers ────────────────────────────────────────────────────────
@@ -735,27 +733,20 @@ function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Optimistically show the file name right away
-    setData((prev) => ({
-      ...prev,
-      resume: {
-        resumeUrl: prev?.resume?.resumeUrl ?? null,
-        resumeName: file.name,
-      },
-    }));
-
     try {
-      await dispatch(addResumeThunk(file)).unwrap();
-      // Re-fetch the full profile so resumeUrl comes from the server
-      // (the upload response may not always include all fields)
-      dispatch(fetchMyProfileThunk());
-    } catch (error) {
-      // Revert optimistic update on failure
+      // Optimistically show the uploaded file name in the UI so the user
+      // sees immediate feedback while the server processes the upload.
       setData((prev) => ({
         ...prev,
-        resume: { resumeUrl: null, resumeName: null },
+        resume: {
+          resumeUrl: prev?.resume?.resumeUrl ?? null,
+          resumeName: file.name,
+        },
       }));
-      console.error("Resume upload failed:", error);
+
+      await dispatch(addResumeThunk(file)).unwrap();
+    } catch (error) {
+      console.error(error);
     } finally {
       e.target.value = "";
     }
@@ -764,16 +755,19 @@ function Profile() {
 );
 
 const deleteResume = useCallback(async () => {
+  
   try {
     await dispatch(deleteResumeThunk()).unwrap();
+
     setData((prev) => ({
       ...prev,
-      resume: { resumeUrl: null, resumeName: null },
+      resume: {
+        resumeUrl: null,
+        resumeName: null,
+      },
     }));
-    // Re-fetch to keep Redux and local state in sync
-    dispatch(fetchMyProfileThunk());
   } catch (error) {
-    console.error("Resume delete failed:", error);
+    console.error(error);
   }
 }, [dispatch]);
   /* ================================================================
@@ -902,6 +896,7 @@ const deleteResume = useCallback(async () => {
   }, [skillsSection]);
 
   const addSkillLocal = useCallback(() => {
+    console.log("data",data)
     const value = skillInput.trim();
     if (!value) return;
     if (data.skills.some((s) => (typeof s === "string" ? s : s.skill) === value)) {
@@ -1325,6 +1320,7 @@ const deleteResume = useCallback(async () => {
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
                   {
+                    
                     AVAILABILITY_OPTIONS.find(
                       (option) => option.value === data.availability
                     )?.label || data.availability

@@ -40,7 +40,7 @@ const categoryGradients = [
 ];
 
 export const categories = [
-  { title: "IT & Software", jobs: "2,450 Jobs", icon: Code2, gradient: categoryGradients[0] },
+  { title: "Software", jobs: "2,450 Jobs", icon: Code2, gradient: categoryGradients[0] },
   { title: "Marketing", jobs: "980 Jobs", icon: Megaphone, gradient: categoryGradients[1] },
   { title: "Sales", jobs: "1,250 Jobs", icon: BarChart3, gradient: categoryGradients[2] },
   { title: "Finance", jobs: "720 Jobs", icon: Briefcase, gradient: categoryGradients[3] },

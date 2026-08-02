@@ -8,7 +8,7 @@ export const signup = createAsyncThunk(
     async (signupRequest, { rejectWithValue }) => {
         try {
             const response = await api.post("/auth/register", signupRequest);
-            console.log("User registered successfully:", response.data);
+            
             // Backend returns ApiResponse<UserResponse> — NO JWT on registration.
             // User must login after registration.
             return response.data;
@@ -27,7 +27,6 @@ export const signin = createAsyncThunk(
     async (loginRequest, { rejectWithValue }) => {
         try {
             const response = await api.post("/auth/login", loginRequest);
-            console.log("Login successful:", response.data);
 
             // Backend: ApiResponse<AuthResponse> → response.data.data.token
             const token = response.data?.data?.token || response.data?.data?.jwt;
@@ -52,7 +51,6 @@ export const getUserProfile = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await api.get("/users/me");
-            console.log("User fetched successfully:", response.data);
             // Unwrap ApiResponse wrapper — actual UserResponse is in .data
             return response.data?.data ?? response.data;
         } catch (error) {
@@ -81,7 +79,6 @@ export const restoreAuthState = createAsyncThunk(
         try {
             // GET /api/users/me — UserController, JWT-authenticated
             const response = await api.get("/users/me");
-            console.log("Auth restored from token:", response.data);
             // Unwrap ApiResponse<UserResponse>
             return response.data?.data ?? response.data;
         } catch (error) {
@@ -100,7 +97,6 @@ export const sendOtp = createAsyncThunk(
     async (email, { rejectWithValue }) => {
         try {
             const response = await api.post(`/auth/send-otp/${email}`);
-            console.log("OTP sent successfully:", response.data);
             return response.data;
         } catch (error) {
             return rejectWithValue(

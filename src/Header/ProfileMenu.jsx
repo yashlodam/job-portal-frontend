@@ -23,11 +23,9 @@ function ProfileMenu({user}) {
     const dispatch = useAppDispatch();
      const auth = useAppSelector((s) => s.auth.profile);
 
-     console.log("Auth",auth)
 
     const reduxProfile = useAppSelector(selectProfile);
 
-    console.log("From Profile Menu",reduxProfile)
 
 
     useEffect(() => {
