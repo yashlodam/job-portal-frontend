@@ -32,6 +32,8 @@ import {
   Check,
   X,
 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "../State/Store";
+import { getJobById } from "../State/JobSlice";
 
 /* ===========================
     Animation Variants
@@ -649,21 +651,39 @@ function JobNotFound() {
 
 function JobDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();                          // ← moved above every conditional
   const [saved, setSaved] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const dispatch = useAppDispatch();
 
-  const job = jobDetailData[parseInt(id)];
+  const { selectedJob, loading } = useAppSelector((state) => state.job);
 
-  // Scroll to top on ID change
+  // Scroll to top and fetch job whenever the id changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [id]);
+    if (id) {
+      dispatch(getJobById(Number(id)));
+    }
+  }, [id, dispatch]);
 
-  if (!job) return <JobNotFound />;
+  // ── All hooks have been called above this line ──────────────────
+  // Conditional rendering must come AFTER all hooks.
 
-  const similarJobs = getSimilarJobs(job.id);
+  if (loading) {
+    return (
+      <div className="relative min-h-screen overflow-hidden bg-background flex items-center justify-center">
+        <div className="pointer-events-none fixed inset-0 mesh-gradient" />
+        <div className="relative z-10 flex flex-col items-center gap-4">
+          <div className="h-12 w-12 rounded-full border-4 border-primary/30 border-t-primary animate-spin" />
+          <p className="text-sm text-muted">Loading job details…</p>
+        </div>
+      </div>
+    );
+  }
 
-  const navigate = useNavigate();
+  if (!selectedJob) return <JobNotFound />;
+
+  const similarJobs = getSimilarJobs(selectedJob.id);
 
   return (
     <motion.div
@@ -703,7 +723,7 @@ function JobDetail() {
             <ChevronRight size={14} className="text-muted/50" />
             <Link to="/find-jobs" className="hover:text-primary-light transition-colors">Find Jobs</Link>
             <ChevronRight size={14} className="text-muted/50" />
-            <span className="text-body truncate max-w-[200px] sm:max-w-none">{job.title}</span>
+            <span className="text-body truncate max-w-[200px] sm:max-w-none">{selectedJob.title}</span>
           </motion.nav>
 
           {/* ===== Job Header ===== */}
@@ -717,17 +737,17 @@ function JobDetail() {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-surface-elevated p-2">
-                  <img src={job.companyLogo} alt={`${job.company} logo`} width={40} height={40} className="h-full w-full object-contain" />
+                  <img src={selectedJob?.companyLogo} alt={`${selectedJob.company} logo`} width={40} height={40} className="h-full w-full object-contain" />
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-muted">{job.company}</span>
-                  {job.featured && (
+                  <span className="text-sm font-medium text-muted">{selectedJob.companyName}</span>
+                  {selectedJob.featured && (
                     <span className="ml-2 rounded-full bg-accent-warm/10 px-2.5 py-0.5 text-xs font-medium text-accent-warm">
                       Featured
                     </span>
                   )}
                   <h1 className="mt-1 text-2xl sm:text-3xl md:text-4xl font-extrabold text-heading font-satoshi leading-tight">
-                    {job.title}
+                    {selectedJob.jobTitle}
                   </h1>
                 </div>
               </div>
@@ -765,23 +785,23 @@ function JobDetail() {
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                 <MapPin size={13} className="text-primary-light" />
-                {job.location}
+                {selectedJob.city}, {selectedJob.state}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                 <Wifi size={13} className="text-accent" />
-                {job.mode}
+                {selectedJob.workingMode}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                 <Briefcase size={13} className="text-violet" />
-                {job.type}
+                {selectedJob.jobType}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                 <Calendar size={13} className="text-accent-warm" />
-                Posted {job.posted}
+                Posted {selectedJob.postedAt}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                 <Users size={13} className="text-success" />
-                {job.applicants} applicants
+                {selectedJob.totalApplicants} applicants
               </span>
             </div>
           </motion.div>
@@ -805,7 +825,7 @@ function JobDetail() {
                   About This Role
                 </h2>
                 <div className="mt-5 space-y-4">
-                  {job.description.map((paragraph, i) => (
+                  {selectedJob.description.map((paragraph, i) => (
                     <motion.p
                       key={i}
                       variants={fadeInUp}
@@ -839,7 +859,7 @@ function JobDetail() {
                   viewport={{ once: true, amount: 0.1 }}
                   className="mt-5 space-y-3"
                 >
-                  {job.responsibilities.map((item, i) => (
+                  {selectedJob.responsibilities.map((item, i) => (
                     <motion.li key={i} variants={listItem} className="flex items-start gap-3 group/item">
                       <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-success" />
                       <span className="text-body text-sm sm:text-base leading-7 group-hover/item:text-heading transition-colors">
@@ -871,7 +891,7 @@ function JobDetail() {
                   viewport={{ once: true, amount: 0.1 }}
                   className="mt-5 space-y-3"
                 >
-                  {job.requirements.map((item, i) => (
+                  {selectedJob.requirements.map((item, i) => (
                     <motion.li key={i} variants={listItem} className="flex items-start gap-3 group/item">
                       <div className="mt-1.5 shrink-0 h-2 w-2 rounded-full bg-primary" />
                       <span className="text-body text-sm sm:text-base leading-7 group-hover/item:text-heading transition-colors">
@@ -903,7 +923,7 @@ function JobDetail() {
                   viewport={{ once: true, amount: 0.1 }}
                   className="mt-5 space-y-3"
                 >
-                  {job.niceToHave.map((item, i) => (
+                  {selectedJob.niceToHave.map((item, i) => (
                     <motion.li key={i} variants={listItem} className="flex items-start gap-3 group/item">
                       <Circle size={14} className="mt-1 shrink-0 text-muted" />
                       <span className="text-muted text-sm sm:text-base leading-7 group-hover/item:text-body transition-colors">
@@ -935,7 +955,7 @@ function JobDetail() {
                   viewport={{ once: true, amount: 0.1 }}
                   className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
                 >
-                  {job.benefits.map((benefit, i) => {
+                  {selectedJob.benefits.map((benefit, i) => {
                     const Icon = benefit.icon;
                     return (
                       <motion.div
@@ -977,7 +997,7 @@ function JobDetail() {
                   viewport={{ once: true, amount: 0.1 }}
                   className="mt-5 flex flex-wrap gap-3"
                 >
-                  {job.skills.map((skill, i) => (
+                  {selectedJob.skillsRequired.map((skill, i) => (
                     <motion.span
                       key={skill}
                       variants={listItem}
@@ -1005,9 +1025,9 @@ function JobDetail() {
                   <div className="text-center">
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Annual Salary</p>
                     <p className="text-2xl sm:text-3xl font-extrabold text-heading font-satoshi gradient-text">
-                      {job.salary}
+                      {selectedJob.minimumSalary} – {selectedJob.maximumSalary}
                     </p>
-                    <p className="mt-1 text-xs text-muted">{job.salaryPeriod}</p>
+                    <p className="mt-1 text-xs text-muted">{selectedJob?.salaryPeriod}</p>
                   </div>
 
                   {/* Divider */}
@@ -1036,7 +1056,7 @@ function JobDetail() {
                   <div className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-accent-warm/5 border border-accent-warm/10 px-4 py-2.5">
                     <CalendarDays size={14} className="text-accent-warm" />
                     <span className="text-xs font-medium text-accent-warm">
-                      Applications close in {job.closingDays} days
+                      Applications close in {selectedJob.applicationDeadline} days
                     </span>
                   </div>
                 </motion.div>
@@ -1051,11 +1071,11 @@ function JobDetail() {
                   {/* Logo + Name */}
                   <div className="flex items-center gap-3 mb-5">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-elevated p-2">
-                      <img src={job.companyLogo} alt={`${job.company} logo`} width={32} height={32} className="h-full w-full object-contain" />
+                      <img src={selectedJob.companyLogo} alt={`${selectedJob.company} logo`} width={32} height={32} className="h-full w-full object-contain" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-heading font-satoshi">{job.company}</h3>
-                      <span className="text-xs text-muted">{job.industry}</span>
+                      <h3 className="text-base font-bold text-heading font-satoshi">{selectedJob.company}</h3>
+                      <span className="text-xs text-muted">{selectedJob.industry}</span>
                     </div>
                   </div>
 
@@ -1065,14 +1085,14 @@ function JobDetail() {
                       <Building2 size={16} className="text-muted" />
                       <div>
                         <p className="text-xs text-muted">Company Size</p>
-                        <p className="text-sm font-medium text-body">{job.companySize} employees</p>
+                        <p className="text-sm font-medium text-body">{selectedJob.companySize} employees</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <CalendarDays size={16} className="text-muted" />
                       <div>
                         <p className="text-xs text-muted">Founded</p>
-                        <p className="text-sm font-medium text-body">{job.founded}</p>
+                        <p className="text-sm font-medium text-body">{selectedJob.founded}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -1080,12 +1100,12 @@ function JobDetail() {
                       <div>
                         <p className="text-xs text-muted">Website</p>
                         <a
-                          href={`https://${job.website}`}
+                          href={`https://${selectedJob.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-sm font-medium text-primary-light hover:text-primary transition-colors"
                         >
-                          {job.website}
+                          {selectedJob.website}
                           <ExternalLink size={12} />
                         </a>
                       </div>
@@ -1100,7 +1120,7 @@ function JobDetail() {
                     to="/company"
                     className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface hover:bg-surface-elevated py-2.5 text-sm font-semibold text-muted hover:text-primary-light hover:border-primary/20 transition-all"
                   >
-                    View all jobs from {job.company}
+                    View all jobs from {selectedJob.companyName}
                     <ArrowRight size={14} />
                   </Link>
                 </motion.div>
@@ -1191,7 +1211,7 @@ function JobDetail() {
       </div>
 
       {/* ===== Share Modal ===== */}
-      <ShareModal isOpen={shareOpen} onClose={() => setShareOpen(false)} jobTitle={job.title} />
+      <ShareModal isOpen={shareOpen} onClose={() => setShareOpen(false)} jobTitle={selectedJob.title} />
     </motion.div>
   );
 }

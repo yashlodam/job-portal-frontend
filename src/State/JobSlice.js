@@ -170,50 +170,61 @@ export const searchJobs = createAsyncThunk(
   "jobs/searchJobs",
   async (searchParams = {}, { rejectWithValue }) => {
     try {
-
-      const params = {};
-
-      if (searchParams.keyword?.trim()) {
-        params.keyword = searchParams.keyword.trim();
+      // Build params — only include keys that have a real value.
+      // This covers every parameter the backend's GET /api/jobs/search supports.
+      // skills — backend expects List<String>; accept both an array and a
+      // comma-separated string coming from the URL / filter state.
+      const skillsRaw = searchParams.skills;
+      let skillsValue;
+      if (Array.isArray(skillsRaw) && skillsRaw.length > 0) {
+        skillsValue = skillsRaw;          // already an array — pass as-is
+      } else if (typeof skillsRaw === "string" && skillsRaw.trim()) {
+        skillsValue = skillsRaw           // comma-separated string → array
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        if (skillsValue.length === 0) skillsValue = undefined;
+      } else {
+        skillsValue = undefined;
       }
 
-      if (searchParams.category?.trim()) {
-        params.category = searchParams.category.trim();
-      }
+      const raw = {
+        page:            searchParams.page            ?? 0,
+        size:            searchParams.size            ?? 10,
+        // ⚠ Entity field is createdAt — NOT postedAt
+        sort:            searchParams.sort            || "createdAt,desc",
+        keyword:         searchParams.keyword?.trim() || undefined,
+        city:            searchParams.city?.trim()    || undefined,
+        state:           searchParams.state?.trim()   || undefined,
+        country:         searchParams.country?.trim() || undefined,
+        category:        searchParams.category?.trim()        || undefined,
+        jobType:         searchParams.jobType?.trim()         || undefined,
+        workingMode:     searchParams.workingMode?.trim()     || undefined,
+        experienceLevel: searchParams.experienceLevel?.trim() || undefined,
+        qualification:   searchParams.qualification?.trim()   || undefined,
+        skills:          skillsValue,
+        minimumSalary:   searchParams.minimumSalary != null ? searchParams.minimumSalary : undefined,
+        maximumSalary:   searchParams.maximumSalary != null ? searchParams.maximumSalary : undefined,
+        featured:        searchParams.featured    != null   ? searchParams.featured      : undefined,
+        urgentHiring:    searchParams.urgentHiring != null  ? searchParams.urgentHiring  : undefined,
+        easyApply:       searchParams.easyApply   != null   ? searchParams.easyApply     : undefined,
+      };
 
-      if (searchParams.workingMode?.trim()) {
-        params.workingMode = searchParams.workingMode.trim();
-      }
+      // Strip undefined so Axios doesn't serialize empty params
+      const params = Object.fromEntries(
+        Object.entries(raw).filter(([, v]) => v != null)
+      );
 
-      if (searchParams.city?.trim()) {
-        params.city = searchParams.city.trim();
-      }
-
-      if (searchParams.state?.trim()) {
-        params.state = searchParams.state.trim();
-      }
-
-      if (searchParams.country?.trim()) {
-        params.country = searchParams.country.trim();
-      }
-
-      console.log("Search Params:", params);
-
-      const { data } = await api.get("/jobs/search", {
-        params,
-      });
-
+      const { data } = await api.get("/jobs/search", { params });
       return data;
 
     } catch (error) {
-
       return rejectWithValue(
         error.response?.data ?? {
           success: false,
           message: "Search failed",
         }
       );
-
     }
   }
 );
@@ -223,24 +234,15 @@ export const filterJobs = createAsyncThunk(
   "jobs/filterJobs",
   async (
     {
-      filters = {},
-      page = 0,
-      size = 10,
-      sort = "createdAt,desc",
+      filters = {}
     },
     { rejectWithValue }
   ) => {
     try {
+      console.log("Filters in filterJobs thunk:", filters);
       const { data } = await api.post(
         "/jobs/filter",
         filters,
-        {
-          params: {
-            page,
-            size,
-            sort,
-          },
-        }
       );
 
       return data;
@@ -294,20 +296,9 @@ export const getCompanyJobs = createAsyncThunk(
 
 export const getJobsByCategory = createAsyncThunk(
   "jobs/getJobsByCategory",
-  async (
-    {
-      category
-    },
-    { rejectWithValue }
-  ) => {
+  async ({ category }, { rejectWithValue }) => {
     try {
-        console.log("Fetching jobs for category:", category); // Debugging log
-      const { data } = await api.get(
-        `/jobs/category/${category}`
-      );
-
-      console.log("Fetched jobs by category:", data); // Debugging log
-
+      const { data } = await api.get(`/jobs/category/${category}`);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -573,8 +564,9 @@ const jobSlice = createSlice({
       .addCase(getAllJobs.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.jobs = action.payload?.data ?? [];
-        state.pagination = extractPagination(action.payload);
+        const page = action.payload?.data ?? {};
+        state.jobs = page.content ?? [];
+        state.pagination = extractPagination(page);
       })
       .addCase(getAllJobs.rejected, setRejected)
 
@@ -602,8 +594,9 @@ const jobSlice = createSlice({
       .addCase(getMyJobs.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.myJobs = action.payload?.data ?? [];
-        state.pagination = extractPagination(action.payload);
+        const page = action.payload?.data ?? {};
+        state.myJobs = page.content ?? [];
+        state.pagination = extractPagination(page);
       })
       .addCase(getMyJobs.rejected, setRejected)
 
@@ -612,8 +605,9 @@ const jobSlice = createSlice({
       .addCase(searchJobs.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.jobs = action.payload?.data ?? [];
-        state.pagination = extractPagination(action.payload);
+        const page = action.payload?.data ?? {};
+        state.jobs = page.content ?? [];
+        state.pagination = extractPagination(page);
       })
       .addCase(searchJobs.rejected, setRejected)
 
@@ -622,8 +616,9 @@ const jobSlice = createSlice({
       .addCase(filterJobs.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.jobs = action.payload?.data ?? [];
-        state.pagination = extractPagination(action.payload);
+        const page = action.payload?.data ?? {};
+        state.jobs = page.content ?? [];
+        state.pagination = extractPagination(page);
       })
       .addCase(filterJobs.rejected, setRejected)
 
@@ -632,8 +627,9 @@ const jobSlice = createSlice({
       .addCase(getCompanyJobs.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.companyJobs = action.payload?.data ?? [];
-        state.pagination = extractPagination(action.payload);
+        const page = action.payload?.data ?? {};
+        state.companyJobs = page.content ?? [];
+        state.pagination = extractPagination(page);
       })
       .addCase(getCompanyJobs.rejected, setRejected)
 
@@ -642,8 +638,9 @@ const jobSlice = createSlice({
       .addCase(getJobsByCategory.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.categoryJobs = action.payload?.data ?? [];
-        state.pagination = extractPagination(action.payload);
+        const page = action.payload?.data ?? {};
+        state.categoryJobs = page.content ?? (Array.isArray(action.payload?.data) ? action.payload.data : []);
+        state.pagination = extractPagination(page);
       })
       .addCase(getJobsByCategory.rejected, setRejected)
 
