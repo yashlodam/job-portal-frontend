@@ -182,7 +182,7 @@ function App() {
               <Route path="/about"         element={<About />} />
               <Route path="/jobs/:id"      element={<JobDetail />} />
               <Route path="/apply-jobs"    element={<ApplyJobPage />} />
-              <Route path="/company"       element={<CompanyPage />} />
+              <Route path="/company/:id"       element={<CompanyPage />} />
               <Route path="/posted-job"    element={<PostedJobPage />} />
               <Route path="/auth"          element={<SignUpPage />} />
               <Route path="/login"         element={<Login />} />

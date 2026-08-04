@@ -13,14 +13,8 @@ import {
   ArrowRight,
   CheckCircle2,
   Circle,
-  Heart,
-  Shield,
   Wifi,
-  Plane,
   GraduationCap,
-  Coffee,
-  Baby,
-  DollarSign,
   Globe,
   Users,
   Building2,
@@ -31,12 +25,11 @@ import {
   Copy,
   Check,
   X,
-  IndianRupee,
   Zap,
   Star,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../State/Store";
-import { getJobById } from "../State/JobSlice";
+import { getJobById, getSimilarJobs } from "../State/JobSlice";
 
 /* ===========================
     Animation Variants
@@ -90,8 +83,8 @@ const formatINR = (n) => {
 /** Compute "X ago" from an ISO date string */
 const timeAgo = (dateStr) => {
   if (!dateStr) return "";
-  const diff  = Date.now() - new Date(dateStr).getTime();
-  const mins  = Math.floor(diff / 60000);
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
   if (mins < 1)  return "Just now";
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
@@ -112,7 +105,6 @@ const daysUntil = (dateStr) => {
 const toList = (val) => {
   if (!val) return [];
   if (Array.isArray(val)) return val;
-  // Split on newlines or sentence-ending periods followed by space
   const parts = String(val)
     .split(/\n+|(?<=\.)\s+/)
     .map((s) => s.trim())
@@ -121,13 +113,13 @@ const toList = (val) => {
 };
 
 /**
- * Normalise benefits which may be:
- *  - an array of { icon, label, desc } objects  (mock data)
- *  - a plain string like "WFH, Medical Insurance."  (real API)
+ * Normalise benefits:
+ *  - array of { icon, label, desc } objects → returned as-is
+ *  - plain string like "WFH, Medical Insurance." → split into simple items
  */
 const parseBenefits = (benefits) => {
   if (!benefits) return [];
-  if (Array.isArray(benefits)) return benefits; // already rich objects
+  if (Array.isArray(benefits)) return benefits;
   return String(benefits)
     .split(",")
     .map((b) => b.trim().replace(/\.$/, ""))
@@ -146,14 +138,6 @@ const humanise = (str) =>
   str
     ? str.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
     : "";
-
-
-
-
-const getSimilarJobs = (currentId) =>
-  Object.values(jobDetailData)
-    .filter((job) => job.id !== currentId)
-    .slice(0, 3);
 
 /* ===========================
     Share Modal Component
@@ -221,11 +205,17 @@ function ShareModal({ isOpen, onClose, jobTitle }) {
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-heading font-satoshi">Share This Job</h3>
-              <button onClick={onClose} className="text-muted hover:text-heading transition-colors cursor-pointer" aria-label="Close share dialog">
+              <button
+                onClick={onClose}
+                className="text-muted hover:text-heading transition-colors cursor-pointer"
+                aria-label="Close share dialog"
+              >
                 <X size={20} />
               </button>
             </div>
-            <p className="text-sm text-body mb-4">Share &ldquo;{jobTitle}&rdquo; with your network</p>
+            <p className="text-sm text-body mb-4">
+              Share &ldquo;{jobTitle}&rdquo; with your network
+            </p>
             <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-3">
               <span className="flex-1 truncate text-sm text-muted">
                 {typeof window !== "undefined" ? window.location.href : ""}
@@ -255,22 +245,24 @@ function SectionDivider() {
 
 /* ===========================
     Similar Job Card
-    Works with both the mock data (unified field names) and any real API job shape.
 =========================== */
 
 function SimilarJobCard({ job }) {
   const [logoError, setLogoError] = useState(false);
 
-  const title       = job.jobTitle    ?? job.title ?? "Untitled";
-  const company     = job.companyName ?? job.company ?? "";
-  const logo        = job.companyLogo;
-  const mode        = humanise(job.workingMode ?? job.mode ?? "");
-  const location    = [job.city, job.state].filter(Boolean).join(", ") || job.location || "";
-  const tags        = job.skillsRequired ?? job.tags ?? [];
-  const salaryMin   = formatINR(job.minimumSalary);
-  const salaryMax   = formatINR(job.maximumSalary);
-  const salaryText  = salaryMin && salaryMax ? `${salaryMin} – ${salaryMax}` : salaryMin ?? salaryMax ?? job.salary ?? "";
-  const type        = humanise(job.jobType ?? job.type ?? "");
+  const title      = job.jobTitle     ?? "";
+  const company    = job.companyName  ?? "";
+  const logo       = job.companyLogo  ?? null;
+  const mode       = humanise(job.workingMode ?? "");
+  const location   = [job.city, job.state].filter(Boolean).join(", ");
+  const tags       = Array.isArray(job.skillsRequired) ? job.skillsRequired : [];
+  const salaryMin  = formatINR(job.minimumSalary);
+  const salaryMax  = formatINR(job.maximumSalary);
+  const salaryText =
+    salaryMin && salaryMax
+      ? `${salaryMin} – ${salaryMax}`
+      : salaryMin ?? salaryMax ?? null;
+  const type = humanise(job.jobType ?? "");
 
   return (
     <motion.div variants={listItem} whileHover={cardHover}>
@@ -324,16 +316,18 @@ function SimilarJobCard({ job }) {
         </div>
 
         {/* Tags */}
-        <div className="mt-3 flex flex-wrap gap-2">
-          {tags.slice(0, 4).map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary-light"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+        {tags.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {tags.slice(0, 4).map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary-light"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Bottom: salary + apply */}
         <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
@@ -372,7 +366,9 @@ function JobNotFound() {
         <div className="mb-6 rounded-full bg-danger/10 p-5">
           <Briefcase size={48} className="text-danger" />
         </div>
-        <h1 className="text-3xl md:text-4xl font-extrabold text-heading font-satoshi">Job Not Found</h1>
+        <h1 className="text-3xl md:text-4xl font-extrabold text-heading font-satoshi">
+          Job Not Found
+        </h1>
         <p className="mt-4 max-w-md text-body text-base md:text-lg">
           The job listing you're looking for doesn't exist or may have been removed.
         </p>
@@ -393,18 +389,24 @@ function JobNotFound() {
 =========================== */
 
 function JobDetail() {
-  const { id }     = useParams();
-  const navigate   = useNavigate();                // ← always first, unconditional
+  const { id }    = useParams();
+  const navigate  = useNavigate();
   const [saved,      setSaved]      = useState(false);
   const [shareOpen,  setShareOpen]  = useState(false);
   const dispatch = useAppDispatch();
 
-  const { selectedJob, loading } = useAppSelector((state) => state.job);
+  // All data comes from Redux — no frontend calculation of similar jobs
+  const { selectedJob, similarJobs, loading } = useAppSelector((state) => state.job);
 
-  // Scroll to top and fetch job whenever the route id changes
+  console.log("Selected Job:", selectedJob);
+  // Fetch job details AND similar jobs together whenever the route id changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    if (id) dispatch(getJobById(Number(id)));
+    if (id) {
+      const jobId = Number(id);
+      dispatch(getJobById(jobId));
+      dispatch(getSimilarJobs(jobId));
+    }
   }, [id, dispatch]);
 
   // ── All hooks called. Conditional renders below are safe. ──
@@ -423,55 +425,55 @@ function JobDetail() {
 
   if (!selectedJob) return <JobNotFound />;
 
-  // ── Derived / normalised values from real API response ──────────────
+  // ── Derived / normalised values from the API response ──
 
-  const jobTitle        = selectedJob.jobTitle   ?? selectedJob.title   ?? "Untitled";
-  const companyName     = selectedJob.companyName ?? selectedJob.company ?? "";
-  const companyLogo     = selectedJob.companyLogo ?? null;
-  const companyIndustry = selectedJob.companyIndustry ?? selectedJob.industry ?? "";
-  const companySize     = selectedJob.companySize ?? null;
-  const founded         = selectedJob.founded ?? null;
-  const website         = selectedJob.website ?? null;
+  const jobTitle        = selectedJob.jobTitle        ?? "";
+  const companyName     = selectedJob.companyName     ?? "";
+  const companyLogo     = selectedJob.companyLogo     ?? null;
+  const companyIndustry = selectedJob.companyIndustry ?? "";
+  const companySize     = selectedJob.companySize     ?? null;
+  const founded         = selectedJob.founded         ?? null;
+  const website         = selectedJob.website         ?? null;
 
   const city    = selectedJob.city    ?? "";
   const state   = selectedJob.state   ?? "";
   const country = selectedJob.country ?? "";
 
-  const workingMode     = selectedJob.workingMode ?? selectedJob.mode ?? "";
-  const jobType         = selectedJob.jobType     ?? selectedJob.type ?? "";
+  const workingMode     = selectedJob.workingMode     ?? "";
+  const jobType         = selectedJob.jobType         ?? "";
   const experienceLevel = selectedJob.experienceLevel ?? "";
-  const qualification   = selectedJob.qualification ?? "";
+  const qualification   = selectedJob.qualification   ?? "";
 
   const salaryMin  = formatINR(selectedJob.minimumSalary);
   const salaryMax  = formatINR(selectedJob.maximumSalary);
-  const salaryText = salaryMin && salaryMax
-    ? `${salaryMin} – ${salaryMax}`
-    : salaryMin ?? salaryMax ?? selectedJob.salary ?? null;
+  const salaryText =
+    salaryMin && salaryMax
+      ? `${salaryMin} – ${salaryMax}`
+      : salaryMin ?? salaryMax ?? null;
 
-  const totalApplicants = selectedJob.totalApplicants ?? selectedJob.applicants ?? 0;
-  const postedAgo       = timeAgo(selectedJob.postedAt  ?? selectedJob.createdAt);
+  const totalApplicants = selectedJob.totalApplicants ?? 0;
+  const postedAgo       = timeAgo(selectedJob.postedAt ?? selectedJob.createdAt);
 
-  // applicationDeadline: real API sends date string "2026-10-05", mock sent days count
-  const deadlineDays = selectedJob.applicationDeadline
-    ? (typeof selectedJob.applicationDeadline === "number"
+  const deadlineDays =
+    selectedJob.applicationDeadline != null
+      ? typeof selectedJob.applicationDeadline === "number"
         ? selectedJob.applicationDeadline
-        : daysUntil(selectedJob.applicationDeadline))
-    : selectedJob.closingDays ?? null;
+        : daysUntil(selectedJob.applicationDeadline)
+      : null;
 
-  const descriptionList     = toList(selectedJob.description);
-  const responsibilityList  = toList(selectedJob.responsibilities);
-  const requirementList     = toList(selectedJob.requirements);
-  const niceToHaveList      = toList(selectedJob.preferredSkills ?? selectedJob.niceToHave);
-  const benefitsList        = parseBenefits(selectedJob.benefits);
-  const skillsRequired      = selectedJob.skillsRequired ?? selectedJob.skills ?? [];
+  const descriptionList    = toList(selectedJob.description);
+  const responsibilityList = toList(selectedJob.responsibilities);
+  const requirementList    = toList(selectedJob.requirements);
+  const niceToHaveList     = toList(selectedJob.preferredSkills);
+  const benefitsList       = parseBenefits(selectedJob.benefits);
+  const skillsRequired     = Array.isArray(selectedJob.skillsRequired)
+    ? selectedJob.skillsRequired
+    : [];
 
-  const featured      = selectedJob.featured      ?? false;
-  const urgentHiring  = selectedJob.urgentHiring  ?? false;
-  const easyApply     = selectedJob.easyApply     ?? false;
-  const vacancies     = selectedJob.vacancies      ?? null;
-
-  const similarJobs = getSimilarJobs(selectedJob.id);
-  console.log("Similar jobs for job ID", selectedJob.id, ":", similarJobs); // Debugging log
+  const featured     = selectedJob.featured     ?? false;
+  const urgentHiring = selectedJob.urgentHiring ?? false;
+  const easyApply    = selectedJob.easyApply    ?? false;
+  const vacancies    = selectedJob.vacancies    ?? null;
 
   return (
     <motion.div
@@ -597,54 +599,46 @@ function JobDetail() {
 
             {/* Tags Row */}
             <div className="mt-5 flex flex-wrap items-center gap-3">
-              {/* Location */}
               {(city || state || country) && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                   <MapPin size={13} className="text-primary-light" />
                   {[city, state, country].filter(Boolean).join(", ")}
                 </span>
               )}
-              {/* Working Mode */}
               {workingMode && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                   <Wifi size={13} className="text-accent" />
                   {humanise(workingMode)}
                 </span>
               )}
-              {/* Job Type */}
               {jobType && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                   <Briefcase size={13} className="text-violet" />
                   {humanise(jobType)}
                 </span>
               )}
-              {/* Experience Level */}
               {experienceLevel && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                   <GraduationCap size={13} className="text-primary-light" />
                   {humanise(experienceLevel)}
                 </span>
               )}
-              {/* Posted */}
               {postedAgo && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                   <Calendar size={13} className="text-accent-warm" />
                   Posted {postedAgo}
                 </span>
               )}
-              {/* Applicants */}
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                 <Users size={13} className="text-success" />
                 {totalApplicants} {totalApplicants === 1 ? "applicant" : "applicants"}
               </span>
-              {/* Vacancies */}
               {vacancies != null && vacancies > 0 && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                   <Building2 size={13} className="text-muted" />
                   {vacancies} {vacancies === 1 ? "vacancy" : "vacancies"}
                 </span>
               )}
-              {/* Qualification */}
               {qualification && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                   <GraduationCap size={13} className="text-muted" />
@@ -955,17 +949,18 @@ function JobDetail() {
                         </div>
                       </div>
                     )}
-                    {selectedJob.minimumExperience != null && selectedJob.maximumExperience != null && (
-                      <div className="flex items-center gap-3">
-                        <Clock size={15} className="text-muted shrink-0" />
-                        <div>
-                          <p className="text-xs text-muted">Experience Required</p>
-                          <p className="text-sm font-medium text-body">
-                            {selectedJob.minimumExperience} – {selectedJob.maximumExperience} years
-                          </p>
+                    {selectedJob.minimumExperience != null &&
+                      selectedJob.maximumExperience != null && (
+                        <div className="flex items-center gap-3">
+                          <Clock size={15} className="text-muted shrink-0" />
+                          <div>
+                            <p className="text-xs text-muted">Experience Required</p>
+                            <p className="text-sm font-medium text-body">
+                              {selectedJob.minimumExperience} – {selectedJob.maximumExperience} years
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                     {qualification && (
                       <div className="flex items-center gap-3">
                         <GraduationCap size={15} className="text-muted shrink-0" />
@@ -981,7 +976,8 @@ function JobDetail() {
                         <div>
                           <p className="text-xs text-muted">Interview Rounds</p>
                           <p className="text-sm font-medium text-body">
-                            {selectedJob.numberOfInterviewRounds} round{selectedJob.numberOfInterviewRounds !== 1 ? "s" : ""}
+                            {selectedJob.numberOfInterviewRounds}{" "}
+                            {selectedJob.numberOfInterviewRounds === 1 ? "round" : "rounds"}
                           </p>
                         </div>
                       </div>
@@ -991,7 +987,9 @@ function JobDetail() {
                         <CheckCircle2 size={15} className="text-success shrink-0" />
                         <div>
                           <p className="text-xs text-muted">Status</p>
-                          <p className="text-sm font-medium text-success">{humanise(selectedJob.status)}</p>
+                          <p className="text-sm font-medium text-success">
+                            {humanise(selectedJob.status)}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -1028,7 +1026,7 @@ function JobDetail() {
                     </div>
                   </div>
 
-                  {/* Company Details — shown only when data exists */}
+                  {/* Company Details — shown only when present in API response */}
                   <div className="space-y-4">
                     {companySize && (
                       <div className="flex items-center gap-3">
@@ -1081,7 +1079,7 @@ function JobDetail() {
 
                   {/* View All Jobs */}
                   <Link
-                    to="/company"
+                    to={`/company/${selectedJob.companyId}`}
                     className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface hover:bg-surface-elevated py-2.5 text-sm font-semibold text-muted hover:text-primary-light hover:border-primary/20 transition-all"
                   >
                     View all jobs from {companyName}
@@ -1092,8 +1090,8 @@ function JobDetail() {
             </div>
           </div>
 
-          {/* ===== Similar Jobs Section ===== */}
-          {similarJobs.length > 0 && (
+          {/* ===== Similar Jobs Section — data from Redux (backend) ===== */}
+          {Array.isArray(similarJobs) && similarJobs.length > 0 && (
             <motion.section
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}

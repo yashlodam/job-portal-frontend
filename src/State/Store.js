@@ -19,12 +19,14 @@ import { useDispatch, useSelector } from "react-redux";
 import authReducer    from "./AuthSlic";
 import profileReducer from "./profileSlice";
 import jobSlice from "./JobSlice";
+import companySlice from "./CompanySlice";
 
 // ─── Root Reducer ─────────────────────────────────────────────────────────────
 const rootReducer = combineReducers({
   auth:    authReducer,
   profile: profileReducer,
   job: jobSlice,
+  company: companySlice
 });
 
 // ─── Store ────────────────────────────────────────────────────────────────────

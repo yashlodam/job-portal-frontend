@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   IconArrowLeft,
@@ -36,6 +36,8 @@ import {
   IconCloud,
   IconDatabase,
 } from "@tabler/icons-react";
+import { useAppDispatch, useAppSelector } from "../State/Store";
+import { getCompanyById } from "../State/CompanySlice";
 
 /* ═══════════════════════════════════════
    MOCK COMPANY DATA
@@ -308,6 +310,18 @@ export default function CompanyPage() {
   const [tab, setTab] = useState("Overview");
   const [saved, setSaved] = useState(false);
 
+  const { id } = useParams();
+  console.log("Company ID from URL:", id); // Log the company ID from the URL 
+
+  const {selectedCompany, loading} = useAppSelector((state) => state.company);
+  console.log("Selected Company from Redux:", selectedCompany); // Log the selected company data from Redux
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if(id){
+      dispatch(getCompanyById(id));
+    }
+  },[]);
   return (
     <div className="relative min-h-screen overflow-hidden bg-background font-inter text-body">
 
