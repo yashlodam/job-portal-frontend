@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -8,15 +8,8 @@ import {
   IconUsers,
   IconBriefcase,
   IconWorld,
-  IconBrandLinkedin,
-  IconBrandTwitter,
-  IconBrandGithub,
-  IconStar,
-  IconStarFilled,
   IconSparkles,
   IconChevronRight,
-  IconTrendingUp,
-  IconClock,
   IconDiamond,
   IconHeartHandshake,
   IconRocket,
@@ -29,150 +22,20 @@ import {
   IconBookmark,
   IconShare,
   IconExternalLink,
-  IconCode,
-  IconPalette,
   IconChartBar,
-  IconDeviceMobile,
-  IconCloud,
-  IconDatabase,
+  IconBuilding,
+  IconPhone,
+  IconMail,
+  IconCalendar,
+  IconTarget,
+  IconLoader2,
+  IconClock,
+  IconCurrencyRupee,
+  IconSearch,
+  IconInbox,
 } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "../State/Store";
-import { getCompanyById } from "../State/CompanySlice";
-
-/* ═══════════════════════════════════════
-   MOCK COMPANY DATA
-═══════════════════════════════════════ */
-const COMPANY = {
-  id: "google",
-  name: "Google",
-  tagline: "Organizing the world's information, making it universally accessible and useful.",
-  description: [
-    "Google LLC is an American multinational technology company that specializes in Internet-related services and products. Founded in 1998 by Larry Page and Sergey Brin while they were PhD students at Stanford University, Google has grown from a simple search engine into one of the world's most valuable and influential technology companies.",
-    "Today, Google's product portfolio spans search, advertising, cloud computing, software, and hardware. Our teams work across offices around the globe to build products that are used by billions of people every day — from Search and Maps to Gmail, YouTube, and Google Cloud.",
-    "At Google, we believe that technology should help people in meaningful ways. We bring the best of AI, machine learning, and human creativity to solve problems at planet-scale. Our engineers, designers, and researchers push the boundaries of what's possible — and we're always looking for brilliant people to join us.",
-  ],
-  logo: "/Companies/google.svg",
-  coverColor: "from-[#1a1f3a] via-[#0f172a] to-[#06080F]",
-  industry: "Technology",
-  headquarters: "Mountain View, CA",
-  founded: "1998",
-  employees: "190,000+",
-  revenue: "$282B+ (2023)",
-  website: "google.com",
-  linkedin: "#",
-  twitter: "#",
-  github: "#",
-  rating: 4.6,
-  reviews: 28400,
-  openRoles: 6,
-  stats: [
-    { label: "Employees", value: "190K+", icon: IconUsers },
-    { label: "Countries", value: "50+", icon: IconMapPin },
-    { label: "Open Roles", value: "6", icon: IconBriefcase },
-    { label: "Founded", value: "1998", icon: IconRocket },
-  ],
-  benefits: [
-    { icon: IconMedicalCross, label: "Health Insurance", desc: "Premium medical, dental & vision for you and your family" },
-    { icon: IconPlaneTilt, label: "Unlimited PTO", desc: "Flexible vacation policy — recharge when you need it" },
-    { icon: IconSchool, label: "Learning Budget", desc: "$5,000 annual stipend for conferences & courses" },
-    { icon: IconCoffee, label: "Free Meals", desc: "World-class on-campus dining, snacks & coffee 24/7" },
-    { icon: IconHeartHandshake, label: "Parental Leave", desc: "24 weeks paid leave for all new parents" },
-    { icon: IconShieldCheck, label: "Life Insurance", desc: "2× salary coverage with additional disability plans" },
-    { icon: IconDiamond, label: "Equity Package", desc: "Competitive RSU grants with annual refresh" },
-    { icon: IconChartBar, label: "401(k) Match", desc: "Up to 6% employer match with immediate vesting" },
-  ],
-  techStack: ["React", "TypeScript", "Go", "Python", "Kubernetes", "TensorFlow", "BigQuery", "Spanner"],
-  culture: [
-    { icon: IconRocket, title: "Move Fast", desc: "We ship products used by billions and iterate quickly on feedback." },
-    { icon: IconHeartHandshake, title: "Collaborative", desc: "Cross-functional teams that respect diverse perspectives." },
-    { icon: IconDiamond, title: "Excellence", desc: "We hire only the best and foster a culture of craft." },
-    { icon: IconShieldCheck, title: "Inclusive", desc: "Equal opportunity employer committed to diversity & belonging." },
-  ],
-};
-
-/* ─── Open Roles ─── */
-const OPEN_ROLES = [
-  {
-    id: 1,
-    title: "Senior Frontend Engineer",
-    team: "Google Cloud",
-    location: "Mountain View, CA",
-    mode: "Hybrid",
-    type: "Full Time",
-    salary: "$180K – $250K",
-    posted: "2 days ago",
-    tags: ["React", "TypeScript", "GraphQL"],
-    icon: IconCode,
-  },
-  {
-    id: 2,
-    title: "Product Designer",
-    team: "Google Workspace",
-    location: "New York, NY",
-    mode: "Remote",
-    type: "Full Time",
-    salary: "$150K – $200K",
-    posted: "1 day ago",
-    tags: ["Figma", "Design Systems", "Prototyping"],
-    icon: IconPalette,
-  },
-  {
-    id: 3,
-    title: "ML Engineer",
-    team: "Google DeepMind",
-    location: "London, UK",
-    mode: "Hybrid",
-    type: "Full Time",
-    salary: "$200K – $300K",
-    posted: "3 days ago",
-    tags: ["Python", "PyTorch", "LLMs"],
-    icon: IconDatabase,
-  },
-  {
-    id: 4,
-    title: "iOS Developer",
-    team: "Google Maps",
-    location: "Cupertino, CA",
-    mode: "On Site",
-    type: "Full Time",
-    salary: "$175K – $240K",
-    posted: "4 days ago",
-    tags: ["Swift", "SwiftUI", "Core Location"],
-    icon: IconDeviceMobile,
-  },
-  {
-    id: 5,
-    title: "Cloud Solutions Architect",
-    team: "Google Cloud",
-    location: "Seattle, WA",
-    mode: "Remote",
-    type: "Full Time",
-    salary: "$200K – $280K",
-    posted: "5 days ago",
-    tags: ["GCP", "Kubernetes", "Terraform"],
-    icon: IconCloud,
-  },
-  {
-    id: 6,
-    title: "UX Research Intern",
-    team: "Google Search",
-    location: "Mountain View, CA",
-    mode: "On Site",
-    type: "Internship",
-    salary: "$55K – $70K",
-    posted: "1 week ago",
-    tags: ["User Research", "A/B Testing", "Analytics"],
-    icon: IconChartBar,
-  },
-];
-
-/* ─── Similar Companies ─── */
-const SIMILAR_COMPANIES = [
-  { name: "Meta", logo: "/Companies/meta.svg", industry: "Technology", employees: "86K+", roles: 8 },
-  { name: "Microsoft", logo: "/Companies/microsoft.svg", industry: "Technology", employees: "220K+", roles: 12 },
-  { name: "Amazon", logo: "/Companies/amazon.svg", industry: "E-Commerce & Cloud", employees: "1.5M+", roles: 15 },
-  { name: "Apple", logo: "/Companies/apple.svg", industry: "Consumer Electronics", employees: "164K+", roles: 9 },
-];
+import { getCompanyById, getCompanyJobs } from "../State/CompanySlice";
 
 /* ═══════════════════════════════════════
    ANIMATION VARIANTS
@@ -191,47 +54,84 @@ const stagger = {
 };
 
 const modeColor = {
-  Remote: "text-accent bg-accent/10 border-accent/20",
-  Hybrid: "text-violet-light bg-violet/10 border-violet/20",
-  "On Site": "text-accent-warm bg-accent-warm/10 border-accent-warm/20",
+  REMOTE: "text-accent bg-accent/10 border-accent/20",
+  HYBRID: "text-violet-light bg-violet/10 border-violet/20",
+  ON_SITE: "text-accent-warm bg-accent-warm/10 border-accent-warm/20",
+  ONSITE: "text-accent-warm bg-accent-warm/10 border-accent-warm/20",
+};
+
+/* ─── Benefit icon map ─── */
+const BENEFIT_ICONS = [
+  IconMedicalCross,
+  IconPlaneTilt,
+  IconSchool,
+  IconCoffee,
+  IconHeartHandshake,
+  IconShieldCheck,
+  IconDiamond,
+  IconChartBar,
+  IconRocket,
+  IconSparkles,
+];
+
+function parseBenefits(str) {
+  if (!str) return [];
+  return str
+    .split(/[,.]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((label, i) => ({ label, icon: BENEFIT_ICONS[i % BENEFIT_ICONS.length] }));
+}
+
+/* ─── Format salary ─── */
+function formatSalary(min, max) {
+  if (!min && !max) return null;
+  const fmt = (n) => {
+    if (n >= 100000) return `₹${(n / 100000).toFixed(0)}L`;
+    if (n >= 1000) return `₹${(n / 1000).toFixed(0)}K`;
+    return `₹${n}`;
+  };
+  if (min && max) return `${fmt(min)} – ${fmt(max)}`;
+  if (min) return `From ${fmt(min)}`;
+  return `Up to ${fmt(max)}`;
+}
+
+/* ─── Time ago ─── */
+function timeAgo(dateStr) {
+  if (!dateStr) return null;
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return `${Math.floor(days / 30)}mo ago`;
 };
 
 /* ═══════════════════════════════════════
    SUB-COMPONENTS
 ═══════════════════════════════════════ */
 
-/* ── Star Rating ── */
-function StarRating({ rating }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => {
-        const filled = i <= Math.floor(rating);
-        const half = !filled && i === Math.ceil(rating) && rating % 1 >= 0.5;
-        return filled || half ? (
-          <IconStarFilled key={i} size={14} className="text-accent-warm" />
-        ) : (
-          <IconStar key={i} size={14} className="text-muted" />
-        );
-      })}
-    </div>
-  );
-}
-
 /* ── Tab Nav ── */
-function TabNav({ active, onChange }) {
-  const tabs = ["Overview", "Open Roles", "Benefits", "Culture"];
+function TabNav({ active, onChange, jobCount }) {
+  const tabs = [
+    { key: "Overview", label: "Overview" },
+    { key: "Open Roles", label: `Open Roles${jobCount > 0 ? ` (${jobCount})` : ""}` },
+    { key: "Benefits", label: "Benefits" },
+    { key: "Contact", label: "Contact" },
+  ];
   return (
-    <div className="flex gap-1 border-b border-border">
-      {tabs.map((t) => (
+    <div className="flex gap-1 border-b border-border overflow-x-auto">
+      {tabs.map(({ key, label }) => (
         <button
-          key={t}
-          onClick={() => onChange(t)}
+          key={key}
+          onClick={() => onChange(key)}
           className={`relative px-5 py-3 text-sm font-semibold transition-colors cursor-pointer whitespace-nowrap ${
-            active === t ? "text-heading" : "text-muted hover:text-body"
+            active === key ? "text-heading" : "text-muted hover:text-body"
           }`}
         >
-          {t}
-          {active === t && (
+          {label}
+          {active === key && (
             <motion.div
               layoutId="tab-indicator"
               className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-primary"
@@ -243,9 +143,16 @@ function TabNav({ active, onChange }) {
   );
 }
 
-/* ── Job Row Card ── */
+/* ── Job Card Row ── */
 function JobRow({ job }) {
-  const Icon = job.icon;
+  const salary = formatSalary(job.minimumSalary, job.maximumSalary);
+  const posted = timeAgo(job.createdAt || job.createdOn);
+  const modeKey = (job.workingMode ?? "").toUpperCase().replace(/\s+/g, "_");
+  const modeClass = modeColor[modeKey] ?? "text-muted bg-surface-elevated border-border";
+  const modeLabel = job.workingMode
+    ? job.workingMode.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    : null;
+
   return (
     <motion.div variants={fadeUp}>
       <Link
@@ -254,51 +161,109 @@ function JobRow({ job }) {
       >
         {/* Icon */}
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-          <Icon size={20} className="text-primary-light" />
+          <IconBriefcase size={20} className="text-primary-light" />
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-satoshi text-base font-bold text-heading group-hover:text-primary-light transition-colors">
-              {job.title}
+              {job.title ?? job.jobTitle}
             </h3>
-            <span className="rounded-full bg-surface-elevated border border-border px-2.5 py-0.5 text-xs text-muted">
-              {job.team}
-            </span>
-          </div>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span className="inline-flex items-center gap-1 text-xs text-muted">
-              <IconMapPin size={12} className="text-primary-light" /> {job.location}
-            </span>
-            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${modeColor[job.mode]}`}>
-              {job.mode}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary-light">
-              <IconBriefcase size={11} /> {job.type}
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs text-muted">
-              <IconClock size={11} /> {job.posted}
-            </span>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {job.tags.map((t) => (
-              <span key={t} className="rounded-full bg-primary/[0.08] px-2.5 py-0.5 text-xs font-medium text-primary-light/80">
-                {t}
+            {job.jobType && (
+              <span className="rounded-full bg-surface-elevated border border-border px-2.5 py-0.5 text-xs text-muted">
+                {job.jobType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
               </span>
-            ))}
+            )}
+            {job.urgentHiring && (
+              <span className="rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-0.5 text-xs font-semibold text-red-400">
+                Urgent
+              </span>
+            )}
           </div>
+
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
+            {(job.city || job.state || job.country) && (
+              <span className="inline-flex items-center gap-1 text-xs text-muted">
+                <IconMapPin size={12} className="text-primary-light" />
+                {[job.city, job.state, job.country].filter(Boolean).join(", ")}
+              </span>
+            )}
+            {modeLabel && (
+              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${modeClass}`}>
+                {modeLabel}
+              </span>
+            )}
+            {job.experienceLevel && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary-light">
+                <IconBriefcase size={11} /> {job.experienceLevel.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+              </span>
+            )}
+            {posted && (
+              <span className="inline-flex items-center gap-1 text-xs text-muted">
+                <IconClock size={11} /> {posted}
+              </span>
+            )}
+          </div>
+
+          {job.skills?.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {job.skills.slice(0, 4).map((s) => (
+                <span key={s} className="rounded-full bg-primary/[0.08] px-2.5 py-0.5 text-xs font-medium text-primary-light/80">
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Salary + CTA */}
         <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 shrink-0">
-          <span className="text-sm font-bold text-heading">{job.salary}</span>
+          {salary ? (
+            <span className="inline-flex items-center gap-0.5 text-sm font-bold text-heading">
+              <IconCurrencyRupee size={14} className="text-accent" />{salary.replace("₹", "")}
+            </span>
+          ) : (
+            <span className="text-xs text-muted">Salary TBD</span>
+          )}
           <span className="inline-flex items-center gap-1.5 rounded-xl gradient-bg-signature px-4 py-2 text-xs font-semibold text-white opacity-90 group-hover:opacity-100 transition-opacity">
             Apply <IconChevronRight size={13} />
           </span>
         </div>
       </Link>
     </motion.div>
+  );
+}
+
+/* ── Empty state ── */
+function EmptyJobs() {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-elevated mb-4">
+        <IconInbox size={28} className="text-muted" />
+      </div>
+      <p className="text-base font-semibold text-heading mb-1">No open roles</p>
+      <p className="text-sm text-muted max-w-xs">This company has no active job postings at the moment. Check back later!</p>
+    </div>
+  );
+}
+
+/* ── Loading Skeleton ── */
+function LoadingSkeleton() {
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-background font-inter text-body flex items-center justify-center">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 mesh-gradient" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center gap-4 relative z-10"
+      >
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+          <IconLoader2 size={32} className="text-primary-light animate-spin" />
+        </div>
+        <p className="text-sm text-muted font-medium">Loading company profile…</p>
+      </motion.div>
+    </div>
   );
 }
 
@@ -309,19 +274,48 @@ export default function CompanyPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("Overview");
   const [saved, setSaved] = useState(false);
+  const [showAllJobs, setShowAllJobs] = useState(false);
+  const rolesRef = useRef(null);
 
   const { id } = useParams();
-  console.log("Company ID from URL:", id); // Log the company ID from the URL 
 
-  const {selectedCompany, loading} = useAppSelector((state) => state.company);
-  console.log("Selected Company from Redux:", selectedCompany); // Log the selected company data from Redux
+  const { selectedCompany: company, loading } = useAppSelector((state) => state.company);
+  const { companyJobs,  loading: jobsLoading } = useAppSelector((state) => state.company);
   const dispatch = useAppDispatch();
 
+  console.log("Company Jobs:", companyJobs);
+  console.log("Company Data:", company); // Debugging log
+
   useEffect(() => {
-    if(id){
+    if (id) {
       dispatch(getCompanyById(id));
+      dispatch(getCompanyJobs({ companyId: id, size: 100 }));
     }
-  },[]);
+  }, [id]);
+
+  if (loading && !company) return <LoadingSkeleton />;
+  if (!company) return <LoadingSkeleton />;
+
+  /* ── Derived values ── */
+  const benefits = parseBenefits(company.benefits);
+  const websiteDisplay = company.website
+    ? company.website.replace(/^https?:\/\//, "")
+    : null;
+
+  const stats = [
+    { label: "Company Size", value: company.companySize || "—", icon: IconUsers },
+    { label: "Headquarters", value: company.headquarters ? company.headquarters.split(",")[0] : "—", icon: IconMapPin },
+    { label: "Founded", value: company.foundedYear || "—", icon: IconRocket },
+    { label: "Open Roles", value: company.length > 0 ? String(companyJobs.length) : (company.totalJobs ?? "—"), icon: IconBriefcase },
+  ];
+
+  const details = [
+    { label: "Industry", value: company.industry, icon: IconBuildingSkyscraper },
+    { label: "Founded", value: company.foundedYear, icon: IconCalendar },
+    { label: "Company Size", value: company.companySize, icon: IconUsers },
+    { label: "Headquarters", value: company.headquarters, icon: IconMapPin },
+  ].filter((d) => d.value);
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-background font-inter text-body">
 
@@ -341,8 +335,7 @@ export default function CompanyPage() {
         {/* ══════════════════════════════
             HERO BANNER
         ══════════════════════════════ */}
-        <div className={`relative bg-gradient-to-br ${COMPANY.coverColor} border-b border-border`}>
-          {/* Grid overlay on banner */}
+        <div className="relative bg-gradient-to-br from-[#1a1f3a] via-[#0f172a] to-[#06080F] border-b border-border">
           <div
             className="absolute inset-0 opacity-[0.04]"
             style={{ backgroundImage: "linear-gradient(rgba(148,163,184,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.3) 1px, transparent 1px)", backgroundSize: "40px 40px" }}
@@ -395,8 +388,14 @@ export default function CompanyPage() {
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className="relative"
               >
-                <div className="flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-3xl bg-white p-4 shadow-2xl ring-4 ring-white/10">
-                  <img src={COMPANY.logo} alt={COMPANY.name} className="h-full w-full object-contain" />
+                <div className="flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-3xl bg-white p-4 shadow-2xl ring-4 ring-white/10 overflow-hidden">
+                  {company.logo ? (
+                    <img src={company.logo} alt={company.companyName} className="h-full w-full object-contain" />
+                  ) : (
+                    <span className="text-3xl sm:text-4xl font-extrabold text-primary font-satoshi select-none">
+                      {company.companyName?.charAt(0) ?? "C"}
+                    </span>
+                  )}
                 </div>
                 <span className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-success shadow-lg">
                   <IconCircleCheck size={16} className="text-white" />
@@ -411,52 +410,45 @@ export default function CompanyPage() {
                   transition={{ duration: 0.5, delay: 0.1 }}
                 >
                   <div className="flex flex-wrap items-center gap-3 mb-2">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-white font-satoshi">{COMPANY.name}</h1>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-white font-satoshi">{company.companyName}</h1>
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-warm/15 border border-accent-warm/30 px-3 py-1 text-xs font-bold text-accent-warm">
-                      <IconSparkles size={12} /> Top Company
+                      <IconSparkles size={12} /> Verified
                     </span>
                   </div>
-                  <p className="text-sm sm:text-base text-white/60 max-w-2xl leading-relaxed">{COMPANY.tagline}</p>
+
+                  {company.description && (
+                    <p className="text-sm sm:text-base text-white/60 max-w-2xl leading-relaxed line-clamp-2">
+                      {company.description}
+                    </p>
+                  )}
 
                   <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/50">
-                    <span className="inline-flex items-center gap-1.5">
-                      <IconBuildingSkyscraper size={14} /> {COMPANY.industry}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <IconMapPin size={14} /> {COMPANY.headquarters}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <IconUsers size={14} /> {COMPANY.employees} employees
-                    </span>
-                    <a
-                      href={`https://${COMPANY.website}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
-                    >
-                      <IconWorld size={14} /> {COMPANY.website}
-                      <IconExternalLink size={11} />
-                    </a>
-                  </div>
-
-                  {/* Rating + Socials */}
-                  <div className="mt-4 flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <StarRating rating={COMPANY.rating} />
-                      <span className="text-sm font-bold text-white">{COMPANY.rating}</span>
-                      <span className="text-xs text-white/40">({COMPANY.reviews.toLocaleString()} reviews)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <a href={COMPANY.linkedin} className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-all">
-                        <IconBrandLinkedin size={15} />
+                    {company.industry && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <IconBuildingSkyscraper size={14} /> {company.industry}
+                      </span>
+                    )}
+                    {company.headquarters && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <IconMapPin size={14} /> {company.headquarters}
+                      </span>
+                    )}
+                    {company.companySize && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <IconUsers size={14} /> {company.companySize}
+                      </span>
+                    )}
+                    {company.website && (
+                      <a
+                        href={company.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
+                      >
+                        <IconWorld size={14} /> {websiteDisplay}
+                        <IconExternalLink size={11} />
                       </a>
-                      <a href={COMPANY.twitter} className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-all">
-                        <IconBrandTwitter size={15} />
-                      </a>
-                      <a href={COMPANY.github} className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-all">
-                        <IconBrandGithub size={15} />
-                      </a>
-                    </div>
+                    )}
                   </div>
                 </motion.div>
               </div>
@@ -469,10 +461,10 @@ export default function CompanyPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-white/10 border-t border-white/10"
             >
-              {COMPANY.stats.map(({ label, value, icon: Icon }) => (
-                <div key={label} className="flex flex-col items-center justify-center py-5 gap-1">
-                  <span className="text-2xl font-extrabold text-white font-satoshi">{value}</span>
-                  <span className="inline-flex items-center gap-1.5 text-xs text-white/50">
+              {stats.map(({ label, value, icon: Icon }) => (
+                <div key={label} className="flex flex-col items-center justify-center py-5 gap-1 px-2">
+                  <span className="text-lg sm:text-2xl font-extrabold text-white font-satoshi text-center leading-tight">{value}</span>
+                  <span className="inline-flex items-center gap-1.5 text-xs text-white/50 text-center">
                     <Icon size={12} /> {label}
                   </span>
                 </div>
@@ -497,10 +489,11 @@ export default function CompanyPage() {
                 transition={{ duration: 0.4, delay: 0.1 }}
                 className="mb-7"
               >
-                <TabNav active={tab} onChange={setTab} />
+                <TabNav active={tab} onChange={setTab} jobCount={companyJobs.length} />
               </motion.div>
 
               <AnimatePresence mode="wait">
+
                 {/* ═══ OVERVIEW TAB ═══ */}
                 {tab === "Overview" && (
                   <motion.div
@@ -509,71 +502,120 @@ export default function CompanyPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -12 }}
                     transition={{ duration: 0.35 }}
-                    className="space-y-7"
+                    className="space-y-8"
                   >
                     {/* About */}
                     <section>
-                      <h2 className="heading-sm mb-4">About {COMPANY.name}</h2>
-                      <div className="space-y-4">
-                        {COMPANY.description.map((para, i) => (
-                          <p key={i} className="text-body leading-relaxed">{para}</p>
-                        ))}
-                      </div>
+                      <h2 className="heading-sm mb-4">About {company.companyName}</h2>
+                      <p className="text-body leading-relaxed">{company.description}</p>
                     </section>
 
-                    {/* Tech Stack */}
-                    <section>
-                      <h3 className="text-base font-bold text-heading font-satoshi mb-3">Tech Stack</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {COMPANY.techStack.map((tech) => (
-                          <span
-                            key={tech}
-                            className="rounded-xl border border-primary/20 bg-primary/8 px-4 py-2 text-sm font-semibold text-primary-light"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                    </section>
+                    {/* Mission */}
+                    {company.mission && (
+                      <section>
+                        <h3 className="text-base font-bold text-heading font-satoshi mb-3 flex items-center gap-2">
+                          <IconTarget size={18} className="text-primary-light" /> Our Mission
+                        </h3>
+                        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
+                          <p className="text-body leading-relaxed italic">"{company.mission}"</p>
+                        </div>
+                      </section>
+                    )}
 
-                    {/* Culture Highlights */}
+                    {/* Quick facts */}
                     <section>
-                      <h3 className="text-base font-bold text-heading font-satoshi mb-4">Culture & Values</h3>
+                      <h3 className="text-base font-bold text-heading font-satoshi mb-4">Quick Facts</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {COMPANY.culture.map(({ icon: Icon, title, desc }) => (
-                          <div
-                            key={title}
-                            className="rounded-2xl border border-border bg-surface p-5 flex items-start gap-4 hover:border-primary/20 transition-colors"
-                          >
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                              <Icon size={18} className="text-primary-light" />
+                        {[
+                          company.foundedYear && { icon: IconCalendar, title: "Founded", desc: company.foundedYear },
+                          company.headquarters && { icon: IconMapPin, title: "Headquarters", desc: company.headquarters },
+                          company.companySize && { icon: IconUsers, title: "Company Size", desc: company.companySize },
+                          company.industry && { icon: IconBuildingSkyscraper, title: "Industry", desc: company.industry },
+                        ]
+                          .filter(Boolean)
+                          .map(({ icon: Icon, title, desc }) => (
+                            <div
+                              key={title}
+                              className="rounded-2xl border border-border bg-surface p-5 flex items-start gap-4 hover:border-primary/20 transition-colors"
+                            >
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                                <Icon size={18} className="text-primary-light" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-heading text-sm">{title}</p>
+                                <p className="text-xs text-muted mt-1 leading-relaxed">{desc}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-semibold text-heading text-sm">{title}</p>
-                              <p className="text-xs text-muted mt-1 leading-relaxed">{desc}</p>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     </section>
 
-                    {/* Featured Roles teaser */}
+                    {/* ── Company Jobs (Overview teaser) ── */}
                     <section>
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-base font-bold text-heading font-satoshi">Featured Roles</h3>
-                        <button
-                          onClick={() => setTab("Open Roles")}
-                          className="text-xs font-semibold text-primary-light hover:underline"
-                        >
-                          See all {COMPANY.openRoles} roles →
-                        </button>
+                        <h3 className="text-base font-bold text-heading font-satoshi flex items-center gap-2">
+                          <IconBriefcase size={18} className="text-primary-light" />
+                          Open Positions
+                          {companyJobs.length > 0 && (
+                            <span className="ml-1 inline-flex items-center justify-center rounded-full bg-primary/15 border border-primary/25 px-2.5 py-0.5 text-xs font-bold text-primary-light">
+                              {companyJobs.length}
+                            </span>
+                          )}
+                        </h3>
+                        {companyJobs.length > 3 && (
+                          <button
+                            onClick={() => setTab("Open Roles")}
+                            className="text-xs font-semibold text-primary-light hover:underline"
+                          >
+                            See all {companyJobs.length} roles →
+                          </button>
+                        )}
                       </div>
-                      <motion.div className="space-y-3" variants={stagger} initial="hidden" animate="visible">
-                        {OPEN_ROLES.slice(0, 3).map((job) => (
-                          <JobRow key={job.id} job={job} />
-                        ))}
-                      </motion.div>
+
+                      {jobsLoading ? (
+                        <div className="flex items-center justify-center py-10">
+                          <IconLoader2 size={24} className="text-primary-light animate-spin" />
+                        </div>
+                      ) : companyJobs.length === 0 ? (
+                        <EmptyJobs />
+                      ) : (
+                        <motion.div className="space-y-3" variants={stagger} initial="hidden" animate="visible">
+                          {companyJobs.slice(0, 3).map((job) => (
+                            <JobRow key={job.id} job={job} />
+                          ))}
+                        </motion.div>
+                      )}
                     </section>
+
+                    {/* Benefits teaser */}
+                    {benefits.length > 0 && (
+                      <section>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-base font-bold text-heading font-satoshi">Benefits & Perks</h3>
+                          <button
+                            onClick={() => setTab("Benefits")}
+                            className="text-xs font-semibold text-primary-light hover:underline"
+                          >
+                            See all →
+                          </button>
+                        </div>
+                        <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-3" variants={stagger} initial="hidden" animate="visible">
+                          {benefits.slice(0, 4).map(({ label, icon: Icon }) => (
+                            <motion.div
+                              key={label}
+                              variants={fadeUp}
+                              className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4"
+                            >
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                                <Icon size={16} className="text-primary-light" />
+                              </div>
+                              <span className="text-sm text-body">{label}</span>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      </section>
+                    )}
                   </motion.div>
                 )}
 
@@ -587,13 +629,94 @@ export default function CompanyPage() {
                     transition={{ duration: 0.35 }}
                   >
                     <div className="flex items-center justify-between mb-5">
-                      <h2 className="heading-sm">Open Roles <span className="ml-2 text-lg text-muted font-normal">({OPEN_ROLES.length})</span></h2>
+                      <h2 className="heading-sm">
+                        Open Roles
+                        {companyJobs.length > 0 && (
+                          <span className="ml-2 text-lg text-muted font-normal">({companyJobs.length})</span>
+                        )}
+                      </h2>
                     </div>
-                    <motion.div className="space-y-3" variants={stagger} initial="hidden" animate="visible">
-                      {OPEN_ROLES.map((job) => (
-                        <JobRow key={job.id} job={job} />
-                      ))}
-                    </motion.div>
+
+                    {jobsLoading ? (
+                      <div className="flex items-center justify-center py-20">
+                        <IconLoader2 size={32} className="text-primary-light animate-spin" />
+                      </div>
+                    ) : companyJobs.length === 0 ? (
+                      <EmptyJobs />
+                    ) : (() => {
+                      const BATCH = 8;
+                      const visible = showAllJobs ? companyJobs : companyJobs.slice(0, BATCH);
+                      const hasMore = companyJobs.length > BATCH;
+                      return (
+                        <>
+                          <motion.div
+                            ref={rolesRef}
+                            className="space-y-3"
+                            variants={stagger}
+                            initial="hidden"
+                            animate="visible"
+                          >
+                            {visible.map((job) => (
+                              <JobRow key={job.id} job={job} />
+                            ))}
+                          </motion.div>
+
+                          {hasMore && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 12 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.4, delay: 0.2 }}
+                              className="mt-6 flex flex-col items-center gap-3"
+                            >
+                              {/* Progress indicator */}
+                              {!showAllJobs && (
+                                <div className="w-full flex flex-col items-center gap-2">
+                                  <div className="w-full h-1.5 rounded-full bg-surface-elevated overflow-hidden">
+                                    <motion.div
+                                      className="h-full rounded-full bg-gradient-to-r from-primary to-violet"
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${(Math.min(BATCH, companyJobs.length) / companyJobs.length) * 100}%` }}
+                                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                                    />
+                                  </div>
+                                  <p className="text-xs text-muted">
+                                    Showing <span className="font-semibold text-heading">{BATCH}</span> of{" "}
+                                    <span className="font-semibold text-heading">{companyJobs.length}</span> jobs
+                                  </p>
+                                </div>
+                              )}
+
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() => {
+                                    setShowAllJobs((prev) => {
+                                      if (prev) {
+                                        // scroll back to top of roles section
+                                        rolesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                      }
+                                      return !prev;
+                                    });
+                                  }}
+                                  className="inline-flex items-center gap-2.5 rounded-xl gradient-bg-signature px-6 py-3 text-sm font-semibold text-white shadow-button hover:shadow-[0_0_28px_rgba(99,102,241,0.45)] transition-all cursor-pointer"
+                                >
+                                  {showAllJobs ? (
+                                    <>
+                                      <IconChevronRight size={15} className="rotate-[-90deg]" />
+                                      Show Less
+                                    </>
+                                  ) : (
+                                    <>
+                                      <IconBriefcase size={15} />
+                                      Show All {companyJobs.length} Jobs
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </motion.div>
                 )}
 
@@ -607,90 +730,97 @@ export default function CompanyPage() {
                     transition={{ duration: 0.35 }}
                   >
                     <h2 className="heading-sm mb-2">Benefits & Perks</h2>
-                    <p className="text-body mb-6">Google offers world-class benefits to help you thrive at work and beyond.</p>
-                    <motion.div
-                      className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                      variants={stagger}
-                      initial="hidden"
-                      animate="visible"
-                    >
-                      {COMPANY.benefits.map(({ icon: Icon, label, desc }) => (
-                        <motion.div
-                          key={label}
-                          variants={fadeUp}
-                          className="group rounded-2xl border border-border bg-surface p-6 flex items-start gap-4 hover:border-primary/25 hover:shadow-glow-primary transition-all duration-300"
-                        >
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                            <Icon size={22} className="text-primary-light" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-heading">{label}</p>
-                            <p className="text-sm text-muted mt-1 leading-relaxed">{desc}</p>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </motion.div>
+                    <p className="text-body mb-6">
+                      {company.companyName} offers the following benefits to help you thrive at work and beyond.
+                    </p>
+                    {benefits.length > 0 ? (
+                      <motion.div
+                        className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                        variants={stagger}
+                        initial="hidden"
+                        animate="visible"
+                      >
+                        {benefits.map(({ icon: Icon, label }) => (
+                          <motion.div
+                            key={label}
+                            variants={fadeUp}
+                            className="group rounded-2xl border border-border bg-surface p-6 flex items-start gap-4 hover:border-primary/25 hover:shadow-glow-primary transition-all duration-300"
+                          >
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                              <Icon size={22} className="text-primary-light" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-heading">{label}</p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    ) : (
+                      <div className="rounded-2xl border border-border bg-surface p-8 text-center text-muted text-sm">
+                        No benefits information available yet.
+                      </div>
+                    )}
                   </motion.div>
                 )}
 
-                {/* ═══ CULTURE TAB ═══ */}
-                {tab === "Culture" && (
+                {/* ═══ CONTACT TAB ═══ */}
+                {tab === "Contact" && (
                   <motion.div
-                    key="culture"
+                    key="contact"
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -12 }}
                     transition={{ duration: 0.35 }}
-                    className="space-y-8"
+                    className="space-y-6"
                   >
                     <div>
-                      <h2 className="heading-sm mb-2">Life at {COMPANY.name}</h2>
-                      <p className="text-body max-w-2xl">
-                        At Google, our people are our biggest asset. We invest in creating an environment where every Googler can do their best work, feel safe to take risks, and build a career they love.
-                      </p>
+                      <h2 className="heading-sm mb-2">Contact Information</h2>
+                      <p className="text-body">Get in touch with {company.companyName} directly.</p>
                     </div>
 
-                    {/* Values grid */}
                     <motion.div
                       className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                       variants={stagger}
                       initial="hidden"
                       animate="visible"
                     >
-                      {COMPANY.culture.map(({ icon: Icon, title, desc }) => (
-                        <motion.div
-                          key={title}
-                          variants={fadeUp}
-                          className="rounded-2xl border border-border bg-surface p-6 hover:border-primary/25 hover:shadow-glow-primary transition-all duration-300"
-                        >
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 mb-4">
-                            <Icon size={22} className="text-primary-light" />
-                          </div>
-                          <h3 className="font-bold text-heading font-satoshi">{title}</h3>
-                          <p className="text-sm text-muted mt-2 leading-relaxed">{desc}</p>
-                        </motion.div>
-                      ))}
+                      {[
+                        company.email && { icon: IconMail, label: "Email", value: company.email, href: `mailto:${company.email}` },
+                        company.phone && { icon: IconPhone, label: "Phone", value: company.phone, href: `tel:${company.phone}` },
+                        company.website && { icon: IconWorld, label: "Website", value: websiteDisplay, href: company.website },
+                        company.headquarters && { icon: IconMapPin, label: "Address", value: company.headquarters, href: null },
+                      ]
+                        .filter(Boolean)
+                        .map(({ icon: Icon, label, value, href }) => (
+                          <motion.div
+                            key={label}
+                            variants={fadeUp}
+                            className="group rounded-2xl border border-border bg-surface p-5 flex items-start gap-4 hover:border-primary/25 hover:shadow-glow-primary transition-all duration-300"
+                          >
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                              <Icon size={20} className="text-primary-light" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted mb-0.5">{label}</p>
+                              {href ? (
+                                <a
+                                  href={href}
+                                  target={href.startsWith("http") ? "_blank" : undefined}
+                                  rel="noopener noreferrer"
+                                  className="text-sm font-semibold text-heading group-hover:text-primary-light transition-colors break-all"
+                                >
+                                  {value}
+                                </a>
+                              ) : (
+                                <p className="text-sm font-semibold text-heading">{value}</p>
+                              )}
+                            </div>
+                          </motion.div>
+                        ))}
                     </motion.div>
-
-                    {/* Employee quote */}
-                    <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
-                      <IconSparkles size={24} className="text-primary-light mb-4" />
-                      <blockquote className="text-lg font-semibold text-heading leading-relaxed">
-                        "Working at Google means working on problems that matter to billions of people. There's no better place to do the most impactful work of your career."
-                      </blockquote>
-                      <div className="mt-4 flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center">
-                          <IconUsers size={16} className="text-primary-light" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-heading">Sarah Chen</p>
-                          <p className="text-xs text-muted">Staff Software Engineer · Google Cloud</p>
-                        </div>
-                      </div>
-                    </div>
                   </motion.div>
                 )}
+
               </AnimatePresence>
             </div>
 
@@ -701,11 +831,13 @@ export default function CompanyPage() {
               transition={{ duration: 0.55, delay: 0.25 }}
               className="w-full lg:w-72 shrink-0 space-y-4 lg:sticky lg:top-24"
             >
-              {/* Apply CTA */}
+              {/* CTA */}
               <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 text-center">
-                <p className="text-xs font-semibold text-primary-light uppercase tracking-wider mb-1">{COMPANY.openRoles} Open Positions</p>
+                <p className="text-xs font-semibold text-primary-light uppercase tracking-wider mb-1">
+                  {companyJobs.length > 0 ? `${companyJobs.length} Open Positions` : "Hiring Now"}
+                </p>
                 <h3 className="text-lg font-extrabold text-heading font-satoshi mb-1">Ready to join?</h3>
-                <p className="text-xs text-muted mb-4">Apply now and take the first step toward your dream career at {COMPANY.name}.</p>
+                <p className="text-xs text-muted mb-4">Apply now and take the first step toward your dream career at {company.companyName}.</p>
                 <button
                   onClick={() => setTab("Open Roles")}
                   className="w-full inline-flex items-center justify-center gap-2 rounded-xl gradient-bg-signature py-3 text-sm font-semibold text-white shadow-button hover:shadow-[0_0_28px_rgba(99,102,241,0.45)] transition-all cursor-pointer"
@@ -717,80 +849,61 @@ export default function CompanyPage() {
               {/* Company Details */}
               <div className="rounded-2xl border border-border bg-surface p-5 space-y-3.5">
                 <h3 className="text-sm font-bold text-heading">Company Details</h3>
-                {[
-                  { label: "Industry", value: COMPANY.industry, icon: IconBuildingSkyscraper },
-                  { label: "Founded", value: COMPANY.founded, icon: IconRocket },
-                  { label: "Employees", value: COMPANY.employees, icon: IconUsers },
-                  { label: "Revenue", value: COMPANY.revenue, icon: IconTrendingUp },
-                  { label: "HQ", value: COMPANY.headquarters, icon: IconMapPin },
-                ].map(({ label, value, icon: Icon }) => (
+                {details.map(({ label, value, icon: Icon }) => (
                   <div key={label} className="flex items-center gap-3">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-elevated">
                       <Icon size={14} className="text-muted" />
                     </div>
                     <div className="flex-1 flex items-center justify-between gap-2 min-w-0">
-                      <span className="text-xs text-muted">{label}</span>
+                      <span className="text-xs text-muted shrink-0">{label}</span>
                       <span className="text-xs font-semibold text-heading text-right truncate">{value}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Rating Card */}
-              <div className="rounded-2xl border border-border bg-surface p-5">
-                <h3 className="text-sm font-bold text-heading mb-3">Employee Rating</h3>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-4xl font-extrabold text-heading font-satoshi">{COMPANY.rating}</span>
-                  <div>
-                    <StarRating rating={COMPANY.rating} />
-                    <p className="text-xs text-muted mt-1">{COMPANY.reviews.toLocaleString()} reviews</p>
-                  </div>
-                </div>
-                {[
-                  { label: "Work-Life Balance", pct: 82 },
-                  { label: "Compensation", pct: 90 },
-                  { label: "Culture", pct: 88 },
-                  { label: "Growth", pct: 85 },
-                ].map(({ label, pct }) => (
-                  <div key={label} className="mb-2.5">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted">{label}</span>
-                      <span className="font-semibold text-heading">{(pct / 20).toFixed(1)}</span>
-                    </div>
-                    <div className="h-1.5 w-full rounded-full bg-surface-elevated overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-primary to-violet"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Similar Companies */}
-              <div className="rounded-2xl border border-border bg-surface p-5">
-                <h3 className="text-sm font-bold text-heading mb-3">Similar Companies</h3>
-                <div className="space-y-3">
-                  {SIMILAR_COMPANIES.map(({ name, logo, industry, roles }) => (
-                    <Link
-                      key={name}
-                      to="/company"
-                      className="group flex items-center gap-3 rounded-xl p-2 -mx-2 hover:bg-surface-elevated transition-colors"
+              {/* Contact Quick Links */}
+              {(company.email || company.phone || company.website) && (
+                <div className="rounded-2xl border border-border bg-surface p-5 space-y-3">
+                  <h3 className="text-sm font-bold text-heading">Contact</h3>
+                  {company.email && (
+                    <a
+                      href={`mailto:${company.email}`}
+                      className="flex items-center gap-3 text-xs text-muted hover:text-primary-light transition-colors group"
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white p-1.5">
-                        <img src={logo} alt={name} className="h-full w-full object-contain" />
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-elevated group-hover:bg-primary/10 transition-colors">
+                        <IconMail size={14} />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-heading group-hover:text-primary-light transition-colors">{name}</p>
-                        <p className="text-xs text-muted truncate">{industry}</p>
+                      <span className="truncate">{company.email}</span>
+                    </a>
+                  )}
+                  {company.phone && (
+                    <a
+                      href={`tel:${company.phone}`}
+                      className="flex items-center gap-3 text-xs text-muted hover:text-primary-light transition-colors group"
+                    >
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-elevated group-hover:bg-primary/10 transition-colors">
+                        <IconPhone size={14} />
                       </div>
-                      <span className="text-xs font-semibold text-primary-light shrink-0">{roles} roles</span>
-                    </Link>
-                  ))}
+                      <span>{company.phone}</span>
+                    </a>
+                  )}
+                  {company.website && (
+                    <a
+                      href={company.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 text-xs text-muted hover:text-primary-light transition-colors group"
+                    >
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-elevated group-hover:bg-primary/10 transition-colors">
+                        <IconWorld size={14} />
+                      </div>
+                      <span className="truncate">{websiteDisplay}</span>
+                      <IconExternalLink size={11} className="shrink-0 ml-auto" />
+                    </a>
+                  )}
                 </div>
-              </div>
+              )}
             </motion.aside>
 
           </div>

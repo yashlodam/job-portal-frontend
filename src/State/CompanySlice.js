@@ -214,6 +214,42 @@ export const uploadCompanyCover = createAsyncThunk(
   }
 );
 
+export const getCompanyJobs = createAsyncThunk(
+  "company/getCompanyJobs",
+  async (
+    {
+      companyId,
+      page = 0,
+      size = 10,
+      sort = "createdAt,desc",
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const { data } = await api.get(
+        `/companies/${companyId}/jobs`,
+        {
+          params: {
+            page,
+            size,
+            sort,
+          },
+        }
+      );
+      
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || {
+          success: false,
+          message: "Failed to fetch company jobs",
+        }
+      );
+    }
+  }
+);
+
 
 
 export const getMyCompanyJobs = createAsyncThunk(
@@ -332,6 +368,34 @@ const companySlice = createSlice({
             state.loading = false;
             state.error = action.payload?.message || "Failed to fetch companies";
         });
+
+
+
+        builder
+    .addCase(getCompanyJobs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+    })
+    .addCase(getCompanyJobs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+
+        state.companyJobs = action.payload.data.content;
+
+        state.pagination = {
+            pageNumber: action.payload.data.number,
+            pageSize: action.payload.data.size,
+            totalElements: action.payload.data.totalElements,
+            totalPages: action.payload.data.totalPages,
+            first: action.payload.data.first,
+            last: action.payload.data.last,
+        };
+    })
+    .addCase(getCompanyJobs.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+            action.payload?.message || "Failed to fetch company jobs";
+    });
 
     // ==========================
     // Get Company By Id
