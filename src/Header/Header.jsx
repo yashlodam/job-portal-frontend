@@ -12,9 +12,10 @@ import { useSelector } from "react-redux";
    ──────────────────────────────────────────────────────────── */
 const NAV_LINKS = [
   { name: "Find Jobs", url: "/find-jobs" },
-  { name: "Find Talent", url: "/find-talent" },
-  { name: "Post Job", url: "/upload-job" },
-  { name: "Posted Job", url: "/posted-job" },
+  {name:"My Jobs", url:"/my-jobs"},
+  // { name: "Find Talent", url: "/find-talent" },
+  // { name: "Post Job", url: "/upload-job" },
+  // { name: "Posted Job", url: "/posted-job" },
   { name: "Job History", url: "/auth" },
 ];
 

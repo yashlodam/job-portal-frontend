@@ -54,15 +54,23 @@ const DreamJob = memo(() => {
   const [location, setLocation] = useState("");
 
   const handleSearch = useCallback(
-    (e) => {
-      e.preventDefault();
-      const params = new URLSearchParams();
-      if (jobTitle.trim()) params.set("q", jobTitle.trim());
-      if (location.trim()) params.set("location", location.trim());
-      navigate(`/find-jobs?${params.toString()}`);
-    },
-    [jobTitle, location, navigate]
-  );
+  (e) => {
+    e.preventDefault();
+
+    const params = new URLSearchParams();
+
+    if (jobTitle.trim()) {
+      params.set("keyword", jobTitle.trim());
+    }
+
+    if (location.trim()) {
+      params.set("city", location.trim());
+    }
+
+    navigate(`/find-jobs?${params.toString()}`);
+  },
+  [jobTitle, location, navigate]
+);
 
   return (
     <section className="relative overflow-hidden section-padding">

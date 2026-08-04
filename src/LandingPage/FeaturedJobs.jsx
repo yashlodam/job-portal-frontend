@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Bookmark, BookmarkCheck, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { featuredJobs } from "../Data/Data";
 import SectionHeader from "../components/SectionHeader";
+import { useAppDispatch, useAppSelector } from "../State/Store";
+import { getAllJobs } from "../State/JobSlice";
 
 /* ===========================
     Animation Variants
@@ -32,24 +34,62 @@ const cardVariants = {
 =========================== */
 
 const modeBadge = {
-  Remote:    { bg: "rgba(6,182,212,0.10)",   text: "#22D3EE",  border: "rgba(6,182,212,0.20)"   },
-  Hybrid:    { bg: "rgba(139,92,246,0.10)",  text: "#A78BFA",  border: "rgba(139,92,246,0.20)"  },
-  "On Site": { bg: "rgba(245,158,11,0.10)",  text: "#FBBF24",  border: "rgba(245,158,11,0.20)"  },
+  REMOTE: {
+    bg: "rgba(6,182,212,0.10)",
+    text: "#22D3EE",
+    border: "rgba(6,182,212,0.20)",
+  },
+  HYBRID: {
+    bg: "rgba(139,92,246,0.10)",
+    text: "#A78BFA",
+    border: "rgba(139,92,246,0.20)",
+  },
+  ON_SITE: {
+    bg: "rgba(245,158,11,0.10)",
+    text: "#FBBF24",
+    border: "rgba(245,158,11,0.20)",
+  },
 };
 
 /* ===========================
     JobCard Component
 =========================== */
-
 function JobCard({ job }) {
   const [saved, setSaved] = useState(false);
-  const badge = modeBadge[job.mode];
+  const [logoError, setLogoError] = useState(false);
+
+  const badge = modeBadge[job.workingMode];
+
+  const initials = (name = "") =>
+    name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+
+  const formatSalary = (min, max) => {
+    if (!min && !max) return "Salary not disclosed";
+
+    return `₹${min?.toLocaleString()} - ₹${max?.toLocaleString()}`;
+  };
+
+  const formatPosted = (date) => {
+    if (!date) return "";
+
+    const diff =
+      Math.floor((Date.now() - new Date(date)) / (1000 * 60 * 60 * 24));
+
+    if (diff === 0) return "Today";
+    if (diff === 1) return "1 day ago";
+
+    return `${diff} days ago`;
+  };
 
   return (
     <motion.article
-      variants={cardVariants}
       whileHover={{ y: -5, scale: 1.01 }}
-      aria-label={`${job.title} at ${job.company}`}
+      aria-label={`${job.jobTitle} at ${job.companyName}`}
       className="group relative flex flex-col overflow-hidden rounded-[20px] border transition-all duration-300"
       style={{
         borderColor: job.featured
@@ -60,34 +100,23 @@ function JobCard({ job }) {
           ? "0 0 30px rgba(99,102,241,0.06)"
           : "none",
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "rgba(99,102,241,0.30)";
-        e.currentTarget.style.boxShadow   = "0 0 40px rgba(99,102,241,0.12)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = job.featured
-          ? "rgba(99,102,241,0.20)"
-          : "rgba(148,163,184,0.08)";
-        e.currentTarget.style.boxShadow = job.featured
-          ? "0 0 30px rgba(99,102,241,0.06)"
-          : "none";
-      }}
     >
-      {/* Featured badge */}
       {job.featured && (
         <div
           className="absolute left-0 top-0 flex items-center gap-1.5 rounded-tl-[19px] rounded-br-[12px] px-3 py-1.5"
-          style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}
+          style={{
+            background:
+              "linear-gradient(135deg,#6366F1,#8B5CF6)",
+          }}
         >
           <Sparkles size={11} className="text-white" />
+
           <span className="text-[10px] font-bold uppercase tracking-wider text-white">
             Featured
-            <span className="sr-only"> listing</span>
           </span>
         </div>
       )}
 
-      {/* Glass hover shimmer */}
       <div
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
@@ -96,12 +125,17 @@ function JobCard({ job }) {
         }}
       />
 
-      <div className={`flex flex-1 flex-col p-5 sm:p-6 ${job.featured ? "pt-10" : ""}`}>
+      <div
+        className={`flex flex-1 flex-col p-5 sm:p-6 ${
+          job.featured ? "pt-10" : ""
+        }`}
+      >
+        {/* Header */}
 
-        {/* ── Top row: logo + company + bookmark ── */}
         <div className="flex items-start justify-between gap-3">
+
           <div className="flex items-center gap-3">
-            {/* Company Logo */}
+
             <div
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border p-1.5"
               style={{
@@ -109,109 +143,185 @@ function JobCard({ job }) {
                 background: "#161B22",
               }}
             >
-              <img
-                src={job.companyLogo}
-                alt={`${job.company} logo`}
-                className="h-full w-full object-contain"
-                loading="lazy"
-              />
+              {job.companyLogo && !logoError ? (
+                <img
+                  src={job.companyLogo}
+                  alt={job.companyName}
+                  loading="lazy"
+                  onError={() => setLogoError(true)}
+                  className="h-full w-full rounded object-contain"
+                />
+              ) : (
+                <span className="text-sm font-bold text-[#818CF8]">
+                  {initials(job.companyName)}
+                </span>
+              )}
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-[#F1F5F9]">{job.company}</p>
-              <p className="mt-0.5 text-xs text-[#708090]">{job.posted}</p>
+
+            <div>
+
+              <p className="text-sm font-semibold text-[#F1F5F9]">
+                {job.companyName}
+              </p>
+
+              <p className="mt-0.5 text-xs text-[#708090]">
+                {formatPosted(job.postedAt)}
+              </p>
+
             </div>
+
           </div>
 
-          {/* Bookmark */}
           <button
-            type="button"
-            className="shrink-0 rounded-lg p-1.5 text-[#708090] transition-all duration-200 hover:bg-[#161B22]"
-            style={{ color: saved ? "#818CF8" : undefined }}
-            aria-label={saved ? `Unsave ${job.title}` : `Save ${job.title}`}
-            onClick={() => setSaved((v) => !v)}
+            onClick={() => setSaved(!saved)}
+            className="rounded-lg p-1.5 hover:bg-[#161B22]"
           >
             {saved ? (
-              <BookmarkCheck size={17} color="#818CF8" />
+              <BookmarkCheck size={18} color="#818CF8" />
             ) : (
-              <Bookmark size={17} />
+              <Bookmark size={18} color="#708090" />
             )}
           </button>
+
         </div>
 
-        {/* ── Job title ── */}
-        <h3 className="mt-4 text-base font-bold text-[#F1F5F9] transition-colors duration-200 group-hover:text-[#818CF8] sm:text-lg">
-          {job.title}
+        {/* Job Title */}
+
+        <h3 className="mt-4 text-lg font-bold text-white group-hover:text-[#818CF8]">
+          {job.jobTitle}
         </h3>
 
-        {/* ── Location ── */}
-        <div className="mt-2 flex items-center gap-1.5">
-          <MapPin size={13} className="shrink-0 text-[#708090]" />
-          <span className="text-sm text-[#708090]">{job.location}</span>
+        {/* Location */}
+
+        <div className="mt-2 flex items-center gap-2">
+
+          <MapPin size={14} className="text-[#708090]" />
+
+          <span className="text-sm text-[#708090]">
+            {job.city}, {job.state}, {job.country}
+          </span>
+
         </div>
 
-        {/* ── Mode badge ── */}
+        {/* Working Mode */}
+
         {badge && (
           <div className="mt-3">
+
             <span
-              className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+              className="inline-flex rounded-full border px-3 py-1 text-xs font-semibold"
               style={{
                 background: badge.bg,
                 color: badge.text,
                 borderColor: badge.border,
               }}
             >
-              {job.mode}
+              {job.workingMode.replace("_", " ")}
             </span>
+
           </div>
         )}
+        {/* Skills */}
 
-        {/* ── Tags ── */}
         <div className="mt-4 flex flex-wrap gap-2">
-          {job.tags.slice(0, 3).map((tag) => (
+          {(job.skillsRequired ?? []).slice(0, 3).map((skill) => (
             <span
-              key={tag}
+              key={skill}
               className="rounded-full px-2.5 py-1 text-xs font-medium"
-              style={{ background: "rgba(99,102,241,0.10)", color: "#818CF8" }}
+              style={{
+                background: "rgba(99,102,241,0.10)",
+                color: "#818CF8",
+              }}
             >
-              {tag}
+              {skill}
             </span>
           ))}
-          {job.tags.length > 3 && (
+
+          {(job.skillsRequired ?? []).length > 3 && (
             <span
-              className="rounded-full px-2.5 py-1 text-xs font-medium text-[#708090]"
-              style={{ background: "#161B22" }}
+              className="rounded-full px-2.5 py-1 text-xs font-medium"
+              style={{
+                background: "#161B22",
+                color: "#708090",
+              }}
             >
-              +{job.tags.length - 3}
+              +{job.skillsRequired.length - 3}
             </span>
           )}
         </div>
 
-        {/* Spacer to push bottom row down */}
+        {/* Experience & Job Type */}
+
+        <div className="mt-4 flex items-center gap-2 text-xs text-[#94A3B8]">
+
+          <span className="rounded-full bg-[#161B22] px-3 py-1">
+            {job.experienceLevel?.replaceAll("_", " ")}
+          </span>
+
+          <span className="rounded-full bg-[#161B22] px-3 py-1">
+            {job.jobType?.replaceAll("_", " ")}
+          </span>
+
+          {job.easyApply && (
+            <span
+              className="rounded-full px-3 py-1 font-medium"
+              style={{
+                background: "rgba(16,185,129,.12)",
+                color: "#34D399",
+              }}
+            >
+              Easy Apply
+            </span>
+          )}
+
+        </div>
+
         <div className="flex-1" />
 
-        {/* ── Bottom row: salary + apply ── */}
+        {/* Salary + Apply */}
+
         <div
-          className="mt-5 flex items-center justify-between border-t pt-4"
-          style={{ borderColor: "rgba(148,163,184,0.08)" }}
+          className="mt-6 flex items-center justify-between border-t pt-4"
+          style={{
+            borderColor: "rgba(148,163,184,.08)",
+          }}
         >
+
           <div>
-            <p className="text-sm font-bold text-[#F1F5F9]">{job.salary}</p>
-            <p className="text-xs text-[#708090]">{job.type}</p>
+
+            <h4 className="text-lg font-bold text-white">
+              {formatSalary(
+                job.minimumSalary,
+                job.maximumSalary
+              )}
+            </h4>
+
+            <p className="mt-1 text-xs text-[#708090]">
+              {job.currency} • {job.vacancies} Openings
+            </p>
+
           </div>
+
           <Link
             to={`/jobs/${job.id}`}
-            className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] sm:px-5 sm:text-sm"
+            className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5"
             style={{
-              background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-              boxShadow: "0 0 20px rgba(99,102,241,0.25)",
+              background:
+                "linear-gradient(135deg,#6366F1,#8B5CF6)",
+              boxShadow:
+                "0 0 20px rgba(99,102,241,.25)",
             }}
-            aria-label={`Apply for ${job.title} at ${job.company}`}
           >
             Apply Now
-            <ArrowRight size={13} />
+
+            <ArrowRight size={15} />
+
           </Link>
+
         </div>
+
       </div>
+
     </motion.article>
   );
 }
@@ -221,6 +331,20 @@ function JobCard({ job }) {
 =========================== */
 
 function FeaturedJobs() {
+
+  const dispatch = useAppDispatch();
+
+const { jobs, loading } = useAppSelector((state) => state.job);
+
+useEffect(() => {
+    dispatch(getAllJobs());
+}, [dispatch]);
+
+
+const featuredJobsList = jobs
+    .filter((job) => job.featured)
+    .slice(0, 6);
+
   return (
     <section className="relative section-padding overflow-hidden">
 
@@ -257,7 +381,7 @@ function FeaturedJobs() {
           role="list"
           aria-label="Featured job listings"
         >
-          {featuredJobs.map((job) => (
+          {featuredJobsList.map((job) => (
             <div key={job.id} role="listitem">
               <JobCard job={job} />
             </div>
