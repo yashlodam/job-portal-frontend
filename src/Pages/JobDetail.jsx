@@ -31,6 +31,9 @@ import {
   Copy,
   Check,
   X,
+  IndianRupee,
+  Zap,
+  Star,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { getJobById } from "../State/JobSlice";
@@ -72,364 +75,85 @@ const cardHover = {
 };
 
 /* ===========================
-    Inline Mock Job Data
+    Helpers
 =========================== */
 
-const jobDetailData = {
-  1: {
-    id: 1,
-    title: "Senior Frontend Engineer",
-    company: "Google",
-    companyLogo: "/Companies/google.svg",
-    location: "Mountain View, CA",
-    salary: "$180K – $250K",
-    salaryPeriod: "per year",
-    type: "Full Time",
-    mode: "Hybrid",
-    posted: "2 days ago",
-    applicants: 142,
-    closingDays: 12,
-    tags: ["React", "TypeScript", "GraphQL"],
-    featured: true,
-    industry: "Technology",
-    companySize: "10,000+",
-    founded: "1998",
-    website: "google.com",
-    description: [
-      "Google is seeking a Senior Frontend Engineer to join our Cloud Platform team. You'll work on building the next generation of developer tools and infrastructure used by millions of developers worldwide.",
-      "In this role, you'll collaborate with cross-functional teams of designers, product managers, and engineers to deliver beautiful, performant user interfaces that make complex cloud technologies accessible to everyone.",
-      "You'll have the opportunity to shape the frontend architecture of our products, mentor junior engineers, and drive best practices across the organization. This is a high-impact role where your work will directly influence how developers interact with Google Cloud.",
-    ],
-    responsibilities: [
-      "Design and implement complex, high-performance user interfaces using React and TypeScript",
-      "Lead frontend architecture decisions and establish best practices across the team",
-      "Collaborate with UX designers to translate wireframes and mockups into pixel-perfect implementations",
-      "Mentor junior engineers through code reviews, pair programming, and technical guidance",
-      "Optimize application performance, accessibility, and cross-browser compatibility",
-      "Drive the adoption of modern frontend technologies and development workflows",
-    ],
-    requirements: [
-      "7+ years of professional experience in frontend development",
-      "Expert-level proficiency in React, TypeScript, and modern JavaScript (ES2020+)",
-      "Strong understanding of web fundamentals: HTML5, CSS3, browser APIs",
-      "Experience with GraphQL, REST APIs, and state management solutions (Redux, Zustand, or similar)",
-      "Proven track record of delivering large-scale, production-grade web applications",
-      "Excellent communication and collaboration skills in a cross-functional environment",
-    ],
-    niceToHave: [
-      "Experience with Web Components, Lit, or similar frameworks",
-      "Contributions to open-source projects or technical publications",
-      "Familiarity with Google Cloud Platform or similar cloud services",
-      "Experience with design systems and component library development",
-    ],
-    benefits: [
-      { icon: Heart, label: "Health Insurance", desc: "Premium medical, dental & vision" },
-      { icon: DollarSign, label: "401(k) Match", desc: "Up to 6% employer match" },
-      { icon: Wifi, label: "Remote Flexibility", desc: "3 days in-office, 2 remote" },
-      { icon: Plane, label: "Unlimited PTO", desc: "Flexible vacation policy" },
-      { icon: GraduationCap, label: "Learning Budget", desc: "$5,000 annual stipend" },
-      { icon: Coffee, label: "Free Meals", desc: "On-campus dining & snacks" },
-      { icon: Baby, label: "Parental Leave", desc: "24 weeks paid leave" },
-      { icon: Shield, label: "Life Insurance", desc: "2x salary coverage" },
-    ],
-    skills: ["React", "TypeScript", "GraphQL", "Next.js", "Tailwind CSS", "Jest"],
-  },
-  2: {
-    id: 2,
-    title: "Product Designer",
-    company: "Airbnb",
-    companyLogo: "/Companies/airbnb.svg",
-    location: "San Francisco, CA",
-    salary: "$150K – $200K",
-    salaryPeriod: "per year",
-    type: "Full Time",
-    mode: "Remote",
-    posted: "1 day ago",
-    applicants: 89,
-    closingDays: 18,
-    tags: ["Figma", "Design Systems", "Prototyping"],
-    featured: true,
-    industry: "Travel & Hospitality",
-    companySize: "5,000+",
-    founded: "2008",
-    website: "airbnb.com",
-    description: [
-      "Airbnb is looking for a talented Product Designer to help shape the future of travel. You'll work on our core booking experience, designing intuitive interfaces that connect millions of guests with unique stays around the world.",
-      "You'll be part of a world-class design team that values craft, empathy, and bold thinking. Your designs will be seen and used by hundreds of millions of people across every continent.",
-      "This is a fully remote position where you'll collaborate with product managers, engineers, and researchers to deliver exceptional user experiences that embody the Airbnb brand.",
-    ],
-    responsibilities: [
-      "Lead end-to-end design for key product features across web and mobile platforms",
-      "Create wireframes, prototypes, and high-fidelity mockups using Figma and other design tools",
-      "Conduct user research and usability testing to inform design decisions",
-      "Contribute to and evolve the Airbnb design system for consistency at scale",
-      "Present design concepts and rationale to stakeholders and leadership",
-      "Collaborate closely with engineers to ensure pixel-perfect implementation",
-    ],
-    requirements: [
-      "5+ years of product design experience, ideally in consumer-facing applications",
-      "Expert-level proficiency in Figma and modern design tools",
-      "Strong portfolio demonstrating end-to-end design processes and shipped products",
-      "Deep understanding of interaction design, visual design, and design systems",
-      "Experience with user research methodologies and data-driven design",
-      "Excellent communication and storytelling skills",
-    ],
-    niceToHave: [
-      "Experience designing for marketplace or travel products",
-      "Familiarity with motion design and micro-interactions (After Effects, Principle)",
-      "Background in front-end development (HTML, CSS, React)",
-    ],
-    benefits: [
-      { icon: Heart, label: "Health Insurance", desc: "Full family coverage" },
-      { icon: DollarSign, label: "Equity Package", desc: "Competitive RSU grants" },
-      { icon: Wifi, label: "Fully Remote", desc: "Work from anywhere" },
-      { icon: Plane, label: "Travel Credit", desc: "$2,000 annual Airbnb credit" },
-      { icon: GraduationCap, label: "Growth Fund", desc: "$3,000 learning budget" },
-      { icon: Coffee, label: "Home Office", desc: "$1,500 setup stipend" },
-      { icon: Baby, label: "Parental Leave", desc: "22 weeks paid leave" },
-      { icon: Shield, label: "Wellness", desc: "Mental health support" },
-    ],
-    skills: ["Figma", "Prototyping", "Design Systems", "User Research"],
-  },
-  3: {
-    id: 3,
-    title: "ML Engineer",
-    company: "Meta",
-    companyLogo: "/Companies/meta.svg",
-    location: "New York, NY",
-    salary: "$200K – $300K",
-    salaryPeriod: "per year",
-    type: "Full Time",
-    mode: "Hybrid",
-    posted: "3 days ago",
-    applicants: 203,
-    closingDays: 8,
-    tags: ["Python", "PyTorch", "LLMs"],
-    featured: false,
-    industry: "Technology",
-    companySize: "50,000+",
-    founded: "2004",
-    website: "meta.com",
-    description: [
-      "Meta is searching for a Machine Learning Engineer to work on cutting-edge AI systems that power our family of products used by billions of people. You'll push the boundaries of what's possible with large language models and generative AI.",
-      "You'll join a team of world-class researchers and engineers building the next generation of AI infrastructure. Your work will directly impact products like Instagram, WhatsApp, and the Metaverse.",
-      "This is an opportunity to work at the forefront of AI research and deploy models at unprecedented scale, shaping the future of human-computer interaction.",
-    ],
-    responsibilities: [
-      "Design, train, and optimize large-scale machine learning models for production use",
-      "Develop novel architectures for LLMs and generative AI systems",
-      "Build robust ML pipelines for data processing, training, and inference",
-      "Collaborate with research scientists to translate papers into production-ready systems",
-      "Optimize model performance for latency, throughput, and cost efficiency",
-      "Mentor team members and contribute to Meta's internal ML platform",
-    ],
-    requirements: [
-      "5+ years of experience in machine learning engineering",
-      "Expert-level proficiency in Python and deep learning frameworks (PyTorch preferred)",
-      "Strong foundation in mathematics: linear algebra, calculus, probability, and statistics",
-      "Experience training and deploying models at scale (billions of parameters)",
-      "Published research in top ML conferences (NeurIPS, ICML, ICLR) is a plus",
-      "MS or PhD in Computer Science, Machine Learning, or related field",
-    ],
-    niceToHave: [
-      "Experience with transformer architectures and attention mechanisms",
-      "Familiarity with distributed training frameworks (FSDP, DeepSpeed)",
-      "Background in NLP, computer vision, or recommendation systems",
-      "Contributions to open-source ML frameworks",
-    ],
-    benefits: [
-      { icon: Heart, label: "Health & Wellness", desc: "Comprehensive medical coverage" },
-      { icon: DollarSign, label: "RSU Package", desc: "Generous equity compensation" },
-      { icon: Wifi, label: "Hybrid Work", desc: "Flexible in-office schedule" },
-      { icon: Plane, label: "Unlimited PTO", desc: "Flexible vacation policy" },
-      { icon: GraduationCap, label: "Conference Budget", desc: "Attend top AI conferences" },
-      { icon: Coffee, label: "Campus Perks", desc: "Free meals & amenities" },
-      { icon: Baby, label: "Family Leave", desc: "20 weeks paid leave" },
-      { icon: Shield, label: "Life & Disability", desc: "Comprehensive coverage" },
-    ],
-    skills: ["Python", "PyTorch", "TensorFlow", "LLMs", "CUDA", "MLOps"],
-  },
-  4: {
-    id: 4,
-    title: "DevOps Engineer",
-    company: "Amazon",
-    companyLogo: "/Companies/amazon.svg",
-    location: "Seattle, WA",
-    salary: "$160K – $220K",
-    salaryPeriod: "per year",
-    type: "Full Time",
-    mode: "On Site",
-    posted: "5 hours ago",
-    applicants: 67,
-    closingDays: 21,
-    tags: ["AWS", "Kubernetes", "Terraform"],
-    featured: true,
-    industry: "E-Commerce & Cloud",
-    companySize: "100,000+",
-    founded: "1994",
-    website: "amazon.com",
-    description: [
-      "Amazon Web Services is hiring a DevOps Engineer to help build and maintain the infrastructure that powers the world's largest cloud platform. You'll work on systems that serve millions of requests per second.",
-      "In this role, you'll design and implement CI/CD pipelines, manage container orchestration at massive scale, and ensure the reliability of services that businesses worldwide depend on.",
-      "You'll be part of a team that sets the standard for operational excellence, working with cutting-edge cloud technologies and pioneering best practices in infrastructure as code.",
-    ],
-    responsibilities: [
-      "Design, build, and maintain scalable CI/CD pipelines for microservices architectures",
-      "Manage and optimize Kubernetes clusters serving production workloads at scale",
-      "Implement infrastructure as code using Terraform, CloudFormation, and CDK",
-      "Monitor system health and implement automated incident response procedures",
-      "Drive improvements in deployment frequency, lead time, and mean time to recovery",
-      "Collaborate with development teams to improve developer experience and productivity",
-    ],
-    requirements: [
-      "5+ years of experience in DevOps, SRE, or infrastructure engineering",
-      "Expert-level knowledge of AWS services (EC2, ECS, EKS, Lambda, S3, RDS, etc.)",
-      "Strong experience with Kubernetes, Docker, and container orchestration",
-      "Proficiency in Infrastructure as Code (Terraform, CloudFormation)",
-      "Experience with monitoring and observability tools (Prometheus, Grafana, Datadog)",
-      "Strong scripting skills in Python, Bash, or Go",
-    ],
-    niceToHave: [
-      "AWS Solutions Architect or DevOps Engineer certification",
-      "Experience with service mesh technologies (Istio, Envoy)",
-      "Familiarity with chaos engineering principles and tools",
-      "Background in security engineering and compliance automation",
-    ],
-    benefits: [
-      { icon: Heart, label: "Health Coverage", desc: "Day-one medical benefits" },
-      { icon: DollarSign, label: "RSU Vesting", desc: "4-year vesting schedule" },
-      { icon: Wifi, label: "On-Site Perks", desc: "Modern campus facilities" },
-      { icon: Plane, label: "Paid Time Off", desc: "Competitive vacation policy" },
-      { icon: GraduationCap, label: "Career Choice", desc: "Tuition reimbursement program" },
-      { icon: Coffee, label: "Employee Discount", desc: "10% off Amazon purchases" },
-    ],
-    skills: ["AWS", "Kubernetes", "Terraform", "Docker", "Python", "CI/CD"],
-  },
-  5: {
-    id: 5,
-    title: "iOS Developer",
-    company: "Apple",
-    companyLogo: "/Companies/apple.svg",
-    location: "Cupertino, CA",
-    salary: "$175K – $240K",
-    salaryPeriod: "per year",
-    type: "Full Time",
-    mode: "On Site",
-    posted: "4 days ago",
-    applicants: 156,
-    closingDays: 10,
-    tags: ["Swift", "SwiftUI", "Objective-C"],
-    featured: false,
-    industry: "Consumer Electronics",
-    companySize: "100,000+",
-    founded: "1976",
-    website: "apple.com",
-    description: [
-      "Apple is looking for a passionate iOS Developer to join the team building the apps that define the iPhone experience. You'll work on features used by over a billion people worldwide.",
-      "You'll collaborate with world-class designers and engineers to create intuitive, delightful experiences that set the standard for mobile development. Your code will ship on every iPhone, iPad, and Mac.",
-      "This is a rare opportunity to work on Apple's first-party applications, leveraging the latest iOS frameworks and hardware capabilities before they're available to the public.",
-    ],
-    responsibilities: [
-      "Design and develop new features for Apple's flagship iOS applications using Swift and SwiftUI",
-      "Write clean, testable, and well-documented code following Apple's engineering standards",
-      "Optimize app performance, memory usage, and battery consumption",
-      "Collaborate with the Human Interface Design team on new interaction paradigms",
-      "Implement accessibility features to ensure inclusive user experiences",
-      "Debug and resolve complex issues across iOS, iPadOS, and macOS platforms",
-    ],
-    requirements: [
-      "5+ years of professional iOS development experience",
-      "Expert proficiency in Swift and deep knowledge of the iOS SDK",
-      "Strong experience with SwiftUI, UIKit, and Apple's modern concurrency model",
-      "Understanding of Apple's Human Interface Guidelines and design principles",
-      "Experience with Core Data, Core Animation, and other Apple frameworks",
-      "BS/MS in Computer Science or equivalent practical experience",
-    ],
-    niceToHave: [
-      "Experience with Objective-C and legacy codebase migration",
-      "Familiarity with Metal, ARKit, or Core ML frameworks",
-      "Published apps on the App Store with significant user base",
-      "Contributions to the Swift or iOS open-source community",
-    ],
-    benefits: [
-      { icon: Heart, label: "Health & Dental", desc: "Comprehensive family coverage" },
-      { icon: DollarSign, label: "RSU Grants", desc: "Competitive equity package" },
-      { icon: Wifi, label: "Campus Life", desc: "Apple Park amenities" },
-      { icon: Plane, label: "PTO & Holidays", desc: "Generous time off policy" },
-      { icon: GraduationCap, label: "Education", desc: "Tuition assistance program" },
-      { icon: Coffee, label: "Fitness Center", desc: "State-of-the-art gym" },
-      { icon: Baby, label: "Family Support", desc: "18 weeks parental leave" },
-      { icon: Shield, label: "Product Discount", desc: "25% off Apple products" },
-    ],
-    skills: ["Swift", "SwiftUI", "UIKit", "Xcode", "Core Data"],
-  },
-  6: {
-    id: 6,
-    title: "Data Engineer",
-    company: "Spotify",
-    companyLogo: "/Companies/spotify.svg",
-    location: "Stockholm, Sweden",
-    salary: "$140K – $190K",
-    salaryPeriod: "per year",
-    type: "Full Time",
-    mode: "Remote",
-    posted: "1 day ago",
-    applicants: 98,
-    closingDays: 15,
-    tags: ["Spark", "Python", "dbt"],
-    featured: true,
-    industry: "Music & Entertainment",
-    companySize: "8,000+",
-    founded: "2006",
-    website: "spotify.com",
-    description: [
-      "Spotify is hiring a Data Engineer to build the data infrastructure that powers personalization for 600+ million listeners. You'll work on the pipelines behind Discover Weekly, Release Radar, and Spotify Wrapped.",
-      "You'll join a team obsessed with data quality, scalability, and developer experience. Your work will enable data scientists and analysts across the company to make data-driven decisions at scale.",
-      "This is a fully remote role offering the flexibility to work from anywhere while being part of one of the most innovative engineering cultures in the world.",
-    ],
-    responsibilities: [
-      "Design and build scalable data pipelines processing petabytes of streaming data daily",
-      "Develop and maintain data models using dbt for analytics and ML feature stores",
-      "Optimize Apache Spark jobs for performance and cost efficiency on cloud infrastructure",
-      "Implement data quality monitoring and alerting systems",
-      "Collaborate with data scientists to productionize ML models and experiments",
-      "Contribute to Spotify's open-source data tools and internal platform",
-    ],
-    requirements: [
-      "4+ years of experience as a Data Engineer or similar role",
-      "Strong proficiency in Python and SQL for data processing and transformation",
-      "Experience with Apache Spark, Apache Beam, or similar distributed processing frameworks",
-      "Knowledge of data warehousing concepts and tools (BigQuery, Snowflake, Redshift)",
-      "Experience with workflow orchestration tools (Airflow, Luigi, Prefect)",
-      "Understanding of data modeling, ETL best practices, and data governance",
-    ],
-    niceToHave: [
-      "Experience with real-time streaming technologies (Kafka, Flink, Pub/Sub)",
-      "Familiarity with dbt for data transformation and testing",
-      "Background in music tech, recommendation systems, or media analytics",
-    ],
-    benefits: [
-      { icon: Heart, label: "Health Insurance", desc: "Comprehensive global coverage" },
-      { icon: DollarSign, label: "Equity", desc: "RSU grants with annual refresh" },
-      { icon: Wifi, label: "Work From Anywhere", desc: "Fully distributed team" },
-      { icon: Plane, label: "Flexible PTO", desc: "Generous vacation policy" },
-      { icon: GraduationCap, label: "Learning", desc: "Annual development budget" },
-      { icon: Coffee, label: "Premium Spotify", desc: "Free family plan forever" },
-      { icon: Baby, label: "Parental Leave", desc: "26 weeks paid leave" },
-      { icon: Shield, label: "Pension", desc: "Employer pension contribution" },
-    ],
-    skills: ["Python", "Apache Spark", "dbt", "SQL", "Airflow", "GCP"],
-  },
+/** Format a number into compact INR notation */
+const formatINR = (n) => {
+  if (n == null) return null;
+  if (n >= 10000000) return `₹${(n / 10000000).toFixed(1)}Cr`;
+  if (n >= 100000)   return `₹${(n / 100000).toFixed(1)}L`;
+  if (n >= 1000)     return `₹${Math.round(n / 1000)}K`;
+  return `₹${n}`;
 };
 
-/* ===========================
-    Similar Jobs Data
-=========================== */
-
-const getSimilarJobs = (currentId) => {
-  const allJobs = Object.values(jobDetailData);
-  return allJobs.filter((job) => job.id !== currentId).slice(0, 3);
+/** Compute "X ago" from an ISO date string */
+const timeAgo = (dateStr) => {
+  if (!dateStr) return "";
+  const diff  = Date.now() - new Date(dateStr).getTime();
+  const mins  = Math.floor(diff / 60000);
+  if (mins < 1)  return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)  return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days / 30)}mo ago`;
 };
+
+/** Compute days remaining until a date string like "2026-10-05" */
+const daysUntil = (dateStr) => {
+  if (!dateStr) return null;
+  const days = Math.ceil((new Date(dateStr) - Date.now()) / 86400000);
+  return days > 0 ? days : 0;
+};
+
+/** Normalise a value that may be a string OR an array into a string array */
+const toList = (val) => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  // Split on newlines or sentence-ending periods followed by space
+  const parts = String(val)
+    .split(/\n+|(?<=\.)\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return parts.length ? parts : [String(val).trim()];
+};
+
+/**
+ * Normalise benefits which may be:
+ *  - an array of { icon, label, desc } objects  (mock data)
+ *  - a plain string like "WFH, Medical Insurance."  (real API)
+ */
+const parseBenefits = (benefits) => {
+  if (!benefits) return [];
+  if (Array.isArray(benefits)) return benefits; // already rich objects
+  return String(benefits)
+    .split(",")
+    .map((b) => b.trim().replace(/\.$/, ""))
+    .filter(Boolean)
+    .map((label) => ({ icon: CheckCircle2, label, desc: null }));
+};
+
+/** First two initials of a name */
+const initials = (name) =>
+  name
+    ? name.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("")
+    : "?";
+
+/** Convert SNAKE_CASE to Title Case */
+const humanise = (str) =>
+  str
+    ? str.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    : "";
+
+
+
+
+const getSimilarJobs = (currentId) =>
+  Object.values(jobDetailData)
+    .filter((job) => job.id !== currentId)
+    .slice(0, 3);
 
 /* ===========================
     Share Modal Component
@@ -455,24 +179,15 @@ function ShareModal({ isOpen, onClose, jobTitle }) {
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
     const firstEl = focusableEls[0];
-    const lastEl = focusableEls[focusableEls.length - 1];
+    const lastEl  = focusableEls[focusableEls.length - 1];
 
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        onClose();
-        return;
-      }
+      if (e.key === "Escape") { onClose(); return; }
       if (e.key !== "Tab") return;
       if (e.shiftKey) {
-        if (document.activeElement === firstEl) {
-          e.preventDefault();
-          lastEl?.focus();
-        }
+        if (document.activeElement === firstEl) { e.preventDefault(); lastEl?.focus(); }
       } else {
-        if (document.activeElement === lastEl) {
-          e.preventDefault();
-          firstEl?.focus();
-        }
+        if (document.activeElement === lastEl) { e.preventDefault(); firstEl?.focus(); }
       }
     };
 
@@ -512,7 +227,9 @@ function ShareModal({ isOpen, onClose, jobTitle }) {
             </div>
             <p className="text-sm text-body mb-4">Share &ldquo;{jobTitle}&rdquo; with your network</p>
             <div className="flex items-center gap-2 rounded-xl border border-border bg-surface p-3">
-              <span className="flex-1 truncate text-sm text-muted">{typeof window !== "undefined" ? window.location.href : ""}</span>
+              <span className="flex-1 truncate text-sm text-muted">
+                {typeof window !== "undefined" ? window.location.href : ""}
+              </span>
               <button
                 onClick={handleCopy}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary-light hover:bg-primary/20 transition-colors cursor-pointer"
@@ -538,9 +255,23 @@ function SectionDivider() {
 
 /* ===========================
     Similar Job Card
+    Works with both the mock data (unified field names) and any real API job shape.
 =========================== */
 
 function SimilarJobCard({ job }) {
+  const [logoError, setLogoError] = useState(false);
+
+  const title       = job.jobTitle    ?? job.title ?? "Untitled";
+  const company     = job.companyName ?? job.company ?? "";
+  const logo        = job.companyLogo;
+  const mode        = humanise(job.workingMode ?? job.mode ?? "");
+  const location    = [job.city, job.state].filter(Boolean).join(", ") || job.location || "";
+  const tags        = job.skillsRequired ?? job.tags ?? [];
+  const salaryMin   = formatINR(job.minimumSalary);
+  const salaryMax   = formatINR(job.maximumSalary);
+  const salaryText  = salaryMin && salaryMax ? `${salaryMin} – ${salaryMax}` : salaryMin ?? salaryMax ?? job.salary ?? "";
+  const type        = humanise(job.jobType ?? job.type ?? "");
+
   return (
     <motion.div variants={listItem} whileHover={cardHover}>
       <Link
@@ -549,14 +280,21 @@ function SimilarJobCard({ job }) {
       >
         {/* Top: logo + company */}
         <div className="flex items-center gap-3">
-          <img
-            src={job.companyLogo}
-            alt={`${job.company} logo`}
-            width={40}
-            height={40}
-            className="h-10 w-10 rounded-xl bg-surface-elevated p-1.5 object-contain"
-          />
-          <span className="text-sm text-muted">{job.company}</span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-elevated p-1.5">
+            {logo && !logoError ? (
+              <img
+                src={logo}
+                alt={`${company} logo`}
+                width={40}
+                height={40}
+                className="h-full w-full object-contain"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <span className="text-xs font-bold text-primary">{initials(company)}</span>
+            )}
+          </div>
+          <span className="text-sm text-muted">{company}</span>
           {job.featured && (
             <span className="ml-auto rounded-full bg-accent-warm/10 px-2.5 py-0.5 text-xs font-medium text-accent-warm">
               Featured
@@ -566,24 +304,28 @@ function SimilarJobCard({ job }) {
 
         {/* Title */}
         <h3 className="mt-4 text-lg font-semibold text-heading group-hover:text-primary-light transition-colors">
-          {job.title}
+          {title}
         </h3>
 
         {/* Location + Mode */}
-        <div className="mt-2 flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <MapPin size={14} className="text-muted" />
-            <span className="text-sm text-muted">{job.location}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Clock size={14} className="text-muted" />
-            <span className="text-sm text-muted">{job.mode}</span>
-          </div>
+        <div className="mt-2 flex flex-wrap items-center gap-4">
+          {location && (
+            <div className="flex items-center gap-1.5">
+              <MapPin size={14} className="text-muted" />
+              <span className="text-sm text-muted">{location}</span>
+            </div>
+          )}
+          {mode && (
+            <div className="flex items-center gap-1.5">
+              <Wifi size={14} className="text-muted" />
+              <span className="text-sm text-muted">{mode}</span>
+            </div>
+          )}
         </div>
 
         {/* Tags */}
         <div className="mt-3 flex flex-wrap gap-2">
-          {job.tags.map((tag) => (
+          {tags.slice(0, 4).map((tag) => (
             <span
               key={tag}
               className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary-light"
@@ -596,8 +338,10 @@ function SimilarJobCard({ job }) {
         {/* Bottom: salary + apply */}
         <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-heading">{job.salary}</span>
-            <span className="text-xs text-muted">{job.type}</span>
+            {salaryText && (
+              <span className="text-sm font-semibold text-heading">{salaryText}</span>
+            )}
+            {type && <span className="text-xs text-muted">{type}</span>}
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full gradient-bg-signature px-5 py-2 text-sm font-semibold text-white">
             View Job
@@ -621,7 +365,6 @@ function JobNotFound() {
       transition={{ duration: 0.6 }}
       className="relative min-h-screen overflow-hidden bg-background font-inter text-body"
     >
-      {/* Background */}
       <div className="pointer-events-none fixed inset-0 mesh-gradient" />
       <div className="pointer-events-none fixed -top-20 right-0 h-[500px] w-[500px] rounded-full bg-primary/6 blur-[160px]" />
 
@@ -650,24 +393,21 @@ function JobNotFound() {
 =========================== */
 
 function JobDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate();                          // ← moved above every conditional
-  const [saved, setSaved] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
+  const { id }     = useParams();
+  const navigate   = useNavigate();                // ← always first, unconditional
+  const [saved,      setSaved]      = useState(false);
+  const [shareOpen,  setShareOpen]  = useState(false);
   const dispatch = useAppDispatch();
 
   const { selectedJob, loading } = useAppSelector((state) => state.job);
 
-  // Scroll to top and fetch job whenever the id changes
+  // Scroll to top and fetch job whenever the route id changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    if (id) {
-      dispatch(getJobById(Number(id)));
-    }
+    if (id) dispatch(getJobById(Number(id)));
   }, [id, dispatch]);
 
-  // ── All hooks have been called above this line ──────────────────
-  // Conditional rendering must come AFTER all hooks.
+  // ── All hooks called. Conditional renders below are safe. ──
 
   if (loading) {
     return (
@@ -683,7 +423,55 @@ function JobDetail() {
 
   if (!selectedJob) return <JobNotFound />;
 
+  // ── Derived / normalised values from real API response ──────────────
+
+  const jobTitle        = selectedJob.jobTitle   ?? selectedJob.title   ?? "Untitled";
+  const companyName     = selectedJob.companyName ?? selectedJob.company ?? "";
+  const companyLogo     = selectedJob.companyLogo ?? null;
+  const companyIndustry = selectedJob.companyIndustry ?? selectedJob.industry ?? "";
+  const companySize     = selectedJob.companySize ?? null;
+  const founded         = selectedJob.founded ?? null;
+  const website         = selectedJob.website ?? null;
+
+  const city    = selectedJob.city    ?? "";
+  const state   = selectedJob.state   ?? "";
+  const country = selectedJob.country ?? "";
+
+  const workingMode     = selectedJob.workingMode ?? selectedJob.mode ?? "";
+  const jobType         = selectedJob.jobType     ?? selectedJob.type ?? "";
+  const experienceLevel = selectedJob.experienceLevel ?? "";
+  const qualification   = selectedJob.qualification ?? "";
+
+  const salaryMin  = formatINR(selectedJob.minimumSalary);
+  const salaryMax  = formatINR(selectedJob.maximumSalary);
+  const salaryText = salaryMin && salaryMax
+    ? `${salaryMin} – ${salaryMax}`
+    : salaryMin ?? salaryMax ?? selectedJob.salary ?? null;
+
+  const totalApplicants = selectedJob.totalApplicants ?? selectedJob.applicants ?? 0;
+  const postedAgo       = timeAgo(selectedJob.postedAt  ?? selectedJob.createdAt);
+
+  // applicationDeadline: real API sends date string "2026-10-05", mock sent days count
+  const deadlineDays = selectedJob.applicationDeadline
+    ? (typeof selectedJob.applicationDeadline === "number"
+        ? selectedJob.applicationDeadline
+        : daysUntil(selectedJob.applicationDeadline))
+    : selectedJob.closingDays ?? null;
+
+  const descriptionList     = toList(selectedJob.description);
+  const responsibilityList  = toList(selectedJob.responsibilities);
+  const requirementList     = toList(selectedJob.requirements);
+  const niceToHaveList      = toList(selectedJob.preferredSkills ?? selectedJob.niceToHave);
+  const benefitsList        = parseBenefits(selectedJob.benefits);
+  const skillsRequired      = selectedJob.skillsRequired ?? selectedJob.skills ?? [];
+
+  const featured      = selectedJob.featured      ?? false;
+  const urgentHiring  = selectedJob.urgentHiring  ?? false;
+  const easyApply     = selectedJob.easyApply     ?? false;
+  const vacancies     = selectedJob.vacancies      ?? null;
+
   const similarJobs = getSimilarJobs(selectedJob.id);
+  console.log("Similar jobs for job ID", selectedJob.id, ":", similarJobs); // Debugging log
 
   return (
     <motion.div
@@ -723,7 +511,7 @@ function JobDetail() {
             <ChevronRight size={14} className="text-muted/50" />
             <Link to="/find-jobs" className="hover:text-primary-light transition-colors">Find Jobs</Link>
             <ChevronRight size={14} className="text-muted/50" />
-            <span className="text-body truncate max-w-[200px] sm:max-w-none">{selectedJob.title}</span>
+            <span className="text-body truncate max-w-[200px] sm:max-w-none">{jobTitle}</span>
           </motion.nav>
 
           {/* ===== Job Header ===== */}
@@ -736,18 +524,43 @@ function JobDetail() {
             {/* Company + Logo */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-surface-elevated p-2">
-                  <img src={selectedJob?.companyLogo} alt={`${selectedJob.company} logo`} width={40} height={40} className="h-full w-full object-contain" />
+                {/* Logo — show image if available, otherwise initials */}
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-surface-elevated p-2 shrink-0">
+                  {companyLogo ? (
+                    <img
+                      src={companyLogo}
+                      alt={`${companyName} logo`}
+                      width={40}
+                      height={40}
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <span className="text-lg font-bold text-primary">{initials(companyName)}</span>
+                  )}
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-muted">{selectedJob.companyName}</span>
-                  {selectedJob.featured && (
-                    <span className="ml-2 rounded-full bg-accent-warm/10 px-2.5 py-0.5 text-xs font-medium text-accent-warm">
-                      Featured
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium text-muted">{companyName}</span>
+                    {featured && (
+                      <span className="rounded-full bg-accent-warm/10 px-2.5 py-0.5 text-xs font-medium text-accent-warm">
+                        Featured
+                      </span>
+                    )}
+                    {urgentHiring && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-danger/10 px-2.5 py-0.5 text-xs font-medium text-danger">
+                        <Zap size={11} />
+                        Urgent
+                      </span>
+                    )}
+                    {easyApply && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
+                        <Star size={11} />
+                        Easy Apply
+                      </span>
+                    )}
+                  </div>
                   <h1 className="mt-1 text-2xl sm:text-3xl md:text-4xl font-extrabold text-heading font-satoshi leading-tight">
-                    {selectedJob.jobTitle}
+                    {jobTitle}
                   </h1>
                 </div>
               </div>
@@ -773,8 +586,9 @@ function JobDetail() {
                   {saved ? "Saved" : "Save"}
                 </button>
                 <button
-                onClick={()=> navigate("/apply-jobs")}
-                 className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature h-11 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer">
+                  onClick={() => navigate("/apply-jobs")}
+                  className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature h-11 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer"
+                >
                   <Sparkles size={16} />
                   Apply Now
                 </button>
@@ -783,26 +597,60 @@ function JobDetail() {
 
             {/* Tags Row */}
             <div className="mt-5 flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
-                <MapPin size={13} className="text-primary-light" />
-                {selectedJob.city}, {selectedJob.state}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
-                <Wifi size={13} className="text-accent" />
-                {selectedJob.workingMode}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
-                <Briefcase size={13} className="text-violet" />
-                {selectedJob.jobType}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
-                <Calendar size={13} className="text-accent-warm" />
-                Posted {selectedJob.postedAt}
-              </span>
+              {/* Location */}
+              {(city || state || country) && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
+                  <MapPin size={13} className="text-primary-light" />
+                  {[city, state, country].filter(Boolean).join(", ")}
+                </span>
+              )}
+              {/* Working Mode */}
+              {workingMode && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
+                  <Wifi size={13} className="text-accent" />
+                  {humanise(workingMode)}
+                </span>
+              )}
+              {/* Job Type */}
+              {jobType && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
+                  <Briefcase size={13} className="text-violet" />
+                  {humanise(jobType)}
+                </span>
+              )}
+              {/* Experience Level */}
+              {experienceLevel && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
+                  <GraduationCap size={13} className="text-primary-light" />
+                  {humanise(experienceLevel)}
+                </span>
+              )}
+              {/* Posted */}
+              {postedAgo && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
+                  <Calendar size={13} className="text-accent-warm" />
+                  Posted {postedAgo}
+                </span>
+              )}
+              {/* Applicants */}
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
                 <Users size={13} className="text-success" />
-                {selectedJob.totalApplicants} applicants
+                {totalApplicants} {totalApplicants === 1 ? "applicant" : "applicants"}
               </span>
+              {/* Vacancies */}
+              {vacancies != null && vacancies > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
+                  <Building2 size={13} className="text-muted" />
+                  {vacancies} {vacancies === 1 ? "vacancy" : "vacancies"}
+                </span>
+              )}
+              {/* Qualification */}
+              {qualification && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
+                  <GraduationCap size={13} className="text-muted" />
+                  {qualification}
+                </span>
+              )}
             </div>
           </motion.div>
 
@@ -813,201 +661,218 @@ function JobDetail() {
             <div className="flex-1 min-w-0">
 
               {/* — About This Role — */}
-              <motion.section
-                variants={fadeInUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
-              >
-                <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
-                  <span className="inline-flex h-8 w-1 rounded-full gradient-bg-signature" />
-                  About This Role
-                </h2>
-                <div className="mt-5 space-y-4">
-                  {selectedJob.description.map((paragraph, i) => (
-                    <motion.p
-                      key={i}
-                      variants={fadeInUp}
-                      custom={i}
-                      className="text-body text-sm sm:text-base leading-7"
-                    >
-                      {paragraph}
-                    </motion.p>
-                  ))}
-                </div>
-              </motion.section>
+              {descriptionList.length > 0 && (
+                <motion.section
+                  variants={fadeInUp}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
+                  className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
+                >
+                  <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
+                    <span className="inline-flex h-8 w-1 rounded-full gradient-bg-signature" />
+                    About This Role
+                  </h2>
+                  <div className="mt-5 space-y-4">
+                    {descriptionList.map((paragraph, i) => (
+                      <motion.p
+                        key={i}
+                        variants={fadeInUp}
+                        custom={i}
+                        className="text-body text-sm sm:text-base leading-7"
+                      >
+                        {paragraph}
+                      </motion.p>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
 
               <SectionDivider />
 
               {/* — Key Responsibilities — */}
-              <motion.section
-                variants={fadeInUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
-              >
-                <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
-                  <span className="inline-flex h-8 w-1 rounded-full gradient-bg-signature" />
-                  Key Responsibilities
-                </h2>
-                <motion.ul
-                  variants={staggerContainer}
+              {responsibilityList.length > 0 && (
+                <motion.section
+                  variants={fadeInUp}
                   initial="hidden"
                   whileInView="visible"
-                  viewport={{ once: true, amount: 0.1 }}
-                  className="mt-5 space-y-3"
+                  viewport={{ once: true, amount: 0.2 }}
+                  className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
                 >
-                  {selectedJob.responsibilities.map((item, i) => (
-                    <motion.li key={i} variants={listItem} className="flex items-start gap-3 group/item">
-                      <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-success" />
-                      <span className="text-body text-sm sm:text-base leading-7 group-hover/item:text-heading transition-colors">
-                        {item}
-                      </span>
-                    </motion.li>
-                  ))}
-                </motion.ul>
-              </motion.section>
+                  <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
+                    <span className="inline-flex h-8 w-1 rounded-full gradient-bg-signature" />
+                    Key Responsibilities
+                  </h2>
+                  <motion.ul
+                    variants={staggerContainer}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="mt-5 space-y-3"
+                  >
+                    {responsibilityList.map((item, i) => (
+                      <motion.li key={i} variants={listItem} className="flex items-start gap-3 group/item">
+                        <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-success" />
+                        <span className="text-body text-sm sm:text-base leading-7 group-hover/item:text-heading transition-colors">
+                          {item}
+                        </span>
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                </motion.section>
+              )}
 
               <SectionDivider />
 
               {/* — Requirements — */}
-              <motion.section
-                variants={fadeInUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
-              >
-                <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
-                  <span className="inline-flex h-8 w-1 rounded-full gradient-bg-signature" />
-                  Requirements
-                </h2>
-                <motion.ul
-                  variants={staggerContainer}
+              {requirementList.length > 0 && (
+                <motion.section
+                  variants={fadeInUp}
                   initial="hidden"
                   whileInView="visible"
-                  viewport={{ once: true, amount: 0.1 }}
-                  className="mt-5 space-y-3"
+                  viewport={{ once: true, amount: 0.2 }}
+                  className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
                 >
-                  {selectedJob.requirements.map((item, i) => (
-                    <motion.li key={i} variants={listItem} className="flex items-start gap-3 group/item">
-                      <div className="mt-1.5 shrink-0 h-2 w-2 rounded-full bg-primary" />
-                      <span className="text-body text-sm sm:text-base leading-7 group-hover/item:text-heading transition-colors">
-                        {item}
-                      </span>
-                    </motion.li>
-                  ))}
-                </motion.ul>
-              </motion.section>
+                  <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
+                    <span className="inline-flex h-8 w-1 rounded-full gradient-bg-signature" />
+                    Requirements
+                  </h2>
+                  <motion.ul
+                    variants={staggerContainer}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="mt-5 space-y-3"
+                  >
+                    {requirementList.map((item, i) => (
+                      <motion.li key={i} variants={listItem} className="flex items-start gap-3 group/item">
+                        <div className="mt-1.5 shrink-0 h-2 w-2 rounded-full bg-primary" />
+                        <span className="text-body text-sm sm:text-base leading-7 group-hover/item:text-heading transition-colors">
+                          {item}
+                        </span>
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                </motion.section>
+              )}
 
-              <SectionDivider />
-
-              {/* — Nice to Have — */}
-              <motion.section
-                variants={fadeInUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
-              >
-                <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
-                  <span className="inline-flex h-8 w-1 rounded-full bg-accent/60" />
-                  Nice to Have
-                </h2>
-                <motion.ul
-                  variants={staggerContainer}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.1 }}
-                  className="mt-5 space-y-3"
-                >
-                  {selectedJob.niceToHave.map((item, i) => (
-                    <motion.li key={i} variants={listItem} className="flex items-start gap-3 group/item">
-                      <Circle size={14} className="mt-1 shrink-0 text-muted" />
-                      <span className="text-muted text-sm sm:text-base leading-7 group-hover/item:text-body transition-colors">
-                        {item}
-                      </span>
-                    </motion.li>
-                  ))}
-                </motion.ul>
-              </motion.section>
-
-              <SectionDivider />
+              {/* — Preferred / Nice to Have — */}
+              {niceToHaveList.length > 0 && (
+                <>
+                  <SectionDivider />
+                  <motion.section
+                    variants={fadeInUp}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                    className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
+                  >
+                    <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
+                      <span className="inline-flex h-8 w-1 rounded-full bg-accent/60" />
+                      Nice to Have
+                    </h2>
+                    <motion.ul
+                      variants={staggerContainer}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true, amount: 0.1 }}
+                      className="mt-5 space-y-3"
+                    >
+                      {niceToHaveList.map((item, i) => (
+                        <motion.li key={i} variants={listItem} className="flex items-start gap-3 group/item">
+                          <Circle size={14} className="mt-1 shrink-0 text-muted" />
+                          <span className="text-muted text-sm sm:text-base leading-7 group-hover/item:text-body transition-colors">
+                            {item}
+                          </span>
+                        </motion.li>
+                      ))}
+                    </motion.ul>
+                  </motion.section>
+                </>
+              )}
 
               {/* — Benefits & Perks — */}
-              <motion.section
-                variants={fadeInUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
-              >
-                <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
-                  <span className="inline-flex h-8 w-1 rounded-full gradient-bg-signature" />
-                  Benefits &amp; Perks
-                </h2>
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.1 }}
-                  className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
-                >
-                  {selectedJob.benefits.map((benefit, i) => {
-                    const Icon = benefit.icon;
-                    return (
-                      <motion.div
-                        key={i}
-                        variants={listItem}
-                        className="group/perk flex items-start gap-4 rounded-xl border border-border bg-surface-elevated p-4 transition-all duration-300 hover:border-primary/20 hover:shadow-glow-primary"
-                      >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary-light group-hover/perk:bg-primary/15 transition-colors">
-                          <Icon size={20} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-heading">{benefit.label}</p>
-                          <p className="mt-0.5 text-xs text-muted">{benefit.desc}</p>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
-              </motion.section>
-
-              <SectionDivider />
+              {benefitsList.length > 0 && (
+                <>
+                  <SectionDivider />
+                  <motion.section
+                    variants={fadeInUp}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                    className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
+                  >
+                    <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
+                      <span className="inline-flex h-8 w-1 rounded-full gradient-bg-signature" />
+                      Benefits &amp; Perks
+                    </h2>
+                    <motion.div
+                      variants={staggerContainer}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true, amount: 0.1 }}
+                      className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
+                    >
+                      {benefitsList.map((benefit, i) => {
+                        const Icon = benefit.icon ?? CheckCircle2;
+                        return (
+                          <motion.div
+                            key={i}
+                            variants={listItem}
+                            className="group/perk flex items-start gap-4 rounded-xl border border-border bg-surface-elevated p-4 transition-all duration-300 hover:border-primary/20 hover:shadow-glow-primary"
+                          >
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary-light group-hover/perk:bg-primary/15 transition-colors">
+                              <Icon size={20} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-heading">{benefit.label}</p>
+                              {benefit.desc && (
+                                <p className="mt-0.5 text-xs text-muted">{benefit.desc}</p>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
+                  </motion.section>
+                </>
+              )}
 
               {/* — Required Skills — */}
-              <motion.section
-                variants={fadeInUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
-              >
-                <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
-                  <span className="inline-flex h-8 w-1 rounded-full gradient-bg-signature" />
-                  Required Skills
-                </h2>
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.1 }}
-                  className="mt-5 flex flex-wrap gap-3"
-                >
-                  {selectedJob.skillsRequired.map((skill, i) => (
-                    <motion.span
-                      key={skill}
-                      variants={listItem}
-                      className="rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary-light hover:bg-primary/15 hover:border-primary/30 transition-all cursor-default"
+              {skillsRequired.length > 0 && (
+                <>
+                  <SectionDivider />
+                  <motion.section
+                    variants={fadeInUp}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                    className="rounded-[20px] border border-border bg-surface p-6 sm:p-8"
+                  >
+                    <h2 className="text-xl sm:text-2xl font-bold text-heading font-satoshi flex items-center gap-3">
+                      <span className="inline-flex h-8 w-1 rounded-full gradient-bg-signature" />
+                      Required Skills
+                    </h2>
+                    <motion.div
+                      variants={staggerContainer}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true, amount: 0.1 }}
+                      className="mt-5 flex flex-wrap gap-3"
                     >
-                      {skill}
-                    </motion.span>
-                  ))}
-                </motion.div>
-              </motion.section>
+                      {skillsRequired.map((skill) => (
+                        <motion.span
+                          key={skill}
+                          variants={listItem}
+                          className="rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary-light hover:bg-primary/15 hover:border-primary/30 transition-all cursor-default"
+                        >
+                          {skill}
+                        </motion.span>
+                      ))}
+                    </motion.div>
+                  </motion.section>
+                </>
+              )}
             </div>
 
             {/* ===== Right Column: Sidebar ===== */}
@@ -1024,17 +889,24 @@ function JobDetail() {
                   {/* Salary */}
                   <div className="text-center">
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Annual Salary</p>
-                    <p className="text-2xl sm:text-3xl font-extrabold text-heading font-satoshi gradient-text">
-                      {selectedJob.minimumSalary} – {selectedJob.maximumSalary}
-                    </p>
-                    <p className="mt-1 text-xs text-muted">{selectedJob?.salaryPeriod}</p>
+                    {salaryText ? (
+                      <p className="text-2xl sm:text-3xl font-extrabold text-heading font-satoshi gradient-text">
+                        {salaryText}
+                      </p>
+                    ) : (
+                      <p className="text-lg font-semibold text-muted">Not disclosed</p>
+                    )}
+                    <p className="mt-1 text-xs text-muted">per year</p>
                   </div>
 
                   {/* Divider */}
                   <div className="my-5 h-px bg-border" />
 
                   {/* Apply Button */}
-                  <button className="flex w-full items-center justify-center gap-2 rounded-xl gradient-bg-signature h-11 sm:h-12 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer">
+                  <button
+                    onClick={() => navigate("/apply-jobs")}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl gradient-bg-signature h-11 sm:h-12 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer"
+                  >
                     <Sparkles size={16} />
                     Apply Now
                   </button>
@@ -1052,12 +924,77 @@ function JobDetail() {
                     {saved ? "Job Saved" : "Save Job"}
                   </button>
 
-                  {/* Closing */}
-                  <div className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-accent-warm/5 border border-accent-warm/10 px-4 py-2.5">
-                    <CalendarDays size={14} className="text-accent-warm" />
-                    <span className="text-xs font-medium text-accent-warm">
-                      Applications close in {selectedJob.applicationDeadline} days
-                    </span>
+                  {/* Closing Deadline */}
+                  {deadlineDays != null && (
+                    <div className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-accent-warm/5 border border-accent-warm/10 px-4 py-2.5">
+                      <CalendarDays size={14} className="text-accent-warm" />
+                      <span className="text-xs font-medium text-accent-warm">
+                        {deadlineDays > 0
+                          ? `Applications close in ${deadlineDays} day${deadlineDays === 1 ? "" : "s"}`
+                          : "Application deadline passed"}
+                      </span>
+                    </div>
+                  )}
+                </motion.div>
+
+                {/* — Quick Info Card — */}
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.28 }}
+                  className="rounded-[20px] border border-border bg-surface p-5 sm:p-6"
+                >
+                  <h3 className="text-sm font-bold text-heading font-satoshi mb-4">Job Details</h3>
+                  <div className="space-y-3">
+                    {experienceLevel && (
+                      <div className="flex items-center gap-3">
+                        <GraduationCap size={15} className="text-muted shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted">Experience Level</p>
+                          <p className="text-sm font-medium text-body">{humanise(experienceLevel)}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedJob.minimumExperience != null && selectedJob.maximumExperience != null && (
+                      <div className="flex items-center gap-3">
+                        <Clock size={15} className="text-muted shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted">Experience Required</p>
+                          <p className="text-sm font-medium text-body">
+                            {selectedJob.minimumExperience} – {selectedJob.maximumExperience} years
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {qualification && (
+                      <div className="flex items-center gap-3">
+                        <GraduationCap size={15} className="text-muted shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted">Qualification</p>
+                          <p className="text-sm font-medium text-body">{qualification}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedJob.numberOfInterviewRounds != null && (
+                      <div className="flex items-center gap-3">
+                        <Users size={15} className="text-muted shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted">Interview Rounds</p>
+                          <p className="text-sm font-medium text-body">
+                            {selectedJob.numberOfInterviewRounds} round{selectedJob.numberOfInterviewRounds !== 1 ? "s" : ""}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedJob.status && (
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 size={15} className="text-success shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted">Status</p>
+                          <p className="text-sm font-medium text-success">{humanise(selectedJob.status)}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
 
@@ -1070,46 +1007,73 @@ function JobDetail() {
                 >
                   {/* Logo + Name */}
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-elevated p-2">
-                      <img src={selectedJob.companyLogo} alt={`${selectedJob.company} logo`} width={32} height={32} className="h-full w-full object-contain" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-elevated p-2 shrink-0">
+                      {companyLogo ? (
+                        <img
+                          src={companyLogo}
+                          alt={`${companyName} logo`}
+                          width={32}
+                          height={32}
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <span className="text-sm font-bold text-primary">{initials(companyName)}</span>
+                      )}
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-heading font-satoshi">{selectedJob.company}</h3>
-                      <span className="text-xs text-muted">{selectedJob.industry}</span>
+                      <h3 className="text-base font-bold text-heading font-satoshi">{companyName}</h3>
+                      {companyIndustry && (
+                        <span className="text-xs text-muted">{companyIndustry}</span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Company Details */}
+                  {/* Company Details — shown only when data exists */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Building2 size={16} className="text-muted" />
-                      <div>
-                        <p className="text-xs text-muted">Company Size</p>
-                        <p className="text-sm font-medium text-body">{selectedJob.companySize} employees</p>
+                    {companySize && (
+                      <div className="flex items-center gap-3">
+                        <Building2 size={16} className="text-muted" />
+                        <div>
+                          <p className="text-xs text-muted">Company Size</p>
+                          <p className="text-sm font-medium text-body">{companySize} employees</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <CalendarDays size={16} className="text-muted" />
-                      <div>
-                        <p className="text-xs text-muted">Founded</p>
-                        <p className="text-sm font-medium text-body">{selectedJob.founded}</p>
+                    )}
+                    {founded && (
+                      <div className="flex items-center gap-3">
+                        <CalendarDays size={16} className="text-muted" />
+                        <div>
+                          <p className="text-xs text-muted">Founded</p>
+                          <p className="text-sm font-medium text-body">{founded}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Globe size={16} className="text-muted" />
-                      <div>
-                        <p className="text-xs text-muted">Website</p>
-                        <a
-                          href={`https://${selectedJob.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-sm font-medium text-primary-light hover:text-primary transition-colors"
-                        >
-                          {selectedJob.website}
-                          <ExternalLink size={12} />
-                        </a>
+                    )}
+                    {website && (
+                      <div className="flex items-center gap-3">
+                        <Globe size={16} className="text-muted" />
+                        <div>
+                          <p className="text-xs text-muted">Website</p>
+                          <a
+                            href={website.startsWith("http") ? website : `https://${website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-sm font-medium text-primary-light hover:text-primary transition-colors"
+                          >
+                            {website}
+                            <ExternalLink size={12} />
+                          </a>
+                        </div>
                       </div>
-                    </div>
+                    )}
+                    {selectedJob.recruiterName && (
+                      <div className="flex items-center gap-3">
+                        <Users size={16} className="text-muted" />
+                        <div>
+                          <p className="text-xs text-muted">Recruiter</p>
+                          <p className="text-sm font-medium text-body">{selectedJob.recruiterName}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Divider */}
@@ -1120,7 +1084,7 @@ function JobDetail() {
                     to="/company"
                     className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface hover:bg-surface-elevated py-2.5 text-sm font-semibold text-muted hover:text-primary-light hover:border-primary/20 transition-all"
                   >
-                    View all jobs from {selectedJob.companyName}
+                    View all jobs from {companyName}
                     <ArrowRight size={14} />
                   </Link>
                 </motion.div>
@@ -1129,54 +1093,51 @@ function JobDetail() {
           </div>
 
           {/* ===== Similar Jobs Section ===== */}
-          <motion.section
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.6 }}
-            className="mt-16 lg:mt-24"
-          >
-            {/* Section Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 35 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              {/* Badge */}
-              <div className="inline-flex items-center gap-3 rounded-full border border-primary/20 bg-primary/10 px-6 py-2">
-                <span className="h-px w-6 bg-primary/40" />
-                <span className="text-sm font-semibold uppercase tracking-wider text-primary-light">
-                  You Might Also Like
-                </span>
-                <span className="h-px w-6 bg-primary/40" />
-              </div>
-
-              {/* Title */}
-              <h2 className="mt-6 text-3xl sm:text-4xl md:text-5xl font-extrabold text-heading font-satoshi leading-tight">
-                Similar <span className="gradient-text">Jobs</span>
-              </h2>
-
-              {/* Description */}
-              <p className="mx-auto mt-4 max-w-xl text-body text-sm sm:text-base md:text-lg leading-8">
-                Explore more opportunities that match your profile and interests.
-              </p>
-            </motion.div>
-
-            {/* Similar Job Cards */}
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
+          {similarJobs.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true, amount: 0.1 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              transition={{ duration: 0.6 }}
+              className="mt-16 lg:mt-24"
             >
-              {similarJobs.map((sJob) => (
-                <SimilarJobCard key={sJob.id} job={sJob} />
-              ))}
-            </motion.div>
-          </motion.section>
+              {/* Section Header */}
+              <motion.div
+                initial={{ opacity: 0, y: 35 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+                className="text-center mb-12"
+              >
+                <div className="inline-flex items-center gap-3 rounded-full border border-primary/20 bg-primary/10 px-6 py-2">
+                  <span className="h-px w-6 bg-primary/40" />
+                  <span className="text-sm font-semibold uppercase tracking-wider text-primary-light">
+                    You Might Also Like
+                  </span>
+                  <span className="h-px w-6 bg-primary/40" />
+                </div>
+                <h2 className="mt-6 text-3xl sm:text-4xl md:text-5xl font-extrabold text-heading font-satoshi leading-tight">
+                  Similar <span className="gradient-text">Jobs</span>
+                </h2>
+                <p className="mx-auto mt-4 max-w-xl text-body text-sm sm:text-base md:text-lg leading-8">
+                  Explore more opportunities that match your profile and interests.
+                </p>
+              </motion.div>
+
+              {/* Similar Job Cards */}
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.1 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {similarJobs.map((sJob) => (
+                  <SimilarJobCard key={sJob.id} job={sJob} />
+                ))}
+              </motion.div>
+            </motion.section>
+          )}
         </div>
       </div>
 
@@ -1202,7 +1163,10 @@ function JobDetail() {
             >
               <Share2 size={20} />
             </button>
-            <button className="flex flex-1 items-center justify-center gap-2 rounded-xl gradient-bg-signature h-12 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer">
+            <button
+              onClick={() => navigate("/apply-jobs")}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl gradient-bg-signature h-12 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer"
+            >
               <Sparkles size={16} />
               Apply Now
             </button>
@@ -1211,7 +1175,11 @@ function JobDetail() {
       </div>
 
       {/* ===== Share Modal ===== */}
-      <ShareModal isOpen={shareOpen} onClose={() => setShareOpen(false)} jobTitle={selectedJob.title} />
+      <ShareModal
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+        jobTitle={jobTitle}
+      />
     </motion.div>
   );
 }
