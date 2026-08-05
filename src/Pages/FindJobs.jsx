@@ -26,6 +26,7 @@ import {
   searchJobs,
   filterJobs,
 } from "../State/JobSlice";
+import { saveJobThunk, unsaveJobThunk } from "../State/savedJobThunk";
 
 /* ================================================================
    CONSTANTS
@@ -300,10 +301,23 @@ function FilterSidebarContent({ filters, onToggleFilter, onSetSalary, onClearAll
    COMPONENT: JobCard
    ================================================================ */
 function JobCard({ job, view }) {
-  const [saved, setSaved] = useState(false);
+  const dispatch = useAppDispatch();
+  const { savedJobIds } = useAppSelector((state) => state.savedJob);
   const [logoError, setLogoError] = useState(false);
 
+  const isSaved = savedJobIds.includes(Number(job.id));
   const isList = view === "list";
+
+  const handleToggleSave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!job.id) return;
+    if (isSaved) {
+      dispatch(unsaveJobThunk(Number(job.id)));
+    } else {
+      dispatch(saveJobThunk(Number(job.id)));
+    }
+  };
 
   const location = [job.city, job.state, job.country]
     .filter(Boolean)
@@ -381,18 +395,16 @@ function JobCard({ job, view }) {
 
             {/* Bookmark */}
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setSaved((s) => !s);
-              }}
-              className={`shrink-0 rounded-xl p-2 transition-all duration-200 ${saved
-                ? "bg-primary/15 text-primary-light"
-                : "text-muted hover:bg-surface-elevated hover:text-heading"
-                }`}
-              aria-label={saved ? "Unsave job" : "Save job"}
+              type="button"
+              onClick={handleToggleSave}
+              className={`shrink-0 rounded-xl p-2 transition-all duration-200 cursor-pointer ${
+                isSaved
+                  ? "bg-primary/15 text-primary-light border border-primary/30"
+                  : "text-muted hover:bg-surface-elevated hover:text-heading"
+              }`}
+              aria-label={isSaved ? "Unsave job" : "Save job"}
             >
-              {saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+              {isSaved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
             </button>
           </div>
 
@@ -990,24 +1002,24 @@ export default function FindJobs() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="flex flex-col items-center justify-center rounded-[20px] border border-border bg-surface px-6 py-20 text-center"
+                  className="flex flex-col items-center justify-center rounded-3xl border border-white/10 bg-[#090d16]/90 backdrop-blur-xl px-6 py-20 text-center shadow-xl font-inter text-slate-200"
                 >
-                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                    <Search size={32} className="text-primary-light" />
+                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-indigo-600/15 border border-indigo-500/30 text-indigo-400 shadow-inner">
+                    <Search size={34} />
                   </div>
-                  <h3 className="font-satoshi text-xl font-bold text-heading">
-                    No jobs found
+                  <h3 className="font-satoshi text-2xl font-black text-white tracking-tight">
+                    No Matching Jobs Found
                   </h3>
-                  <p className="mt-2 max-w-sm text-sm text-muted">
-                    We couldn't find any jobs matching your current filters. Try
-                    adjusting your search or removing some filters.
+                  <p className="mt-2.5 max-w-md text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
+                    We couldn't find any opportunities matching your active filters. Try broadening your keywords, location, or reset filters below.
                   </p>
                   <button
+                    type="button"
                     onClick={clearAll}
-                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary/15 px-6 py-2.5 text-sm font-semibold text-primary-light transition-all hover:bg-primary/25"
+                    className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-7 py-3 text-xs font-black uppercase tracking-wider text-white shadow-[0_0_25px_rgba(99,102,241,0.4)] hover:shadow-[0_0_35px_rgba(168,85,247,0.6)] hover:scale-105 transition-all duration-300 cursor-pointer"
                   >
-                    <X size={14} />
-                    Clear all filters
+                    <Sparkles size={15} className="text-amber-300 fill-amber-300/20 animate-pulse" />
+                    Reset Filters & Explore All Jobs
                   </button>
                 </motion.div>
               )}

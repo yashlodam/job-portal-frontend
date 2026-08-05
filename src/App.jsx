@@ -28,6 +28,7 @@ const About     = React.lazy(() => import('./Pages/About'));
 const JobDetail = React.lazy(() => import('./Pages/JobDetail'));
 const MyJobsPage = React.lazy(() => import('./Pages/MyJobsPage'));
 const CareerHubPage = React.lazy(() => import('./Pages/CareerHubPage'));
+const MessagesPage = React.lazy(() => import('./Pages/MessagesPage'));
 const NotificationsPage = React.lazy(() => import('./features/notifications/pages/NotificationsPage'));
 
 // Recruiter Studio Pages
@@ -228,8 +229,12 @@ function App() {
               <Route path="/career-hub/salary-insights font" element={<CareerHubPage />} />
               <Route path="/career-hub/salary-insights" element={<CareerHubPage />} />
               <Route path="/profile"                 element={<ProfilePage />} />
+              <Route path="/reset-password font" element={<ResetPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/notifications"  element={<NotificationsPage />} />
+              <Route path="/messages font"     element={<MessagesPage />} />
+              <Route path="/messages font text"element={<MessagesPage />} />
+              <Route path="/messages"       element={<MessagesPage />} />
 
               {/* Recruiter Studio Routes */}
               <Route path="/dashboard font"            element={<RecruiterDashboardPage />} />

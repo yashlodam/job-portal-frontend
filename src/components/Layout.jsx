@@ -3,8 +3,8 @@ import { Outlet, useLocation } from "react-router-dom";
 import Header from "../Header/Header";
 import Footer from "../LandingPage/Footer";
 import ScrollToTop from "./ScrollToTop";
+import FloatingAIChatbot from "./FloatingAIChatbot";
 import { useAppSelector } from "../State/Store";
-
 function Layout() {
   const location = useLocation();
   const user = useAppSelector((state) => state.auth.profile);
@@ -46,6 +46,9 @@ function Layout() {
       <main id="main-content" className="relative w-full">
         <Outlet />
       </main>
+
+      {/* Global Floating AI Career Chatbot */}
+      {!isAuthRoute && <FloatingAIChatbot />}
 
       {/* Footer — hidden for Employers, Auth pages, and Recruiter routes */}
       {!hideUserHeaderFooter && <Footer />}

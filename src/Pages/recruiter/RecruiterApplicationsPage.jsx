@@ -105,14 +105,14 @@ export default function RecruiterApplicationsPage() {
       {/* Grid of Candidate Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map((app) => (
-          <Card key={app.id} className="flex flex-col justify-between p-5">
+          <Card key={app.id} className="flex flex-col justify-between p-5 border-white/10 bg-[#090d16]/90 backdrop-blur-xl hover:border-indigo-500/40 transition-all duration-300 shadow-xl">
             <div>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Avatar name={app.candidateName} size="md" />
                   <div>
-                    <h3 className="font-bold text-white font-satoshi text-base">{app.candidateName}</h3>
-                    <p className="text-xs text-white/50">{app.email}</p>
+                    <h3 className="font-bold text-white font-satoshi text-base leading-tight">{app.candidateName}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{app.email}</p>
                   </div>
                 </div>
                 <StatusChip status={app.status} />
@@ -120,13 +120,13 @@ export default function RecruiterApplicationsPage() {
 
               <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-white/50">Applied for:</span>
-                  <span className="font-semibold text-white">{app.jobTitle}</span>
+                  <span className="text-slate-400">Applied for:</span>
+                  <span className="font-semibold text-white truncate max-w-[160px]">{app.jobTitle}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-white/50">AI Match Score:</span>
-                  <span className="font-bold text-indigo-400 flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" /> {app.matchScore}%
+                  <span className="text-slate-400 font-medium">AI Match Score:</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-400/30 px-2 py-0.5 text-[11px] font-extrabold text-amber-300">
+                    <Sparkles className="h-3 w-3 text-amber-400 fill-amber-400/20 animate-pulse" /> {app.matchScore}% Match
                   </span>
                 </div>
               </div>
@@ -134,49 +134,73 @@ export default function RecruiterApplicationsPage() {
               {/* Skills */}
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {app.skills.map((skill) => (
-                  <span key={skill} className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] text-white/70 border border-white/5">
+                  <span key={skill} className="rounded-lg bg-indigo-500/10 px-2 py-0.5 text-[10px] font-semibold text-indigo-300 border border-indigo-500/20">
                     {skill}
                   </span>
                 ))}
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between gap-2">
+            {/* Actions & ATS Stage Progression */}
+            <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between gap-2">
               <button
+                type="button"
                 onClick={() => {
                   setSelectedCandidate(app);
                   setShowResumeModal(true);
                 }}
-                className="flex items-center gap-1 text-xs font-semibold text-white/70 hover:text-white transition cursor-pointer"
+                className="inline-flex items-center gap-1 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer"
               >
                 <FileText className="h-3.5 w-3.5 text-indigo-400" /> Resume
               </button>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 {app.status === "APPLIED" && (
                   <button
+                    type="button"
+                    onClick={() => updateStatus(app.id, "REVIEWING")}
+                    className="px-2.5 py-1 rounded-xl border border-cyan-500/40 bg-cyan-500/15 text-cyan-300 text-xs font-bold hover:bg-cyan-500/25 transition cursor-pointer"
+                  >
+                    Review
+                  </button>
+                )}
+                {(app.status === "APPLIED" || app.status === "REVIEWING") && (
+                  <button
+                    type="button"
                     onClick={() => updateStatus(app.id, "SHORTLISTED")}
-                    className="p-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-semibold hover:bg-indigo-500/20 transition cursor-pointer"
+                    className="px-2.5 py-1 rounded-xl border border-indigo-500/40 bg-indigo-500/15 text-indigo-300 text-xs font-bold hover:bg-indigo-500/25 transition cursor-pointer"
                   >
                     Shortlist
                   </button>
                 )}
                 {app.status === "SHORTLISTED" && (
                   <button
+                    type="button"
                     onClick={() => updateStatus(app.id, "INTERVIEW")}
-                    className="p-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-300 text-xs font-semibold hover:bg-purple-500/20 transition cursor-pointer"
+                    className="px-2.5 py-1 rounded-xl border border-purple-500/40 bg-purple-500/15 text-purple-300 text-xs font-bold hover:bg-purple-500/25 transition cursor-pointer"
                   >
-                    Schedule Interview
+                    Interview
                   </button>
                 )}
-                <button
-                  onClick={() => updateStatus(app.id, "REJECTED")}
-                  className="p-1.5 rounded-lg text-white/40 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
-                  title="Reject"
-                >
-                  <XCircle className="h-4 w-4" />
-                </button>
+                {(app.status === "INTERVIEW" || app.status === "INTERVIEWING") && (
+                  <button
+                    type="button"
+                    onClick={() => updateStatus(app.id, "OFFERED")}
+                    className="px-2.5 py-1 rounded-xl border border-amber-500/40 bg-amber-500/15 text-amber-300 text-xs font-bold hover:bg-amber-500/25 transition cursor-pointer"
+                  >
+                    Extend Offer
+                  </button>
+                )}
+                {app.status !== "REJECTED" && (
+                  <button
+                    type="button"
+                    onClick={() => updateStatus(app.id, "REJECTED")}
+                    className="p-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"
+                    title="Reject Candidate"
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
           </Card>

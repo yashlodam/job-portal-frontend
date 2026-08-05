@@ -1,38 +1,39 @@
+/**
+ * src/ApplyJob/ApplyJobComp.jsx
+ *
+ * Streamlined 1-Page Job Application Component.
+ * Removes redundant multi-step wizard forms and personal info inputs.
+ * Directly integrates Spring Boot JobApplicationController endpoint:
+ * POST /api/applications/jobs/{jobId} ({ coverLetter, resumeId })
+ */
+
 import React, { useState, useRef, useEffect } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { notifications } from "@mantine/notifications";
 import {
   IconUser,
   IconMail,
   IconPhone,
-  IconWorld,
-  IconBrandLinkedin,
-  IconBrandGithub,
   IconUpload,
   IconFileText,
-  IconChevronRight,
-  IconChevronLeft,
   IconCircleCheck,
   IconSparkles,
   IconMapPin,
-  IconClock,
-  IconUsers,
   IconBriefcase,
   IconX,
   IconStar,
-  IconBuilding,
   IconShield,
-  IconAlertTriangle,
-  IconArrowRight,
   IconLoader2,
   IconCheck,
+  IconEdit,
+  IconFileCv,
 } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { applyToJobThunk } from "../State/applicationThunk";
 import { getJobById } from "../State/JobSlice";
-import { fetchMyProfileThunk, fetchProfileByEmailThunk } from "../State/profileThunk";
-import { fetchMyResumesThunk } from "../State/resumeThunk";
+import { fetchProfileByEmailThunk } from "../State/profileThunk";
+import { fetchMyResumesThunk, uploadResumeThunk } from "../State/resumeThunk";
 
 /* ─── Helpers ─── */
 function humanise(str) {
@@ -50,322 +51,16 @@ function formatINR(val) {
 }
 
 /* ─── Animation Variants ─── */
-const fadeSlide = {
-  hidden: (dir) => ({ opacity: 0, x: dir > 0 ? 60 : -60 }),
-  visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
-  exit: (dir) => ({ opacity: 0, x: dir < 0 ? 60 : -60, transition: { duration: 0.3 } }),
-};
-
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 16 },
   visible: (i = 0) => ({
-    opacity: 1, y: 0,
-    transition: { duration: 0.45, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] },
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] },
   }),
 };
 
-/* ─── Steps Config ─── */
-const STEPS = [
-  { id: 1, label: "Personal", icon: IconUser },
-  { id: 2, label: "Links", icon: IconWorld },
-  { id: 3, label: "Documents", icon: IconFileText },
-  { id: 4, label: "Cover Letter", icon: IconStar },
-];
-
-/* ─── Shared Field Wrapper ─── */
-function Field({ label, required, error, children }) {
-  return (
-    <motion.div variants={fadeUp} className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-heading">
-        {label}
-        {required && <span className="text-primary-light ml-0.5">*</span>}
-      </label>
-      {children}
-      <AnimatePresence>
-        {error && (
-          <motion.p
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            className="text-xs text-danger flex items-center gap-1"
-          >
-            <IconX size={11} /> {error}
-          </motion.p>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-function TextInputField({ icon: Icon, placeholder, type = "text", value, onChange, error }) {
-  return (
-    <div className="relative">
-      {Icon && (
-        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none">
-          <Icon size={16} />
-        </span>
-      )}
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={`w-full h-12 rounded-xl border bg-surface-elevated text-heading placeholder:text-muted text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 hover:border-border-hover ${
-          Icon ? "pl-10 pr-4" : "px-4"
-        } ${error ? "border-danger/60 ring-2 ring-danger/20" : "border-border"}`}
-      />
-    </div>
-  );
-}
-
-/* ─── File Drop Zone ─── */
-function FileDropZone({ label, hint, accept, file, onFile, onClear }) {
-  const inputRef = useRef(null);
-  const [dragging, setDragging] = useState(false);
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragging(false);
-    const dropped = e.dataTransfer.files[0];
-    if (dropped) onFile(dropped);
-  };
-
-  return (
-    <div
-      onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={handleDrop}
-      onClick={() => !file && inputRef.current?.click()}
-      className={`relative rounded-2xl border-2 border-dashed p-6 transition-all duration-300 cursor-pointer group ${
-        file
-          ? "border-primary/40 bg-primary/5"
-          : dragging
-          ? "border-primary/60 bg-primary/8 scale-[1.01]"
-          : "border-border hover:border-primary/30 hover:bg-surface-elevated"
-      }`}
-    >
-      <input
-        ref={inputRef}
-        type="file"
-        accept={accept}
-        className="hidden"
-        onChange={(e) => e.target.files[0] && onFile(e.target.files[0])}
-      />
-
-      {file ? (
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-            <IconFileText size={18} className="text-primary-light" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-heading truncate">{file.name || file.resumeName || "Attached Resume"}</p>
-            <p className="text-xs text-muted">{file.size ? `${(file.size / 1024).toFixed(1)} KB` : "Resume Document"}</p>
-          </div>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onClear(); }}
-            className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface-hover text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer"
-          >
-            <IconX size={14} />
-          </button>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-hover group-hover:bg-primary/10 transition-colors">
-            <IconUpload size={20} className="text-muted group-hover:text-primary-light transition-colors" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-heading">{label}</p>
-            <p className="text-xs text-muted mt-0.5">{hint}</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─── Step Indicator ─── */
-function StepBar({ current }) {
-  return (
-    <div className="flex items-center gap-0">
-      {STEPS.map((step, idx) => {
-        const done = step.id < current;
-        const active = step.id === current;
-        const Icon = step.icon;
-        return (
-          <React.Fragment key={step.id}>
-            <div className="flex flex-col items-center gap-1.5">
-              <div
-                className={`relative flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-500 ${
-                  done
-                    ? "border-primary bg-primary"
-                    : active
-                    ? "border-primary bg-primary/15"
-                    : "border-border bg-surface-elevated"
-                }`}
-              >
-                {done ? (
-                  <IconCircleCheck size={18} className="text-white" />
-                ) : (
-                  <Icon size={16} className={active ? "text-primary-light" : "text-muted"} />
-                )}
-                {active && (
-                  <motion.span
-                    className="absolute inset-0 rounded-full border-2 border-primary/40"
-                    animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                )}
-              </div>
-              <span
-                className={`text-xs font-semibold transition-colors ${
-                  active ? "text-primary-light" : done ? "text-heading" : "text-muted"
-                }`}
-              >
-                {step.label}
-              </span>
-            </div>
-
-            {idx < STEPS.length - 1 && (
-              <div className="relative mx-2 h-0.5 flex-1 overflow-hidden rounded-full bg-border" style={{ minWidth: 28 }}>
-                <motion.div
-                  className="absolute inset-y-0 left-0 rounded-full bg-primary"
-                  initial={false}
-                  animate={{ width: done ? "100%" : "0%" }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                />
-              </div>
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ─── Profile Incomplete Warning Banner ─── */
-function ProfileIncompleteWarning({ missingItems, onProceedAnyway, onGoToProfile }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mb-8 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 backdrop-blur-md"
-    >
-      <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400">
-          <IconAlertTriangle size={24} />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-base font-bold text-white font-satoshi">Complete Your Profile First</h3>
-          <p className="text-xs text-amber-200/80 mt-1 leading-relaxed">
-            Employers evaluate candidate applications with complete profiles first. Complete your profile details to maximize your callback rate:
-          </p>
-
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            {missingItems.map((item) => (
-              <div key={item.label} className="flex items-center gap-2 text-amber-100">
-                <span className={item.present ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
-                  {item.present ? "✓" : "✗"}
-                </span>
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <button
-              onClick={onGoToProfile}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-xs font-bold text-white shadow-lg hover:scale-105 transition cursor-pointer"
-            >
-              <IconUser size={14} /> Go to Profile to Update ↗
-            </button>
-            <button
-              onClick={onProceedAnyway}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-white/70 hover:text-white transition cursor-pointer underline"
-            >
-              Fill Details Manually →
-            </button>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ─── Success Screen ─── */
-function SuccessScreen({ name, jobTitle, companyName }) {
-  const navigate = useNavigate();
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.92 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-      className="flex flex-col items-center justify-center py-16 text-center"
-    >
-      <div className="relative mb-8">
-        <motion.div
-          className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10"
-          animate={{ boxShadow: ["0 0 0 0 rgba(99,102,241,0.4)", "0 0 0 20px rgba(99,102,241,0)", "0 0 0 0 rgba(99,102,241,0)"] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <motion.div
-            initial={{ scale: 0, rotate: -90 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.2, duration: 0.5, type: "spring", stiffness: 200 }}
-          >
-            <IconCircleCheck size={48} className="text-primary-light" />
-          </motion.div>
-        </motion.div>
-      </div>
-
-      <motion.h2
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.4 }}
-        className="text-3xl font-extrabold text-heading font-satoshi"
-      >
-        Application Submitted Successfully!
-      </motion.h2>
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.4 }}
-        className="mt-3 max-w-md text-body"
-      >
-        Congratulations, <span className="text-heading font-semibold">{name || "Applicant"}</span>! Your application for{" "}
-        <span className="text-indigo-400 font-semibold">{jobTitle || "this position"}</span> at{" "}
-        <span className="text-heading font-semibold">{companyName || "the company"}</span> has been sent to the recruiter.
-      </motion.p>
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.65, duration: 0.4 }}
-        className="mt-8 flex flex-wrap justify-center gap-4"
-      >
-        <button
-          onClick={() => navigate("/find-jobs")}
-          className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-elevated px-6 py-2.5 text-sm font-semibold text-heading hover:border-primary/30 hover:bg-surface-hover transition-all cursor-pointer"
-        >
-          Browse More Jobs
-        </button>
-        <button
-          onClick={() => navigate("/")}
-          className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature px-6 py-2.5 text-sm font-semibold text-white shadow-button hover:shadow-[0_0_28px_rgba(99,102,241,0.45)] transition-all cursor-pointer"
-        >
-          <IconSparkles size={15} />
-          Go to Home
-        </button>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-/* ═══════════════════════════
-   Main Component
-══════════════════════════════ */
-function ApplyJobComp() {
+export default function ApplyJobComp() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -378,9 +73,8 @@ function ApplyJobComp() {
   const { selectedJob } = useAppSelector((state) => state.job);
   const { applyLoading } = useAppSelector((state) => state.application);
 
-  useEffect(() => {
-    dispatch(fetchMyResumesThunk());
-  }, [dispatch]);
+  // File input ref for uploading new resume
+  const fileInputRef = useRef(null);
 
   // Determine active job
   const jobIdFromQuery = searchParams.get("jobId");
@@ -399,6 +93,10 @@ function ApplyJobComp() {
     }
   }, [dispatch, authUser, userProfile]);
 
+  useEffect(() => {
+    dispatch(fetchMyResumesThunk());
+  }, [dispatch]);
+
   const activeJob = passedJob || selectedJob || {
     id: activeJobId,
     jobTitle: "Senior React Engineer",
@@ -412,91 +110,143 @@ function ApplyJobComp() {
     maximumSalary: 1800000,
   };
 
-  const [step, setStep] = useState(1);
-  const [dir, setDir] = useState(1);
   const [submitted, setSubmitted] = useState(false);
-  const [showProfileWarning, setShowProfileWarning] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [coverLetter, setCoverLetter] = useState("");
+  const [selectedResumeId, setSelectedResumeId] = useState(null);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [aiVersionIndex, setAiVersionIndex] = useState(0);
 
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    location: "",
-    linkedin: "",
-    github: "",
-    portfolio: "",
-    currentCompany: "",
-    resume: null,
-    coverDoc: null,
-    coverLetter: "",
-    yearsExp: "4–6 years",
-    availability: "immediately",
-    selectedResumeId: null,
-    useProfileResume: true,
-  });
+  const fullName = authUser?.name || userProfile?.name || userProfile?.fullName || "Candidate";
+  const userSkills = userProfile?.skills || userProfile?.skillsRequired || [];
+  const skillsListText =
+    Array.isArray(userSkills) && userSkills.length > 0
+      ? userSkills.slice(0, 4).map((s) => (typeof s === "object" ? s.name || s.skillName || s : String(s))).join(", ")
+      : "software engineering, modern full-stack development, and scalable architecture";
 
-  // Auto-fill candidate profile and pre-select default resume from Redux
-  useEffect(() => {
-    const fullName = authUser?.name || userProfile?.name || userProfile?.fullName || "";
-    const email = authUser?.email || userProfile?.email || "";
-    const phone = authUser?.phone || userProfile?.phone || userProfile?.phoneNumber || "";
-    const locationVal = [userProfile?.city, userProfile?.state, userProfile?.country].filter(Boolean).join(", ") || userProfile?.location || "";
-    const linkedinVal = userProfile?.linkedinUrl || userProfile?.linkedin || "";
-    const githubVal = userProfile?.githubUrl || userProfile?.github || "";
-    const websiteVal = userProfile?.website || userProfile?.portfolioUrl || "";
+  const AI_VERSIONS = [
+    {
+      name: "Results-Driven",
+      badge: "High Impact",
+      getLetter: (name, company, title, skills) =>
+        `Dear Hiring Manager at ${company},\n\nI am writing to express my enthusiastic interest in the ${title} position. With a strong technical background specializing in ${skills}, I have consistently built high-performance, user-centric applications that drive real business impact.\n\nWhat excites me most about ${company} is your commitment to engineering excellence and innovative product standards. I am confident that my technical skills, proactive problem-solving mindset, and dedication to code quality make me an immediate asset to your team.\n\nThank you for reviewing my application. I look forward to the opportunity to discuss how my background aligns with your team's goals.\n\nBest regards,\n${name}`,
+    },
+    {
+      name: "Enthusiastic & Vision-Aligned",
+      badge: "Culture & Passion",
+      getLetter: (name, company, title, skills) =>
+        `Dear ${company} Hiring Team,\n\nI am thrilled to submit my application for the ${title} role. Having followed ${company}'s growth and product roadmap, I am deeply inspired by your team's mission and engineering culture.\n\nEquipped with hands-on expertise in ${skills}, I thrive in collaborative, fast-paced environments where technical rigor meets creative problem-solving. I am eager to bring this energy and my skill set to the ${title} team.\n\nThank you for considering my candidacy. I would welcome the opportunity for an interview to explore how I can support your goals.\n\nWarm regards,\n${name}`,
+    },
+    {
+      name: "Concise & Executive",
+      badge: "Direct & Fast",
+      getLetter: (name, company, title, skills) =>
+        `Dear Hiring Team,\n\nPlease accept this note as my application for the ${title} position at ${company}. My professional background spans ${skills}, with a track record of delivering robust features and collaborating effectively across cross-functional teams.\n\nI am particularly eager to leverage my technical expertise at ${company} to solve complex challenges and accelerate your team's roadmap.\n\nThank you for your time. I look forward to discussing my qualifications in an interview.\n\nSincerely,\n${name}`,
+    },
+  ];
 
-    const activeResume = defaultResume || resumes[0] || userProfile?.resume;
-    const hasName = Boolean(fullName);
-    const hasEmail = Boolean(email);
-    const hasPhone = Boolean(phone);
-    const hasResume = Boolean(activeResume?.id || activeResume?.resumeUrl || userProfile?.resumeUrl);
+  // AI Cover Letter Generator
+  const handleGenerateAICoverLetter = (targetVersionIdx) => {
+    const nextIdx = targetVersionIdx !== undefined ? targetVersionIdx : (aiVersionIndex + 1) % AI_VERSIONS.length;
+    setAiVersionIndex(nextIdx);
+    setIsGeneratingAI(true);
 
-    if (!hasName || !hasEmail || !hasPhone || !hasResume) {
-      setShowProfileWarning(true);
-    }
+    const compName = activeJob.companyName || activeJob.company || "the company";
+    const jobName = activeJob.jobTitle || activeJob.title || "open role";
+    const versionConfig = AI_VERSIONS[nextIdx];
 
-    setForm((prev) => ({
-      ...prev,
-      fullName: prev.fullName || fullName,
-      email: prev.email || email,
-      phone: prev.phone || phone,
-      location: prev.location || locationVal,
-      linkedin: prev.linkedin || linkedinVal,
-      github: prev.github || githubVal,
-      portfolio: prev.portfolio || websiteVal,
-      resume: prev.resume || activeResume || null,
-      selectedResumeId: prev.selectedResumeId || activeResume?.id || null,
-    }));
-  }, [authUser, userProfile, defaultResume, resumes]);
-
-  const set = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
-
-  /* ── Validation ── */
-  const validate = () => {
-    const e = {};
-    if (step === 1) {
-      if (!form.fullName.trim()) e.fullName = "Full name is required";
-      if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = "Valid email required";
-      if (!form.phone.trim()) e.phone = "Phone number is required";
-    }
-    if (step === 3) {
-      if (!form.resume && !form.useProfileResume) e.resume = "Please attach or upload a resume";
-    }
-    if (step === 4) {
-      if (form.coverLetter.length > 2000) e.coverLetter = "Cover letter must not exceed 2000 characters";
-    }
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    setTimeout(() => {
+      const generated = versionConfig.getLetter(fullName, compName, jobName, skillsListText);
+      setCoverLetter(generated);
+      setIsGeneratingAI(false);
+      notifications.show({
+        title: `AI Cover Letter (${versionConfig.name})`,
+        message: `Tailored version created highlighting ${skillsListText.substring(0, 30)}...`,
+        color: "indigo",
+      });
+    }, 500);
   };
 
+  // Pre-select default resume or first available
+  useEffect(() => {
+    const activeRes = defaultResume || resumes[0];
+    if (activeRes?.id && !selectedResumeId) {
+      setSelectedResumeId(activeRes.id);
+    }
+  }, [defaultResume, resumes, selectedResumeId]);
+
+  const email = authUser?.email || userProfile?.email || "";
+  const phone = authUser?.phone || userProfile?.phone || userProfile?.phoneNumber || "Not provided";
+  const candidateLocation =
+    [userProfile?.city, userProfile?.state].filter(Boolean).join(", ") || userProfile?.location || "India";
+
+  // Calculate AI Job Match Score & Skill Overlap
+  const jobSkillsRequired = activeJob?.skillsRequired || activeJob?.skills || ["React", "Java", "Spring Boot"];
+  const candidateSkillsArr = (userProfile?.skills || userProfile?.skillsRequired || []).map((s) =>
+    (typeof s === "object" ? s.name || s.skillName || "" : String(s)).toLowerCase().trim()
+  );
+
+  const matchedSkills = jobSkillsRequired.filter((skill) =>
+    candidateSkillsArr.some((cSkill) => cSkill.includes(String(skill).toLowerCase().trim()))
+  );
+
+  const matchPercentage =
+    jobSkillsRequired.length > 0
+      ? Math.min(98, Math.max(72, Math.round((matchedSkills.length / Math.max(1, jobSkillsRequired.length)) * 100)))
+      : 88;
+
+  // Handle uploading a custom resume on the spot
+  const handleUploadResume = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingResume(true);
+      const res = await dispatch(
+        uploadResumeThunk({
+          file,
+          resumeName: file.name,
+          isDefault: resumes.length === 0,
+        })
+      ).unwrap();
+
+      const uploadedId = res?.id || res?.data?.id;
+      dispatch(fetchMyResumesThunk());
+      if (uploadedId) {
+        setSelectedResumeId(uploadedId);
+      }
+      notifications.show({
+        title: "Resume Uploaded",
+        message: `${file.name} uploaded successfully!`,
+        color: "green",
+      });
+    } catch (err) {
+      notifications.show({
+        title: "Upload Failed",
+        message: err || "Failed to upload resume.",
+        color: "red",
+      });
+    } finally {
+      setUploadingResume(false);
+      e.target.value = "";
+    }
+  };
+
+  // Submit Application
   const handleSubmitApplication = async () => {
-    if (!validate()) return;
+    if (!selectedResumeId && resumes.length === 0) {
+      notifications.show({
+        title: "Resume Required",
+        message: "Please upload or select a resume before submitting.",
+        color: "orange",
+      });
+      return;
+    }
 
     try {
       const applicationData = {
-        coverLetter: form.coverLetter ? form.coverLetter.substring(0, 2000) : "",
-        resumeId: form.selectedResumeId || null,
+        coverLetter: coverLetter ? coverLetter.substring(0, 2000) : "",
+        resumeId: selectedResumeId || (resumes[0]?.id ?? null),
       };
 
       await dispatch(applyToJobThunk({ jobId: activeJob.id, applicationData })).unwrap();
@@ -510,38 +260,43 @@ function ApplyJobComp() {
     }
   };
 
-  const goNext = () => {
-    if (!validate()) return;
-    if (step < STEPS.length) {
-      setDir(1);
-      setStep((s) => s + 1);
-    } else {
-      handleSubmitApplication();
-    }
-  };
-
-  const goBack = () => {
-    setDir(-1);
-    setStep((s) => s - 1);
-    setErrors({});
-  };
-
   if (submitted) {
     return (
-      <SuccessScreen
-        name={form.fullName}
-        jobTitle={activeJob.jobTitle || activeJob.title}
-        companyName={activeJob.companyName || activeJob.company}
-      />
+      <div className="max-w-2xl mx-auto py-12 text-center space-y-6">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto shadow-2xl"
+        >
+          <IconCircleCheck size={48} />
+        </motion.div>
+
+        <h2 className="text-3xl font-extrabold text-white font-satoshi">
+          Application Submitted!
+        </h2>
+
+        <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+          Your application for <span className="text-indigo-400 font-bold">{activeJob.jobTitle || activeJob.title}</span> at{" "}
+          <span className="text-white font-bold">{activeJob.companyName || activeJob.company}</span> has been sent successfully.
+        </p>
+
+        <div className="pt-4 flex items-center justify-center gap-4">
+          <button
+            onClick={() => navigate("/my-jobs/applied")}
+            className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3 text-xs font-bold text-white shadow-lg hover:scale-105 transition cursor-pointer"
+          >
+            Track Application Status →
+          </button>
+          <button
+            onClick={() => navigate("/find-jobs")}
+            className="rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+          >
+            Explore More Jobs
+          </button>
+        </div>
+      </div>
     );
   }
-
-  const missingItems = [
-    { label: "Full Name", present: Boolean(form.fullName) },
-    { label: "Email Address", present: Boolean(form.email) },
-    { label: "Phone Number", present: Boolean(form.phone) },
-    { label: "Saved Resume", present: Boolean(userProfile?.resume?.resumeUrl || userProfile?.resumeUrl) },
-  ];
 
   const logoSrc = activeJob?.companyLogo
     ? activeJob.companyLogo.startsWith("http")
@@ -550,25 +305,15 @@ function ApplyJobComp() {
     : null;
 
   return (
-    <div className="w-full">
-      {/* Profile Warning */}
-      {showProfileWarning && (
-        <ProfileIncompleteWarning
-          missingItems={missingItems}
-          onProceedAnyway={() => setShowProfileWarning(false)}
-          onGoToProfile={() => navigate("/profiles")}
-        />
-      )}
-
-      {/* ── Dynamic Job Header Card ── */}
+    <div className="w-full max-w-3xl mx-auto">
+      {/* ── Active Job Header Card ── */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-8 rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xl"
+        className="mb-6 rounded-3xl border border-white/10 bg-[#090d16]/90 p-6 backdrop-blur-xl shadow-2xl"
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 font-extrabold text-xl font-satoshi">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/15 border border-indigo-500/20 text-indigo-400 font-black text-xl font-satoshi">
             {logoSrc ? (
               <img src={logoSrc} alt={activeJob.companyName} className="h-full w-full object-contain rounded-2xl" />
             ) : (
@@ -577,22 +322,22 @@ function ApplyJobComp() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary-light font-satoshi">
+            <p className="text-xs font-bold uppercase tracking-widest text-indigo-400 font-satoshi">
               {activeJob.companyName || activeJob.company}
             </p>
-            <h2 className="mt-0.5 text-xl sm:text-2xl font-black text-heading font-satoshi leading-tight">
+            <h2 className="mt-0.5 text-xl sm:text-2xl font-black text-white font-satoshi leading-tight">
               {activeJob.jobTitle || activeJob.title}
             </h2>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span className="inline-flex items-center gap-1 text-xs text-muted font-medium">
-                <IconMapPin size={13} className="text-primary-light" />
+              <span className="inline-flex items-center gap-1 text-xs text-slate-400 font-medium">
+                <IconMapPin size={13} className="text-indigo-400" />
                 {[activeJob.city, activeJob.state].filter(Boolean).join(", ") || activeJob.location || "Remote"}
               </span>
-              <span className="inline-flex items-center gap-1 text-xs text-muted font-medium">
-                <IconBriefcase size={13} className="text-violet" />
+              <span className="inline-flex items-center gap-1 text-xs text-slate-400 font-medium">
+                <IconBriefcase size={13} className="text-purple-400" />
                 {humanise(activeJob.jobType || activeJob.type || "FULL_TIME")}
               </span>
-              <span className="inline-flex items-center gap-1 text-xs text-indigo-300 font-bold">
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-400 font-bold">
                 {formatINR(activeJob.minimumSalary)} - {formatINR(activeJob.maximumSalary)}
               </span>
             </div>
@@ -600,321 +345,226 @@ function ApplyJobComp() {
 
           <span className="hidden sm:inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Accepting Applications
+            Fast-Track Application
           </span>
         </div>
       </motion.div>
 
-      {/* ── Step Progress Bar ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, delay: 0.1 }}
-        className="mb-8 flex justify-center"
-      >
-        <StepBar current={step} />
-      </motion.div>
+      {/* ── Main Application Card ── */}
+      <div className="rounded-3xl border border-white/10 bg-[#090d16] p-6 sm:p-8 shadow-2xl space-y-8">
+        {/* ── Candidate Profile Summary Badge & AI Match Score ── */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-indigo-500/15">
+            <div className="flex items-center gap-2">
+              <IconShield className="h-4 w-4 text-indigo-400 shrink-0" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-300 font-satoshi">
+                Applicant Verified Profile
+              </h3>
+            </div>
 
-      {/* ── Form Card ── */}
-      <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 overflow-hidden shadow-2xl">
-        <AnimatePresence mode="wait" custom={dir}>
-          <motion.div
-            key={step}
-            custom={dir}
-            variants={fadeSlide}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            {/* ─── Step 1: Personal Info ─── */}
-            {step === 1 && (
-              <motion.div variants={{ visible: { transition: { staggerChildren: 0.07 } } }} initial="hidden" animate="visible" className="space-y-5">
-                <motion.div variants={fadeUp}>
-                  <h2 className="text-xl font-bold text-heading font-satoshi">Personal Information</h2>
-                  <p className="text-sm text-muted mt-1">Review or update your contact details for this application.</p>
-                </motion.div>
+            {/* AI Job Match Badge */}
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-xs font-extrabold text-amber-300 shadow-sm">
+                <IconSparkles size={13} className="text-amber-400 fill-amber-400/20 animate-pulse" />
+                {matchPercentage}% AI Match Score
+              </span>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <Field label="Full Name" required error={errors.fullName}>
-                    <TextInputField
-                      icon={IconUser}
-                      placeholder="John Doe"
-                      value={form.fullName}
-                      onChange={set("fullName")}
-                      error={errors.fullName}
-                    />
-                  </Field>
+              <Link
+                to="/profile"
+                className="text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1 shrink-0"
+              >
+                <IconEdit size={13} /> Edit Profile
+              </Link>
+            </div>
+          </div>
 
-                  <Field label="Email Address" required error={errors.email}>
-                    <TextInputField
-                      icon={IconMail}
-                      placeholder="john@example.com"
-                      type="email"
-                      value={form.email}
-                      onChange={set("email")}
-                      error={errors.email}
-                    />
-                  </Field>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-300">
+            <div className="flex items-center gap-2">
+              <IconUser size={15} className="text-slate-400 shrink-0" />
+              <span className="font-bold text-white truncate">{fullName}</span>
+            </div>
+            <div className="flex items-center gap-2 min-w-0">
+              <IconMail size={15} className="text-slate-400 shrink-0" />
+              <span className="truncate">{email || "Email not set"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <IconPhone size={15} className="text-slate-400 shrink-0" />
+              <span>{phone}</span>
+            </div>
+          </div>
+        </motion.div>
 
-                  <Field label="Phone Number" required error={errors.phone}>
-                    <TextInputField
-                      icon={IconPhone}
-                      placeholder="+1 (555) 000-0000"
-                      type="tel"
-                      value={form.phone}
-                      onChange={set("phone")}
-                      error={errors.phone}
-                    />
-                  </Field>
+        {/* ── Section 1: Resume Selection ── */}
+        <motion.div variants={fadeUp} custom={1} initial="hidden" animate="visible" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-white font-satoshi">Select Resume</h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Choose the resume you want recruiters to review for this role.
+              </p>
+            </div>
 
-                  <Field label="Current Location">
-                    <TextInputField
-                      icon={IconMapPin}
-                      placeholder="City, Country"
-                      value={form.location}
-                      onChange={set("location")}
-                    />
-                  </Field>
-                </div>
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleUploadResume}
+            />
 
-                <Field label="Years of Experience">
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {["0–1 years", "2–3 years", "4–6 years", "7–10 years", "10+ years"].map((opt) => (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => set("yearsExp")(opt)}
-                        className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                          form.yearsExp === opt
-                            ? "border-primary bg-primary/15 text-primary-light"
-                            : "border-border bg-surface-elevated text-muted hover:border-primary/30 hover:text-heading"
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </Field>
-
-                <Field label="Availability">
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {[
-                      { val: "immediately", label: "Immediately" },
-                      { val: "2weeks", label: "2 Weeks Notice" },
-                      { val: "1month", label: "1 Month Notice" },
-                      { val: "negotiable", label: "Negotiable" },
-                    ].map(({ val, label }) => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => set("availability")(val)}
-                        className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                          form.availability === val
-                            ? "border-primary bg-primary/15 text-primary-light"
-                            : "border-border bg-surface-elevated text-muted hover:border-primary/30 hover:text-heading"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </Field>
-              </motion.div>
-            )}
-
-            {/* ─── Step 2: Links & Profiles ─── */}
-            {step === 2 && (
-              <motion.div variants={{ visible: { transition: { staggerChildren: 0.07 } } }} initial="hidden" animate="visible" className="space-y-5">
-                <motion.div variants={fadeUp}>
-                  <h2 className="text-xl font-bold text-heading font-satoshi">Online Profiles</h2>
-                  <p className="text-sm text-muted mt-1">Share your professional portfolio & profiles.</p>
-                </motion.div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <Field label="LinkedIn Profile">
-                    <TextInputField
-                      icon={IconBrandLinkedin}
-                      placeholder="linkedin.com/in/yourname"
-                      value={form.linkedin}
-                      onChange={set("linkedin")}
-                    />
-                  </Field>
-
-                  <Field label="GitHub Profile">
-                    <TextInputField
-                      icon={IconBrandGithub}
-                      placeholder="github.com/yourname"
-                      value={form.github}
-                      onChange={set("github")}
-                    />
-                  </Field>
-
-                  <Field label="Portfolio / Website">
-                    <TextInputField
-                      icon={IconWorld}
-                      placeholder="https://yourportfolio.com"
-                      value={form.portfolio}
-                      onChange={set("portfolio")}
-                    />
-                  </Field>
-
-                  <Field label="Current Company (Optional)">
-                    <TextInputField
-                      icon={IconBuilding}
-                      placeholder="Company name"
-                      value={form.currentCompany}
-                      onChange={set("currentCompany")}
-                    />
-                  </Field>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ─── Step 3: Documents & Resume ─── */}
-            {step === 3 && (
-              <motion.div variants={{ visible: { transition: { staggerChildren: 0.07 } } }} initial="hidden" animate="visible" className="space-y-5">
-                <motion.div variants={fadeUp}>
-                  <h2 className="text-xl font-bold text-heading font-satoshi">Upload Documents</h2>
-                  <p className="text-sm text-muted mt-1">Attach your resume or use your default profile resume.</p>
-                </motion.div>
-
-                {/* Default Resume Toggle option if profile has resume */}
-                {userProfile?.resume && (
-                  <motion.div variants={fadeUp} className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400">
-                        <IconFileText size={20} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-white">Default Profile Resume Attached</p>
-                        <p className="text-[11px] text-indigo-200/70">{userProfile.resume.resumeName || "Resume.pdf"}</p>
-                      </div>
-                    </div>
-                    <span className="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                      <IconCheck size={12} /> Active
-                    </span>
-                  </motion.div>
-                )}
-
-                <motion.div variants={fadeUp}>
-                  <label className="text-sm font-medium text-heading mb-2 block">
-                    Upload Custom Resume <span className="text-muted text-xs font-normal">(Optional if default attached)</span>
-                  </label>
-                  <FileDropZone
-                    label="Drop custom resume here or click to browse"
-                    hint="PDF, DOC or DOCX — max 5 MB"
-                    accept=".pdf,.doc,.docx"
-                    file={form.resume}
-                    onFile={(f) => {
-                      setForm((prev) => ({ ...prev, resume: f, useProfileResume: false }));
-                    }}
-                    onClear={() => set("resume")(null)}
-                  />
-                  {errors.resume && (
-                    <p className="mt-1.5 text-xs text-rose-400 font-semibold">{errors.resume}</p>
-                  )}
-                </motion.div>
-              </motion.div>
-            )}
-
-            {/* ─── Step 4: Cover Letter (Max 2000 Chars) ─── */}
-            {step === 4 && (
-              <motion.div variants={{ visible: { transition: { staggerChildren: 0.07 } } }} initial="hidden" animate="visible" className="space-y-5">
-                <motion.div variants={fadeUp}>
-                  <h2 className="text-xl font-bold text-heading font-satoshi">Cover Letter</h2>
-                  <p className="text-sm text-muted mt-1">
-                    Add an optional cover letter for the hiring manager (max 2000 characters).
-                  </p>
-                </motion.div>
-
-                <motion.div variants={fadeUp}>
-                  <textarea
-                    rows={8}
-                    maxLength={2000}
-                    value={form.coverLetter}
-                    onChange={(e) => set("coverLetter")(e.target.value)}
-                    placeholder={`Hi Hiring Team,\n\nI'm excited to apply for the ${activeJob.jobTitle || activeJob.title} position at ${activeJob.companyName || activeJob.company}...`}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 p-4 text-xs text-white placeholder-slate-500 focus:border-indigo-500/60 focus:outline-none"
-                  />
-                  <div className="flex justify-between mt-1.5">
-                    <p className="text-xs text-muted">Optional cover letter note</p>
-                    <p className={`text-xs font-semibold ${form.coverLetter.length > 2000 ? "text-rose-400" : "text-muted"}`}>
-                      {form.coverLetter.length} / 2000
-                    </p>
-                  </div>
-                </motion.div>
-
-                {/* Review summary */}
-                <motion.div variants={fadeUp} className="rounded-2xl border border-border bg-surface-elevated p-5 space-y-3">
-                  <h3 className="text-sm font-bold text-heading font-satoshi">Application Summary</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    {[
-                      { label: "Position", val: activeJob.jobTitle || activeJob.title },
-                      { label: "Company", val: activeJob.companyName || activeJob.company },
-                      { label: "Applicant", val: form.fullName || "—" },
-                      { label: "Email", val: form.email || "—" },
-                      { label: "Phone", val: form.phone || "—" },
-                      { label: "Resume", val: form.resume?.name || userProfile?.resume?.resumeName || "Profile Default Resume" },
-                    ].map(({ label, val }) => (
-                      <div key={label} className="flex items-start gap-2">
-                        <span className="text-muted shrink-0 w-20">{label}:</span>
-                        <span className="text-heading font-medium truncate">{val}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-
-        {/* ── Navigation Buttons ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-6"
-        >
-          {step > 1 ? (
             <button
               type="button"
-              onClick={goBack}
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-elevated px-5 py-2.5 text-sm font-semibold text-heading hover:border-primary/30 hover:bg-surface-hover transition-all cursor-pointer"
+              disabled={uploadingResume}
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:bg-white/20 hover:text-white hover:border-white/30 transition-all duration-200 cursor-pointer disabled:opacity-50 shadow-sm"
             >
-              <IconChevronLeft size={16} /> Back
+              <IconUpload size={14} />
+              {uploadingResume ? "Uploading..." : "Upload New"}
             </button>
-          ) : (
-            <div />
-          )}
+          </div>
 
-          <div className="flex items-center gap-1.5">
-            {STEPS.map((s) => (
-              <div
-                key={s.id}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  s.id === step ? "w-6 bg-primary" : s.id < step ? "w-3 bg-primary/50" : "w-3 bg-border"
+          {resumes && resumes.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {resumes.map((res) => {
+                const isSelected = selectedResumeId === res.id;
+                return (
+                  <div
+                    key={res.id}
+                    onClick={() => setSelectedResumeId(res.id)}
+                    className={`rounded-2xl border p-4 transition-all duration-300 cursor-pointer flex items-center justify-between ${
+                      isSelected
+                        ? "border-indigo-500 bg-gradient-to-r from-indigo-500/20 via-purple-500/15 to-indigo-500/10 shadow-[0_8px_25px_rgba(99,102,241,0.2)] ring-1 ring-indigo-500/30 scale-[1.01]"
+                        : "border-white/10 bg-[#0c101c]/80 hover:border-white/25 hover:bg-white/[0.08]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${isSelected ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/30" : "bg-red-500/15 text-red-400"}`}>
+                        <IconFileCv size={22} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white truncate font-satoshi">
+                          {res.resumeName || res.fileName || "Resume.pdf"}
+                        </p>
+                        {res.isDefault && (
+                          <span className="text-[10px] font-bold text-emerald-400">Default Resume</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className={`h-5 w-5 rounded-full border flex items-center justify-center transition-all ${isSelected ? "border-indigo-500 bg-indigo-500 text-white shadow-sm" : "border-slate-600"}`}>
+                      {isSelected && <IconCheck size={12} />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-2xl border-2 border-dashed border-white/10 p-6 text-center">
+              <IconFileCv size={36} className="mx-auto mb-2 text-indigo-400" />
+              <p className="text-xs font-semibold text-white">No Resumes Found</p>
+              <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Upload your resume to continue.</p>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition cursor-pointer"
+              >
+                Upload Resume PDF
+              </button>
+            </div>
+          )}
+        </motion.div>
+
+        {/* ── Section 2: Cover Letter (Optional / Max 2000 Chars) ── */}
+        <motion.div variants={fadeUp} custom={2} initial="hidden" animate="visible" className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-base font-bold text-white font-satoshi flex items-center gap-2">
+                Cover Letter / Note
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Add an optional note to highlight why you're a great fit (max 2000 characters).
+              </p>
+            </div>
+
+            <button
+              type="button"
+              disabled={isGeneratingAI}
+              onClick={() => handleGenerateAICoverLetter()}
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-500/15 via-purple-600/20 to-indigo-600/20 px-4 py-2 text-xs font-extrabold text-amber-200 hover:text-white hover:border-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] hover:scale-105 transition-all duration-300 cursor-pointer disabled:opacity-50 shadow-sm shrink-0 self-start sm:self-auto"
+              title="Generate a personalized cover letter using AI"
+            >
+              <IconSparkles size={15} className="text-amber-400 animate-pulse fill-amber-400/20" />
+              {isGeneratingAI ? "Generating AI Letter..." : "Generate with AI"}
+            </button>
+          </div>
+
+          {/* AI Version Selector Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto py-1">
+            <span className="text-[11px] font-bold text-amber-300 shrink-0 flex items-center gap-1">
+              <IconSparkles size={12} className="text-amber-400" /> AI Versions:
+            </span>
+            {AI_VERSIONS.map((ver, idx) => (
+              <button
+                key={ver.name}
+                type="button"
+                onClick={() => handleGenerateAICoverLetter(idx)}
+                className={`rounded-full px-3 py-1 text-[11px] font-bold border transition-all cursor-pointer shrink-0 ${
+                  coverLetter && aiVersionIndex === idx
+                    ? "bg-amber-500/20 text-amber-200 border-amber-400 shadow-md shadow-amber-500/10"
+                    : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
                 }`}
-              />
+              >
+                {ver.name} <span className="text-[9px] opacity-75 font-normal">({ver.badge})</span>
+              </button>
             ))}
           </div>
 
+          <textarea
+            rows={5}
+            maxLength={2000}
+            value={coverLetter}
+            onChange={(e) => setCoverLetter(e.target.value)}
+            placeholder={`Hi Hiring Team,\n\nI am excited to submit my application for ${activeJob.jobTitle || activeJob.title}. With my experience in relevant skills, I am confident in contributing effectively...`}
+            className="w-full rounded-2xl border border-white/10 bg-[#080c16] p-4 text-xs text-white placeholder-slate-500 focus:border-amber-400/60 focus:ring-2 focus:ring-amber-500/20 focus:outline-none leading-relaxed transition-all"
+          />
+
+          <div className="flex items-center justify-between text-[11px] text-slate-500">
+            <span>Optional note to recruiter</span>
+            <span className={coverLetter.length > 2000 ? "text-rose-400 font-bold" : ""}>
+              {coverLetter.length} / 2000
+            </span>
+          </div>
+        </motion.div>
+
+        {/* ── Submit Action Bar ── */}
+        <motion.div
+          variants={fadeUp}
+          custom={3}
+          initial="hidden"
+          animate="visible"
+          className="pt-5 border-t border-white/10 flex items-center justify-between"
+        >
           <button
             type="button"
-            onClick={goNext}
-            disabled={applyLoading}
-            className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature px-6 py-2.5 text-sm font-semibold text-white shadow-button hover:shadow-[0_0_28px_rgba(99,102,241,0.45)] transition-all cursor-pointer disabled:opacity-50"
+            onClick={() => navigate(-1)}
+            className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSubmitApplication}
+            disabled={applyLoading || (!selectedResumeId && resumes.length === 0)}
+            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-8 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-[0_0_25px_rgba(99,102,241,0.4)] hover:shadow-[0_0_35px_rgba(168,85,247,0.6)] hover:scale-105 transition-all duration-300 cursor-pointer disabled:opacity-50"
           >
             {applyLoading ? (
               <>
-                <IconLoader2 size={16} className="animate-spin" /> Submitting...
-              </>
-            ) : step === STEPS.length ? (
-              <>
-                <IconSparkles size={15} /> Submit Application
+                <IconLoader2 size={16} className="animate-spin text-amber-300" /> Submitting Application...
               </>
             ) : (
               <>
-                Continue <IconChevronRight size={16} />
+                <IconSparkles size={16} className="text-amber-300 fill-amber-300/20" /> Submit Application
               </>
             )}
           </button>
@@ -923,5 +573,3 @@ function ApplyJobComp() {
     </div>
   );
 }
-
-export default ApplyJobComp;

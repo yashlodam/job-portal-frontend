@@ -1,25 +1,77 @@
+/**
+ * src/LandingPage/AIToolsShowcase.jsx
+ *
+ * Ultra-Premium "Supercharge Your Career with AI" Bento Showcase Section.
+ * Features 3D glassmorphic cards, radial background glow washes,
+ * gold Sparkles tags, and interactive navigation CTAs.
+ */
+
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, BarChart3 } from "lucide-react";
-import { aiTools } from "../Data/Data";
+import { ArrowRight, BarChart3, Sparkles, FileText, MessageSquare, Mic, Bot, Zap, CheckCircle2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import SectionHeader from "../components/SectionHeader";
+
+const AI_TOOLS_DATA = [
+  {
+    id: 1,
+    title: "AI Multi-Tone Cover Letter",
+    description: "Instantly generate 3 tailored cover letter versions (Results-Driven, Vision-Aligned, Executive) customized for your target company.",
+    icon: MessageSquare,
+    link: "/apply?jobId=1",
+    gradient: { from: "#6366F1", to: "#8B5CF6", glow: "rgba(99, 102, 241, 0.35)", text: "#A5B4FC" },
+    stats: "50K+ letters generated",
+    tag: "Live Feature",
+  },
+  {
+    id: 2,
+    title: "AI Job Match & Skill Fit",
+    description: "Get instant AI Match Scores evaluating your resume and skills against job requirements with detailed gap analysis.",
+    icon: Zap,
+    link: "/find-jobs",
+    gradient: { from: "#06B6D4", to: "#3B82F6", glow: "rgba(6, 182, 212, 0.35)", text: "#67E8F9" },
+    stats: "98% Match Precision",
+    tag: "Top Rated",
+  },
+  {
+    id: 3,
+    title: "AI Multi-Resume Management",
+    description: "Store multiple targeted PDF resumes on your candidate profile and set your primary default resume for 1-click applications.",
+    icon: FileText,
+    link: "/profile",
+    gradient: { from: "#EC4899", to: "#F43F5E", glow: "rgba(236, 72, 153, 0.35)", text: "#F472B6" },
+    stats: "Multi-Resume Sync",
+    tag: "Candidate Favorite",
+  },
+  {
+    id: 4,
+    title: "Real-Time Application Stepper",
+    description: "Track your application through all 8 recruitment pipeline stages (Applied, Reviewing, Shortlisted, Interviewing, Offered).",
+    icon: Bot,
+    link: "/my-jobs/applied",
+    gradient: { from: "#10B981", to: "#14B8A6", glow: "rgba(16, 185, 129, 0.35)", text: "#6EE7B7" },
+    stats: "8 Pipeline Stages",
+    tag: "Live Stepper",
+  },
+];
 
 /* ===========================
     Animation Variants
 =========================== */
-
 const containerVariants = {
-  hidden: {},
+  hidden: { opacity: 0 },
   visible: {
+    opacity: 1,
     transition: { staggerChildren: 0.09 },
   },
 };
 
 const cardVariants = {
-  hidden:  { opacity: 0, y: 28 },
+  hidden: { opacity: 0, y: 28, scale: 0.97 },
   visible: {
     opacity: 1,
     y: 0,
+    scale: 1,
     transition: { duration: 0.52, ease: [0.16, 1, 0.3, 1] },
   },
 };
@@ -27,105 +79,83 @@ const cardVariants = {
 /* ===========================
     AI Tool Card
 =========================== */
-
 function AIToolCard({ tool }) {
+  const navigate = useNavigate();
   const IconComponent = tool.icon;
+  const gradient = tool.gradient;
 
   return (
     <motion.div
       variants={cardVariants}
-      whileHover={{ y: -6 }}
-      className="group relative overflow-hidden rounded-[24px] border p-6 transition-all duration-500 sm:p-8"
-      style={{
-        borderColor: "rgba(148,163,184,0.08)",
-        background: "#0D1117",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = `${tool.gradient.from}35`;
-        e.currentTarget.style.boxShadow   = `0 0 40px ${tool.gradient.from}14`;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "rgba(148,163,184,0.08)";
-        e.currentTarget.style.boxShadow   = "none";
-      }}
+      whileHover={{ y: -6, scale: 1.01 }}
+      onClick={() => navigate(tool.link)}
+      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-[#090d16]/90 p-6 sm:p-8 backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)] cursor-pointer"
     >
-      {/* Animated gradient orb — top right */}
+      {/* Glow Wash */}
       <div
-        className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full transition-opacity duration-500 group-hover:opacity-60"
-        style={{
-          background: `radial-gradient(circle, ${tool.gradient.from}35, transparent 70%)`,
-          filter: "blur(40px)",
-          opacity: 0.25,
-        }}
         aria-hidden="true"
+        className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-500 group-hover:opacity-100 rounded-3xl"
+        style={{
+          background: `radial-gradient(400px circle at top left, ${gradient.glow}, transparent 70%)`,
+        }}
       />
 
-      {/* Gradient tint on hover */}
-      <div
-        className="pointer-events-none absolute inset-0 rounded-[24px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{
-          background: `linear-gradient(135deg, ${tool.gradient.from}07, transparent 55%)`,
-        }}
-        aria-hidden="true"
-      />
+      <div>
+        {/* Top Tag & Sparkles */}
+        <div className="relative z-10 flex items-center justify-between">
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-extrabold shadow-sm"
+            style={{
+              borderColor: `${gradient.from}40`,
+              backgroundColor: `${gradient.from}18`,
+              color: gradient.text,
+            }}
+          >
+            <Sparkles size={12} className="text-amber-300 fill-amber-300/20 animate-pulse" />
+            {tool.tag}
+          </span>
 
-      {/* Tag badge */}
-      <span
-        className="relative inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider"
-        style={{
-          backgroundColor: `${tool.gradient.from}18`,
-          color: tool.gradient.from,
-        }}
-      >
-        {tool.tag}
-      </span>
+          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400">
+            <BarChart3 size={13} className="text-indigo-400" />
+            <span>{tool.stats}</span>
+          </div>
+        </div>
 
-      {/* Icon */}
-      <div
-        className="relative mt-5 flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg transition-transform duration-300 group-hover:scale-110"
-        style={{
-          background: `linear-gradient(135deg, ${tool.gradient.from}, ${tool.gradient.to})`,
-          boxShadow: `0 8px 24px ${tool.gradient.from}30`,
-        }}
-      >
-        <IconComponent size={24} className="text-white" />
-      </div>
-
-      {/* Title */}
-      <h3
-        className="relative mt-5 text-lg font-bold text-[#F1F5F9] sm:text-xl"
-        style={{ fontFamily: "var(--font-satoshi)" }}
-      >
-        {tool.title}
-      </h3>
-
-      {/* Description */}
-      <p className="relative mt-3 text-sm leading-7 text-[#94A3B8] sm:text-base">
-        {tool.description}
-      </p>
-
-      {/* Stats */}
-      <div className="relative mt-5 flex items-center gap-2 text-sm font-medium text-[#708090]">
-        <BarChart3 size={14} aria-hidden="true" />
-        <span>{tool.stats}</span>
-      </div>
-
-      {/* Learn more link */}
-      <motion.button
-        type="button"
-        aria-label={`Learn more about ${tool.title}`}
-        className="relative mt-4 inline-flex items-center gap-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:underline"
-        style={{ color: tool.gradient.from }}
-        whileHover="hover"
-      >
-        Learn more
-        <motion.span
-          variants={{ hover: { x: 4 } }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        {/* Icon Container */}
+        <div
+          className="relative z-10 mt-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 shadow-xl transition-transform duration-300 group-hover:scale-110"
+          style={{
+            background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
+            boxShadow: `0 8px 24px ${gradient.glow}`,
+          }}
         >
-          <ArrowRight size={14} />
-        </motion.span>
-      </motion.button>
+          <IconComponent size={26} className="text-white" />
+        </div>
+
+        {/* Title */}
+        <h3 className="relative z-10 mt-6 text-xl font-extrabold text-white font-satoshi group-hover:text-indigo-300 transition-colors leading-tight">
+          {tool.title}
+        </h3>
+
+        {/* Description */}
+        <p className="relative z-10 mt-2.5 text-xs sm:text-sm leading-relaxed text-slate-400 font-medium">
+          {tool.description}
+        </p>
+      </div>
+
+      {/* Action Footer */}
+      <div className="relative z-10 mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+        <span className="text-xs font-bold text-slate-300 group-hover:text-white transition flex items-center gap-1">
+          <CheckCircle2 size={13} className="text-emerald-400" /> AI Intelligence Enabled
+        </span>
+
+        <span
+          className="inline-flex items-center gap-1.5 text-xs font-extrabold transition-all group-hover:translate-x-1"
+          style={{ color: gradient.text }}
+        >
+          Try Feature <ArrowRight size={14} />
+        </span>
+      </div>
     </motion.div>
   );
 }
@@ -133,42 +163,36 @@ function AIToolCard({ tool }) {
 /* ===========================
     AIToolsShowcase Section
 =========================== */
-
-function AIToolsShowcase() {
+export default function AIToolsShowcase() {
   return (
-    <section className="relative section-padding overflow-hidden">
-      {/* Background glows */}
-      <div
-        className="pointer-events-none absolute right-0 top-0 h-[500px] w-[500px] rounded-full"
-        style={{ background: "rgba(139,92,246,0.06)", filter: "blur(200px)" }}
-      />
-      <div
-        className="pointer-events-none absolute left-0 bottom-0 h-[400px] w-[400px] rounded-full"
-        style={{ background: "rgba(99,102,241,0.04)", filter: "blur(180px)" }}
-      />
+    <section className="relative overflow-hidden bg-[#05070d] py-20 sm:py-24 lg:py-32 font-inter text-slate-200">
+      {/* Background Mesh Glows */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute right-0 top-0 h-[550px] w-[550px] rounded-full bg-purple-600/10 blur-[200px]" />
+        <div className="absolute left-0 bottom-0 h-[450px] w-[450px] rounded-full bg-indigo-600/10 blur-[180px]" />
+      </div>
 
-      <div className="section-container">
+      <div className="section-container relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <SectionHeader
-          badge="AI-Powered Tools"
+          badge="AI Career Intelligence"
           title={
             <>
-              Supercharge your{" "}
-              <span className="gradient-text">career</span>
+              Supercharge your <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Career Journey</span>
             </>
           }
-          subtitle="Leverage cutting-edge AI tools designed to give you an unfair advantage in your job search."
+          subtitle="Leverage cutting-edge AI tools built directly into our platform to give your job applications an immediate competitive advantage."
         />
 
-        {/* Bento Grid — 2 columns, each card equal weight */}
+        {/* Bento Grid — 2 columns */}
         <motion.div
-          className="mt-10 grid grid-cols-1 gap-5 sm:mt-12 sm:grid-cols-2"
+          className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:grid-cols-2 lg:grid-cols-2"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={{ once: true, margin: "-40px" }}
         >
-          {aiTools.map((tool) => (
+          {AI_TOOLS_DATA.map((tool) => (
             <AIToolCard key={tool.id} tool={tool} />
           ))}
         </motion.div>
@@ -176,5 +200,3 @@ function AIToolsShowcase() {
     </section>
   );
 }
-
-export default AIToolsShowcase;

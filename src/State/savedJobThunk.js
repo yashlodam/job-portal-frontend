@@ -1,7 +1,7 @@
 /**
  * src/State/savedJobThunk.js
  *
- * Redux async thunks for Saved Jobs operations.
+ * Redux async thunks for Saved Jobs operations matching Spring Boot SavedJobController.
  */
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
@@ -15,6 +15,7 @@ import {
 const getErrorPayload = (error) =>
   error.response?.data?.message ||
   error.response?.data?.errorMessage ||
+  error.userMessage ||
   error.message ||
   "Saved job operation failed.";
 
@@ -24,7 +25,8 @@ export const saveJobThunk = createAsyncThunk(
   async (jobId, { rejectWithValue }) => {
     try {
       const response = await saveJobApi(jobId);
-      return response.data ?? response;
+      const savedData = response?.data !== undefined ? response.data : response;
+      return { jobId: Number(jobId), savedData };
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
@@ -37,7 +39,7 @@ export const unsaveJobThunk = createAsyncThunk(
   async (jobId, { rejectWithValue }) => {
     try {
       await unsaveJobApi(jobId);
-      return jobId;
+      return Number(jobId);
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
@@ -47,10 +49,10 @@ export const unsaveJobThunk = createAsyncThunk(
 /** GET /api/saved-jobs/me */
 export const fetchMySavedJobsThunk = createAsyncThunk(
   "savedJob/fetchMySavedJobs",
-  async ({ page = 0, size = 10, sort = "createdAt,desc" } = {}, { rejectWithValue }) => {
+  async ({ page = 0, size = 50, sort = "createdAt,desc" } = {}, { rejectWithValue }) => {
     try {
       const response = await getMySavedJobsApi({ page, size, sort });
-      return response.data ?? response;
+      return response;
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }
@@ -63,8 +65,8 @@ export const checkIsJobSavedThunk = createAsyncThunk(
   async (jobId, { rejectWithValue }) => {
     try {
       const response = await isJobSavedApi(jobId);
-      const isSaved = response.data ?? response;
-      return { jobId, isSaved: Boolean(isSaved) };
+      const isSaved = response?.data !== undefined ? response.data : response;
+      return { jobId: Number(jobId), isSaved: Boolean(isSaved) };
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }

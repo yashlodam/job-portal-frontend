@@ -1,16 +1,23 @@
+/**
+ * src/LandingPage/DreamJob.jsx
+ *
+ * Ultra-Premium "Find Your Dream Job" Hero Component.
+ * Features 3D Search Bar, ambient mesh glow lighting,
+ * gold Sparkles badges, floating AI match indicators, and Satoshi typography.
+ */
+
 import React, { useState, useCallback, memo } from "react";
-import { BadgeCheck, Sparkles, Search, MapPin } from "lucide-react";
+import { BadgeCheck, Sparkles, Search, MapPin, ArrowRight, Zap, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 
-/* ──────────────────────────────────────────────
+/* ===========================
    Animation Variants
-   ────────────────────────────────────────────── */
-
+=========================== */
 const containerVariants = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.09, delayChildren: 0.05 },
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
   },
 };
 
@@ -19,34 +26,26 @@ const fadeUp = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
   },
 };
 
 const scaleIn = {
-  hidden: { opacity: 0, scale: 0.88 },
+  hidden: { opacity: 0, scale: 0.9 },
   visible: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.15 },
+    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 },
   },
 };
 
-/* ──────────────────────────────────────────────
-   Data
-   ────────────────────────────────────────────── */
-
-const stats = [
+const STATS = [
   ["10K+", "Active Jobs"],
-  ["5K+", "Companies"],
-  ["50K+", "Candidates"],
+  ["5K+", "Verified Companies"],
+  ["50K+", "Tech Candidates"],
 ];
 
-const POPULAR_TAGS = ["React", "Python", "Design", "Remote", "AI/ML"];
-
-/* ──────────────────────────────────────────────
-   DreamJob — Hero Component
-   ────────────────────────────────────────────── */
+const POPULAR_TAGS = ["React", "Python", "Full-Stack", "Remote", "AI / ML", "UI/UX"];
 
 const DreamJob = memo(() => {
   const navigate = useNavigate();
@@ -54,191 +53,154 @@ const DreamJob = memo(() => {
   const [location, setLocation] = useState("");
 
   const handleSearch = useCallback(
-  (e) => {
-    e.preventDefault();
-
-    const params = new URLSearchParams();
-
-    if (jobTitle.trim()) {
-      params.set("keyword", jobTitle.trim());
-    }
-
-    if (location.trim()) {
-      params.set("city", location.trim());
-    }
-
-    navigate(`/find-jobs?${params.toString()}`);
-  },
-  [jobTitle, location, navigate]
-);
+    (e) => {
+      e.preventDefault();
+      const params = new URLSearchParams();
+      if (jobTitle.trim()) params.set("keyword", jobTitle.trim());
+      if (location.trim()) params.set("city", location.trim());
+      navigate(`/find-jobs?${params.toString()}`);
+    },
+    [jobTitle, location, navigate]
+  );
 
   return (
-    <section className="relative overflow-hidden section-padding">
-      <div className="section-container">
+    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-28 font-inter text-slate-200">
+      {/* ── Background Mesh Glows ── */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 right-0 h-[650px] w-[650px] rounded-full bg-indigo-600/10 blur-[200px]" />
+        <div className="absolute top-1/3 -left-40 h-[500px] w-[500px] rounded-full bg-purple-600/10 blur-[180px]" />
+      </div>
+
+      {/* Dot Grid Backdrop */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: "radial-gradient(circle, #A5B4FC 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
+
+      <div className="section-container relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16 xl:gap-20">
-          {/* LEFT CONTENT */}
+          
+          {/* ── LEFT HERO CONTENT ── */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="flex flex-col items-center gap-6 text-center sm:gap-7 lg:items-start lg:gap-8 lg:text-left"
           >
-            {/* Badge */}
-            <motion.span
+            {/* Pill Badge */}
+            <motion.div
               variants={fadeUp}
-              className="inline-flex w-fit items-center gap-2 rounded-full border border-[rgba(99,102,241,0.22)] bg-[rgba(99,102,241,0.09)] px-4 py-1.5 text-xs font-semibold text-[#818CF8] sm:text-sm"
+              className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 shadow-sm"
             >
-              <Sparkles size={13} className="shrink-0" />
-              #1 AI Career Intelligence Platform
-            </motion.span>
+              <Sparkles size={14} className="text-amber-400 fill-amber-400/20 animate-pulse shrink-0" />
+              <span className="text-xs font-extrabold text-indigo-300 uppercase tracking-wider font-satoshi">
+                #1 AI Career Intelligence Platform
+              </span>
+            </motion.div>
 
-            {/* Headline */}
-            <h1
-              className="text-[2.1rem] font-extrabold leading-[1.1] tracking-tight text-[#F1F5F9] sm:text-5xl sm:leading-[1.06] lg:text-[3.75rem] xl:text-[4.5rem]"
-              style={{ fontFamily: "var(--font-satoshi)" }}
-            >
+            {/* Main Headline */}
+            <h1 className="text-4xl font-black leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl font-satoshi">
               <motion.span variants={fadeUp} className="block">
-                Find your
+                Find Your <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Dream Job</span>
               </motion.span>
-              <motion.span variants={fadeUp} className="block">
-                <span className="gradient-text">dream job</span>
-              </motion.span>
-              <motion.span variants={fadeUp} className="block">
-                with AI
+              <motion.span variants={fadeUp} className="block mt-1">
+                Accelerated by AI.
               </motion.span>
             </h1>
 
             {/* Description */}
             <motion.p
               variants={fadeUp}
-              className="max-w-md text-[15px] leading-7 text-[#94A3B8] sm:max-w-lg sm:text-lg sm:leading-[1.75]"
+              className="max-w-md text-xs sm:text-base leading-relaxed text-slate-400 sm:max-w-lg font-medium"
             >
-              Discover thousands of verified opportunities, build an AI-powered
-              resume, prepare for interviews, and land your dream job faster than
-              ever.
+              Discover thousands of verified tech opportunities, auto-generate tailored AI cover letters, track applications in real time, and get hired faster.
             </motion.p>
 
-            {/* SEARCH FORM */}
+            {/* ── SEARCH FORM ── */}
             <motion.form
-  variants={fadeUp}
-  className="relative w-full"
-  onSubmit={handleSearch}
->
-  {/* Ambient glow – untouched */}
-  <div
-    className="pointer-events-none absolute -inset-2 rounded-[28px] bg-gradient-to-r from-indigo-500/20 via-violet-500/10 to-cyan-500/20 opacity-70 blur-2xl lg:rounded-[32px]"
-    aria-hidden="true"
-  />
+              variants={fadeUp}
+              className="relative w-full max-w-3xl my-6 sm:my-8"
+              onSubmit={handleSearch}
+            >
+              {/* Outer Ambient Glow Halo */}
+              <div
+                className="pointer-events-none absolute -inset-3 rounded-3xl md:rounded-full bg-gradient-to-r from-indigo-600/35 via-purple-600/30 to-pink-500/30 opacity-90 blur-2xl"
+                aria-hidden="true"
+              />
 
-  <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0F172A]/80 backdrop-blur-3xl ring-1 ring-white/5 shadow-2xl transition-all duration-300 hover:border-indigo-400/30 focus-within:border-indigo-500/60 focus-within:shadow-[0_0_40px_rgba(99,102,241,0.25)] lg:rounded-3xl">
-    <div className="flex flex-col gap-2 lg:flex-row lg:items-stretch lg:gap-0">
-      {/* Job title input */}
-      <div className="flex h-14 items-center gap-3 px-4 py-4 sm:px-5 sm:py-4 lg:flex-1 lg:px-6">
-        <label htmlFor="job-search-title" className="sr-only">
-          Job title or keyword
-        </label>
-        <Search
-          size={18}
-          className="shrink-0 text-indigo-400 transition-colors duration-300 group-focus-within:text-indigo-300"
-          aria-hidden="true"
-        />
-        <input
-          id="job-search-title"
-          type="text"
-          value={jobTitle}
-          onChange={(e) => setJobTitle(e.target.value)}
-          placeholder="Job title, company or keyword"
-          className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500 sm:text-base"
-        />
-      </div>
+              <div className="relative overflow-hidden rounded-3xl md:rounded-full border border-indigo-500/40 bg-[#0c1222]/95 backdrop-blur-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] p-2.5 sm:p-3">
+                <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-0">
+                  {/* Job title input */}
+                  <div className="flex h-12 flex-1 items-center gap-3 px-5">
+                    <Search size={19} className="shrink-0 text-indigo-400" />
+                    <input
+                      type="text"
+                      value={jobTitle}
+                      onChange={(e) => setJobTitle(e.target.value)}
+                      placeholder="Job title, skill or keyword..."
+                      className="w-full bg-transparent text-xs sm:text-sm text-white border-0 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-slate-400 font-medium"
+                    />
+                  </div>
 
-      {/* Divider (mobile) */}
-      <div className="h-px bg-white/[0.07] lg:hidden" aria-hidden="true" />
-      {/* Divider (desktop) */}
-      <div
-        className="hidden h-auto w-px shrink-0 bg-white/[0.07] lg:block"
-        aria-hidden="true"
-      />
+                  {/* Vertical Divider Line */}
+                  <div className="hidden md:block h-7 w-px bg-white/15 shrink-0 mx-4" />
 
-      {/* Location input */}
-      <div className="flex items-center gap-3 px-4 py-3.5 sm:px-5 sm:py-4 lg:flex-1 lg:px-6">
-        <label htmlFor="job-search-location" className="sr-only">
-          Location
-        </label>
-        <MapPin
-          size={18}
-          className="shrink-0 text-indigo-400 transition-colors duration-300"
-          aria-hidden="true"
-        />
-        <input
-          id="job-search-location"
-          type="text"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="City, state or remote"
-          className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500 sm:text-base"
-        />
-      </div>
+                  {/* Location input */}
+                  <div className="flex h-12 flex-1 items-center gap-3 px-5">
+                    <MapPin size={19} className="shrink-0 text-purple-400" />
+                    <input
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="City, state or remote..."
+                      className="w-full bg-transparent text-xs sm:text-sm text-white border-0 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-slate-400 font-medium"
+                    />
+                  </div>
 
-      {/* Submit button – redesigned with shine effect, improved gradient, and refined hover */}
-      <div className="p-2.5 lg:p-2 bg-gradient-to-r
-                from-[#6366F1]
-                to-[#8B5CF6]">
-        <button
-          type="submit"
-          aria-label="Search for jobs"
-          className="relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-blue px-6 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-indigo-500/50 active:scale-95 sm:h-[52px] sm:text-base lg:h-full lg:w-auto lg:px-8"
-        >
-          {/* Shine overlay on hover */}
-          <span
-            className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100"
-            aria-hidden="true"
-          />
-          <Search
-            size={16}
-            className="relative z-10 transition-transform duration-300 group-hover:rotate-12"
-          />
-          <span className="relative z-10 ">Search Jobs</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</motion.form>
+                  {/* Search Button */}
+                  <button
+                    type="submit"
+                    className="inline-flex h-12 sm:h-11 items-center justify-center gap-2 rounded-2xl md:rounded-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 px-8 text-xs font-black uppercase tracking-wider text-white shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] hover:scale-105 transition-all duration-300 cursor-pointer shrink-0"
+                  >
+                    <Sparkles size={15} className="text-amber-300 fill-amber-300/20" />
+                    Search Jobs
+                  </button>
+                </div>
+              </div>
+            </motion.form>
 
             {/* Popular Tags */}
             <motion.div
               variants={fadeUp}
-              className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 lg:justify-start"
+              className="flex flex-wrap items-center justify-center gap-2 lg:justify-start"
             >
-              <span className="text-xs text-[#708090]">Popular:</span>
-              <div role="list" className="flex flex-wrap justify-center gap-2 lg:justify-start">
-                {POPULAR_TAGS.map((tag) => (
-                  <Link
-                    key={tag}
-                    to={`/find-jobs?q=${encodeURIComponent(tag)}`}
-                    role="listitem"
-                    className="rounded-full border border-[rgba(148,163,184,0.08)] bg-[#0D1117] px-3 py-1 text-xs font-medium text-[#94A3B8] transition-colors duration-200 hover:border-[rgba(99,102,241,0.30)] hover:text-[#F1F5F9]"
-                  >
-                    {tag}
-                  </Link>
-                ))}
-              </div>
+              <span className="text-xs font-bold text-slate-400">Popular:</span>
+              {POPULAR_TAGS.map((tag) => (
+                <Link
+                  key={tag}
+                  to={`/find-jobs?keyword=${encodeURIComponent(tag)}`}
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300 hover:border-indigo-500/40 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+                >
+                  {tag}
+                </Link>
+              ))}
             </motion.div>
 
             {/* Stats Row */}
             <motion.div
               variants={fadeUp}
-              className="grid w-full grid-cols-3 gap-4 border-t border-white/[0.06] pt-6 sm:gap-6 sm:pt-7"
+              className="grid w-full grid-cols-3 gap-4 border-t border-white/10 pt-6"
             >
-              {stats.map(([value, label]) => (
+              {STATS.map(([value, label]) => (
                 <div key={label} className="flex flex-col items-center lg:items-start">
-                  <p
-                    className="text-xl font-extrabold text-[#F1F5F9] sm:text-2xl lg:text-3xl"
-                    style={{ fontFamily: "var(--font-satoshi)" }}
-                  >
+                  <p className="text-2xl sm:text-3xl font-black text-white font-satoshi leading-none">
                     {value}
                   </p>
-                  <p className="mt-0.5 text-center text-[11px] text-[#708090] sm:text-xs lg:text-left lg:text-sm">
+                  <p className="mt-1 text-center text-[11px] sm:text-xs text-slate-400 font-semibold lg:text-left">
                     {label}
                   </p>
                 </div>
@@ -246,113 +208,56 @@ const DreamJob = memo(() => {
             </motion.div>
           </motion.div>
 
-          {/* RIGHT ILLUSTRATION */}
+          {/* ── RIGHT HERO ILLUSTRATION & FLOATING CARDS ── */}
           <motion.div
             variants={scaleIn}
             initial="hidden"
             animate="visible"
-            className="relative flex items-center justify-center pt-4 lg:justify-end lg:pt-0"
+            className="relative flex items-center justify-center lg:justify-end"
           >
-            {/* Glow halos */}
-            <div
-              className="absolute h-[260px] w-[260px] rounded-full sm:h-[380px] sm:w-[380px] lg:h-[420px] lg:w-[420px]"
-              style={{ background: "rgba(99,102,241,0.12)", filter: "blur(100px)" }}
-              aria-hidden="true"
-            />
-            <div
-              className="absolute h-[140px] w-[140px] translate-x-10 translate-y-6 rounded-full sm:h-[180px] sm:w-[180px] sm:translate-x-16 sm:translate-y-8"
-              style={{ background: "rgba(6,182,212,0.08)", filter: "blur(80px)" }}
-              aria-hidden="true"
-            />
+            {/* Glowing Aura */}
+            <div className="absolute h-[320px] w-[320px] rounded-full bg-indigo-600/15 blur-[120px]" />
 
-            {/* Floating badge – AI Resume Score */}
+            {/* Floating Badge 1 — AI Match Score */}
             <motion.div
-              aria-hidden="true"
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-              className="glass absolute left-0 top-6 z-20 flex items-center gap-3 whitespace-nowrap rounded-2xl p-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] sm:p-3.5 lg:-left-8 xl:-left-10 max-sm:left-2 max-sm:top-4 max-sm:scale-90"
-              style={{ willChange: "transform" }}
+              className="absolute -left-4 top-10 z-20 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#090d16]/95 p-3.5 backdrop-blur-xl shadow-2xl"
             >
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 48 48"
-                className="shrink-0 sm:h-11 sm:w-11"
-                aria-label="92% score"
-              >
-                <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(148,163,184,0.08)" strokeWidth="4" />
-                <circle
-                  cx="24"
-                  cy="24"
-                  r="20"
-                  fill="none"
-                  stroke="url(#scoreGradient)"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeDasharray={2 * Math.PI * 20}
-                  strokeDashoffset={2 * Math.PI * 20 * (1 - 0.92)}
-                  transform="rotate(-90 24 24)"
-                />
-                <defs>
-                  <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#6366F1" />
-                    <stop offset="100%" stopColor="#8B5CF6" />
-                  </linearGradient>
-                </defs>
-                <text x="24" y="29" textAnchor="middle" fontSize="12" fontWeight="700" fill="#F1F5F9">
-                  92
-                </text>
-              </svg>
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 border border-amber-400/30 text-amber-300">
+                <Sparkles size={22} className="fill-amber-300/20 animate-pulse" />
+              </div>
               <div>
-                <h4 className="text-xs font-semibold text-[#F1F5F9] sm:text-sm">AI Resume Score</h4>
-                <p className="mt-0.5 text-[11px] text-[#708090] sm:text-xs">Excellent match</p>
+                <h4 className="text-xs font-extrabold text-white font-satoshi">95% AI Match Score</h4>
+                <p className="text-[11px] font-semibold text-emerald-400 mt-0.5">High Candidate Fit</p>
               </div>
             </motion.div>
 
-            {/* Floating badge – 10K+ Jobs */}
+            {/* Floating Badge 2 — Live Pipeline */}
             <motion.div
-              aria-hidden="true"
-              animate={{ y: [0, -10, 0] }}
+              animate={{ y: [0, 10, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
-              className="glass absolute bottom-0 right-0 z-20 flex items-center gap-2.5 whitespace-nowrap rounded-2xl p-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] sm:gap-3 sm:p-3.5 max-sm:right-2 max-sm:bottom-2 max-sm:scale-90"
-              style={{ willChange: "transform" }}
+              className="absolute -right-4 bottom-12 z-20 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#090d16]/95 p-3.5 backdrop-blur-xl shadow-2xl"
             >
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10"
-                style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}
-              >
-                <BadgeCheck className="text-white" size={18} />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400">
+                <BadgeCheck size={22} />
               </div>
               <div>
-                <h4 className="text-xs font-semibold text-[#F1F5F9] sm:text-sm">10K+ Jobs</h4>
-                <p className="mt-0.5 text-[11px] text-[#708090] sm:text-xs">Updated Daily</p>
+                <h4 className="text-xs font-extrabold text-white font-satoshi">10K+ Verified Jobs</h4>
+                <p className="text-[11px] font-semibold text-indigo-300 mt-0.5">Updated Every Hour</p>
               </div>
             </motion.div>
 
-            {/* Floating badge – Match Rate (desktop) */}
-            <motion.div
-              aria-hidden="true"
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
-              className="glass absolute right-2 top-6 z-20 hidden items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.3)] lg:flex max-lg:hidden"
-              style={{ willChange: "transform" }}
-            >
-              <span className="flex h-2 w-2 shrink-0 animate-pulse rounded-full bg-[#10B981]" />
-              <span className="text-xs font-semibold text-[#F1F5F9]">98% Match Rate</span>
-            </motion.div>
-
-            {/* Main illustration */}
-            <div className="relative z-10 w-full max-w-[300px] sm:max-w-[420px] md:max-w-[460px] lg:max-w-[500px] xl:max-w-[520px]">
+            {/* Main Illustration Graphic */}
+            <div className="relative z-10 w-full max-w-[440px] sm:max-w-[500px]">
               <img
                 src="/jobs1.png"
-                alt="Software engineer reviewing AI-powered job matches on a laptop"
-                loading="eager"
-                width={520}
-                height={520}
-                className="w-full object-contain drop-shadow-2xl transition-transform duration-500 hover:scale-[1.02]"
+                alt="AI Job Portal Career Dashboard"
+                className="w-full object-contain drop-shadow-[0_20px_50px_rgba(99,102,241,0.25)] transition-transform duration-500 hover:scale-[1.02]"
               />
             </div>
           </motion.div>
+
         </div>
       </div>
     </section>

@@ -37,16 +37,22 @@ export function StatusChip({ status }) {
     FEATURED: { label: "Featured", variant: "primary", dot: "bg-indigo-400" },
     DRAFT: { label: "Draft", variant: "warning", dot: "bg-amber-400" },
     CLOSED: { label: "Closed", variant: "danger", dot: "bg-rose-400" },
+    // Spring Boot ApplicationStatus values
     APPLIED: { label: "Applied", variant: "default", dot: "bg-slate-400" },
+    REVIEWING: { label: "Under Review", variant: "cyan", dot: "bg-cyan-400" },
     SHORTLISTED: { label: "Shortlisted", variant: "primary", dot: "bg-indigo-400" },
-    INTERVIEW: { label: "Interview", variant: "purple", dot: "bg-purple-400" },
-    OFFER: { label: "Offer Sent", variant: "cyan", dot: "bg-cyan-400" },
+    INTERVIEWING: { label: "Interviewing", variant: "purple", dot: "bg-purple-400" },
+    INTERVIEW: { label: "Interviewing", variant: "purple", dot: "bg-purple-400" },
+    OFFERED: { label: "Offer Extended", variant: "warning", dot: "bg-amber-400" },
+    OFFER: { label: "Offer Extended", variant: "warning", dot: "bg-amber-400" },
+    ACCEPTED: { label: "Offer Accepted", variant: "success", dot: "bg-emerald-400" },
     HIRED: { label: "Hired", variant: "success", dot: "bg-emerald-400" },
-    REJECTED: { label: "Rejected", variant: "danger", dot: "bg-rose-400" },
+    REJECTED: { label: "Not Selected", variant: "danger", dot: "bg-rose-400" },
+    WITHDRAWN: { label: "Withdrawn", variant: "danger", dot: "bg-rose-400" },
   };
 
   const config = statusMap[status?.toUpperCase()] || {
-    label: status || "Unknown",
+    label: status || "Applied",
     variant: "default",
     dot: "bg-slate-400",
   };

@@ -1,5 +1,6 @@
 /**
  * src/components/ui/Modal.jsx & Drawer.jsx
+ * Master 3D Glassmorphic Modal & Drawer system.
  */
 import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,20 +37,24 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 bg-black/80 backdrop-blur-xl"
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className={`relative w-full ${sizes[size]} max-h-[90vh] flex flex-col rounded-3xl border border-white/10 bg-[#0b0f19] p-6 shadow-2xl z-10 overflow-hidden`}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className={`relative w-full ${sizes[size]} max-h-[90vh] flex flex-col rounded-3xl border border-white/15 bg-[#090d16]/95 backdrop-blur-2xl p-6 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.8)] z-10 overflow-hidden font-inter text-slate-200`}
           >
             {title && (
               <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                <h3 className="text-lg font-bold text-white font-satoshi">{title}</h3>
-                <button onClick={onClose} className="rounded-xl p-1.5 text-white/50 hover:bg-white/10 hover:text-white transition">
+                <h3 className="text-xl font-black text-white font-satoshi tracking-tight">{title}</h3>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-2xl p-2 text-slate-400 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                >
                   <X className="h-5 w-5" />
                 </button>
               </div>
@@ -82,7 +87,7 @@ export function Drawer({ isOpen, onClose, title, children, position = "right" })
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 bg-black/80 backdrop-blur-xl"
           />
 
           <motion.div
@@ -91,11 +96,15 @@ export function Drawer({ isOpen, onClose, title, children, position = "right" })
             animate="animate"
             exit="exit"
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className={`relative ml-auto h-full w-full max-w-xl flex flex-col border-l border-white/10 bg-[#0b0f19] p-6 shadow-2xl z-10 overflow-hidden`}
+            className={`relative ml-auto h-full w-full max-w-xl flex flex-col border-l border-white/15 bg-[#090d16]/95 backdrop-blur-2xl p-6 sm:p-7 shadow-2xl z-10 overflow-hidden font-inter text-slate-200`}
           >
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <h3 className="text-lg font-bold text-white font-satoshi">{title}</h3>
-              <button onClick={onClose} className="rounded-xl p-1.5 text-white/50 hover:bg-white/10 hover:text-white transition">
+              <h3 className="text-xl font-black text-white font-satoshi tracking-tight">{title}</h3>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-2xl p-2 text-slate-400 hover:bg-white/10 hover:text-white transition cursor-pointer"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>

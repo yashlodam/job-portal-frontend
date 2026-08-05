@@ -28,6 +28,8 @@ import {
   FileText,
   XCircle,
   CheckCircle2,
+  Star,
+  AlertCircle,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { fetchMyApplicationsThunk, withdrawApplicationThunk } from "../State/applicationThunk";
@@ -405,34 +407,207 @@ export default function MyJobsPage() {
         )}
       </div>
 
-      {/* Application Detail Modal */}
-      <Modal isOpen={Boolean(selectedApp)} onClose={() => setSelectedApp(null)} title="Application Details">
-        <div className="space-y-4 text-xs">
-          <div>
-            <h4 className="font-bold text-white text-sm">{selectedApp?.jobTitle || "Job Position"}</h4>
-            <p className="text-slate-400">{selectedApp?.companyName || "Company"}</p>
-          </div>
+      {/* ── Dynamic Application Status Pipeline Tracker Modal ── */}
+      <Modal
+        isOpen={Boolean(selectedApp)}
+        onClose={() => setSelectedApp(null)}
+        title="Application Status Tracker"
+      >
+        {selectedApp && (
+          <div className="space-y-6 text-xs font-inter">
+            {/* Header Job Summary */}
+            <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-transparent p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 font-extrabold text-lg font-satoshi">
+                  {(selectedApp.jobTitle || selectedApp.companyName || "J").charAt(0)}
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-white text-base font-satoshi leading-tight">
+                    {selectedApp.jobTitle || "Job Position"}
+                  </h4>
+                  <p className="text-xs font-semibold text-indigo-300 mt-0.5">
+                    {selectedApp.companyName || "Company"}
+                  </p>
+                </div>
+              </div>
 
-          <div className="p-3 rounded-xl bg-white/5 border border-white/5 space-y-2">
-            <div className="flex justify-between">
-              <span className="text-slate-400">Status:</span>
-              <StatusChip status={selectedApp?.status || "APPLIED"} />
+              <div className="text-right shrink-0">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Current State</span>
+                <StatusChip status={selectedApp.status || "APPLIED"} />
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Applied On:</span>
-              <span className="text-white font-medium">{formatDate(selectedApp?.appliedAt || selectedApp?.appliedDate || selectedApp?.createdAt)}</span>
+
+            {/* Application Pipeline Stepper Graph */}
+            {(() => {
+              const currentStatus = (selectedApp.status || "APPLIED").toUpperCase();
+              const isRejected = currentStatus === "REJECTED";
+              const isWithdrawn = currentStatus === "WITHDRAWN";
+
+              const STAGES = [
+                {
+                  id: "APPLIED",
+                  label: "Application Received",
+                  desc: "Submitted & queued for recruiter review.",
+                  icon: CheckCircle2,
+                },
+                {
+                  id: "REVIEWING",
+                  label: "Under Review",
+                  desc: "Recruiter is evaluating your resume and profile.",
+                  icon: Search,
+                },
+                {
+                  id: "SHORTLISTED",
+                  label: "Shortlisted",
+                  desc: "Selected for the interview candidate pool.",
+                  icon: Star,
+                },
+                {
+                  id: "INTERVIEWING",
+                  label: "Interviewing",
+                  desc: "Interviews scheduled with hiring team.",
+                  icon: Clock,
+                },
+                {
+                  id: currentStatus === "ACCEPTED" ? "ACCEPTED" : "OFFERED",
+                  label: currentStatus === "ACCEPTED" ? "Offer Accepted 🎉" : "Offer Extended 🏆",
+                  desc: currentStatus === "ACCEPTED" ? "Congratulations! Onboarding in progress." : "Official job offer sent to candidate.",
+                  icon: Award,
+                },
+              ];
+
+              const statusOrder = ["APPLIED", "REVIEWING", "SHORTLISTED", "INTERVIEWING", "OFFERED", "ACCEPTED"];
+              const activeIndex = statusOrder.indexOf(currentStatus);
+
+              if (isRejected || isWithdrawn) {
+                return (
+                  <div className={`p-4 rounded-2xl border ${isRejected ? "border-rose-500/30 bg-rose-500/10 text-rose-300" : "border-amber-500/30 bg-amber-500/10 text-amber-300"} space-y-1.5`}>
+                    <div className="flex items-center gap-2 font-bold text-sm">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{isRejected ? "Application Status: Not Selected" : "Application Status: Withdrawn"}</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {isRejected
+                        ? "Thank you for taking the time to apply. The hiring team decided to proceed with other candidates whose experience aligns more closely with this specific role."
+                        : "You withdrew your application for this position. If you have questions, contact candidate support."}
+                    </p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-3 rounded-2xl border border-white/10 bg-[#090d16] p-4 sm:p-5">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <span className="text-xs font-bold text-white font-satoshi uppercase tracking-wider">
+                      Application Progress Pipeline
+                    </span>
+                    <span className="text-[11px] font-bold text-indigo-400">
+                      Stage {Math.max(1, activeIndex + 1)} of {STAGES.length}
+                    </span>
+                  </div>
+
+                  <div className="space-y-4 pt-2">
+                    {STAGES.map((stage, idx) => {
+                      const isCompleted = activeIndex > idx || currentStatus === "ACCEPTED";
+                      const isCurrent = activeIndex === idx && currentStatus !== "ACCEPTED";
+                      const IconComp = stage.icon;
+
+                      return (
+                        <div key={stage.id} className="flex items-start gap-3 relative">
+                          {/* Connector Line */}
+                          {idx < STAGES.length - 1 && (
+                            <div
+                              className={`absolute left-4 top-8 bottom-0 w-0.5 -mb-4 transition-colors ${
+                                isCompleted ? "bg-emerald-500" : "bg-white/10"
+                              }`}
+                            />
+                          )}
+
+                          {/* Node Icon */}
+                          <div
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all z-10 ${
+                              isCompleted
+                                ? "border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
+                                : isCurrent
+                                ? "border-amber-400 bg-amber-500/20 text-amber-300 ring-4 ring-amber-500/10 shadow-md shadow-amber-500/20"
+                                : "border-white/10 bg-white/5 text-slate-500"
+                            }`}
+                          >
+                            <IconComp className="h-4 w-4" />
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0 pt-0.5">
+                            <div className="flex items-center justify-between">
+                              <h5
+                                className={`text-xs font-bold ${
+                                  isCompleted
+                                    ? "text-emerald-400"
+                                    : isCurrent
+                                    ? "text-amber-300"
+                                    : "text-slate-400"
+                                }`}
+                              >
+                                {stage.label}
+                              </h5>
+                              {isCurrent && (
+                                <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[9px] font-extrabold text-amber-300 animate-pulse">
+                                  Current Stage
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{stage.desc}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Details Grid */}
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+              <h5 className="font-bold text-white text-xs font-satoshi uppercase tracking-wider">
+                Application Metadata
+              </h5>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="flex justify-between p-2.5 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-slate-400">Application ID:</span>
+                  <span className="font-mono text-indigo-300 font-bold">#{selectedApp.id || selectedApp.applicationId || "101"}</span>
+                </div>
+
+                <div className="flex justify-between p-2.5 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-slate-400">Applied On:</span>
+                  <span className="text-white font-semibold">
+                    {formatDate(selectedApp.appliedAt || selectedApp.appliedDate || selectedApp.createdAt)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Cover letter section */}
+              {selectedApp.coverLetter && (
+                <div className="pt-2">
+                  <span className="text-xs font-bold text-slate-300 block mb-1.5">Submitted Cover Letter:</span>
+                  <div className="p-3.5 rounded-xl bg-[#080c16] border border-white/10 text-slate-300 leading-relaxed max-h-36 overflow-y-auto font-mono text-[11px]">
+                    {selectedApp.coverLetter}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setSelectedApp(null)}
+                className="rounded-xl border border-white/10 bg-white/5 px-5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+              >
+                Close Window
+              </button>
             </div>
           </div>
-
-          {selectedApp?.coverLetter && (
-            <div>
-              <p className="font-semibold text-slate-300 mb-1">Submitted Cover Letter:</p>
-              <p className="p-3 rounded-xl bg-white/5 text-slate-400 leading-relaxed max-h-40 overflow-y-auto">
-                {selectedApp.coverLetter}
-              </p>
-            </div>
-          )}
-        </div>
+        )}
       </Modal>
     </div>
   );

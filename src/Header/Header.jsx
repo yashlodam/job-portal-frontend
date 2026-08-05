@@ -260,11 +260,9 @@ function Header() {
   const { myApplications } = useAppSelector((state) => state.application);
 
   useEffect(() => {
-    if (user) {
-      dispatch(fetchMySavedJobsThunk());
-      dispatch(fetchMyApplicationsThunk());
-    }
-  }, [dispatch, user]);
+    dispatch(fetchMySavedJobsThunk());
+    dispatch(fetchMyApplicationsThunk());
+  }, [dispatch]);
 
   const unreadNotifications = useAppSelector(
     (state) => state.notifications?.unreadCount ?? 0
@@ -408,27 +406,29 @@ function Header() {
 
         {/* ─── Main nav row ─── */}
         <div className="section-container grid h-16 grid-cols-[auto_1fr_auto] items-center gap-3 sm:h-[68px] lg:h-[72px]">
-          {/* Column 1: Logo */}
+          {/* Column 1: Logo & Brand Name */}
           <Link
             to="/"
-            className={`group flex shrink-0 items-center gap-2 rounded-xl sm:gap-2.5 ${FOCUS_RING}`}
-            aria-label="Velora — home"
+            className="group flex shrink-0 items-center gap-2.5 sm:gap-3 rounded-2xl cursor-pointer min-w-0"
+            aria-label="JobPortal AI — Home"
           >
             <motion.div
               whileHover={{ scale: 1.08, rotate: 4 }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              className="flex h-8 w-8 items-center justify-center rounded-xl shadow-lg group-hover:shadow-[0_0_24px_rgba(99,102,241,0.5)] sm:h-9 sm:w-9"
-              style={{ background: BRAND_GRADIENT }}
+              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-[0_0_25px_rgba(99,102,241,0.4)] border border-white/20 shrink-0"
             >
-              <Sparkles className="text-white" size={16} strokeWidth={2.5} />
+              <Sparkles className="text-amber-300 fill-amber-300/20 animate-pulse h-4 w-4 sm:h-5 sm:w-5" />
             </motion.div>
-            <span
-              className="hidden text-lg font-black tracking-tight text-[#F1F5F9] sm:inline-block sm:text-xl lg:text-2xl"
-              style={{ fontFamily: "var(--font-satoshi)" }}
-            >
-              Velora
-            </span>
+            
+            <div className="flex flex-col shrink-0 min-w-0">
+              <span className="text-base sm:text-xl lg:text-2xl font-black text-white font-satoshi tracking-tight leading-none group-hover:text-indigo-200 transition-colors truncate">
+                JobPortal <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">AI</span>
+              </span>
+              <span className="hidden xs:inline-block text-[9px] font-extrabold uppercase tracking-widest text-indigo-300 mt-0.5 font-satoshi truncate">
+                Career Intelligence
+              </span>
+            </div>
           </Link>
 
           {/* Column 2: Desktop Navigation */}
@@ -465,20 +465,28 @@ function Header() {
                       {/* Hover background */}
                       <span className="absolute inset-0 rounded-xl bg-white/[0.04] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-                      {/* Label */}
+                      {/* Label & Chevron */}
                       <span
-                        className={`relative z-10 transition-all duration-300 ${
-                          active ? "font-semibold text-white" : "group-hover:text-white"
+                        className={`relative z-10 inline-flex items-center gap-1.5 transition-all duration-300 ${
+                          active ? "font-extrabold text-white" : "group-hover:text-white"
                         }`}
                       >
-                        {item.name}
+                        <span>{item.name}</span>
+                        {item.name === "My Jobs" && savedJobs?.length > 0 && (
+                          <span className="rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
+                            {savedJobs.length}
+                          </span>
+                        )}
+                        {item.children && (
+                          <ChevronDown size={13} className="text-slate-400 group-hover:text-white transition-transform group-hover:rotate-180 duration-200" />
+                        )}
                       </span>
 
                       {/* Active gradient indicator */}
                       <span
-                        className={`absolute bottom-1 left-1/2 z-10 h-[2px] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 transition-all duration-300 ${
+                        className={`absolute bottom-1 left-1/2 z-10 h-[2px] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-300 ${
                           active
-                            ? "w-5 opacity-100"
+                            ? "w-6 opacity-100"
                             : "w-0 opacity-0 group-hover:w-3 group-hover:opacity-50"
                         }`}
                       />
@@ -486,16 +494,16 @@ function Header() {
                       {/* Active glow */}
                       {active && (
                         <span
-                          className="pointer-events-none absolute -bottom-2 left-1/2 h-4 w-12 -translate-x-1/2 rounded-full bg-indigo-500/10 blur-xl"
+                          className="pointer-events-none absolute -bottom-2 left-1/2 h-4 w-12 -translate-x-1/2 rounded-full bg-indigo-500/15 blur-xl"
                           aria-hidden="true"
                         />
                       )}
                     </Link>
 
                     {item.children && (
-                      <div className="invisible absolute left-1/2 -translate-x-1/2 top-full z-40 w-80 sm:w-88 pt-2.5 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                        <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#070b14]/98 p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
-                          <div className="space-y-1">
+                      <div className="invisible absolute left-1/2 -translate-x-1/2 top-full z-50 w-88 sm:w-96 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                        <div className="overflow-hidden rounded-3xl border border-white/15 bg-[#090d16]/98 p-3 shadow-[0_25px_60px_rgba(0,0,0,0.8)] backdrop-blur-2xl">
+                          <div className="space-y-1.5">
                             {item.children.map((child) => {
                               const childActive = location.pathname === child.url;
                               const Icon = child.icon;
@@ -510,30 +518,30 @@ function Header() {
                                   key={child.url}
                                   to={child.url}
                                   aria-current={childActive ? "page" : undefined}
-                                  className={`group/child relative flex items-start gap-3.5 rounded-2xl p-2.5 transition-all duration-200 ${FOCUS_RING} ${
+                                  className={`group/child relative flex items-start gap-3.5 rounded-2xl p-3 transition-all duration-200 ${FOCUS_RING} ${
                                     childActive
-                                      ? "bg-indigo-500/15 border border-indigo-500/30 text-white"
-                                      : "text-white/80 hover:bg-white/[0.06] hover:text-white"
+                                      ? "bg-indigo-600/20 border border-indigo-500/40 text-white shadow-md"
+                                      : "text-slate-200 hover:bg-white/10 hover:border-indigo-500/30 border border-transparent"
                                   }`}
                                 >
                                   {Icon && (
-                                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-indigo-400 group-hover/child:bg-indigo-500/20 group-hover/child:scale-105 transition-all">
+                                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/15 border border-indigo-500/30 text-indigo-400 group-hover/child:bg-gradient-to-r group-hover/child:from-indigo-600 group-hover/child:to-purple-600 group-hover/child:text-white transition-all shadow-md">
                                       <Icon size={18} />
                                     </div>
                                   )}
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs font-bold text-white font-satoshi group-hover/child:text-indigo-300 transition-colors">
+                                      <span className="text-xs font-black text-white font-satoshi group-hover/child:text-indigo-300 transition-colors">
                                         {child.name}
                                       </span>
                                       {badgeText && (
-                                        <span className="rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 px-2 py-0.2 text-[9px] font-black text-white shadow-sm">
+                                        <span className="rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-2 py-0.5 text-[9px] font-black text-white shadow-sm">
                                           {badgeText}
                                         </span>
                                       )}
                                     </div>
                                     {child.desc && (
-                                      <p className="text-[11px] text-white/50 leading-snug mt-0.5 line-clamp-1">
+                                      <p className="text-[11px] font-medium text-slate-400 leading-snug mt-0.5 line-clamp-1">
                                         {child.desc}
                                       </p>
                                     )}
@@ -577,21 +585,6 @@ function Header() {
                 </Button>
               </Link>
             )}
-
-            {/* AI assistant entry point — this is the product's differentiator,
-                so it gets a persistent, always-visible slot rather than living
-                inside a menu. */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.06 }}
-              whileTap={{ scale: 0.92 }}
-              onClick={handleAiClick}
-              aria-label="Ask AI assistant"
-              className={`hidden items-center gap-1.5 rounded-xl border border-[#6366F1]/25 bg-[#6366F1]/10 px-3 py-2 text-sm font-medium text-[#A5B4FC] transition-colors duration-200 hover:bg-[#6366F1]/20 sm:flex ${FOCUS_RING}`}
-            >
-              <Sparkles size={15} strokeWidth={2} />
-              <span className="hidden lg:inline">Ask AI</span>
-            </motion.button>
 
             {/* Divider — lg only */}
             <div
@@ -770,6 +763,11 @@ function Header() {
                               />
                             )}
                             {item.name}
+                            {item.name === "My Jobs" && savedJobs?.length > 0 && (
+                              <span className="rounded-full bg-indigo-500/30 px-2 py-0.5 text-[10px] font-bold text-indigo-300 border border-indigo-500/40">
+                                {savedJobs.length}
+                              </span>
+                            )}
                           </span>
                           <ChevronDown
                             size={18}

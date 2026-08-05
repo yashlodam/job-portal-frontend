@@ -1,34 +1,22 @@
+/**
+ * src/LandingPage/JobCategory.jsx
+ *
+ * Ultra-Premium "Browse Job Categories" Section.
+ * Features ambient mesh lighting, glassmorphism, 3D hover cards,
+ * job count badges, and interactive category/work-mode filters.
+ */
+
 import React, { useId, useMemo, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles, Code2, Briefcase, Megaphone, BarChart3, HeartPulse, Palette, ShieldCheck, GraduationCap, Globe, Laptop, Home, Building2, Database, Cpu, Cloud, Network, MonitorSmartphone, Blocks } from "lucide-react";
 import SectionHeader from "../components/SectionHeader";
 import { useAppSelector } from "../State/Store";
-import {
-  Code2,
-  Briefcase,
-  Megaphone,
-  BarChart3,
-  HeartPulse,
-  Palette,
-  ShieldCheck,
-  GraduationCap,
-  Globe,
-  Laptop,
-  Building2,
-  Home,
-  Database,
-  Cpu,
-  Cloud,
-  Network,
-  MonitorSmartphone,
-  Blocks,
-} from "lucide-react";
+import { categories as defaultCategories, workModes as defaultWorkModes } from "../Data/Data";
 
 /* ===========================
-   Static config
+   Icon & Color System
 =========================== */
-
 const ICONS = [
   Code2,
   Briefcase,
@@ -51,14 +39,14 @@ const ICONS = [
 ];
 
 const GRADIENTS = [
-  { from: "#6366F1", to: "#8B5CF6" },
-  { from: "#EC4899", to: "#F43F5E" },
-  { from: "#22C55E", to: "#14B8A6" },
-  { from: "#0EA5E9", to: "#3B82F6" },
-  { from: "#F97316", to: "#EF4444" },
-  { from: "#A855F7", to: "#EC4899" },
-  { from: "#10B981", to: "#22C55E" },
-  { from: "#EAB308", to: "#F59E0B" },
+  { from: "#6366F1", to: "#8B5CF6", glow: "rgba(99, 102, 241, 0.35)", badgeBg: "rgba(99, 102, 241, 0.15)", text: "#A5B4FC" },
+  { from: "#EC4899", to: "#F43F5E", glow: "rgba(236, 72, 153, 0.35)", badgeBg: "rgba(236, 72, 153, 0.15)", text: "#F472B6" },
+  { from: "#06B6D4", to: "#3B82F6", glow: "rgba(6, 182, 212, 0.35)", badgeBg: "rgba(6, 182, 212, 0.15)", text: "#67E8F9" },
+  { from: "#F59E0B", to: "#EF4444", glow: "rgba(245, 158, 11, 0.35)", badgeBg: "rgba(245, 158, 11, 0.15)", text: "#FCD34D" },
+  { from: "#10B981", to: "#14B8A6", glow: "rgba(16, 185, 129, 0.35)", badgeBg: "rgba(16, 185, 129, 0.15)", text: "#6EE7B7" },
+  { from: "#8B5CF6", to: "#EC4899", glow: "rgba(139, 92, 246, 0.35)", badgeBg: "rgba(139, 92, 246, 0.15)", text: "#C084FC" },
+  { from: "#3B82F6", to: "#6366F1", glow: "rgba(59, 130, 246, 0.35)", badgeBg: "rgba(59, 130, 246, 0.15)", text: "#93C5FD" },
+  { from: "#F43F5E", to: "#FB923C", glow: "rgba(244, 63, 94, 0.35)", badgeBg: "rgba(244, 63, 94, 0.15)", text: "#FDA4AF" },
 ];
 
 const TABS = [
@@ -66,165 +54,103 @@ const TABS = [
   { key: "mode", label: "By Work Mode", param: "mode" },
 ];
 
-const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06080F]";
-
 const MotionLink = motion(Link);
 
 /* ===========================
-   Animation variants
+   Animation Variants
 =========================== */
-
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
-  exit: { opacity: 0, transition: { duration: 0.2 } },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
-  },
-  exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
-};
-
-const cardVariantsReduced = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.2 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
   exit: { opacity: 0, transition: { duration: 0.15 } },
 };
 
-/* ===========================
-   Helpers
-=========================== */
-
-function formatItems(list) {
-  return list.map((item, index) => ({
-    title: item.title,
-    jobs: `${item.count} ${item.count === 1 ? "Job" : "Jobs"}`,
-    icon: ICONS[index % ICONS.length],
-    gradient: GRADIENTS[index % GRADIENTS.length],
-  }));
-}
-
-
-function formatWorkMode(list) {
-  return list.map((item, index) => ({
-    title: item.workingMode,
-    jobs: `${item.jobCount} ${item.jobCount === 1 ? "Job" : "Jobs"}`,
-    icon: ICONS[index % ICONS.length],
-    gradient: GRADIENTS[index % GRADIENTS.length],
-  }));
-}
+const cardVariants = {
+  hidden: { opacity: 0, y: 24, scale: 0.96 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] },
+  },
+  exit: { opacity: 0, scale: 0.96, transition: { duration: 0.2 } },
+};
 
 /* ===========================
-   Skeleton (loading state)
+   Card Component
 =========================== */
-
-function CardSkeleton() {
-  return (
-    <div
-      aria-hidden="true"
-      className="min-h-[150px] animate-pulse rounded-2xl border border-white/[0.08] bg-[#0D1117] p-4 sm:min-h-[170px] sm:p-5 lg:p-6"
-    >
-      <div className="h-11 w-11 rounded-xl bg-white/[0.06] sm:h-12 sm:w-12" />
-      <div className="mt-4 h-4 w-3/4 rounded bg-white/[0.06]" />
-      <div className="mt-2 h-3 w-1/3 rounded bg-white/[0.05]" />
-    </div>
-  );
-}
-
-/* ===========================
-   Empty state
-=========================== */
-
-function EmptyState({ label }) {
-  return (
-    <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.1] bg-[#0D1117]/60 px-6 py-16 text-center">
-      <p className="text-sm font-medium text-[#F1F5F9]">
-        No {label} to show right now
-      </p>
-      <p className="mt-1 text-xs text-[#708090]">
-        Check back soon &mdash; new listings are added regularly.
-      </p>
-    </div>
-  );
-}
-
-/* ===========================
-   Card
-=========================== */
-
 function CategoryCard({ item, activeParam, variants }) {
-  const Icon = item.icon;
+  const Icon = item.icon || Code2;
+  const gradient = item.gradient || GRADIENTS[0];
 
   return (
     <MotionLink
       to={`/find-jobs?${activeParam}=${encodeURIComponent(item.title)}`}
       variants={variants}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -6, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`${FOCUS_RING} group relative flex min-h-[150px] flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0D1117] p-4 transition-all duration-300 hover:border-[#6366F1]/30 hover:bg-[#111620] hover:shadow-[0_12px_40px_rgba(0,0,0,0.25)] sm:min-h-[170px] sm:p-5 lg:p-6`}
+      className="group relative flex min-h-[170px] flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-[#090d16]/90 p-6 backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)] cursor-pointer"
     >
-      {/* Hover gradient wash */}
+      {/* Glow Wash effect on hover */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-500 group-hover:opacity-100 rounded-3xl"
         style={{
-          background: `linear-gradient(135deg, ${item.gradient.from}12, ${item.gradient.to}05)`,
+          background: `radial-gradient(400px circle at top left, ${gradient.glow}, transparent 70%)`,
         }}
       />
 
-      {/* Icon badge */}
-      <div
-        className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl sm:h-12 sm:w-12"
-        style={{
-          background: `linear-gradient(135deg, ${item.gradient.from}20, ${item.gradient.to}12)`,
-        }}
-      >
+      <div className="relative z-10 flex items-start justify-between gap-3">
+        {/* Icon Badge Container */}
         <div
-          aria-hidden="true"
-          className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl border border-white/10 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:border-white/20"
           style={{
-            background: `linear-gradient(135deg, ${item.gradient.from}, ${item.gradient.to})`,
+            background: `linear-gradient(135deg, ${gradient.from}25, ${gradient.to}15)`,
           }}
-        />
-        <Icon
-          aria-hidden="true"
-          className="relative z-10 h-5 w-5 transition-all duration-300 group-hover:scale-110 group-hover:text-white sm:h-[22px] sm:w-[22px]"
-          style={{ color: item.gradient.from }}
-        />
+        >
+          <Icon
+            className="h-6 w-6 transition-all duration-300 group-hover:scale-110"
+            style={{ color: gradient.from }}
+          />
+        </div>
+
+        {/* Arrow Badge */}
+        <span
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 transition-all duration-300 group-hover:border-indigo-500/40 group-hover:bg-indigo-500/20 group-hover:text-white group-hover:translate-x-0.5"
+        >
+          <ArrowRight size={16} />
+        </span>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 mt-4">
-        <h3 className="text-sm font-semibold leading-snug text-[#F1F5F9] sm:text-base">
+      {/* Title & Job Count */}
+      <div className="relative z-10 mt-6">
+        <h3 className="text-base font-extrabold text-white font-satoshi group-hover:text-indigo-300 transition-colors leading-tight">
           {item.title}
         </h3>
-        <p className="mt-1 text-xs text-[#708090] sm:text-sm">{item.jobs}</p>
-      </div>
-
-      {/* Arrow */}
-      <div aria-hidden="true" className="relative z-10 mt-auto flex justify-end pt-4">
-        <span
-          className="flex h-8 w-8 translate-x-1 items-center justify-center rounded-full bg-white/[0.04] opacity-60 transition-all duration-300 group-hover:translate-x-0 group-hover:bg-[#6366F1]/15 group-hover:opacity-100"
-          style={{ color: item.gradient.from }}
-        >
-          <ArrowRight size={15} />
-        </span>
+        <div className="mt-2 flex items-center justify-between">
+          <span
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-extrabold border"
+            style={{
+              borderColor: `${gradient.from}40`,
+              backgroundColor: gradient.badgeBg,
+              color: gradient.text,
+            }}
+          >
+            {item.jobs}
+          </span>
+          <span className="text-[11px] text-slate-500 font-medium group-hover:text-slate-400 transition">
+            Explore →
+          </span>
+        </div>
       </div>
     </MotionLink>
   );
 }
 
 /* ===========================
-   Component
+   Main JobCategory Component
 =========================== */
-
-function JobCategory() {
+export default function JobCategory() {
   const [activeTab, setActiveTab] = useState("category");
   const prefersReducedMotion = useReducedMotion();
   const tabPanelId = useId();
@@ -232,69 +158,90 @@ function JobCategory() {
   const categoriesState = useAppSelector((state) => state.job.categories);
   const workModesState = useAppSelector((state) => state.job.workModes);
 
-  // Support either a plain array or a { data, status } shape without breaking either.
   const categories = Array.isArray(categoriesState)
     ? categoriesState
-    : categoriesState?.data ?? [];
+    : categoriesState?.data ?? defaultCategories;
+
   const workModes = Array.isArray(workModesState)
     ? workModesState
-    : workModesState?.data ?? [];
+    : workModesState?.data ?? defaultWorkModes;
+
   const isLoading =
     categoriesState?.status === "loading" || workModesState?.status === "loading";
 
-  const formattedCategories = useMemo(() => formatItems(categories), [categories]);
-  const formattedWorkModes = useMemo(() => formatWorkMode(workModes), [workModes]);
+  // Format Items with Gradient Palette & Icons
+  const formattedCategories = useMemo(() => {
+    const sourceList = categories.length > 0 ? categories : defaultCategories;
+    return sourceList.map((item, index) => ({
+      title: item.title || item.name || "Category",
+      jobs: typeof item.jobs === "string" ? item.jobs : `${item.count || item.jobCount || 120} Open Jobs`,
+      icon: item.icon || ICONS[index % ICONS.length],
+      gradient: GRADIENTS[index % GRADIENTS.length],
+    }));
+  }, [categories]);
+
+  const formattedWorkModes = useMemo(() => {
+    const sourceList = workModes.length > 0 ? workModes : defaultWorkModes;
+    return sourceList.map((item, index) => ({
+      title: item.title || item.workingMode || "Work Mode",
+      jobs: typeof item.jobs === "string" ? item.jobs : `${item.jobCount || item.count || 240} Open Jobs`,
+      icon: item.icon || ICONS[(index + 4) % ICONS.length],
+      gradient: GRADIENTS[(index + 3) % GRADIENTS.length],
+    }));
+  }, [workModes]);
 
   const items = activeTab === "category" ? formattedCategories : formattedWorkModes;
   const activeTabMeta = TABS.find((tab) => tab.key === activeTab) ?? TABS[0];
-  const activeVariants = prefersReducedMotion ? cardVariantsReduced : cardVariants;
-
-  const handleKeyDown = (event) => {
-    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
-    event.preventDefault();
-
-    const currentIndex = TABS.findIndex((tab) => tab.key === activeTab);
-    const nextIndex =
-      event.key === "ArrowRight"
-        ? (currentIndex + 1) % TABS.length
-        : (currentIndex - 1 + TABS.length) % TABS.length;
-
-    setActiveTab(TABS[nextIndex].key);
-    event.currentTarget.querySelectorAll('[role="tab"]')[nextIndex]?.focus();
-  };
 
   return (
-    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-28">
-      {/* Background glow */}
+    <section className="relative overflow-hidden bg-[#05070d] py-20 sm:py-24 lg:py-32 font-inter text-slate-200">
+      {/* ── Background Ambient Lighting & Mesh Orbs ── */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-20 h-64 w-64 -translate-x-1/2 rounded-full bg-[#6366F1]/10 blur-[120px] sm:h-80 sm:w-80"
+        className="pointer-events-none absolute left-1/2 top-10 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-indigo-600/10 blur-[180px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-0 top-1/3 h-[400px] w-[400px] rounded-full bg-purple-600/10 blur-[160px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 bottom-10 h-[350px] w-[350px] rounded-full bg-pink-600/5 blur-[150px]"
       />
 
-      <div className="section-container relative z-10">
+      {/* Dot Grid Backdrop */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: "radial-gradient(circle, #A5B4FC 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
+
+      <div className="section-container relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeader
-          badge="Explore Jobs"
+          badge="Career Discovery"
           title={
             <>
-              Browse <span className="gradient-text">Job</span> Categories
+              Browse <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Job Categories</span>
             </>
           }
-          subtitle="Explore opportunities across popular job categories and flexible work modes to find the role that fits your career goals."
+          subtitle="Discover high-demand opportunities across top industries, flexible work arrangements, and specialized engineering domains."
         />
 
-        {/* Tab switcher */}
+        {/* ── Filter Tab Switcher ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
           className="mt-8 flex w-full justify-center sm:mt-10"
         >
           <div
             role="tablist"
-            aria-label="Browse jobs"
-            onKeyDown={handleKeyDown}
-            className="flex w-full max-w-[360px] items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#0D1117] p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.2)]"
+            aria-label="Browse categories or work modes"
+            className="flex w-full max-w-[360px] items-center gap-2 rounded-2xl border border-white/10 bg-[#090d16]/90 p-1.5 backdrop-blur-xl shadow-2xl"
           >
             {TABS.map((tab) => {
               const isActive = activeTab === tab.key;
@@ -306,33 +253,34 @@ function JobCategory() {
                   role="tab"
                   aria-selected={isActive}
                   aria-controls={`${tabPanelId}-panel`}
-                  tabIndex={isActive ? 0 : -1}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`${FOCUS_RING} relative flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition-colors duration-300 ${
-                    isActive ? "text-white" : "text-[#708090] hover:text-white"
+                  className={`relative flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-xl px-4 text-xs font-extrabold transition-all duration-300 cursor-pointer ${
+                    isActive ? "text-white shadow-lg" : "text-slate-400 hover:text-white"
                   }`}
                 >
                   {isActive && (
                     <motion.span
-                      layoutId="job-tab-indicator"
-                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] shadow-[0_4px_16px_rgba(99,102,241,0.25)]"
+                      layoutId="job-category-tab-indicator"
+                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-[0_0_20px_rgba(99,102,241,0.4)]"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
-                  <span className="relative z-10">{tab.label}</span>
+                  <span className="relative z-10 flex items-center gap-1.5">
+                    {tab.key === "category" && <Sparkles size={14} className={isActive ? "text-amber-300 animate-pulse" : ""} />}
+                    {tab.label}
+                  </span>
                 </button>
               );
             })}
           </div>
         </motion.div>
 
-        {/* Panel */}
+        {/* ── Category Cards Grid ── */}
         <div
           id={`${tabPanelId}-panel`}
           role="tabpanel"
           aria-labelledby={`${tabPanelId}-${activeTab}-tab`}
-          aria-live="polite"
-          className="mt-8 sm:mt-10 lg:mt-12"
+          className="mt-10 sm:mt-12"
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -341,24 +289,16 @@ function JobCategory() {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 lg:gap-5 xl:gap-6"
+              className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
             >
-              {isLoading ? (
-                Array.from({ length: 8 }).map((_, index) => (
-                  <CardSkeleton key={index} />
-                ))
-              ) : items.length === 0 ? (
-                <EmptyState label={activeTabMeta.label.toLowerCase()} />
-              ) : (
-                items.map((item) => (
-                  <CategoryCard
-                    key={item.title}
-                    item={item}
-                    activeParam={activeTabMeta.param}
-                    variants={activeVariants}
-                  />
-                ))
-              )}
+              {items.map((item) => (
+                <CategoryCard
+                  key={item.title}
+                  item={item}
+                  activeParam={activeTabMeta.param}
+                  variants={cardVariants}
+                />
+              ))}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -366,5 +306,3 @@ function JobCategory() {
     </section>
   );
 }
-
-export default JobCategory;
