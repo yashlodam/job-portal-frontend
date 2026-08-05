@@ -320,6 +320,7 @@ function StepJobDetails({ form, setForm, errors, clearError }) {
 
 function StepDescription({ form, setForm, errors, clearError }) {
   const [skillInput, setSkillInput] = useState("");
+  const [preferredSkillInput, setPreferredSkillInput] = useState("");
 
   const addSkill = () => {
     const trimmed = skillInput.trim();
@@ -335,6 +336,22 @@ function StepDescription({ form, setForm, errors, clearError }) {
 
   const removeSkill = (skill) => {
     setForm({ ...form, skills: form.skills.filter((s) => s !== skill) });
+  };
+
+  const addPreferredSkill = () => {
+    const trimmed = preferredSkillInput.trim();
+    if (!trimmed) return;
+    if (form.preferredSkills.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
+      setPreferredSkillInput("");
+      return;
+    }
+    setForm({ ...form, preferredSkills: [...form.preferredSkills, trimmed] });
+    setPreferredSkillInput("");
+    clearError("preferredSkills");
+  };
+
+  const removePreferredSkill = (skill) => {
+    setForm({ ...form, preferredSkills: form.preferredSkills.filter((s) => s !== skill) });
   };
 
   return (
@@ -377,6 +394,28 @@ function StepDescription({ form, setForm, errors, clearError }) {
         onChange={(e) => {
           setForm({ ...form, requirements: e.target.value });
           clearError("requirements");
+        }}
+      />
+
+      <TextareaField
+        label="Responsibilities"
+        placeholder="Summarize the key responsibilities for this role…"
+        value={form.responsibilities}
+        error={errors.responsibilities}
+        onChange={(e) => {
+          setForm({ ...form, responsibilities: e.target.value });
+          clearError("responsibilities");
+        }}
+      />
+
+      <TextareaField
+        label="About the Role"
+        placeholder="Highlight what makes this role meaningful to candidates…"
+        value={form.aboutRole}
+        error={errors.aboutRole}
+        onChange={(e) => {
+          setForm({ ...form, aboutRole: e.target.value });
+          clearError("aboutRole");
         }}
       />
 
@@ -436,6 +475,63 @@ function StepDescription({ form, setForm, errors, clearError }) {
           </div>
         )}
         <ErrorMessage id="input-skills-error">{errors.skills}</ErrorMessage>
+      </div>
+
+      <div>
+        <label htmlFor="input-preferred-skills" className="mb-2 block text-sm font-medium text-heading">
+          Preferred Skills
+        </label>
+        <div className="flex gap-2">
+          <input
+            id="input-preferred-skills"
+            value={preferredSkillInput}
+            onChange={(e) => setPreferredSkillInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addPreferredSkill();
+              }
+            }}
+            placeholder="Type a preferred skill and press Enter"
+            aria-invalid={!!errors.preferredSkills}
+            aria-describedby={errors.preferredSkills ? "input-preferred-skills-error" : undefined}
+            className={`min-w-0 flex-1 h-11 rounded-xl border bg-surface-elevated px-4 text-heading placeholder:text-muted outline-none transition-colors focus:ring-2 ${
+              errors.preferredSkills
+                ? "border-danger/60 focus:border-danger/60 focus:ring-danger/10"
+                : "border-border focus:border-primary/40 focus:ring-primary/10"
+            }`}
+          />
+          <button
+            type="button"
+            onClick={addPreferredSkill}
+            aria-label="Add preferred skill"
+            className="flex shrink-0 items-center gap-1 h-11 rounded-xl border border-primary/30 bg-primary/10 px-4 text-sm font-medium text-primary-light transition-colors hover:bg-primary/20"
+          >
+            <Plus size={16} aria-hidden="true" />
+            Add
+          </button>
+        </div>
+        {form.preferredSkills.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {form.preferredSkills.map((skill) => (
+              <span
+                key={skill}
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary-light"
+              >
+                {skill}
+                <button
+                  type="button"
+                  onClick={() => removePreferredSkill(skill)}
+                  aria-label={`Remove preferred skill ${skill}`}
+                  className="rounded-full p-0.5 transition-colors hover:bg-primary/20"
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <ErrorMessage id="input-preferred-skills-error">{errors.preferredSkills}</ErrorMessage>
       </div>
 
       <SelectField
@@ -511,6 +607,110 @@ function StepCompensation({ form, setForm, errors, clearError }) {
             clearError("salaryMax");
           }}
         />
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        <InputField
+          label="Minimum Experience (years)"
+          placeholder="e.g. 1"
+          type="number"
+          min="0"
+          value={form.minimumExperience}
+          error={errors.minimumExperience}
+          onChange={(e) => {
+            setForm({ ...form, minimumExperience: e.target.value });
+            clearError("minimumExperience");
+          }}
+        />
+        <InputField
+          label="Maximum Experience (years)"
+          placeholder="e.g. 3"
+          type="number"
+          min="0"
+          value={form.maximumExperience}
+          error={errors.maximumExperience}
+          onChange={(e) => {
+            setForm({ ...form, maximumExperience: e.target.value });
+            clearError("maximumExperience");
+          }}
+        />
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        <InputField
+          label="Vacancies"
+          placeholder="e.g. 5"
+          type="number"
+          min="1"
+          value={form.vacancies}
+          error={errors.vacancies}
+          onChange={(e) => {
+            setForm({ ...form, vacancies: e.target.value });
+            clearError("vacancies");
+          }}
+        />
+        <InputField
+          label="Interview Rounds"
+          placeholder="e.g. 2"
+          type="number"
+          min="1"
+          value={form.interviewRounds}
+          error={errors.interviewRounds}
+          onChange={(e) => {
+            setForm({ ...form, interviewRounds: e.target.value });
+            clearError("interviewRounds");
+          }}
+        />
+      </div>
+
+      <InputField
+        label="Qualification"
+        placeholder="e.g. B.E/B.Tech"
+        value={form.qualification}
+        error={errors.qualification}
+        onChange={(e) => {
+          setForm({ ...form, qualification: e.target.value });
+          clearError("qualification");
+        }}
+      />
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <button
+          type="button"
+          onClick={() => setForm({ ...form, featured: !form.featured })}
+          aria-pressed={form.featured}
+          className={`rounded-xl border p-4 text-sm font-medium transition-all duration-200 ${
+            form.featured
+              ? "border-primary/50 bg-primary/10 text-primary-light shadow-glow-primary"
+              : "border-border bg-surface text-body hover:border-border-hover hover:text-heading"
+          }`}
+        >
+          Featured
+        </button>
+        <button
+          type="button"
+          onClick={() => setForm({ ...form, urgentHiring: !form.urgentHiring })}
+          aria-pressed={form.urgentHiring}
+          className={`rounded-xl border p-4 text-sm font-medium transition-all duration-200 ${
+            form.urgentHiring
+              ? "border-primary/50 bg-primary/10 text-primary-light shadow-glow-primary"
+              : "border-border bg-surface text-body hover:border-border-hover hover:text-heading"
+          }`}
+        >
+          Urgent Hiring
+        </button>
+        <button
+          type="button"
+          onClick={() => setForm({ ...form, easyApply: !form.easyApply })}
+          aria-pressed={form.easyApply}
+          className={`rounded-xl border p-4 text-sm font-medium transition-all duration-200 ${
+            form.easyApply
+              ? "border-primary/50 bg-primary/10 text-primary-light shadow-glow-primary"
+              : "border-border bg-surface text-body hover:border-border-hover hover:text-heading"
+          }`}
+        >
+          Easy Apply
+        </button>
       </div>
 
       {/* Benefits */}
@@ -864,33 +1064,53 @@ const initialForm = {
   workMode: "",
   location: "",
   jobType: "",
-  company:"",
+  company: "",
   description: "",
+  responsibilities: "",
+  aboutRole: "",
   requirements: "",
   skills: [],
+  preferredSkills: [],
   experienceLevel: "",
+  minimumExperience: "",
+  maximumExperience: "",
+  qualification: "",
+  vacancies: "",
+  interviewRounds: "",
   salaryMin: "",
   salaryMax: "",
   benefits: [],
+  featured: false,
+  urgentHiring: false,
+  easyApply: true,
   deadline: "",
 };
 
 /** Field order per step, used to focus the first invalid field after a failed validation. */
 const FIELD_ORDER = {
-  1: ["title", "category", "workMode", "location", "jobType"],
-  2: ["description", "requirements", "skills", "experienceLevel"],
-  3: ["salaryMin", "salaryMax", "benefits", "deadline"],
+  1: ["title", "company", "category", "workMode", "location", "jobType", "minimumExperience", "maximumExperience"],
+  2: ["description", "responsibilities", "requirements", "skills", "preferredSkills", "experienceLevel", "qualification"],
+  3: ["salaryMin", "salaryMax", "vacancies", "interviewRounds", "benefits", "deadline"],
 };
 
 /** Maps a field key to the DOM id of the element that should receive focus. */
 const FIELD_FOCUS_ID = {
   title: "input-job-title",
+  company: "input-company",
   category: "select-category",
   location: "input-location",
   description: "textarea-job-description",
+  responsibilities: "textarea-responsibilities",
+  aboutRole: "textarea-about-role",
   requirements: "textarea-requirements",
   skills: "input-skills",
+  preferredSkills: "input-preferred-skills",
   experienceLevel: "select-experience-level",
+  minimumExperience: "input-minimum-experience",
+  maximumExperience: "input-maximum-experience",
+  qualification: "input-qualification",
+  vacancies: "input-vacancies",
+  interviewRounds: "input-interview-rounds",
   salaryMin: "input-minimum-salary-($)",
   salaryMax: "input-maximum-salary-($)",
   deadline: "input-deadline",
