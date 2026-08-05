@@ -611,6 +611,7 @@ function StepCompensation({ form, setForm, errors, clearError }) {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <InputField
+          id="input-minimum-experience"
           label="Minimum Experience (years)"
           placeholder="e.g. 1"
           type="number"
@@ -623,6 +624,7 @@ function StepCompensation({ form, setForm, errors, clearError }) {
           }}
         />
         <InputField
+          id="input-maximum-experience"
           label="Maximum Experience (years)"
           placeholder="e.g. 3"
           type="number"
@@ -638,6 +640,7 @@ function StepCompensation({ form, setForm, errors, clearError }) {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <InputField
+          id="input-vacancies"
           label="Vacancies"
           placeholder="e.g. 5"
           type="number"
@@ -650,6 +653,7 @@ function StepCompensation({ form, setForm, errors, clearError }) {
           }}
         />
         <InputField
+          id="input-interview-rounds"
           label="Interview Rounds"
           placeholder="e.g. 2"
           type="number"
@@ -664,6 +668,7 @@ function StepCompensation({ form, setForm, errors, clearError }) {
       </div>
 
       <InputField
+        id="input-qualification"
         label="Qualification"
         placeholder="e.g. B.E/B.Tech"
         value={form.qualification}
@@ -780,6 +785,7 @@ function StepCompensation({ form, setForm, errors, clearError }) {
 function StepPreview({ form, onEdit }) {
   const benefitLabels = {
     health: "Health Insurance",
+    medical: "Medical Insurance",
     "401k": "401(k) Match",
     remote: "Remote Work",
     pto: "Unlimited PTO",
@@ -900,12 +906,49 @@ function StepPreview({ form, onEdit }) {
           </div>
         )}
 
+        {/* Responsibilities */}
+        {form.responsibilities && (
+          <div className="mt-5">
+            <h4 className="text-sm font-bold text-heading">Responsibilities</h4>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-body">
+              {form.responsibilities}
+            </p>
+          </div>
+        )}
+
+        {/* About Role */}
+        {form.aboutRole && (
+          <div className="mt-5">
+            <h4 className="text-sm font-bold text-heading">About the Role</h4>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-body">
+              {form.aboutRole}
+            </p>
+          </div>
+        )}
+
         {/* Skills */}
         {form.skills.length > 0 && (
           <div className="mt-5">
             <h4 className="mb-2 text-sm font-bold text-heading">Skills</h4>
             <div className="flex flex-wrap gap-2">
               {form.skills.map((s) => (
+                <span
+                  key={s}
+                  className="rounded-full border border-border bg-surface-elevated px-3 py-1 text-xs font-semibold text-body"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Preferred Skills */}
+        {form.preferredSkills.length > 0 && (
+          <div className="mt-5">
+            <h4 className="mb-2 text-sm font-bold text-heading">Preferred Skills</h4>
+            <div className="flex flex-wrap gap-2">
+              {form.preferredSkills.map((s) => (
                 <span
                   key={s}
                   className="rounded-full border border-border bg-surface-elevated px-3 py-1 text-xs font-semibold text-body"
@@ -1163,6 +1206,18 @@ function validateStep(step, form) {
       errors.salaryMax = "Maximum salary must be greater than or equal to the minimum.";
     }
 
+    if (!form.vacancies) {
+      errors.vacancies = "Number of vacancies is required.";
+    } else if (Number(form.vacancies) <= 0) {
+      errors.vacancies = "Vacancies must be at least 1.";
+    }
+
+    if (!form.interviewRounds) {
+      errors.interviewRounds = "Number of interview rounds is required.";
+    } else if (Number(form.interviewRounds) <= 0) {
+      errors.interviewRounds = "Interview rounds must be at least 1.";
+    }
+
     if (form.benefits.length === 0) errors.benefits = "Select at least one benefit.";
 
     if (!form.deadline) {
@@ -1333,8 +1388,8 @@ function UploadJob() {
     };
 
     const loc = parseLocation(form.location);
-    const minExp = Number(form.expMin) || 0;
-    const maxExp = Math.max(minExp, Number(form.expMax) || minExp + 3);
+    const minExp = Number(form.minimumExperience) || 0;
+    const maxExp = Math.max(minExp, Number(form.maximumExperience) || minExp + 3);
     const minSal = Number(form.salaryMin) || 0;
     const maxSal = Math.max(minSal, Number(form.salaryMax) || minSal);
 
@@ -1365,7 +1420,7 @@ function UploadJob() {
       numberOfInterviewRounds: Number(form.interviewRounds) || 3,
       featured: Boolean(form.featured),
       urgentHiring: Boolean(form.urgentHiring),
-      easyApply: true,
+      easyApply: Boolean(form.easyApply),
     };
 
     try {
