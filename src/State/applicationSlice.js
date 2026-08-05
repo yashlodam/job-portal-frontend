@@ -125,12 +125,15 @@ const applicationSlice = createSlice({
       })
       .addCase(fetchJobApplicationsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        const pageData = action.payload;
+        const res = action.payload;
+        const pageData = res?.data ?? res;
         if (pageData?.content) {
           state.jobApplicationsPage = pageData;
           state.jobApplications = pageData.content;
         } else if (Array.isArray(pageData)) {
           state.jobApplications = pageData;
+        } else {
+          state.jobApplications = [];
         }
       })
       .addCase(fetchJobApplicationsThunk.rejected, (state, action) => {

@@ -12,7 +12,7 @@ const fieldStyles = {
     borderColor: "rgba(255,255,255,0.15)",
     color: "#FFFFFF",
     borderRadius: 12,
-    "&:focus, &:focus-within": {
+    "&:focus, &:focusWithin": {
       borderColor: "#6366F1 !important",
       backgroundColor: "rgba(255,255,255,0.08)",
     },

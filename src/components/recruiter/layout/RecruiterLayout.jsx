@@ -24,7 +24,7 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
       />
 
       {/* Main Container */}
-      <div className="flex-1 min-w-0 flex flex-col">
+      <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "md:ml-20" : "md:ml-64"}`}>
         {/* Navbar */}
         <RecruiterNavbar onOpenMobileSidebar={() => setMobileSidebarOpen(true)} />
 

@@ -5,7 +5,7 @@ export const createJob = createAsyncThunk(
   "jobs/createJob",
   async (jobData, { rejectWithValue }) => {
     try {
-      const { data } = await api.post("/jobs", jobData);
+      const { data } = await api.post("/recruiter/jobs", jobData);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -18,14 +18,11 @@ export const createJob = createAsyncThunk(
   }
 );
 
-
-
-
 export const updateJob = createAsyncThunk(
   "jobs/updateJob",
   async ({ jobId, jobData }, { rejectWithValue }) => {
     try {
-      const { data } = await api.put(`/jobs/${jobId}`, jobData);
+      const { data } = await api.put(`/recruiter/jobs/${jobId}`, jobData);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -38,14 +35,11 @@ export const updateJob = createAsyncThunk(
   }
 );
 
-
-
-
 export const deleteJob = createAsyncThunk(
   "jobs/deleteJob",
   async (jobId, { rejectWithValue }) => {
     try {
-      const { data } = await api.delete(`/jobs/${jobId}`);
+      const { data } = await api.delete(`/recruiter/jobs/${jobId}`);
 
       return {
         jobId,
@@ -62,14 +56,12 @@ export const deleteJob = createAsyncThunk(
   }
 );
 
-
-
 export const getAllJobs = createAsyncThunk(
   "jobs/getAllJobs",
   async (
     {
       page = 0,
-      size = 10,
+      size = 100,
       sort = "createdAt,desc",
     } = {},
     { rejectWithValue }
@@ -95,8 +87,6 @@ export const getAllJobs = createAsyncThunk(
   }
 );
 
-
-
 export const getJobById = createAsyncThunk(
   "jobs/getJobById",
   async (jobId, { rejectWithValue }) => {
@@ -113,8 +103,6 @@ export const getJobById = createAsyncThunk(
     }
   }
 );
-
-
 
 export const viewJob = createAsyncThunk(
   "jobs/viewJob",
@@ -133,19 +121,17 @@ export const viewJob = createAsyncThunk(
   }
 );
 
-
-
 export const getMyJobs = createAsyncThunk(
   "jobs/getMyJobs",
   async (
     {
       page = 0,
-      size = 10,
+      size = 100,
     } = {},
     { rejectWithValue }
   ) => {
     try {
-      const { data } = await api.get("/jobs/me", {
+      const { data } = await api.get("/recruiter/jobs", {
         params: {
           page,
           size,
@@ -190,7 +176,7 @@ export const searchJobs = createAsyncThunk(
 
       const raw = {
         page:            searchParams.page            ?? 0,
-        size:            searchParams.size            ?? 10,
+        size:            searchParams.size            ?? 100,
         // ⚠ Entity field is createdAt — NOT postedAt
         sort:            searchParams.sort            || "createdAt,desc",
         keyword:         searchParams.keyword?.trim() || undefined,
@@ -517,8 +503,10 @@ const jobSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.message = action.payload?.message || "Job created successfully.";
-        if (action.payload?.data) {
-          state.jobs.unshift(action.payload.data);
+        const newJob = action.payload?.data ?? action.payload;
+        if (newJob) {
+          state.jobs.unshift(newJob);
+          state.myJobs.unshift(newJob);
         }
       })
       .addCase(createJob.rejected, setRejected)
@@ -564,9 +552,10 @@ const jobSlice = createSlice({
       .addCase(getAllJobs.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        const page = action.payload?.data ?? {};
-        state.jobs = page.content ?? [];
-        state.pagination = extractPagination(page);
+        const raw = action.payload?.data ?? action.payload ?? {};
+        const content = raw.content ?? (Array.isArray(raw) ? raw : []);
+        state.jobs = content;
+        state.pagination = extractPagination(raw);
       })
       .addCase(getAllJobs.rejected, setRejected)
 
@@ -589,14 +578,15 @@ const jobSlice = createSlice({
         state.error = action.payload?.message || "Unable to update views.";
       })
 
-      // ---------------- Get My Jobs ----------------
+      // ---------------- Get My Jobs (Recruiter) ----------------
       .addCase(getMyJobs.pending, setPending)
       .addCase(getMyJobs.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        const page = action.payload?.data ?? {};
-        state.myJobs = page.content ?? [];
-        state.pagination = extractPagination(page);
+        const raw = action.payload?.data ?? action.payload ?? {};
+        const content = raw.content ?? (Array.isArray(raw) ? raw : []);
+        state.myJobs = content;
+        state.pagination = extractPagination(raw);
       })
       .addCase(getMyJobs.rejected, setRejected)
 

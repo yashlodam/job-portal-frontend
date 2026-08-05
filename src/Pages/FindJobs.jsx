@@ -781,8 +781,17 @@ export default function FindJobs() {
                 onChange={(e) => handleSearchInputChange("title", e.target.value)}
                 placeholder="Job title, keyword, or company"
                 aria-label="Search by job title, keyword, or company"
-                className="w-full rounded-xl border border-border bg-surface-elevated py-3.5 pl-11 pr-4 text-sm text-heading placeholder:text-muted outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-surface-elevated"
+                className="w-full rounded-xl border border-border bg-surface-elevated py-3.5 pl-11 pr-10 text-sm text-heading placeholder:text-muted outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-surface-elevated"
               />
+              {searchTitle && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchInputChange("title", "")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-heading p-1"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
 
             {/* Location input */}
@@ -797,8 +806,17 @@ export default function FindJobs() {
                 onChange={(e) => handleSearchInputChange("location", e.target.value)}
                 placeholder="City, state, or remote"
                 aria-label="Search by city, state, or remote"
-                className="w-full rounded-xl border border-border bg-surface-elevated py-3.5 pl-11 pr-4 text-sm text-heading placeholder:text-muted outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-surface-elevated"
+                className="w-full rounded-xl border border-border bg-surface-elevated py-3.5 pl-11 pr-10 text-sm text-heading placeholder:text-muted outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-surface-elevated"
               />
+              {searchLocation && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchInputChange("location", "")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-heading p-1"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
 
             {/* Search button */}

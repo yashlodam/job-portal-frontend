@@ -73,7 +73,7 @@ export const fetchJobApplicationsThunk = createAsyncThunk(
   "applications/fetchJobApplications",
   async ({ jobId, page = 0, size = 10, sort = "createdAt,desc" }, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/applications/jobs/${jobId}`, {
+      const response = await api.get(`/recruiter/jobs/${jobId}/applications`, {
         params: { page, size, sort },
       });
       return response.data?.data ?? response.data;
@@ -93,7 +93,7 @@ export const updateApplicationStatusThunk = createAsyncThunk(
   "applications/updateApplicationStatus",
   async ({ applicationId, status, notes }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/applications/${applicationId}/status`, {
+      const response = await api.put(`/recruiter/applications/${applicationId}/status`, {
         status,
         notes,
       });

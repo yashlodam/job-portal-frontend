@@ -6,215 +6,228 @@ import {
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 
-function TalentCard() {
+const getFullImageUrl = (rawPath) => {
+  if (!rawPath) return null;
+  if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) return rawPath;
+  const cleanPath = rawPath.startsWith("/") ? rawPath.slice(1) : rawPath;
+  if (cleanPath.startsWith("uploads/")) return `http://localhost:8080/${cleanPath}`;
+  return `http://localhost:8080/uploads/${cleanPath}`;
+};
+
+function AvailabilityBadge({ type }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400 font-satoshi">
+      {type ? String(type).replace(/_/g, " ") : "OPEN TO WORK"}
+    </span>
+  );
+}
+
+function ExperienceBadge({ level }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-[11px] font-bold text-indigo-300 font-satoshi">
+      {level ? String(level).replace(/_/g, " ") : "MID LEVEL"}
+    </span>
+  );
+}
+
+function TalentCard({ talent: customTalent }) {
   const navigate = useNavigate();
 
+  if (!customTalent) return null;
+
   const talent = {
-    id: 1,
-    name: "Jarrod Wood",
-    role: "Software Engineer",
-    company: "Google",
-    location: "New York, United States",
-    salary: "₹48 - 60 LPA",
-    profileImage: "/profile.png",
-    skills: ["React", "Spring Boot", "MongoDB"],
-    about:
-      "As a Software Engineer at Google, I specialize in building scalable and high-performance applications. My expertise lies in integrating front-end and back-end technologies to create seamless digital experiences.",
+    id: customTalent.id,
+    name: customTalent.name || customTalent.fullName || "Candidate",
+    role: customTalent.headline || customTalent.role || customTalent.title || customTalent.professionalTitle || "Software Specialist",
+    company: customTalent.currentCompany || customTalent.company || "Independent",
+    location: customTalent.location || (customTalent.city ? `${customTalent.city}, ${customTalent.country || ''}` : "Remote"),
+    availability: customTalent.availability ? customTalent.availability.replace(/_/g, " ") : "OPEN TO WORK",
+    experienceLevel: customTalent.experienceLevel ? customTalent.experienceLevel.replace(/_/g, " ") : "MID LEVEL",
+    profileImage: getFullImageUrl(customTalent.profileImage || customTalent.avatar),
+    skills: Array.isArray(customTalent.skills) ? customTalent.skills : [],
+    about: customTalent.about || customTalent.bio || "",
   };
+
+  const initials = talent.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("");
 
   return (
     <div
       className="
         group
         w-full
-        max-w-md
         rounded-2xl
         border
-        border-border
-        bg-surface
+        border-white/10
+        bg-[#090d16]/90
         p-5
         transition-all
         duration-300
         hover:-translate-y-1
-        hover:border-primary/30
-        hover:shadow-[0_16px_50px_rgba(0,0,0,0.25)]
+        hover:border-indigo-500/40
+        hover:shadow-[0_12px_40px_rgba(99,102,241,0.15)]
       "
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-
         {/* Profile */}
-        <div className="flex min-w-0 items-center gap-4">
-
+        <div className="flex min-w-0 items-center gap-3.5">
           {/* Avatar */}
-          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-primary/20 bg-surface-elevated">
-            <img
-              src={talent.profileImage}
-              alt={talent.name}
-              className="h-full w-full object-cover"
-            />
+          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-indigo-500/20 bg-slate-800">
+            {talent.profileImage ? (
+              <img
+                src={talent.profileImage}
+                alt={talent.name}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80";
+                }}
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 font-black text-white text-base">
+                {initials}
+              </div>
+            )}
           </div>
 
           {/* Name & Role */}
           <div className="min-w-0">
-            <h3 className="truncate font-satoshi text-xl font-bold text-heading">
+            <h3 className="truncate font-satoshi text-base font-bold text-white">
               {talent.name}
             </h3>
 
-            <p className="mt-1 truncate text-sm text-body">
+            <p className="mt-0.5 truncate text-xs text-indigo-400 font-semibold font-satoshi">
               {talent.role}
-              <span className="mx-1.5 text-muted">•</span>
-              <span className="font-medium text-primary-light">
-                {talent.company}
-              </span>
+              {talent.company && (
+                <>
+                  <span className="mx-1 text-slate-500">•</span>
+                  <span className="text-slate-300">{talent.company}</span>
+                </>
+              )}
             </p>
           </div>
-
         </div>
 
-        {/* Favorite Button */}
+        {/* Save Button */}
         <button
           type="button"
           aria-label="Save talent"
           className="
             flex
-            h-10
-            w-10
+            h-9
+            w-9
             shrink-0
             items-center
             justify-center
             rounded-full
-            text-muted
+            text-slate-400
             transition-all
-            duration-300
-            hover:bg-primary/10
-            hover:text-primary-light
+            hover:bg-white/10
+            hover:text-white
           "
         >
-          <IconHeart size={24} stroke={1.6} />
+          <IconHeart size={20} stroke={1.6} />
         </button>
-
       </div>
 
       {/* Skills */}
-      <div className="mt-5 flex flex-wrap gap-2">
-        {talent.skills.map((skill) => (
-          <span
-            key={skill}
-            className="
-              rounded-lg
-              border
-              border-primary/15
-              bg-primary/10
-              px-3
-              py-1
-              text-xs
-              font-semibold
-              text-primary-light
-            "
-          >
-            {skill}
-          </span>
-        ))}
-      </div>
+      {talent.skills.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {talent.skills.slice(0, 3).map((skill, i) => (
+            <span
+              key={typeof skill === "string" ? skill : i}
+              className="
+                rounded-lg
+                border
+                border-indigo-500/20
+                bg-indigo-500/10
+                px-2.5
+                py-0.5
+                text-[11px]
+                font-semibold
+                text-indigo-300
+                font-satoshi
+              "
+            >
+              {typeof skill === "string" ? skill : skill.name}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* About */}
-      <p
-        className="
-          mt-4
-          line-clamp-3
-          text-sm
-          leading-6
-          text-body
-        "
-      >
-        {talent.about}
-      </p>
+      {talent.about && (
+        <p className="mt-3 line-clamp-2 text-xs leading-5 text-slate-300 font-satoshi">
+          {talent.about}
+        </p>
+      )}
 
-      {/* Divider */}
-      <div className="my-5 h-px w-full bg-border" />
+      {/* Badges: Experience Level & Status */}
+      <div className="mt-4 flex items-center justify-between gap-2 font-satoshi">
+        <ExperienceBadge level={talent.experienceLevel} />
+        <AvailabilityBadge type={talent.availability} />
+      </div>
 
-      {/* Salary & Location */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-
-        {/* Salary */}
-        <span className="font-satoshi text-base font-bold text-heading">
-          {talent.salary}
-        </span>
-
-        {/* Location */}
-        <div className="flex items-center gap-1.5 text-sm text-muted">
-          <IconMapPin
-            size={18}
-            stroke={1.7}
-            className="shrink-0"
-          />
-
-          <span className="truncate">
-            {talent.location}
-          </span>
-        </div>
-
+      {/* Location */}
+      <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-400 font-satoshi">
+        <IconMapPin size={14} className="shrink-0 text-indigo-400" />
+        <span className="truncate">{talent.location}</span>
       </div>
 
       {/* Divider */}
-      <div className="my-5 h-px w-full bg-border" />
+      <div className="my-4 h-px w-full bg-white/10" />
 
       {/* Actions */}
-      <div className="grid grid-cols-2 gap-3">
-
-        {/* Profile Button */}
+      <div className="grid grid-cols-2 gap-2 font-satoshi">
         <button
           type="button"
-          onClick={() => navigate(`/talent-profile/${talent.id}`)}
+          onClick={() => navigate(`/talent-profile/${talent.id}`, { state: { talent: customTalent } })}
           className="
             flex
-            h-11
+            h-9
             items-center
             justify-center
             rounded-xl
             border
-            border-primary/40
+            border-indigo-500/30
             bg-transparent
-            text-sm
-            font-semibold
-            text-primary-light
+            text-xs
+            font-bold
+            text-indigo-300
             transition-all
-            duration-300
-            hover:border-primary
-            hover:bg-primary/10
+            hover:bg-indigo-500/10
+            cursor-pointer
           "
         >
-          Profile
+          View Profile
         </button>
 
-        {/* Message Button */}
         <button
           type="button"
           className="
             flex
-            h-11
+            h-9
             items-center
             justify-center
-            gap-2
+            gap-1.5
             rounded-xl
-            bg-primary
-            text-sm
-            font-semibold
+            bg-indigo-600
+            text-xs
+            font-bold
             text-white
-            shadow-button
+            shadow-md
             transition-all
-            duration-300
-            hover:-translate-y-0.5
-            hover:bg-primary-light
+            hover:bg-indigo-500
+            cursor-pointer
           "
         >
-          <IconMessage size={17} stroke={1.8} />
+          <IconMessage size={15} />
           Message
         </button>
-
       </div>
-
     </div>
   );
 }

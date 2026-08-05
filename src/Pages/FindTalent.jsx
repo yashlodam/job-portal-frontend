@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   MapPin,
-  Star,
   Clock,
   Filter,
   X,
@@ -14,353 +13,184 @@ import {
   TrendingUp,
   ArrowRight,
   SlidersHorizontal,
+  Loader2,
+  RotateCcw,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-/* ===========================
-    Mock Talent Data
-=========================== */
+import { searchTalent } from "../api/talentApi";
 
 const talentGradients = [
-  "from-primary to-violet",
-  "from-accent to-primary",
-  "from-violet to-pink-500",
-  "from-amber-500 to-orange-500",
-  "from-emerald-500 to-cyan-500",
-  "from-blue-500 to-indigo-500",
-  "from-rose-500 to-violet",
-  "from-cyan-500 to-blue-500",
-  "from-primary to-accent",
-  "from-violet to-primary",
-  "from-emerald-500 to-primary",
-  "from-pink-500 to-rose-500",
-  "from-amber-500 to-primary",
-  "from-primary to-emerald-500",
+  "from-indigo-600 to-violet-600",
+  "from-cyan-600 to-blue-600",
+  "from-violet-600 to-pink-600",
+  "from-amber-600 to-orange-600",
+  "from-emerald-600 to-teal-600",
+  "from-rose-600 to-purple-600",
 ];
 
-const talents = [
-  {
-    id: 1,
-    name: "Sarah Chen",
-    title: "Senior Frontend Developer",
-    skills: ["React", "TypeScript", "Next.js", "Tailwind"],
-    rating: 4.9,
-    hourlyRate: "$95",
-    availability: "Full Time",
-    location: "San Francisco, CA",
-    experience: "Senior",
-    gradient: talentGradients[0],
-  },
-  {
-    id: 2,
-    name: "Marcus Johnson",
-    title: "Full Stack Engineer",
-    skills: ["Node.js", "Python", "AWS", "React"],
-    rating: 4.8,
-    hourlyRate: "$110",
-    availability: "Freelance",
-    location: "New York, NY",
-    experience: "Senior",
-    gradient: talentGradients[1],
-  },
-  {
-    id: 3,
-    name: "Priya Patel",
-    title: "UI/UX Designer",
-    skills: ["Figma", "Design Systems", "User Research", "Prototyping"],
-    rating: 5.0,
-    hourlyRate: "$85",
-    availability: "Full Time",
-    location: "London, UK",
-    experience: "Mid",
-    gradient: talentGradients[2],
-  },
-  {
-    id: 4,
-    name: "David Kim",
-    title: "ML Engineer",
-    skills: ["Python", "PyTorch", "TensorFlow", "LLMs"],
-    rating: 4.7,
-    hourlyRate: "$130",
-    availability: "Part Time",
-    location: "Seattle, WA",
-    experience: "Lead",
-    gradient: talentGradients[3],
-  },
-  {
-    id: 5,
-    name: "Amara Obi",
-    title: "DevOps Architect",
-    skills: ["Kubernetes", "AWS", "Terraform", "Docker"],
-    rating: 4.9,
-    hourlyRate: "$120",
-    availability: "Freelance",
-    location: "Berlin, Germany",
-    experience: "Senior",
-    gradient: talentGradients[4],
-  },
-  {
-    id: 6,
-    name: "Elena Vasquez",
-    title: "Product Designer",
-    skills: ["Figma", "Sketch", "Motion Design", "CSS"],
-    rating: 4.6,
-    hourlyRate: "$75",
-    availability: "Full Time",
-    location: "Barcelona, Spain",
-    experience: "Mid",
-    gradient: talentGradients[5],
-  },
-  {
-    id: 7,
-    name: "Raj Mehta",
-    title: "Backend Engineer",
-    skills: ["Go", "PostgreSQL", "gRPC", "Microservices"],
-    rating: 4.8,
-    hourlyRate: "$100",
-    availability: "Full Time",
-    location: "Bangalore, India",
-    experience: "Senior",
-    gradient: talentGradients[6],
-  },
-  {
-    id: 8,
-    name: "Sophie Laurent",
-    title: "Data Scientist",
-    skills: ["Python", "R", "SQL", "Machine Learning"],
-    rating: 4.9,
-    hourlyRate: "$115",
-    availability: "Part Time",
-    location: "Paris, France",
-    experience: "Senior",
-    gradient: talentGradients[7],
-  },
-  {
-    id: 9,
-    name: "James Wright",
-    title: "Mobile Developer",
-    skills: ["React Native", "Swift", "Kotlin", "Flutter"],
-    rating: 4.5,
-    hourlyRate: "$90",
-    availability: "Freelance",
-    location: "Austin, TX",
-    experience: "Mid",
-    gradient: talentGradients[8],
-  },
-  {
-    id: 10,
-    name: "Yuki Tanaka",
-    title: "Cloud Architect",
-    skills: ["AWS", "Azure", "GCP", "Serverless"],
-    rating: 5.0,
-    hourlyRate: "$140",
-    availability: "Full Time",
-    location: "Tokyo, Japan",
-    experience: "Lead",
-    gradient: talentGradients[9],
-  },
-  {
-    id: 11,
-    name: "Fatima Al-Rashid",
-    title: "Cybersecurity Analyst",
-    skills: ["Pen Testing", "SIEM", "Cloud Security", "Python"],
-    rating: 4.7,
-    hourlyRate: "$105",
-    availability: "Full Time",
-    location: "Dubai, UAE",
-    experience: "Mid",
-    gradient: talentGradients[10],
-  },
-  {
-    id: 12,
-    name: "Liam O'Brien",
-    title: "Junior Frontend Developer",
-    skills: ["JavaScript", "React", "CSS", "HTML"],
-    rating: 4.3,
-    hourlyRate: "$45",
-    availability: "Full Time",
-    location: "Dublin, Ireland",
-    experience: "Entry",
-    gradient: talentGradients[11],
-  },
-  {
-    id: 13,
-    name: "Ana Costa",
-    title: "Technical Writer",
-    skills: ["Documentation", "API Docs", "Markdown", "Content Strategy"],
-    rating: 4.6,
-    hourlyRate: "$60",
-    availability: "Freelance",
-    location: "São Paulo, Brazil",
-    experience: "Mid",
-    gradient: talentGradients[12],
-  },
-  {
-    id: 14,
-    name: "Chen Wei",
-    title: "Blockchain Developer",
-    skills: ["Solidity", "Rust", "Web3.js", "Smart Contracts"],
-    rating: 4.8,
-    hourlyRate: "$135",
-    availability: "Part Time",
-    location: "Singapore",
-    experience: "Senior",
-    gradient: talentGradients[13],
-  },
-];
+const getFullImageUrl = (rawPath) => {
+  if (!rawPath) return null;
+  if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) {
+    return rawPath;
+  }
+  const cleanPath = rawPath.startsWith("/") ? rawPath.slice(1) : rawPath;
+  if (cleanPath.startsWith("uploads/")) {
+    return `http://localhost:8080/${cleanPath}`;
+  }
+  return `http://localhost:8080/uploads/${cleanPath}`;
+};
 
 const skillOptions = [
+  "Java",
+  "Spring Boot",
   "React",
   "TypeScript",
   "Python",
   "Node.js",
-  "Figma",
+  "SQL",
   "AWS",
-  "Go",
+  "Docker",
   "Kubernetes",
-  "Machine Learning",
-  "Flutter",
+  "Figma",
 ];
-const experienceLevels = ["Entry", "Mid", "Senior", "Lead"];
-const availabilityOptions = ["Full Time", "Part Time", "Freelance"];
+
+const experienceLevels = [
+  { label: "Entry Level", value: "ENTRY_LEVEL" },
+  { label: "Mid Level", value: "MID_LEVEL" },
+  { label: "Senior Level", value: "SENIOR_LEVEL" },
+  { label: "Lead Architect", value: "LEAD" },
+];
+
+const availabilityOptions = [
+  { label: "Open To Work", value: "OPEN_TO_WORK" },
+  { label: "Full Time", value: "FULL_TIME" },
+  { label: "Part Time", value: "PART_TIME" },
+  { label: "Freelance", value: "FREELANCE" },
+];
+
 const locationOptions = [
   "All Locations",
-  "San Francisco, CA",
-  "New York, NY",
-  "London, UK",
-  "Berlin, Germany",
+  "Nashik",
+  "Pune",
+  "Mumbai",
+  "Bangalore",
+  "Delhi",
+  "Hyderabad",
   "Remote",
 ];
 
-const quickFilters = [
-  "React",
-  "Python",
-  "Designer",
-  "DevOps",
-  "Full Stack",
-  "Remote",
-  "Senior",
-  "Freelance",
-];
-
-/* ===========================
-    Sub-Components
-=========================== */
-
-function StarRating({ rating }) {
-
+function AvailabilityBadge({ type }) {
   return (
-    <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          size={14}
-          className={
-            s <= Math.round(rating)
-              ? "fill-accent-warm text-accent-warm"
-              : "text-muted/30"
-          }
-        />
-      ))}
-      <span className="ml-1 text-xs font-medium text-heading">{rating}</span>
-    </div>
+    <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400 font-satoshi">
+      {type ? String(type).replace(/_/g, " ") : "OPEN TO WORK"}
+    </span>
   );
 }
 
-function AvailabilityBadge({ type }) {
-  const colors = {
-    "Full Time": "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    "Part Time": "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    Freelance: "bg-violet/10 text-violet-light border-violet/20",
-  };
+function ExperienceBadge({ level }) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${colors[type] || colors["Full Time"]}`}
-    >
-      {type}
+    <span className="inline-flex items-center rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-[11px] font-bold text-indigo-300 font-satoshi">
+      {level ? String(level).replace(/_/g, " ") : "MID LEVEL"}
     </span>
   );
 }
 
 function TalentCard({ talent, index }) {
   const navigate = useNavigate();
-  const initials = talent.name
+  const initials = (talent.name || "Candidate")
     .split(" ")
     .map((n) => n[0])
     .join("");
 
+  const gradient = talentGradients[index % talentGradients.length];
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10, scale: 0.95 }}
-      transition={{ duration: 0.4, delay: index * 0.05 }}
-      className="group rounded-[20px] border border-border bg-surface p-5 sm:p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-glow-primary"
+      transition={{ duration: 0.3, delay: index * 0.04 }}
+      className="group rounded-[20px] border border-white/10 bg-[#090d16]/90 p-5 sm:p-6 transition-all duration-300 hover:border-indigo-500/40 hover:shadow-[0_12px_40px_rgba(99,102,241,0.15)] flex flex-col justify-between"
     >
-      {/* Top: avatar + info */}
-      <div className="flex items-start gap-4">
-        <div
-          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ring-2 ring-border bg-gradient-to-br ${talent.gradient} text-lg font-bold text-white shadow-lg`}
-        >
-          {initials}
+      <div>
+        {/* Top: Avatar + info */}
+        <div className="flex items-start gap-4">
+          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full ring-2 ring-white/10 bg-slate-800">
+            {talent.profileImage ? (
+              <img
+                src={talent.profileImage}
+                alt={talent.name}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80";
+                }}
+              />
+            ) : (
+              <div
+                className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${gradient} text-base font-black text-white`}
+              >
+                {initials}
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-lg font-bold text-white font-satoshi">
+              {talent.name}
+            </h3>
+            <p className="truncate text-xs font-semibold text-indigo-400 font-satoshi">
+              {talent.title}
+            </p>
+            {talent.company && (
+              <p className="truncate text-[11px] text-slate-400 font-satoshi mt-0.5">
+                {talent.company}
+              </p>
+            )}
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate text-lg font-bold text-heading font-satoshi">
-            {talent.name}
-          </h3>
-          <p className="truncate text-sm text-body">{talent.title}</p>
+
+        {/* Skills */}
+        {talent.skills && talent.skills.length > 0 ? (
+          <div className="mt-4 flex flex-wrap gap-1.5">
+            {talent.skills.slice(0, 4).map((skill, i) => (
+              <span
+                key={typeof skill === "string" ? skill : i}
+                className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 text-[11px] font-semibold text-indigo-300 font-satoshi"
+              >
+                {typeof skill === "string" ? skill : skill.name}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-3 text-[11px] text-slate-500 italic font-satoshi">No listed skills</p>
+        )}
+
+        {/* Badges: Experience Level & Status */}
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <ExperienceBadge level={talent.experience} />
+          <AvailabilityBadge type={talent.availability} />
         </div>
-      </div>
 
-      {/* Skills */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        {talent.skills.slice(0, 4).map((skill) => (
-          <span
-            key={skill}
-            className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary-light"
-          >
-            {skill}
-          </span>
-        ))}
-      </div>
-
-      {/* Rating & Rate */}
-      <div className="mt-4 flex items-center justify-between">
-        <StarRating rating={talent.rating} />
-        <span className="text-lg font-bold text-heading font-satoshi">
-          {talent.hourlyRate}
-          <span className="text-xs font-normal text-muted">/hr</span>
-        </span>
-      </div>
-
-      {/* Location & Availability */}
-      <div className="mt-3 flex items-center justify-between">
-        <div className="flex items-center gap-1 text-xs text-muted">
-          <MapPin size={12} />
+        {/* Location */}
+        <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-400 font-satoshi">
+          <MapPin size={14} className="text-indigo-400 shrink-0" />
           <span className="truncate">{talent.location}</span>
         </div>
-        <AvailabilityBadge type={talent.availability} />
       </div>
 
       {/* View Profile Button */}
       <button
-        onClick={()=> navigate("/talent-profile")}
+        onClick={() => navigate(`/talent-profile/${talent.id}`, { state: { talent: talent.raw } })}
         type="button"
-        className="mt-5 flex w-full items-center justify-center gap-2 gradient-bg-signature rounded-xl h-11 px-6 text-sm font-semibold text-white shadow-button transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 h-10 px-4 text-xs font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer font-satoshi"
       >
         View Profile
-        <ArrowRight
-          size={14}
-          className="transition-transform group-hover:translate-x-1"
-        />
+        <ArrowRight size={14} />
       </button>
     </motion.div>
   );
 }
-
-/* ===========================
-    Main Page
-=========================== */
 
 function FindTalent() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -369,6 +199,10 @@ function FindTalent() {
   const [selectedAvailability, setSelectedAvailability] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  const [apiTalentList, setApiTalentList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const navigate = useNavigate();
 
   const toggleFilter = (arr, setArr, value) => {
@@ -385,48 +219,50 @@ function FindTalent() {
     setSelectedLocation("All Locations");
   };
 
-  const filteredTalent = useMemo(() => {
-    return talents.filter((t) => {
-      const q = searchQuery.toLowerCase();
-      const matchesSearch =
-        !q ||
-        t.name.toLowerCase().includes(q) ||
-        t.title.toLowerCase().includes(q) ||
-        t.skills.some((s) => s.toLowerCase().includes(q));
+  useEffect(() => {
+    let isMounted = true;
+    const fetchTalentsFromBackend = async () => {
+      setIsLoading(true);
+      try {
+        const params = {};
+        if (searchQuery.trim()) params.keyword = searchQuery.trim();
+        if (selectedSkills.length > 0) params.skill = selectedSkills[0];
+        if (selectedExperience.length > 0) params.experienceLevel = selectedExperience[0];
+        if (selectedAvailability.length > 0) params.availability = selectedAvailability[0];
+        if (selectedLocation && selectedLocation !== "All Locations") params.location = selectedLocation;
 
-      const matchesSkills =
-        selectedSkills.length === 0 ||
-        selectedSkills.some((s) =>
-          t.skills.some((ts) => ts.toLowerCase().includes(s.toLowerCase()))
-        );
+        const res = await searchTalent(params);
+        if (!isMounted) return;
 
-      const matchesExperience =
-        selectedExperience.length === 0 ||
-        selectedExperience.includes(t.experience);
+        const content = res?.data?.content || res?.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(content)) {
+          const mapped = content.map((item, idx) => ({
+            id: item.id,
+            name: item.name || item.fullName || item.user?.name || "Candidate Profile",
+            title: item.headline || item.professionalTitle || item.title || item.role || "Software Specialist",
+            company: item.currentCompany || item.company,
+            skills: Array.isArray(item.skills) ? item.skills : [],
+            availability: item.availability ? item.availability.replace(/_/g, " ") : "OPEN TO WORK",
+            location: item.location || (item.city ? `${item.city}, ${item.country || ''}` : "Remote"),
+            experience: item.experienceLevel ? item.experienceLevel.replace(/_/g, " ") : "MID LEVEL",
+            profileImage: getFullImageUrl(item.profileImage),
+            raw: item,
+          }));
+          setApiTalentList(mapped);
+        } else {
+          setApiTalentList([]);
+        }
+      } catch (err) {
+        console.error("Error loading candidate directory:", err);
+        if (isMounted) setApiTalentList([]);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
 
-      const matchesAvailability =
-        selectedAvailability.length === 0 ||
-        selectedAvailability.includes(t.availability);
-
-      const matchesLocation =
-        selectedLocation === "All Locations" ||
-        t.location.includes(selectedLocation);
-
-      return (
-        matchesSearch &&
-        matchesSkills &&
-        matchesExperience &&
-        matchesAvailability &&
-        matchesLocation
-      );
-    });
-  }, [
-    searchQuery,
-    selectedSkills,
-    selectedExperience,
-    selectedAvailability,
-    selectedLocation,
-  ]);
+    fetchTalentsFromBackend();
+    return () => { isMounted = false; };
+  }, [searchQuery, selectedSkills, selectedExperience, selectedAvailability, selectedLocation]);
 
   const activeFilterCount =
     selectedSkills.length +
@@ -434,27 +270,27 @@ function FindTalent() {
     selectedAvailability.length +
     (selectedLocation !== "All Locations" ? 1 : 0);
 
-  /* --- Sidebar Content (shared between desktop & mobile) --- */
-  const FilterSidebar = () => (
-    <div className="space-y-6">
-      {/* Skills */}
+  /* --- Filter Controls Content --- */
+  const FilterContent = () => (
+    <div className="space-y-6 font-satoshi pb-4">
+      {/* Skills Filter */}
       <div>
-        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider text-heading font-satoshi">
-          Skills
+        <h4 className="mb-3 text-xs font-black uppercase tracking-wider text-slate-300 font-satoshi">
+          Skills & Technologies
         </h4>
-        <div className="space-y-2">
+        <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
           {skillOptions.map((skill) => (
             <label
               key={skill}
-              className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-sm text-body transition-colors hover:bg-surface-elevated hover:text-heading"
+              className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5"
             >
               <input
                 type="checkbox"
                 checked={selectedSkills.includes(skill)}
                 onChange={() => toggleFilter(selectedSkills, setSelectedSkills, skill)}
-                className="h-4 w-4 rounded border-border bg-surface accent-primary focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="h-4 w-4 rounded border-white/20 bg-surface accent-indigo-600"
               />
-              {skill}
+              <span>{skill}</span>
             </label>
           ))}
         </div>
@@ -462,24 +298,22 @@ function FindTalent() {
 
       {/* Experience Level */}
       <div>
-        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider text-heading font-satoshi">
-          Experience
+        <h4 className="mb-3 text-xs font-black uppercase tracking-wider text-slate-300 font-satoshi">
+          Experience Level
         </h4>
-        <div className="space-y-2">
-          {experienceLevels.map((level) => (
+        <div className="space-y-1.5">
+          {experienceLevels.map((lvl) => (
             <label
-              key={level}
-              className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-sm text-body transition-colors hover:bg-surface-elevated hover:text-heading"
+              key={lvl.value}
+              className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5"
             >
               <input
                 type="checkbox"
-                checked={selectedExperience.includes(level)}
-                onChange={() =>
-                  toggleFilter(selectedExperience, setSelectedExperience, level)
-                }
-                className="h-4 w-4 rounded border-border bg-surface accent-primary focus-visible:ring-2 focus-visible:ring-primary/40"
+                checked={selectedExperience.includes(lvl.value)}
+                onChange={() => toggleFilter(selectedExperience, setSelectedExperience, lvl.value)}
+                className="h-4 w-4 rounded border-white/20 bg-surface accent-indigo-600"
               />
-              {level}
+              <span>{lvl.label}</span>
             </label>
           ))}
         </div>
@@ -487,28 +321,22 @@ function FindTalent() {
 
       {/* Availability */}
       <div>
-        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider text-heading font-satoshi">
-          Availability
+        <h4 className="mb-3 text-xs font-black uppercase tracking-wider text-slate-300 font-satoshi">
+          Work Availability
         </h4>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {availabilityOptions.map((opt) => (
             <label
-              key={opt}
-              className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-sm text-body transition-colors hover:bg-surface-elevated hover:text-heading"
+              key={opt.value}
+              className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/5"
             >
               <input
                 type="checkbox"
-                checked={selectedAvailability.includes(opt)}
-                onChange={() =>
-                  toggleFilter(
-                    selectedAvailability,
-                    setSelectedAvailability,
-                    opt
-                  )
-                }
-                className="h-4 w-4 rounded border-border bg-surface accent-primary"
+                checked={selectedAvailability.includes(opt.value)}
+                onChange={() => toggleFilter(selectedAvailability, setSelectedAvailability, opt.value)}
+                className="h-4 w-4 rounded border-white/20 bg-surface accent-indigo-600"
               />
-              {opt}
+              <span>{opt.label}</span>
             </label>
           ))}
         </div>
@@ -516,14 +344,14 @@ function FindTalent() {
 
       {/* Location */}
       <div>
-        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider text-heading font-satoshi">
-          Location
+        <h4 className="mb-3 text-xs font-black uppercase tracking-wider text-slate-300 font-satoshi">
+          Target Location
         </h4>
         <div className="relative">
           <select
             value={selectedLocation}
             onChange={(e) => setSelectedLocation(e.target.value)}
-            className="w-full appearance-none rounded-xl border border-border bg-surface-elevated h-11 px-4 pr-10 text-sm text-heading outline-none transition-colors focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
+            className="w-full appearance-none rounded-xl border border-white/10 bg-[#070b12] h-10 px-3.5 text-xs font-bold text-white outline-none focus:border-indigo-500/60"
             style={{ colorScheme: 'dark' }}
           >
             {locationOptions.map((loc) => (
@@ -534,353 +362,266 @@ function FindTalent() {
           </select>
           <ChevronDown
             size={16}
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
           />
         </div>
       </div>
 
-      {/* Clear All */}
+      {/* Clear All Button */}
       {activeFilterCount > 0 && (
         <button
           type="button"
           onClick={clearAllFilters}
-          className="w-full rounded-xl border border-danger/30 h-11 text-sm font-semibold text-danger transition-colors hover:bg-danger/10 focus-visible:ring-2 focus-visible:ring-danger/40"
+          className="w-full rounded-xl border border-rose-500/30 h-10 text-xs font-bold text-rose-400 transition-colors hover:bg-rose-500/10 cursor-pointer flex items-center justify-center gap-2"
         >
-          Clear all filters ({activeFilterCount})
+          <RotateCcw size={14} />
+          Reset All Filters ({activeFilterCount})
         </button>
       )}
     </div>
   );
 
   return (
-    <section className="relative min-h-screen overflow-x-hidden" aria-label="Find talent">
-      {/* ── Background Glows ── */}
+    <section className="relative min-h-screen overflow-x-hidden font-satoshi" aria-label="Find talent">
+      {/* Background Glows */}
       <div className="pointer-events-none absolute -top-20 left-1/4 h-[500px] w-[500px] rounded-full" style={{ background: 'rgba(99,102,241,0.07)', filter: 'blur(180px)' }} />
-      <div className="pointer-events-none absolute bottom-40 right-0 h-[400px] w-[400px] rounded-full" style={{ background: 'rgba(6,182,212,0.05)', filter: 'blur(160px)' }} />
-      <div className="pointer-events-none absolute top-1/2 right-1/3 h-[350px] w-[350px] rounded-full" style={{ background: 'rgba(139,92,246,0.04)', filter: 'blur(140px)' }} />
 
-      {/* Dot pattern */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, #94A3B8 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-        }}
-      />
-
-      {/* ══════════════════════════════════════════
-          HERO SECTION
-      ══════════════════════════════════════════ */}
-      <div className="relative z-10 section-container section-padding">
+      {/* HERO SECTION */}
+      <div className="relative z-10 section-container section-padding pb-8">
         <div className="mx-auto max-w-4xl text-center">
-          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-3 rounded-full border border-primary/20 bg-primary/10 px-6 py-2"
+            className="inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-5 py-1.5"
           >
-            <span className="h-px w-6 bg-primary/40" />
-            <span className="text-sm font-semibold uppercase tracking-wider text-primary-light">
-              Find Talent
+            <span className="text-xs font-black uppercase tracking-wider text-indigo-400">
+              Live Candidate Directory
             </span>
-            <span className="h-px w-6 bg-primary/40" />
           </motion.div>
 
-          {/* Title */}
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-6 text-3xl font-extrabold text-heading font-satoshi leading-tight sm:text-4xl md:text-5xl lg:text-6xl"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mt-6 text-3xl font-black text-white leading-tight sm:text-4xl md:text-5xl"
           >
-            Discover world-class{" "}
-            <span className="gradient-text">talent</span>
+            Discover verified <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">candidate talent</span>
           </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mx-auto mt-4 max-w-2xl text-body text-base leading-8 md:text-lg"
-          >
-            Browse top professionals across every discipline. Find the perfect
-            match for your team with powerful filters and AI-powered
-            recommendations.
-          </motion.p>
+          <p className="mx-auto mt-3 max-w-2xl text-slate-300 text-sm sm:text-base">
+            Browse registered job seekers directly from your backend candidate directory. Inspect verified profiles, skills, and resumes.
+          </p>
 
           {/* Search Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="mx-auto mt-8 max-w-2xl"
-          >
-            <div className="flex items-center rounded-xl border border-border bg-surface-elevated p-1.5 transition-colors focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10">
-              <Search size={20} className="ml-3 shrink-0 text-muted" />
+          <div className="mx-auto mt-6 max-w-2xl">
+            <div className="flex items-center rounded-2xl border border-white/10 bg-[#090d16]/90 p-1.5 shadow-xl">
+              <Search size={18} className="ml-3 shrink-0 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, skill, or role…"
-                className="min-w-0 flex-1 h-11 bg-transparent px-4 text-heading placeholder:text-muted outline-none"
+                placeholder="Search candidates by name, headline, or skill…"
+                className="min-w-0 flex-1 h-10 bg-transparent px-3 text-xs font-semibold text-white placeholder:text-slate-500 outline-none"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  aria-label="Clear search"
-                  className="mr-1 rounded-lg p-2 text-muted transition-colors hover:bg-surface-elevated hover:text-heading focus-visible:ring-2 focus-visible:ring-primary/40"
+                  className="mr-1 rounded-lg p-2 text-slate-400 hover:text-white"
                 >
                   <X size={16} />
                 </button>
               )}
               <button
                 type="button"
-                aria-label="Search talent"
-                className="gradient-bg-signature rounded-xl h-11 px-6 text-sm font-semibold text-white shadow-button transition-transform hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 h-10 px-5 text-xs font-black text-white shadow-lg cursor-pointer"
               >
                 Search
               </button>
             </div>
-          </motion.div>
-
-          {/* Quick Filter Tags */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.45 }}
-            className="mt-5 flex flex-wrap items-center justify-center gap-2"
-          >
-            <span className="text-xs text-muted">Popular:</span>
-            {quickFilters.map((tag) => (
-              <button
-                type="button"
-                key={tag}
-                onClick={() => setSearchQuery(tag)}
-                className="rounded-full border border-border bg-surface-elevated px-3 py-1 text-xs font-semibold text-body transition-all hover:border-primary/30 hover:text-primary-light focus-visible:ring-2 focus-visible:ring-primary/40"
-              >
-                {tag}
-              </button>
-            ))}
-          </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════
-          MAIN CONTENT — Sidebar + Grid
-      ══════════════════════════════════════════ */}
+      {/* MAIN CONTENT — Sidebar + Grid */}
       <div className="relative z-10 section-container pb-20 lg:pb-28">
-        <div>
-          {/* Mobile filter toggle */}
-          <div className="mb-6 flex items-center justify-between lg:hidden">
-            <p className="text-sm text-body">
-              <span className="font-semibold text-heading">
-                {filteredTalent.length}
-              </span>{" "}
-              professionals found
-            </p>
-            <button
-              type="button"
-              onClick={() => setMobileFiltersOpen(true)}
-              aria-label="Open filters"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface h-11 px-4 text-sm font-semibold text-heading transition-colors hover:border-primary/30 focus-visible:ring-2 focus-visible:ring-primary/40"
-            >
-              <SlidersHorizontal size={16} />
-              Filters
-              {activeFilterCount > 0 && (
-                <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-          </div>
+        {/* Mobile Filter Toggle Button */}
+        <div className="mb-4 flex items-center justify-between lg:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen(true)}
+            className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#090d16] px-4 py-2.5 text-xs font-bold text-white shadow-md cursor-pointer"
+          >
+            <SlidersHorizontal size={16} className="text-indigo-400" />
+            <span>Filter Candidates</span>
+            {activeFilterCount > 0 && (
+              <span className="ml-1 rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-black text-white">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
 
-          <div className="flex gap-6">
-            {/* ── Desktop Sidebar ── */}
-            <motion.aside
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="hidden w-[260px] shrink-0 lg:block"
-            >
-              <div className="sticky top-28 rounded-[20px] border border-border bg-surface p-5 sm:p-6">
-                <div className="mb-5 flex items-center justify-between">
-                  <h3 className="text-base font-bold text-heading font-satoshi">
-                    Filters
-                  </h3>
-                  {activeFilterCount > 0 && (
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary-light">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </div>
-                <FilterSidebar />
-              </div>
-            </motion.aside>
-
-            {/* ── Mobile Sidebar Drawer ── */}
-            <AnimatePresence>
-              {mobileFiltersOpen && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 bg-black/60 lg:hidden"
-                    onClick={() => setMobileFiltersOpen(false)}
-                  />
-                  <motion.div
-                    initial={{ x: "-100%" }}
-                    animate={{ x: 0 }}
-                    exit={{ x: "-100%" }}
-                    transition={{ type: "spring", damping: 25, stiffness: 250 }}
-                    className="fixed inset-y-0 left-0 z-50 w-80 overflow-y-auto border-r border-border bg-background p-6 lg:hidden"
-                  >
-                    <div className="mb-6 flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-heading font-satoshi">
-                        Filters
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={() => setMobileFiltersOpen(false)}
-                        aria-label="Close filters"
-                        className="rounded-lg p-2 text-muted transition-colors hover:bg-surface-elevated hover:text-heading focus-visible:ring-2 focus-visible:ring-primary/40"
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-                    <FilterSidebar />
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-
-            {/* ── Talent Grid ── */}
-            <div className="min-w-0 flex-1">
-              {/* Results count — desktop */}
-              <div className="mb-6 hidden items-center justify-between lg:flex">
-                <p className="text-sm text-body">
-                  Showing{" "}
-                  <span className="font-semibold text-heading">
-                    {filteredTalent.length}
-                  </span>{" "}
-                  professionals
-                </p>
-              </div>
-
-              {/* Grid */}
-              <AnimatePresence mode="popLayout">
-                {filteredTalent.length > 0 ? (
-                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-                    {filteredTalent.map((t, i) => (
-                      <TalentCard key={t.id} talent={t} index={i} />
-                    ))}
-                  </div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex flex-col items-center justify-center rounded-[20px] border border-border bg-surface py-20 text-center"
-                  >
-                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                      <Users size={28} className="text-primary-light" />
-                    </div>
-                    <h3 className="text-xl font-bold text-heading font-satoshi">
-                      No talent found
+        {/* Slide-Over Drawer on Mobile */}
+        <AnimatePresence>
+          {mobileFiltersOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm lg:hidden"
+                onClick={() => setMobileFiltersOpen(false)}
+              />
+              <motion.div
+                initial={{ x: "-100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "-100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 250 }}
+                className="fixed inset-y-0 left-0 z-50 w-80 overflow-y-auto border-r border-white/10 bg-[#090d16] p-6 shadow-2xl lg:hidden flex flex-col justify-between"
+              >
+                <div>
+                  <div className="mb-6 flex items-center justify-between pb-3 border-b border-white/10">
+                    <h3 className="text-base font-black text-white flex items-center gap-2">
+                      <SlidersHorizontal size={18} className="text-indigo-400" />
+                      Filter Candidates
                     </h3>
-                    <p className="mt-2 max-w-sm text-sm text-body">
-                      Try adjusting your filters or search query to discover
-                      more professionals.
-                    </p>
                     <button
                       type="button"
-                      onClick={clearAllFilters}
-                      className="mt-5 rounded-xl border border-border bg-surface h-11 px-6 text-sm font-semibold text-heading transition-colors hover:border-primary/30 focus-visible:ring-2 focus-visible:ring-primary/40"
+                      onClick={() => setMobileFiltersOpen(false)}
+                      className="rounded-lg p-2 text-slate-400 hover:text-white"
                     >
-                      Clear all filters
+                      <X size={20} />
                     </button>
-                  </motion.div>
+                  </div>
+                  <FilterContent />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileFiltersOpen(false)}
+                  className="mt-6 w-full rounded-xl bg-indigo-600 py-3 text-xs font-bold text-white shadow-lg"
+                >
+                  Show Results ({apiTalentList.length})
+                </button>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        <div className="flex gap-6 items-start">
+          {/* Desktop Sidebar (Sticky with internal scroll) */}
+          <aside className="hidden w-[270px] shrink-0 lg:block">
+            <div className="sticky top-24 max-h-[calc(100vh-120px)] flex flex-col rounded-[20px] border border-white/10 bg-[#090d16]/95 p-5 shadow-2xl backdrop-blur-xl">
+              <div className="mb-4 flex items-center justify-between shrink-0 pb-3 border-b border-white/10">
+                <h3 className="text-sm font-black text-white flex items-center gap-2">
+                  <SlidersHorizontal size={16} className="text-indigo-400" />
+                  Filter Candidates
+                </h3>
+                {activeFilterCount > 0 && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-black text-white">
+                    {activeFilterCount}
+                  </span>
                 )}
-              </AnimatePresence>
+              </div>
+              <div className="overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10 hover:scrollbar-thumb-indigo-500/30">
+                <FilterContent />
+              </div>
             </div>
+          </aside>
+
+          {/* Candidate Grid Area */}
+          <div className="min-w-0 flex-1">
+            {/* Header Toolbar */}
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-bold text-slate-300">
+                Showing <span className="text-white font-black">{apiTalentList.length}</span> registered candidates
+              </p>
+
+              {/* Active Filter Pills */}
+              {activeFilterCount > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {selectedSkills.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => toggleFilter(selectedSkills, setSelectedSkills, s)}
+                      className="inline-flex items-center gap-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-300 hover:bg-indigo-500/30"
+                    >
+                      {s} <X size={12} />
+                    </button>
+                  ))}
+                  {selectedExperience.map((e) => (
+                    <button
+                      key={e}
+                      onClick={() => toggleFilter(selectedExperience, setSelectedExperience, e)}
+                      className="inline-flex items-center gap-1 rounded-full bg-purple-500/20 border border-purple-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-purple-300 hover:bg-purple-500/30"
+                    >
+                      {e} <X size={12} />
+                    </button>
+                  ))}
+                  {selectedAvailability.map((a) => (
+                    <button
+                      key={a}
+                      onClick={() => toggleFilter(selectedAvailability, setSelectedAvailability, a)}
+                      className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/30"
+                    >
+                      {a} <X size={12} />
+                    </button>
+                  ))}
+                  {selectedLocation !== "All Locations" && (
+                    <button
+                      onClick={() => setSelectedLocation("All Locations")}
+                      className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-cyan-300 hover:bg-cyan-500/30"
+                    >
+                      {selectedLocation} <X size={12} />
+                    </button>
+                  )}
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-[11px] font-bold text-rose-400 hover:underline ml-1"
+                  >
+                    Clear all
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Grid State */}
+            {isLoading ? (
+              <div className="flex min-h-[350px] flex-col items-center justify-center gap-3 rounded-[20px] border border-white/10 bg-[#090d16]/90 p-12">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+                <p className="text-xs font-bold text-slate-400">Loading candidates from backend directory...</p>
+              </div>
+            ) : apiTalentList.length > 0 ? (
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {apiTalentList.map((talent, index) => (
+                  <TalentCard key={talent.id || index} talent={talent} index={index} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-[20px] border border-white/10 bg-[#090d16]/90 py-16 px-6 text-center">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+                  <Users size={26} className="text-indigo-400" />
+                </div>
+                <h3 className="text-base font-black text-white">No Candidate Profiles Found</h3>
+                <p className="mt-2 max-w-sm text-xs text-slate-400 font-medium">
+                  {searchQuery || activeFilterCount > 0
+                    ? "No registered candidates matched your active search filters."
+                    : "No candidates have published a talent profile in the database yet."}
+                </p>
+                {activeFilterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className="mt-4 rounded-xl border border-white/10 bg-white/5 h-10 px-5 text-xs font-bold text-white hover:bg-white/10 cursor-pointer"
+                  >
+                    Clear All Filters
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
-
-      {/* ══════════════════════════════════════════
-          STATS / CTA SECTION
-      ══════════════════════════════════════════ */}
-      <section
-        className="relative z-10 border-t section-container section-padding"
-        style={{ borderColor: 'rgba(148,163,184,0.08)', background: 'rgba(13,17,23,0.40)' }}
-        aria-label="Join the platform"
-      >
-        <div className="mx-auto max-w-5xl text-center">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-2xl font-extrabold text-heading font-satoshi sm:text-3xl md:text-4xl"
-          >
-            Join{" "}
-            <span className="gradient-text">50,000+</span> professionals
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mx-auto mt-4 max-w-lg text-body"
-          >
-            Create your talent profile today and get discovered by the world's
-            leading companies.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4"
-          >
-            {[
-              { icon: Users, value: "50K+", label: "Professionals" },
-              { icon: Briefcase, value: "10K+", label: "Companies Hiring" },
-              { icon: Award, value: "95%", label: "Match Rate" },
-              { icon: TrendingUp, value: "3x", label: "Faster Hiring" },
-            ].map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.1 * i }}
-                className="rounded-[20px] border border-border bg-surface p-5 sm:p-6"
-              >
-                <stat.icon size={22} className="mx-auto text-primary-light" />
-                <p className="mt-3 text-2xl font-extrabold text-heading font-satoshi">
-                  {stat.value}
-                </p>
-                <p className="mt-1 text-xs text-muted">{stat.label}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <motion.button
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-10 inline-flex items-center gap-2 gradient-bg-signature rounded-xl px-8 py-3.5 text-sm font-semibold text-white shadow-button transition-transform hover:scale-[1.03] active:scale-[0.98]"
-          >
-            Create Your Profile
-            <ArrowRight size={16} />
-          </motion.button>
-        </div>
-      </section>
     </section>
   );
 }

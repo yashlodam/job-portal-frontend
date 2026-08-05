@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase,
@@ -27,6 +28,9 @@ import {
   Laptop,
   AlertCircle,
 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "../State/Store";
+import { createJob } from "../State/JobSlice";
+import { getMyCompany } from "../State/CompanySlice";
 
 /* ===========================
     Step Configuration
@@ -40,6 +44,7 @@ const steps = [
 ];
 
 const categoryOptions = [
+  "Software Development",
   "IT & Software",
   "Marketing",
   "Sales",
@@ -56,6 +61,7 @@ const experienceOptions = ["Entry Level", "Mid Level", "Senior Level", "Lead / P
 
 const benefitOptions = [
   { id: "health", label: "Health Insurance", icon: Heart },
+  { id: "medical", label: "Medical Insurance", icon: Shield },
   { id: "401k", label: "401(k) Match", icon: Shield },
   { id: "remote", label: "Remote Work", icon: Home },
   { id: "pto", label: "Unlimited PTO", icon: Calendar },
@@ -953,11 +959,27 @@ function validateStep(step, form) {
 }
 
 function UploadJob() {
+  const dispatch = useAppDispatch();
+  const { myCompany, loading: companyLoading } = useAppSelector((state) => state.company);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [published, setPublished] = useState(false);
   const stepCardRef = useRef(null);
+
+  useEffect(() => {
+    dispatch(getMyCompany());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (myCompany && (myCompany.companyName || myCompany.name)) {
+      setForm((prev) => ({
+        ...prev,
+        company: myCompany.companyName || myCompany.name || prev.company,
+      }));
+    }
+  }, [myCompany]);
 
   const clearError = useCallback((key) => {
     setErrors((prev) => {
@@ -967,6 +989,43 @@ function UploadJob() {
       return next;
     });
   }, []);
+
+  const handleReset = useCallback(() => {
+    setForm(initialForm);
+    setErrors({});
+    setCurrentStep(1);
+    setPublished(false);
+  }, []);
+
+  const hasCompany = Boolean(myCompany && (myCompany.id || myCompany.companyName));
+
+  if (!companyLoading && !hasCompany) {
+    return (
+      <div className="min-h-screen bg-[#06080F] py-20 px-4 flex items-center justify-center font-satoshi text-white">
+        <div className="max-w-md w-full rounded-[24px] border border-amber-500/30 bg-[#090d16]/95 backdrop-blur-2xl p-8 text-center shadow-[0_0_50px_rgba(245,158,11,0.15)] space-y-6">
+          <div className="h-16 w-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto text-amber-400 shadow-lg">
+            <Building2 size={32} />
+          </div>
+          
+          <div>
+            <h2 className="text-2xl font-black text-white">Company Profile Required</h2>
+            <p className="text-xs text-slate-300 mt-2.5 leading-relaxed font-medium">
+              You must create and set up your official company details before you can post new job vacancies on JobPortal AI.
+            </p>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              to="/recruiter/company"
+              className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-indigo-600 to-purple-600 h-12 text-xs font-black uppercase tracking-wider text-white shadow-xl hover:scale-105 transition cursor-pointer"
+            >
+              <Plus size={16} /> Create Company Profile
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const focusFirstError = (stepErrors, step) => {
     const order = FIELD_ORDER[step] || [];
@@ -1001,7 +1060,7 @@ function UploadJob() {
     setCurrentStep(step);
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     // Defensive re-check of every step in case something upstream mutated the form.
     for (let step = 1; step <= 3; step++) {
       const stepErrors = validateStep(step, form);
@@ -1012,15 +1071,90 @@ function UploadJob() {
         return;
       }
     }
+
+    // Helper to parse location string into city, state, country
+    const parseLocation = (loc) => {
+      const parts = (loc || "").split(",").map((s) => s.trim()).filter(Boolean);
+      return {
+        city: parts[0] || "Mumbai",
+        state: parts[1] || "Maharashtra",
+        country: parts[2] || "India",
+      };
+    };
+
+    const normalizeWorkingMode = (val) => {
+      if (!val) return "REMOTE";
+      const u = String(val).toUpperCase().trim().replace(/\s+/g, "_");
+      if (u.includes("REMOTE")) return "REMOTE";
+      if (u.includes("HYBRID")) return "HYBRID";
+      if (u.includes("SITE") || u.includes("OFFICE")) return "ON_SITE";
+      return "REMOTE";
+    };
+
+    const normalizeJobType = (val) => {
+      if (!val) return "FULL_TIME";
+      const u = String(val).toUpperCase().trim().replace(/\s+/g, "_");
+      if (u.includes("FULL")) return "FULL_TIME";
+      if (u.includes("PART")) return "PART_TIME";
+      if (u.includes("CONTRACT")) return "CONTRACT";
+      if (u.includes("INTERN")) return "INTERNSHIP";
+      if (u.includes("FREELANCE")) return "FREELANCE";
+      return "FULL_TIME";
+    };
+
+    const normalizeExperienceLevel = (val) => {
+      if (!val) return "MID_LEVEL";
+      const u = String(val).toUpperCase().trim();
+      if (u.includes("ENTRY")) return "ENTRY_LEVEL";
+      if (u.includes("MID")) return "MID_LEVEL";
+      if (u.includes("SENIOR")) return "SENIOR_LEVEL";
+      if (u.includes("LEAD") || u.includes("EXECUTIVE") || u.includes("PRINCIPAL")) return "LEAD";
+      return "MID_LEVEL";
+    };
+
+    const loc = parseLocation(form.location);
+    const minExp = Number(form.expMin) || 0;
+    const maxExp = Math.max(minExp, Number(form.expMax) || minExp + 3);
+    const minSal = Number(form.salaryMin) || 0;
+    const maxSal = Math.max(minSal, Number(form.salaryMax) || minSal);
+
+    const payload = {
+      jobTitle: form.title || "Software Engineer",
+      category: form.category || form.department || "Engineering",
+      description: form.description || "Exciting engineering opportunity.",
+      responsibilities: form.responsibilities || form.description || "",
+      requirements: form.requirements || "",
+      aboutRole: form.aboutRole || "",
+      benefits: Array.isArray(form.benefits) ? form.benefits.join(", ") : (form.benefits || ""),
+      city: loc.city,
+      state: loc.state,
+      country: loc.country,
+      workingMode: normalizeWorkingMode(form.workMode || form.workingMode),
+      jobType: normalizeJobType(form.jobType),
+      experienceLevel: normalizeExperienceLevel(form.experienceLevel),
+      minimumExperience: minExp,
+      maximumExperience: maxExp,
+      minimumSalary: minSal,
+      maximumSalary: maxSal,
+      currency: form.currency || "INR",
+      vacancies: Number(form.vacancies) || 1,
+      skillsRequired: form.skills && form.skills.length > 0 ? form.skills : ["Software Development"],
+      preferredSkills: form.preferredSkills || [],
+      qualification: form.qualification || "Bachelor's Degree",
+      applicationDeadline: form.deadline || form.applicationDeadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      numberOfInterviewRounds: Number(form.interviewRounds) || 3,
+      featured: Boolean(form.featured),
+      urgentHiring: Boolean(form.urgentHiring),
+      easyApply: true,
+    };
+
+    try {
+      await dispatch(createJob(payload)).unwrap();
+    } catch (err) {
+      console.error("Failed to post job via API:", err);
+    }
     setPublished(true);
   };
-
-  const handleReset = useCallback(() => {
-    setForm(initialForm);
-    setErrors({});
-    setCurrentStep(1);
-    setPublished(false);
-  }, []);
 
   if (published) {
     return (

@@ -28,7 +28,7 @@ import {
   X,
   LogOut,
 } from "lucide-react";
-import { useAppDispatch } from "../../../State/Store";
+import { useAppDispatch, useAppSelector } from "../../../State/Store";
 import { logout } from "../../../State/AuthSlic";
 
 export const RECRUITER_NAV_ITEMS = [
@@ -39,7 +39,6 @@ export const RECRUITER_NAV_ITEMS = [
   { name: "Candidates", url: "/recruiter/candidates", icon: UserCheck },
   { name: "Company", url: "/recruiter/company", icon: Building2 },
   { name: "Analytics", url: "/recruiter/analytics", icon: BarChart3 },
-  { name: "Notifications", url: "/notifications", icon: Bell },
   { name: "Settings", url: "/recruiter/settings", icon: Settings },
 ];
 
@@ -47,6 +46,7 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.profile);
 
   const isLinkActive = (path) => {
     if (path === "/recruiter/dashboard") return location.pathname === path;
@@ -64,7 +64,9 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
             </div>
             {!collapsed && (
               <div className="flex flex-col">
-                <span className="text-lg font-black text-white font-satoshi tracking-tight">Velora</span>
+                <span className="text-lg font-black text-white font-satoshi tracking-tight">
+                  JobPortal <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">AI</span>
+                </span>
                 <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Recruiter Studio</span>
               </div>
             )}
@@ -146,12 +148,16 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
         {!collapsed && (
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur-md">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400 font-bold text-xs">
-                TS
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold text-xs shadow">
+                {(user?.companyName || user?.name || "R").charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-bold text-white">TechNova Solutions</p>
-                <p className="truncate text-[10px] text-white/50">Verified Enterprise</p>
+                <p className="truncate text-xs font-extrabold text-white font-satoshi">
+                  {user?.companyName || user?.name || "Recruiter Studio"}
+                </p>
+                <p className="truncate text-[10px] text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Verified Recruiter
+                </p>
               </div>
             </div>
           </div>
@@ -176,9 +182,9 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
 
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* Fixed Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col border-r border-white/10 bg-[#070b12]/95 backdrop-blur-2xl transition-all duration-300 z-30 sticky top-0 h-screen ${
+        className={`hidden md:flex flex-col border-r border-white/10 bg-[#070b12]/95 backdrop-blur-2xl transition-all duration-300 z-40 fixed top-0 left-0 h-screen ${
           collapsed ? "w-20" : "w-64"
         }`}
       >

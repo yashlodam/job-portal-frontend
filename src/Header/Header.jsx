@@ -21,6 +21,7 @@ import {
   Award,
   Layers,
   UserCheck,
+  LogOut,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -28,6 +29,7 @@ import ProfileMenu from "./ProfileMenu";
 import NotificationBell from "../features/notifications/components/NotificationBell";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { useSelector } from "react-redux";
+import { logout } from "../State/AuthSlic";
 import { fetchMySavedJobsThunk } from "../State/savedJobThunk";
 import { fetchMyApplicationsThunk } from "../State/applicationThunk";
 
@@ -364,7 +366,11 @@ function Header() {
   const handleBellClick = useCallback(() => navigate("/notifications"), [navigate]);
   const handleMessagesClick = useCallback(() => navigate("/messages"), [navigate]);
   const handleSettingsClick = useCallback(() => navigate("/settings"), [navigate]);
-  const handleAiClick = useCallback(() => navigate("/ai-assistant"), [navigate]);
+  const handleLogout = useCallback(() => {
+    dispatch(logout());
+    setMobileOpen(false);
+    navigate("/login");
+  }, [dispatch, navigate]);
 
   // Memoized so these aren't recomputed on unrelated re-renders
   // (e.g. the scroll-driven `scrolled` state changing).
@@ -880,47 +886,56 @@ function Header() {
                   );
                 })}
 
-                {/* AI assistant — mobile row */}
-                <button
-                  type="button"
-                  onClick={handleAiClick}
-                  className={`mt-2 flex w-full items-center gap-3 rounded-xl border border-[#6366F1]/25 bg-[#6366F1]/10 px-4 py-3.5 text-base font-medium text-[#A5B4FC] ${FOCUS_RING}`}
-                >
-                  <Sparkles size={18} strokeWidth={2} />
-                  Ask AI Assistant
-                </button>
+                {/* Mobile Dynamic Candidate Profile Card */}
+                {user ? (
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-[#090d16]/95 backdrop-blur-xl p-3.5 shadow-xl space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 font-extrabold text-white text-base shadow">
+                        {initials}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-sm font-extrabold text-white font-satoshi truncate">
+                          {displayName}
+                        </h4>
+                        <p className="text-xs text-indigo-400 font-bold truncate mt-0.5">
+                          {user?.role ?? user?.accountType ?? "Candidate"}
+                        </p>
+                        <p className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Verified Member
+                        </p>
+                      </div>
+                    </div>
 
-                {/* Mobile user row — reflects real auth state */}
-                <Link
-                  to={user ? "/profile" : "/auth"}
-                  className={`mt-3 flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-colors duration-200 hover:bg-[#161B22] ${FOCUS_RING}`}
-                  style={{
-                    borderColor: "rgba(148,163,184,0.08)",
-                    background: "rgba(22,27,34,0.60)",
-                  }}
-                >
-                  <Avatar src={user?.avatarUrl} radius="xl" size={32}>
-                    {initials}
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-[#F1F5F9]">
-                      {displayName}
-                    </p>
-                    <p className="truncate text-xs text-[#708090]">{displayRole}</p>
+                    <div className="pt-2 border-t border-white/10 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileOpen(false);
+                          handleSettingsClick();
+                        }}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                      >
+                        <Settings size={14} /> Settings
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition cursor-pointer"
+                      >
+                        <LogOut size={14} /> Logout
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    aria-label="Settings"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleSettingsClick();
-                    }}
-                    className={`shrink-0 rounded-lg p-2 text-[#708090] transition-colors duration-200 hover:bg-[#0D1117] hover:text-[#F1F5F9] active:scale-90 ${FOCUS_RING}`}
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-sm font-extrabold text-white shadow-lg cursor-pointer"
                   >
-                    <Settings size={16} strokeWidth={1.8} />
-                  </button>
-                </Link>
+                    Sign In to Your Account
+                  </Link>
+                )}
 
                 {/* Bottom safe-area spacer */}
                 <div className="h-4" />

@@ -3,67 +3,61 @@
  */
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../ui/Card";
-import { UserCheck, Calendar, Send, Award, Clock } from "lucide-react";
+import { Clock, Info } from "lucide-react";
+import { useAppSelector } from "../../../State/Store";
 
 export function RecentActivityWidget() {
-  const activities = [
-    { id: 1, user: "Sarah Jenkins", action: "Applied for Senior Frontend Engineer", time: "10m ago", icon: Send, color: "text-blue-400" },
-    { id: 2, user: "Michael Chen", action: "Scheduled Technical Interview", time: "1h ago", icon: Calendar, color: "text-purple-400" },
-    { id: 3, user: "Alex Rivera", action: "Moved to Shortlisted status", time: "3h ago", icon: UserCheck, color: "text-emerald-400" },
-    { id: 4, user: "Elena Rostova", action: "Accepted Job Offer 🎉", time: "5h ago", icon: Award, color: "text-amber-400" },
-  ];
+  const { myJobs = [] } = useAppSelector((state) => state.job);
+  const totalApps = myJobs.reduce((acc, j) => acc + (j.applicantsCount || j.applicationsCount || 0), 0);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 font-satoshi text-base font-black text-white">
           <Clock className="h-4 w-4 text-indigo-400" />
-          Recent Activity
+          Recent Candidate Activity
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 pt-3">
-        {activities.map((act) => {
-          const Icon = act.icon;
-          return (
-            <div key={act.id} className="flex items-center justify-between p-2.5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5">
-                  <Icon className={`h-4 w-4 ${act.color}`} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white">{act.user}</p>
-                  <p className="text-[11px] text-white/50">{act.action}</p>
-                </div>
-              </div>
-              <span className="text-[10px] text-white/40">{act.time}</span>
-            </div>
-          );
-        })}
+        {totalApps === 0 ? (
+          <div className="p-6 text-center space-y-2">
+            <Info size={28} className="text-slate-500 mx-auto" />
+            <p className="text-xs font-bold text-slate-300 font-satoshi">No Recent Candidate Activity</p>
+            <p className="text-[11px] text-slate-400">Candidate application events will appear here in real-time as users apply.</p>
+          </div>
+        ) : (
+          <div className="p-4 rounded-2xl border border-white/5 bg-white/[0.02] text-xs text-slate-300 font-satoshi">
+            <span className="font-extrabold text-indigo-400">{totalApps} Candidate Applications</span> received across your posted positions.
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
 
 export function HiringFunnelWidget() {
+  const { myJobs = [] } = useAppSelector((state) => state.job);
+  const totalApps = myJobs.reduce((acc, j) => acc + (j.applicantsCount || j.applicationsCount || 0), 0);
+
   const funnel = [
-    { stage: "Applied", count: 482, pct: 100, color: "from-blue-500 to-indigo-500" },
-    { stage: "Shortlisted", count: 124, pct: 65, color: "from-indigo-500 to-violet-500" },
-    { stage: "Interview", count: 42, pct: 40, color: "from-purple-500 to-fuchsia-500" },
-    { stage: "Offer", count: 12, pct: 20, color: "from-amber-500 to-emerald-500" },
-    { stage: "Hired", count: 8, pct: 12, color: "from-emerald-500 to-teal-500" },
+    { stage: "Applied", count: totalApps, pct: totalApps > 0 ? 100 : 0, color: "from-blue-500 to-indigo-500" },
+    { stage: "Shortlisted", count: 0, pct: 0, color: "from-indigo-500 to-violet-500" },
+    { stage: "Interview", count: 0, pct: 0, color: "from-purple-500 to-fuchsia-500" },
+    { stage: "Offer", count: 0, pct: 0, color: "from-amber-500 to-emerald-500" },
+    { stage: "Hired", count: 0, pct: 0, color: "from-emerald-500 to-teal-500" },
   ];
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Hiring Funnel Overview</CardTitle>
+        <CardTitle className="font-satoshi text-base font-black text-white">Hiring Funnel Overview</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 pt-3">
+      <CardContent className="space-y-3 pt-3 font-satoshi">
         {funnel.map((item) => (
           <div key={item.stage} className="space-y-1">
             <div className="flex items-center justify-between text-xs font-semibold">
-              <span className="text-white/80">{item.stage}</span>
-              <span className="text-white">{item.count} candidates</span>
+              <span className="text-slate-300">{item.stage}</span>
+              <span className="text-white font-extrabold">{item.count} candidates</span>
             </div>
             <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden">
               <div className={`h-full rounded-full bg-gradient-to-r ${item.color}`} style={{ width: `${item.pct}%` }} />

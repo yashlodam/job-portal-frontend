@@ -18,7 +18,7 @@ export default function RecruiterAnalyticsPage() {
   ];
 
   const sources = [
-    { source: "Velora AI Matching", count: 240, pct: 50, color: "from-indigo-500 to-violet-500" },
+    { source: "JobPortal AI Matching", count: 240, pct: 50, color: "from-indigo-500 to-violet-500" },
     { source: "Direct Job Board", count: 120, pct: 25, color: "from-blue-500 to-cyan-500" },
     { source: "Referrals", count: 72, pct: 15, color: "from-emerald-500 to-teal-500" },
     { source: "Social Media", count: 48, pct: 10, color: "from-purple-500 to-pink-500" },

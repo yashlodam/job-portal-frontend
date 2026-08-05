@@ -84,7 +84,7 @@ export const getMyCompany = createAsyncThunk(
   "company/getMyCompany",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get("/companies/me");
+      const { data } = await api.get("/recruiter/company");
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -97,13 +97,11 @@ export const getMyCompany = createAsyncThunk(
   }
 );
 
-
-
 export const createCompany = createAsyncThunk(
   "company/createCompany",
   async (companyData, { rejectWithValue }) => {
     try {
-      const { data } = await api.post("/companies", companyData);
+      const { data } = await api.post("/recruiter/company", companyData);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -116,12 +114,11 @@ export const createCompany = createAsyncThunk(
   }
 );
 
-
 export const updateCompany = createAsyncThunk(
   "company/updateCompany",
   async (companyData, { rejectWithValue }) => {
     try {
-      const { data } = await api.put("/companies/me", companyData);
+      const { data } = await api.put("/recruiter/company", companyData);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -134,12 +131,11 @@ export const updateCompany = createAsyncThunk(
   }
 );
 
-
 export const deleteCompany = createAsyncThunk(
   "company/deleteCompany",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.delete("/companies/me");
+      const { data } = await api.delete("/recruiter/company");
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -152,8 +148,6 @@ export const deleteCompany = createAsyncThunk(
   }
 );
 
-
-
 export const uploadCompanyLogo = createAsyncThunk(
   "company/uploadCompanyLogo",
   async (file, { rejectWithValue }) => {
@@ -162,7 +156,7 @@ export const uploadCompanyLogo = createAsyncThunk(
       formData.append("file", file);
 
       const { data } = await api.post(
-        "/companies/me/logo",
+        "/recruiter/company/logo",
         formData,
         {
           headers: {
@@ -183,8 +177,6 @@ export const uploadCompanyLogo = createAsyncThunk(
   }
 );
 
-
-
 export const uploadCompanyCover = createAsyncThunk(
   "company/uploadCompanyCover",
   async (file, { rejectWithValue }) => {
@@ -193,7 +185,7 @@ export const uploadCompanyCover = createAsyncThunk(
       formData.append("file", file);
 
       const { data } = await api.post(
-        "/companies/me/cover",
+        "/recruiter/company/cover",
         formData,
         {
           headers: {
@@ -236,7 +228,6 @@ export const getCompanyJobs = createAsyncThunk(
           },
         }
       );
-      
 
       return data;
     } catch (error) {
@@ -250,8 +241,6 @@ export const getCompanyJobs = createAsyncThunk(
   }
 );
 
-
-
 export const getMyCompanyJobs = createAsyncThunk(
   "company/getMyCompanyJobs",
   async (
@@ -263,7 +252,7 @@ export const getMyCompanyJobs = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const { data } = await api.get("/companies/me/jobs", {
+      const { data } = await api.get("/recruiter/company/jobs", {
         params: {
           page,
           size,

@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   Star,
   AlertCircle,
+  X,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { fetchMyApplicationsThunk, withdrawApplicationThunk } from "../State/applicationThunk";
@@ -130,9 +131,25 @@ export default function MyJobsPage() {
     },
   ];
 
+  const filteredApplications = myApplications.filter((app) => {
+    const title = app.jobTitle || app.job?.title || "";
+    const company = app.companyName || app.company || "";
+    const status = app.status || "";
+    const text = `${title} ${company} ${status}`.toLowerCase();
+    return text.includes(searchQuery.toLowerCase().trim());
+  });
+
+  const filteredSavedJobs = liveSavedJobs.filter((job) => {
+    const title = job.jobTitle || job.title || "";
+    const company = job.companyName || job.company || "";
+    const location = job.location || `${job.city || ''} ${job.country || ''}`;
+    const text = `${title} ${company} ${location}`.toLowerCase();
+    return text.includes(searchQuery.toLowerCase().trim());
+  });
+
   const tabs = [
-    { id: "applied", label: "Applied Jobs", count: myApplications.length, icon: Briefcase },
-    { id: "saved", label: "Saved Jobs", count: savedJobs.length, icon: Bookmark },
+    { id: "applied", label: "Applied Jobs", count: filteredApplications.length, icon: Briefcase },
+    { id: "saved", label: "Saved Jobs", count: filteredSavedJobs.length, icon: Bookmark },
     { id: "interviews", label: "Interviews", count: interviewList.length, icon: Calendar },
     { id: "offers", label: "Offers", count: offerList.length, icon: Award },
   ];
@@ -165,9 +182,18 @@ export default function MyJobsPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Filter by job title or company..."
-                className="w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:border-indigo-500/60 focus:outline-none"
+                placeholder="Filter by job title, company, or status..."
+                className="w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-9 py-2 text-xs text-white placeholder-slate-400 focus:border-indigo-500/60 focus:outline-none"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
             <span className="text-xs text-slate-400">
               Showing active <span className="font-bold text-white">{activeTab}</span> items
@@ -178,10 +204,10 @@ export default function MyJobsPage() {
         {/* Tab 1: APPLIED JOBS */}
         {activeTab === "applied" && (
           <div>
-            {myApplications.length === 0 ? (
+            {filteredApplications.length === 0 ? (
               <EmptyState
-                title="No Job Applications Yet"
-                description="You haven't submitted any job applications yet. Browse open roles and apply with 1 click."
+                title="No Job Applications Found"
+                description={searchQuery ? `No applications match "${searchQuery}". Try clearing your search query.` : "You haven't submitted any job applications yet. Browse open roles and apply with 1 click."}
                 action={
                   <Link
                     to="/find-jobs"
@@ -193,7 +219,7 @@ export default function MyJobsPage() {
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myApplications.map((app) => (
+                {filteredApplications.map((app) => (
                   <Card key={app.id || app.applicationId} className="p-5 flex flex-col justify-between">
                     <div>
                       <div className="flex items-start justify-between gap-3">

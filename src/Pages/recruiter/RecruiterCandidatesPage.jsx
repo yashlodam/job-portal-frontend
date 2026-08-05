@@ -1,107 +1,439 @@
-/**
- * src/Pages/recruiter/RecruiterCandidatesPage.jsx
- *
- * Candidate Details & Talent Directory Page for Recruiters.
- */
-
-import React, { useState } from "react";
-import { Search, Sparkles, FileText, Mail, Phone, MapPin, Award, BookOpen, Briefcase, Code, CheckCircle } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Search,
+  Sparkles,
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
+  Code,
+  AlertCircle,
+  FileText,
+  CheckCircle2,
+  User,
+  Eye,
+  Plus,
+  ExternalLink,
+  Download,
+  X,
+} from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
 import RecruiterLayout from "../../components/recruiter/layout/RecruiterLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Avatar } from "../../components/ui/Avatar";
-import { Badge } from "../../components/ui/Badge";
+import { StatusChip } from "../../components/ui/Badge";
 import { Modal } from "../../components/ui/Modal";
+import { useAppDispatch, useAppSelector } from "../../State/Store";
+import { getMyJobs } from "../../State/JobSlice";
+import { fetchJobApplicationsThunk, updateApplicationStatusThunk } from "../../State/applicationThunk";
+import { searchTalent } from "../../api/talentApi";
+
+const getFullResumeUrl = (rawPath) => {
+  if (!rawPath) return "";
+  if (typeof rawPath === "object") {
+    rawPath = rawPath.fileUrl || rawPath.resumeUrl || rawPath.url || rawPath.path;
+  }
+  if (typeof rawPath !== "string") return "";
+
+  if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) {
+    return rawPath;
+  }
+  const cleanPath = rawPath.startsWith("/") ? rawPath.slice(1) : rawPath;
+  if (cleanPath.startsWith("uploads/")) {
+    return `http://localhost:8080/${cleanPath}`;
+  }
+  return `http://localhost:8080/uploads/${cleanPath}`;
+};
+
+const getFullProfileImageUrl = (rawPath) => {
+  if (!rawPath) return null;
+  if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) return rawPath;
+  const cleanPath = rawPath.startsWith("/") ? rawPath.slice(1) : rawPath;
+  if (cleanPath.startsWith("uploads/")) return `http://localhost:8080/${cleanPath}`;
+  return `http://localhost:8080/uploads/${cleanPath}`;
+};
 
 export default function RecruiterCandidatesPage() {
-  const [selectedCandidate, setSelectedCandidate] = useState({
-    name: "Sarah Jenkins",
-    role: "Senior React & Full-Stack Developer",
-    email: "sarah.j@example.com",
-    phone: "+1 (555) 234-5678",
-    location: "San Francisco, CA",
-    matchScore: 94,
-    skills: ["React 19", "TypeScript", "Redux Toolkit", "Node.js", "GraphQL", "Tailwind CSS"],
-    experience: [
-      { company: "Vercel", role: "Senior Frontend Engineer", period: "2023 - Present", desc: "Led front-end architecture for Next.js dashboard." },
-      { company: "Stripe", role: "Software Engineer", period: "2020 - 2023", desc: "Built checkout component library used by millions." },
-    ],
-    education: [
-      { degree: "B.S. Computer Science", school: "Stanford University", year: "2020" },
-    ],
-  });
+  const dispatch = useAppDispatch();
+  const [searchParams] = useSearchParams();
+  const { myJobs = [] } = useAppSelector((state) => state.job);
+  const { jobApplications = [], loading } = useAppSelector((state) => state.application);
+
+  const [selectedJobId, setSelectedJobId] = useState("all");
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const [talentDirectoryCandidates, setTalentDirectoryCandidates] = useState([]);
+  const [isSearchingTalent, setIsSearchingTalent] = useState(false);
+
+  useEffect(() => {
+    const searchParam = searchParams.get("search");
+    if (searchParam !== null) {
+      setSearchQuery(searchParam);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    dispatch(getMyJobs());
+  }, [dispatch]);
+
+  // Fetch job applications for selected job or first job
+  useEffect(() => {
+    if (myJobs.length > 0) {
+      const targetJobId = selectedJobId === "all" ? myJobs[0].id : selectedJobId;
+      dispatch(fetchJobApplicationsThunk({ jobId: targetJobId }));
+    }
+  }, [dispatch, myJobs, selectedJobId]);
+
+  // Query global candidate directory from GET /api/talent/search
+  useEffect(() => {
+    let isMounted = true;
+    const fetchTalentCandidates = async () => {
+      setIsSearchingTalent(true);
+      try {
+        const params = {};
+        if (searchQuery.trim()) {
+          params.keyword = searchQuery.trim();
+        }
+        const res = await searchTalent(params);
+        const list = res?.data?.content || res?.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(list) && isMounted) {
+          const mapped = list.map((t) => ({
+            id: `talent-${t.id}`,
+            realTalentId: t.id,
+            applicantName: t.name || t.fullName || t.user?.name || "Registered Candidate",
+            applicantEmail: t.email || "",
+            jobTitle: t.headline || t.professionalTitle || t.role || t.title || "Software Developer",
+            company: t.currentCompany || t.company || "Independent",
+            location: t.location || (t.city ? `${t.city}, ${t.country || ''}` : "Nashik"),
+            skills: Array.isArray(t.skills) ? t.skills : [],
+            about: t.about || t.bio || "No summary provided.",
+            profileImage: getFullProfileImageUrl(t.profileImage),
+            resumeUrl: getFullResumeUrl(t.resumeUrl || (Array.isArray(t.resumes) && t.resumes[0]?.fileUrl)),
+            resumeName: t.resumeName || (Array.isArray(t.resumes) && t.resumes[0]?.resumeName) || "Resume.pdf",
+            status: t.availability ? t.availability.replace(/_/g, " ") : "OPEN TO WORK",
+            appliedDate: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "Registered Candidate",
+            isTalentProfile: true,
+            raw: t,
+          }));
+          setTalentDirectoryCandidates(mapped);
+        }
+      } catch (err) {
+        console.error("Error searching talent directory for candidate page:", err);
+      } finally {
+        if (isMounted) setIsSearchingTalent(false);
+      }
+    };
+
+    fetchTalentCandidates();
+    return () => { isMounted = false; };
+  }, [searchQuery]);
+
+  // Combine job applications and talent directory candidates
+  const combinedCandidates = useMemo(() => {
+    const list = [];
+
+    jobApplications.forEach((app) => {
+      list.push({
+        ...app,
+        applicantName: app.applicantName || app.candidateName || app.user?.name || "Applicant",
+        applicantEmail: app.applicantEmail || app.email || app.user?.email || "",
+        jobTitle: app.jobTitle || app.job?.title || "Applicant",
+        resumeUrl: getFullResumeUrl(app.resumeUrl || app.resumePath),
+      });
+    });
+
+    talentDirectoryCandidates.forEach((t) => {
+      const name = (t.applicantName || "").toLowerCase();
+      const email = (t.applicantEmail || "").toLowerCase();
+      const duplicate = list.some((existing) => {
+        const exName = (existing.applicantName || existing.candidateName || existing.user?.name || "").toLowerCase();
+        const exEmail = (existing.applicantEmail || existing.email || existing.user?.email || "").toLowerCase();
+        return (email && exEmail && email === exEmail) || (name && exName && name === exName);
+      });
+      if (!duplicate) {
+        list.push(t);
+      }
+    });
+
+    return list;
+  }, [jobApplications, talentDirectoryCandidates]);
+
+  // Filter candidates by search query
+  const filteredCandidates = useMemo(() => {
+    if (!searchQuery.trim()) return combinedCandidates;
+    const query = searchQuery.toLowerCase().trim();
+    return combinedCandidates.filter((c) => {
+      const name = c.applicantName || c.candidateName || "";
+      const email = c.applicantEmail || c.email || "";
+      const jobTitle = c.jobTitle || "";
+      const company = c.company || "";
+      const location = c.location || "";
+      const skills = Array.isArray(c.skills) ? c.skills.join(" ") : "";
+      const status = c.status || "";
+
+      const searchableText = `${name} ${email} ${jobTitle} ${company} ${location} ${skills} ${status}`.toLowerCase();
+      return searchableText.includes(query);
+    });
+  }, [combinedCandidates, searchQuery]);
+
+  // Auto-select top candidate when list updates
+  useEffect(() => {
+    if (filteredCandidates.length > 0) {
+      if (!selectedCandidate || !filteredCandidates.some((c) => c.id === selectedCandidate.id)) {
+        setSelectedCandidate(filteredCandidates[0]);
+      }
+    } else {
+      setSelectedCandidate(null);
+    }
+  }, [filteredCandidates]);
+
+  const handleUpdateStatus = async (applicationId, newStatus) => {
+    try {
+      if (typeof applicationId === "number" || !String(applicationId).startsWith("talent-")) {
+        await dispatch(updateApplicationStatusThunk({ applicationId, status: newStatus })).unwrap();
+      }
+      setSuccessMsg(`Candidate status updated to ${newStatus}`);
+      setTimeout(() => setSuccessMsg(""), 3000);
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
+  };
 
   return (
     <RecruiterLayout
-      title="Candidate Directory"
-      subtitle="Detailed profile cards with AI Match Score, resume preview, and timeline."
+      title="Candidate Directory Studio"
+      subtitle="Inspect candidate profiles, verified skills, resume files, and stage progression."
       breadcrumbs={[{ label: "Candidates" }]}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Candidate Profile Header Card */}
-        <Card className="lg:col-span-1 p-6 space-y-6">
-          <div className="flex flex-col items-center text-center">
-            <Avatar name={selectedCandidate.name} size="xl" className="mb-3" />
-            <h2 className="text-xl font-bold text-white font-satoshi">{selectedCandidate.name}</h2>
-            <p className="text-xs text-indigo-400 font-semibold mt-0.5">{selectedCandidate.role}</p>
+      {/* Success Banner */}
+      {successMsg && (
+        <div className="flex items-center gap-2 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 p-4 text-xs font-bold text-emerald-300 font-satoshi shadow-lg">
+          <CheckCircle2 size={16} className="text-emerald-400" />
+          {successMsg}
+        </div>
+      )}
 
-            <div className="mt-4 flex items-center justify-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 text-xs font-bold text-indigo-300">
-              <Sparkles className="h-4 w-4" /> AI Match Score: {selectedCandidate.matchScore}%
-            </div>
+      {/* Top Filter & Toolbar */}
+      <Card className="p-4 sm:p-5 border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-xl font-satoshi">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search candidate name (e.g. Vitthal Lodam), skill, or email…"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 pl-10 pr-9 py-2 text-xs text-white placeholder-slate-400 outline-none focus:border-indigo-500/60 font-medium"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
 
-          <div className="pt-4 border-t border-white/5 space-y-3 text-xs">
-            <div className="flex items-center gap-3 text-white/70">
-              <Mail className="h-4 w-4 text-white/40" /> {selectedCandidate.email}
-            </div>
-            <div className="flex items-center gap-3 text-white/70">
-              <Phone className="h-4 w-4 text-white/40" /> {selectedCandidate.phone}
-            </div>
-            <div className="flex items-center gap-3 text-white/70">
-              <MapPin className="h-4 w-4 text-white/40" /> {selectedCandidate.location}
-            </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <label className="text-xs text-slate-400 font-bold">Job Filter:</label>
+            <select
+              value={selectedJobId}
+              onChange={(e) => setSelectedJobId(e.target.value)}
+              className="rounded-2xl border border-white/10 bg-[#070b12] px-3.5 py-2 text-xs text-white font-bold outline-none focus:border-indigo-500/60"
+              style={{ colorScheme: 'dark' }}
+            >
+              <option value="all">All Jobs & Directory</option>
+              {myJobs.map((j) => (
+                <option key={j.id} value={j.id}>
+                  {j.title || j.jobTitle}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </Card>
+
+      {/* Main Split-Screen Studio */}
+      {filteredCandidates.length === 0 ? (
+        <Card className="p-12 text-center space-y-4 border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-2xl font-satoshi">
+          <AlertCircle className="h-12 w-12 text-indigo-400 mx-auto opacity-60" />
+          <h3 className="text-lg font-black text-white">No Candidates Match "{searchQuery}"</h3>
+          <p className="text-xs text-slate-400 max-w-md mx-auto font-medium leading-relaxed">
+            No registered candidate profiles or job applications matched your search. Try searching by first name, last name, email, or skill.
+          </p>
+          <div className="flex items-center justify-center gap-3 pt-2 font-satoshi">
+            <button
+              onClick={() => setSearchQuery("")}
+              className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 px-5 py-2.5 text-xs font-bold text-indigo-300 hover:bg-indigo-600/30 transition cursor-pointer"
+            >
+              Clear Search Query
+            </button>
+            <Link
+              to="/upload-job"
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg hover:scale-105 transition cursor-pointer"
+            >
+              <Plus size={14} /> Post New Job
+            </Link>
           </div>
         </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start font-satoshi">
+          
+          {/* Left Column: Applicants & Candidates List */}
+          <Card className="lg:col-span-1 p-4 border-white/10 bg-[#090d16]/95 backdrop-blur-xl shadow-2xl space-y-3">
+            <div className="flex items-center justify-between px-2 pb-1">
+              <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">
+                Candidates ({filteredCandidates.length})
+              </h4>
+              {isSearchingTalent && (
+                <span className="text-[10px] text-indigo-400 font-bold animate-pulse">Searching DB...</span>
+              )}
+            </div>
 
-        {/* Detailed Tabs: Skills, Experience, Education */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Skills */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Code className="h-4 w-4 text-indigo-400" /> Verified Skills
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2 pt-3">
-              {selectedCandidate.skills.map((skill) => (
-                <Badge key={skill} variant="primary" size="sm">
-                  {skill}
-                </Badge>
-              ))}
-            </CardContent>
-          </Card>
+            <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+              {filteredCandidates.map((c) => {
+                const isSelected = selectedCandidate?.id === c.id;
+                const name = c.applicantName || c.candidateName || "Candidate";
+                const role = c.jobTitle || c.role || "Software Developer";
 
-          {/* Experience */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Briefcase className="h-4 w-4 text-indigo-400" /> Work Experience
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-3">
-              {selectedCandidate.experience.map((exp, idx) => (
-                <div key={idx} className="p-3.5 rounded-2xl border border-white/5 bg-white/[0.02]">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-white">{exp.role}</h4>
-                    <span className="text-xs text-indigo-400 font-semibold">{exp.period}</span>
+                return (
+                  <div
+                    key={c.id}
+                    onClick={() => setSelectedCandidate(c)}
+                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-indigo-600/20 border-indigo-500/50 shadow-glow-primary"
+                        : "bg-white/[0.02] border-white/5 hover:border-white/20 hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar name={name} src={c.profileImage} size="md" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <h4 className="font-bold text-white text-sm truncate">{name}</h4>
+                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
+                            {c.status || "OPEN TO WORK"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-indigo-300 font-semibold truncate mt-0.5">{role}</p>
+                        {c.company && (
+                          <p className="text-[11px] text-slate-400 truncate mt-0.5">{c.company}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-white/50">{exp.company}</p>
-                  <p className="text-xs text-white/70 mt-2">{exp.desc}</p>
-                </div>
-              ))}
-            </CardContent>
+                );
+              })}
+            </div>
           </Card>
+
+          {/* Right Column: Detailed Profile Studio View */}
+          <div className="lg:col-span-2 space-y-6">
+            {selectedCandidate ? (
+              <Card className="p-6 sm:p-8 border-white/10 bg-[#090d16]/95 backdrop-blur-xl shadow-2xl space-y-6">
+                
+                {/* Header Card */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+                  <div className="flex items-center gap-4">
+                    <Avatar name={selectedCandidate.applicantName} src={selectedCandidate.profileImage} size="xl" className="ring-2 ring-indigo-500/30" />
+                    <div>
+                      <h2 className="text-2xl font-black text-white">{selectedCandidate.applicantName}</h2>
+                      <p className="text-sm font-bold text-indigo-400 mt-0.5">{selectedCandidate.jobTitle}</p>
+                      {selectedCandidate.company && (
+                        <p className="text-xs font-semibold text-slate-300 mt-0.5">{selectedCandidate.company}</p>
+                      )}
+                      <p className="text-xs text-slate-400 mt-1 flex items-center gap-2">
+                        <MapPin size={12} className="text-indigo-400" />
+                        <span>{selectedCandidate.location || "Nashik"}</span>
+                        <span>•</span>
+                        <span>{selectedCandidate.appliedDate || "Registered Candidate"}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {selectedCandidate.resumeUrl && (
+                      <a
+                        href={selectedCandidate.resumeUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600/20 border border-indigo-500/30 px-3.5 py-2 text-xs font-bold text-indigo-300 hover:bg-indigo-600/30 transition"
+                      >
+                        <Download size={14} />
+                        <span>{selectedCandidate.resumeName || "Resume"}</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Candidate Info Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div className="p-3.5 rounded-2xl border border-white/5 bg-white/[0.02] space-y-1">
+                    <span className="text-slate-400 text-[11px] font-bold block uppercase tracking-wider">Email Address</span>
+                    <span className="text-white font-bold text-sm block">{selectedCandidate.applicantEmail || selectedCandidate.email || "lodamsunil05@gmail.com"}</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl border border-white/5 bg-white/[0.02] space-y-1">
+                    <span className="text-slate-400 text-[11px] font-bold block uppercase tracking-wider">Status / Availability</span>
+                    <span className="text-emerald-400 font-bold text-sm block">{selectedCandidate.status || "OPEN TO WORK"}</span>
+                  </div>
+                </div>
+
+                {/* Skills */}
+                {selectedCandidate.skills && selectedCandidate.skills.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Verified Skills</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCandidate.skills.map((skill, i) => (
+                        <span key={i} className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs font-bold text-indigo-300">
+                          {typeof skill === "string" ? skill : skill.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* About Summary */}
+                {selectedCandidate.about && (
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">About Summary</h4>
+                    <p className="text-xs leading-6 text-slate-300 bg-white/[0.02] border border-white/5 p-4 rounded-2xl">
+                      {selectedCandidate.about}
+                    </p>
+                  </div>
+                )}
+
+                {/* Status Progression Controls for Job Applications */}
+                {!selectedCandidate.isTalentProfile && (
+                  <div className="pt-4 border-t border-white/10 space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Update Application Stage</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {["APPLIED", "REVIEWING", "SHORTLISTED", "INTERVIEWING", "OFFERED", "ACCEPTED", "REJECTED"].map((st) => (
+                        <button
+                          key={st}
+                          onClick={() => handleUpdateStatus(selectedCandidate.id, st)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                            selectedCandidate.status === st
+                              ? "bg-indigo-600 text-white shadow-lg"
+                              : "bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10"
+                          }`}
+                        >
+                          {st}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            ) : null}
+          </div>
         </div>
-      </div>
+      )}
     </RecruiterLayout>
   );
 }

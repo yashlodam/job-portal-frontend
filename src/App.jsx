@@ -30,6 +30,7 @@ const MyJobsPage = React.lazy(() => import('./Pages/MyJobsPage'));
 const CareerHubPage = React.lazy(() => import('./Pages/CareerHubPage'));
 const MessagesPage = React.lazy(() => import('./Pages/MessagesPage'));
 const NotificationsPage = React.lazy(() => import('./features/notifications/pages/NotificationsPage'));
+const SettingsPage = React.lazy(() => import('./Pages/SettingsPage'));
 
 // Recruiter Studio Pages
 const RecruiterDashboardPage = React.lazy(() => import('./Pages/recruiter/RecruiterDashboardPage'));
@@ -194,6 +195,7 @@ function App() {
               <Route path="/profiles"       element={<Profile />} />
               <Route path="/upload-job"    element={<UploadJob />} />
               <Route path="/talent-profile" element={<TalentProfilePage />} />
+              <Route path="/talent-profile/:id" element={<TalentProfilePage />} />
               <Route path="/about"         element={<About />} />
               <Route path="/jobs/:id"      element={<JobDetail />} />
               <Route path="/apply-jobs"    element={<ApplyJobPage />} />
@@ -235,6 +237,7 @@ function App() {
               <Route path="/messages font"     element={<MessagesPage />} />
               <Route path="/messages font text"element={<MessagesPage />} />
               <Route path="/messages"       element={<MessagesPage />} />
+              <Route path="/settings"       element={<SettingsPage />} />
 
               {/* Recruiter Studio Routes */}
               <Route path="/dashboard font"            element={<RecruiterDashboardPage />} />

@@ -6,454 +6,326 @@ import {
   IconMapPin,
   IconMessage,
   IconSchool,
+  IconDownload,
+  IconFileText,
+  IconMail,
+  IconClock,
+  IconAward,
 } from "@tabler/icons-react";
-
 import React from "react";
 
 function Profile(profile) {
-
-console.log(profile)
+  const experiences = profile.experiences || profile.experience || [];
+  const educations = profile.educations || profile.education || [];
+  const certifications = profile.certifications || [];
+  const skills = profile.skills || [];
 
   return (
-    <div className="w-2/3">
+    <div className="w-full">
 
       {/* Banner + Profile Image */}
       <div className="relative">
-
         {/* Banner */}
-        <div className="h-64 w-full overflow-hidden rounded-2xl border border-white/[0.08]">
-          <img
-            src={`${profile.bannerImage}`}
-            alt="Profile banner"
-            className="h-full w-full object-cover"
-          />
+        <div className="h-48 sm:h-64 w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950">
+          {profile.bannerImage ? (
+            <img
+              src={profile.bannerImage}
+              alt="Profile banner"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="h-full w-full opacity-40 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px]" />
+          )}
         </div>
 
         {/* Profile Image */}
-        <div className="absolute -bottom-20 left-8">
+        <div className="absolute -bottom-16 sm:-bottom-20 left-6 sm:left-8">
           <div
             className="
-              h-40 w-40
+              h-32 w-32
+              sm:h-44 sm:w-44
               overflow-hidden
               rounded-full
-              border-[5px]
+              border-[4px] sm:border-[5px]
               border-background
               bg-surface
-              shadow-[0_12px_40px_rgba(0,0,0,0.35)]
-              sm:h-44
-              sm:w-44
+              shadow-[0_12px_40px_rgba(0,0,0,0.4)]
             "
           >
             <img
-              src={`${profile.profileImage}`}
-              alt="Yash Lodam"
+              src={profile.profileImage || "/profile.png"}
+              alt={profile.name}
               className="h-full w-full object-cover"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80";
+              }}
             />
           </div>
         </div>
-
       </div>
 
       {/* Space for Profile Image */}
-      <div className="h-24" />
+      <div className="h-20 sm:h-24" />
 
       {/* Profile Information */}
-      <div className="px-3 sm:px-4">
+      <div className="px-2 sm:px-4">
+        {/* Name + Badges + Buttons */}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="font-satoshi text-2xl font-black tracking-tight text-heading sm:text-3xl">
+              {profile.name}
+            </h1>
+            <p className="mt-1 text-sm font-semibold text-indigo-400">
+              {profile.email}
+            </p>
+          </div>
 
-        {/* Name + Message Button */}
-        <div className="flex items-center justify-between gap-6">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            {profile.resumeUrl && (
+              <a
+                href={profile.resumeUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 text-xs font-bold text-indigo-300 hover:bg-indigo-500/20 transition"
+              >
+                <IconDownload size={16} />
+                <span>{profile.resumeName || "Resume"}</span>
+              </a>
+            )}
 
-          {/* Name */}
-          <h1
-            className="
-              font-satoshi
-              text-2xl
-              font-bold
-              tracking-tight
-              text-heading
-              sm:text-3xl
-            "
-          >
-            {profile.name}
-          </h1>
-
-          {/* Message Button */}
-          <button
-            type="button"
-            className="
-              inline-flex
-              h-10
-              shrink-0
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              bg-primary
-              px-6
-              text-sm
-              font-semibold
-              text-white
-              shadow-button
-              transition-all
-              duration-300
-              hover:-translate-y-0.5
-              hover:bg-primary-light
-              active:translate-y-0
-            "
-          >
-            <IconMessage
-              size={17}
-              stroke={1.8}
-            />
-            Message
-          </button>
-
+            <button
+              type="button"
+              className="
+                inline-flex
+                h-10
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                bg-primary
+                px-5
+                text-xs
+                font-bold
+                text-white
+                shadow-button
+                transition-all
+                duration-300
+                hover:bg-primary-light
+              "
+            >
+              <IconMessage size={16} />
+              Message Candidate
+            </button>
+          </div>
         </div>
 
         {/* Role + Company */}
-        <div className="mt-2 flex items-center gap-2 text-sm text-body sm:text-base">
-
-          <IconBriefcase
-            size={18}
-            stroke={1.7}
-            className="shrink-0 text-muted"
-          />
-
-          <span className="font-medium">
-            {profile.role}
-          </span>
-
-          <span className="text-muted">
-            •
-          </span>
-
-          <span className="font-medium text-primary-light">
-            {profile.company}
-          </span>
-
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-body sm:text-base font-satoshi">
+          <IconBriefcase size={18} className="shrink-0 text-muted" />
+          <span className="font-bold text-white">{profile.role}</span>
+          <span className="text-muted">•</span>
+          <span className="font-semibold text-primary-light">{profile.company}</span>
         </div>
 
-        {/* Location */}
-        <div className="mt-1.5 flex items-center gap-2 text-sm text-muted sm:text-base">
-
-          <IconMapPin
-            size={18}
-            stroke={1.7}
-            className="shrink-0"
-          />
-
-          <span>
-            {profile.location}
-          </span>
-
-        </div>
-
-      </div>
-
-      <Divider
-  size="xs"
-  my="xl"
-  color="rgba(148, 163, 184, 0.08)"
-/>
-{/* About Section */}
-<section>
-  <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
-    About
-  </h2>
-
-  <p className="mt-3 max-w-3xl text-sm leading-7 text-body sm:text-[15px]">
-    {profile.about}
-  </p>
-</section>
-
-{/* Divider */}
-<Divider
-  size="xs"
-  my="xl"
-  color="rgba(148, 163, 184, 0.08)"
-/>
-
-{/* Skills Section */}
-<section>
-  <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
-    Skills
-  </h2>
-
-  <div className="mt-4 flex flex-wrap gap-2.5">
-    {profile?.skills?.map((skill) => (
-      <span
-        key={skill}
-        className="
-          inline-flex
-          items-center
-          rounded-lg
-          border
-          border-primary/20
-          bg-primary/10
-          px-3.5
-          py-1.5
-          text-sm
-          font-medium
-          text-primary-light
-          transition-all
-          duration-300
-          hover:border-primary/40
-          hover:bg-primary/15
-        "
-      >
-        {skill}
-      </span>
-    ))}
-  </div>
-</section>
-
-{/* Divider */}
-<Divider
-  size="xs"
-  my="xl"
-  color="rgba(148, 163, 184, 0.08)"
-/>
-
-{/* Experience Section */}
-<h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
-    Experience
-  </h2>
-{
-    profile?.experience?.map((item,index)=> 
-        <section>
-  
-
-  <div key={index} className="mt-6 space-y-8">
-
-    {/* Experience Item */}
-    <div className="flex gap-4">
-
-      {/* Company Logo */}
-      <div className="flex h-15 w-15 shrink-0 items-center justify-center rounded-xl border border-border bg-surface p-2">
-        <img
-          src="google.png"
-          alt="Google"
-          className="h-full w-full object-contain"
-        />
-      </div>
-
-      {/* Experience Details */}
-      <div className="flex-1">
-
-        <div className="flex flex-wrap items-start justify-between gap-2">
-
-          <div>
-            <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg">
-              {item.role}
-            </h3>
-
-            <p className="mt-1 text-sm font-medium text-primary-light">
-              {item.company}
-            </p>
+        {/* Location & Availability Badges */}
+        <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs sm:text-sm">
+          <div className="flex items-center gap-1.5 text-muted font-medium">
+            <IconMapPin size={16} className="shrink-0 text-indigo-400" />
+            <span>{profile.location}</span>
           </div>
 
-          <span className="text-sm text-muted">
-            {item.startDate} {item.endDate}
-          </span>
+          {profile.availability && (
+            <span className="inline-flex items-center rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400">
+              {profile.availability}
+            </span>
+          )}
 
+          {profile.experienceLevel && (
+            <span className="inline-flex items-center rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-300">
+              {profile.experienceLevel}
+            </span>
+          )}
         </div>
-
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted sm:text-sm">
-          <span>{item.type}</span>
-
-          <span>•</span>
-
-          <span>{item.location}</span>
-        </div>
-
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-body">
-          {item.description}
-        </p>
-
       </div>
 
-    </div>
+      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
 
-  </div>
-</section>
-    )
-}
+      {/* About Section */}
+      <section>
+        <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
+          About
+        </h2>
+        {profile.about ? (
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-body sm:text-[15px]">
+            {profile.about}
+          </p>
+        ) : (
+          <p className="mt-3 text-xs text-slate-400 italic">No summary description provided yet.</p>
+        )}
+      </section>
 
+      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
 
-{/* Divider */}
-<Divider
-  size="xs"
-  my="xl"
-  color="rgba(148, 163, 184, 0.08)"
-/>
-
-{/* Education Section */}
-<h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
-    Education
-  </h2>
-{
-    profile?.education?.map((item,index)=>
-<section key={index}>
-  
-
-  <div className="mt-6 space-y-8">
-
-    {/* Education Item */}
-    <div className="flex items-start gap-4">
-
-      {/* Education Icon */}
-      <div
-        className="
-          flex
-          h-12
-          w-12
-          shrink-0
-          items-center
-          justify-center
-          rounded-xl
-          border
-          border-primary/20
-          bg-primary/10
-          text-primary-light
-        "
-      >
-        <IconSchool size={24} stroke={1.6} />
-      </div>
-
-      {/* Education Details */}
-      <div className="min-w-0 flex-1">
-
-        <div className="flex flex-wrap items-start justify-between gap-3">
-
-          <div>
-            {/* Degree */}
-            <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg">
-              {item.degree}
-            </h3>
-
-            {/* College */}
-            <p className="mt-1 text-sm font-medium text-primary-light">
-              Late G.N. Sapkal College of Engineering
-            </p>
+      {/* Skills Section */}
+      <section>
+        <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
+          Skills & Expertise
+        </h2>
+        {skills.length > 0 ? (
+          <div className="mt-4 flex flex-wrap gap-2.5">
+            {skills.map((skill) => (
+              <span
+                key={typeof skill === "string" ? skill : skill.name || skill.id}
+                className="
+                  inline-flex
+                  items-center
+                  rounded-lg
+                  border
+                  border-primary/20
+                  bg-primary/10
+                  px-3.5
+                  py-1.5
+                  text-xs sm:text-sm
+                  font-semibold
+                  text-primary-light
+                "
+              >
+                {typeof skill === "string" ? skill : skill.name}
+              </span>
+            ))}
           </div>
+        ) : (
+          <p className="mt-3 text-xs text-slate-400 italic">No skills added yet.</p>
+        )}
+      </section>
 
-          {/* Duration */}
-          <span className="shrink-0 text-sm text-muted">
-            {item.startYear} — {item.endYear}
-          </span>
+      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
 
-        </div>
-
-        {/* University */}
-        <p className="mt-2 text-sm text-body">
-          Savitribai Phule Pune University
-        </p>
-
-        {/* Location */}
-        <div className="mt-2 flex items-center gap-1.5 text-sm text-muted">
-          <IconMapPin size={16} stroke={1.7} />
-
-          <span>
-            {item.location}
-          </span>
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-</section>
-    )
-}
-
-
-{/* Divider */}
-<Divider
-  size="xs"
-  my="xl"
-  color="rgba(148, 163, 184, 0.08)"
-/>
-
-{/* Certifications Section */}
-<section>
-  <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl">
-    Certifications
-  </h2>
-
-  <div className="mt-6 space-y-6">
-
-    {/* Certification Item */}
-    <div className="flex items-start gap-4">
-
-      {/* Certificate Icon */}
-      <div
-        className="
-          flex
-          h-12
-          w-12
-          shrink-0
-          items-center
-          justify-center
-          rounded-xl
-          border
-          border-primary/20
-          bg-primary/10
-          text-primary-light
-        "
-      >
-        <IconCertificate size={24} stroke={1.6} />
-      </div>
-
-      {/* Certificate Information */}
-      <div className="min-w-0 flex-1">
-
-        <div className="flex flex-wrap items-start justify-between gap-3">
-
-          <div>
-            <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg">
-              Google Cloud Professional Developer
-            </h3>
-
-            <p className="mt-1 text-sm font-medium text-primary-light">
-              Google Cloud
-            </p>
+      {/* Experience Section */}
+      <section>
+        <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl mb-4">
+          Work Experience
+        </h2>
+        {experiences.length > 0 ? (
+          <div className="space-y-6">
+            {experiences.map((item, index) => (
+              <div key={item.id || index} className="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-surface p-2">
+                  <IconBriefcase size={20} className="text-indigo-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-satoshi text-base font-bold text-heading">
+                        {item.role || item.jobTitle || item.title}
+                      </h3>
+                      <p className="mt-0.5 text-xs font-semibold text-primary-light">
+                        {item.company || item.companyName}
+                      </p>
+                    </div>
+                    <span className="text-xs text-muted">
+                      {item.startDate || item.startYear} — {item.endDate || item.endYear || "Present"}
+                    </span>
+                  </div>
+                  {item.location && (
+                    <p className="mt-1 text-xs text-muted">{item.location}</p>
+                  )}
+                  {item.description && (
+                    <p className="mt-2 text-xs leading-5 text-body">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
+        ) : (
+          <p className="text-xs text-slate-400 italic">No work experience listed yet.</p>
+        )}
+      </section>
 
-          <span className="shrink-0 text-sm text-muted">
-            Issued Jan 2025
-          </span>
+      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
 
-        </div>
+      {/* Education Section */}
+      <section>
+        <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl mb-4">
+          Education
+        </h2>
+        {educations.length > 0 ? (
+          <div className="space-y-6">
+            {educations.map((item, index) => (
+              <div key={item.id || index} className="flex items-start gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary-light">
+                  <IconSchool size={22} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-satoshi text-base font-bold text-heading">
+                        {item.degree || item.title}
+                      </h3>
+                      <p className="mt-0.5 text-xs font-semibold text-primary-light">
+                        {item.institution || item.college || item.school}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs text-muted">
+                      {item.startYear} — {item.endYear || "Present"}
+                    </span>
+                  </div>
+                  {item.location && (
+                    <div className="mt-2 flex items-center gap-1 text-xs text-muted">
+                      <IconMapPin size={14} />
+                      <span>{item.location}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400 italic">No education listed yet.</p>
+        )}
+      </section>
 
-        <p className="mt-2 text-sm text-muted">
-          Credential ID: GCP-DEV-2025
-        </p>
+      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
 
-        <button
-          type="button"
-          className="
-            mt-3
-            inline-flex
-            items-center
-            gap-1.5
-            text-sm
-            font-semibold
-            text-primary-light
-            transition-colors
-            hover:text-primary
-          "
-        >
-          Show credential
-          <IconExternalLink size={15} stroke={1.8} />
-        </button>
+      {/* Certifications Section */}
+      <section>
+        <h2 className="font-satoshi text-xl font-bold tracking-tight text-heading sm:text-2xl mb-4">
+          Certifications
+        </h2>
+        {certifications.length > 0 ? (
+          <div className="space-y-4">
+            {certifications.map((cert, index) => (
+              <div key={cert.id || index} className="flex items-start gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary-light">
+                  <IconCertificate size={22} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-satoshi text-base font-bold text-heading">
+                        {cert.name || cert.title}
+                      </h3>
+                      <p className="mt-0.5 text-xs font-semibold text-primary-light">
+                        {cert.issuer || cert.organization}
+                      </p>
+                    </div>
+                    {cert.issueDate && (
+                      <span className="shrink-0 text-xs text-muted">{cert.issueDate}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400 italic">No certifications listed yet.</p>
+        )}
+      </section>
 
-      </div>
-
-    </div>
-
-  </div>
-</section>
     </div>
   );
 }
