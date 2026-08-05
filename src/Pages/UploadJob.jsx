@@ -72,10 +72,11 @@ const MIN_REQUIREMENTS_LENGTH = 20;
 
 function ErrorMessage({ id, children }) {
   if (!children) return null;
+  const msg = typeof children === "object" ? (children.message || JSON.stringify(children)) : String(children);
   return (
     <p id={id} role="alert" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-danger">
       <AlertCircle size={13} className="shrink-0" aria-hidden="true" />
-      {children}
+      {msg}
     </p>
   );
 }

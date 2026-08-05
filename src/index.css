@@ -879,3 +879,18 @@ button {
     animation: none !important;
   }
 }
+
+/* Universal Input Placeholder Fix */
+::placeholder {
+  color: #94A3B8 !important;
+  opacity: 1 !important;
+}
+
+input::placeholder,
+textarea::placeholder,
+.mantine-TextInput-input::placeholder,
+.mantine-PasswordInput-innerInput::placeholder,
+.mantine-PasswordInput-input::placeholder {
+  color: #94A3B8 !important;
+  opacity: 1 !important;
+}

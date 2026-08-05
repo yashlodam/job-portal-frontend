@@ -1,6 +1,27 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { Avatar, Button, Indicator } from "@mantine/core";
-import { Sparkles, Bell, MessageSquare, Settings, Search, Menu, X, Plus, ChevronDown } from "lucide-react";
+import {
+  Sparkles,
+  Bell,
+  MessageSquare,
+  Settings,
+  Search,
+  Menu,
+  X,
+  Plus,
+  ChevronDown,
+  FileText,
+  Video,
+  CheckCircle2,
+  Compass,
+  TrendingUp,
+  Briefcase,
+  Bookmark,
+  Calendar,
+  Award,
+  Layers,
+  UserCheck,
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ProfileMenu from "./ProfileMenu";
@@ -17,22 +38,75 @@ const USER_NAV_LINKS = [
     name: "My Jobs",
     url: "/my-jobs",
     children: [
-      { name: "Applied Jobs", url: "/my-jobs/applied" },
-      { name: "Saved Jobs", url: "/my-jobs/saved" },
-      { name: "Interviews", url: "/my-jobs/interviews" },
-      { name: "Offers", url: "/my-jobs/offers" },
+      {
+        name: "Applied Jobs",
+        url: "/my-jobs/applied",
+        desc: "Track status & pipeline progress of active applications",
+        icon: Briefcase,
+      },
+      {
+        name: "Saved Jobs",
+        url: "/my-jobs/saved",
+        desc: "Bookmarked job postings saved for quick apply",
+        icon: Bookmark,
+      },
+      {
+        name: "Interviews",
+        url: "/my-jobs/interviews",
+        desc: "Scheduled video interviews & interviewer notes",
+        icon: Calendar,
+      },
+      {
+        name: "Offers",
+        url: "/my-jobs/offers",
+        desc: "Job offer letters & compensation details",
+        icon: Award,
+      },
     ],
   },
   {
     name: "Career Hub",
     url: "/career-hub",
     children: [
-      { name: "AI Resume Builder", url: "/career-hub/resume-builder" },
-      { name: "AI Resume Analyzer", url: "/career-hub/resume-analyzer" },
-      { name: "AI Interview Coach", url: "/career-hub/interview-coach" },
-      { name: "Skill Assessments", url: "/career-hub/assessments" },
-      { name: "Career Roadmaps", url: "/career-hub/roadmaps" },
-      { name: "Salary Insights", url: "/career-hub/salary-insights" },
+      {
+        name: "AI Resume Builder",
+        url: "/career-hub/resume-builder",
+        desc: "Create ATS-optimized resumes with AI assistance",
+        icon: FileText,
+        badge: "AI",
+      },
+      {
+        name: "AI Resume Analyzer",
+        url: "/career-hub/resume-analyzer",
+        desc: "Score & match your resume against target jobs",
+        icon: Sparkles,
+        badge: "AI",
+      },
+      {
+        name: "AI Interview Coach",
+        url: "/career-hub/interview-coach",
+        desc: "Interactive mock interviews with real-time feedback",
+        icon: Video,
+        badge: "AI",
+      },
+      {
+        name: "Skill Assessments",
+        url: "/career-hub/assessments",
+        desc: "Verify technical skills and showcase badges",
+        icon: CheckCircle2,
+      },
+      {
+        name: "Career Roadmaps",
+        url: "/career-hub/roadmaps",
+        desc: "Step-by-step career progression guides & skill trees",
+        icon: Compass,
+      },
+      {
+        name: "Salary Insights",
+        url: "/career-hub/salary-insights",
+        desc: "Real-time industry salary trends by role & location",
+        icon: TrendingUp,
+      },
     ],
   },
 ];
@@ -201,6 +275,19 @@ function Header() {
   const toggleBtnRef = useRef(null);
 
   const role = user?.role;
+  const accountType = user?.accountType;
+
+  const isEmployer =
+    accountType === "EMPLOYER" ||
+    role === "EMPLOYER" ||
+    accountType === "RECRUITER" ||
+    role === "RECRUITER" ||
+    location.pathname.startsWith("/recruiter") ||
+    location.pathname.startsWith("/dashboard");
+
+  if (isEmployer) {
+    return null;
+  }
 
   // Track expanded state for submenus in mobile drawer (e.g. My Jobs, Career Hub)
   const [expandedMobileSubmenu, setExpandedMobileSubmenu] = useState({});
@@ -399,34 +486,49 @@ function Header() {
                     </Link>
 
                     {item.children && (
-                      // The hover-triggered dropdown used to sit `mt-2` below the
-                      // trigger, which left an 8px dead zone that belonged to
-                      // neither the link nor the dropdown. Moving the cursor
-                      // diagonally through that gap dropped the :hover state and
-                      // closed the menu before the click could land. Fixing this
-                      // by starting the invisible hit-box flush against the
-                      // trigger (top-full, no margin) and pushing the visible
-                      // card down with padding instead — the hoverable area is
-                      // now unbroken from the trigger all the way to the menu.
-                      <div className="invisible absolute left-0 top-full z-30 w-56 pt-2 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                        <div className="overflow-hidden rounded-3xl border border-white/[0.06] bg-[#070B11]/95 p-2 shadow-[0_12px_32px_rgba(0,0,0,0.4)]">
-                          {item.children.map((child) => {
-                            const childActive = location.pathname === child.url;
-                            return (
-                              <Link
-                                key={child.url}
-                                to={child.url}
-                                aria-current={childActive ? "page" : undefined}
-                                className={`relative block rounded-2xl px-3 py-2 text-sm font-medium transition-colors duration-200 ${FOCUS_RING} ${
-                                  childActive
-                                    ? "bg-[#11171F] text-white"
-                                    : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
-                                }`}
-                              >
-                                {child.name}
-                              </Link>
-                            );
-                          })}
+                      <div className="invisible absolute left-1/2 -translate-x-1/2 top-full z-40 w-80 sm:w-88 pt-2.5 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                        <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#070b14]/98 p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
+                          <div className="space-y-1">
+                            {item.children.map((child) => {
+                              const childActive = location.pathname === child.url;
+                              const Icon = child.icon;
+                              return (
+                                <Link
+                                  key={child.url}
+                                  to={child.url}
+                                  aria-current={childActive ? "page" : undefined}
+                                  className={`group/child relative flex items-start gap-3.5 rounded-2xl p-2.5 transition-all duration-200 ${FOCUS_RING} ${
+                                    childActive
+                                      ? "bg-indigo-500/15 border border-indigo-500/30 text-white"
+                                      : "text-white/80 hover:bg-white/[0.06] hover:text-white"
+                                  }`}
+                                >
+                                  {Icon && (
+                                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-indigo-400 group-hover/child:bg-indigo-500/20 group-hover/child:scale-105 transition-all">
+                                      <Icon size={18} />
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-bold text-white font-satoshi group-hover/child:text-indigo-300 transition-colors">
+                                        {child.name}
+                                      </span>
+                                      {child.badge && (
+                                        <span className="rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 px-1.5 py-0.2 text-[9px] font-black text-white shadow-sm">
+                                          {child.badge}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {child.desc && (
+                                      <p className="text-[11px] text-white/50 leading-snug mt-0.5 line-clamp-1">
+                                        {child.desc}
+                                      </p>
+                                    )}
+                                  </div>
+                                </Link>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -689,19 +791,35 @@ function Header() {
 
                                 {item.children.map((child) => {
                                   const childActive = location.pathname === child.url;
+                                  const Icon = child.icon;
                                   return (
                                     <Link
                                       key={child.url}
                                       to={child.url}
                                       onClick={() => setMobileOpen(false)}
                                       aria-current={childActive ? "page" : undefined}
-                                      className={`block rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-200 ${FOCUS_RING} ${
+                                      className={`flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 ${FOCUS_RING} ${
                                         childActive
-                                          ? "bg-indigo-500/15 text-indigo-300 font-semibold"
+                                          ? "bg-indigo-500/15 border border-indigo-500/30 text-white font-semibold"
                                           : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
                                       }`}
                                     >
-                                      {child.name}
+                                      {Icon && (
+                                        <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 text-indigo-400 shrink-0">
+                                          <Icon size={15} />
+                                        </div>
+                                      )}
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-xs font-bold text-white font-satoshi">{child.name}</span>
+                                          {child.badge && (
+                                            <span className="rounded-full bg-indigo-500/30 px-1.5 py-0.2 text-[9px] font-bold text-indigo-300 border border-indigo-500/40">
+                                              {child.badge}
+                                            </span>
+                                          )}
+                                        </div>
+                                        {child.desc && <p className="text-[10px] text-white/50 leading-snug mt-0.5 line-clamp-1">{child.desc}</p>}
+                                      </div>
                                     </Link>
                                   );
                                 })}

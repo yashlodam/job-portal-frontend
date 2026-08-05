@@ -101,7 +101,12 @@ api.interceptors.response.use(
         break;
 
       default:
-        console.error(`[API] Unexpected error ${status}`, error.response.data);
+        console.error(
+          `[API] Unexpected error ${status}:`,
+          typeof error.response?.data === "object"
+            ? (error.response?.data?.message || JSON.stringify(error.response.data))
+            : String(error.response?.data || error.message)
+        );
     }
 
     return Promise.reject(error);

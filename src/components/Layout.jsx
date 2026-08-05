@@ -3,12 +3,33 @@ import { Outlet, useLocation } from "react-router-dom";
 import Header from "../Header/Header";
 import Footer from "../LandingPage/Footer";
 import ScrollToTop from "./ScrollToTop";
+import { useAppSelector } from "../State/Store";
 
 function Layout() {
-
   const location = useLocation();
+  const user = useAppSelector((state) => state.auth.profile);
 
-const hideLayout = ["/auth", "/reset-password"].includes(location.pathname);
+  const isEmployer =
+    user?.accountType === "EMPLOYER" ||
+    user?.role === "EMPLOYER" ||
+    user?.accountType === "RECRUITER" ||
+    user?.role === "RECRUITER";
+
+  const isRecruiterRoute =
+    location.pathname.startsWith("/recruiter") ||
+    location.pathname.startsWith("/dashboard") ||
+    location.pathname.startsWith("/upload-job") ||
+    location.pathname.startsWith("/posted-job");
+
+  const isAuthRoute =
+    location.pathname === "/auth" ||
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/register" ||
+    location.pathname === "/reset-password";
+
+  const hideUserHeaderFooter = isEmployer || isRecruiterRoute || isAuthRoute;
+
   return (
     <div className="min-h-screen w-full bg-background font-inter text-body">
       {/* Accessibility */}
@@ -18,19 +39,16 @@ const hideLayout = ["/auth", "/reset-password"].includes(location.pathname);
 
       <ScrollToTop />
 
-      {/* Header */}
-      {!hideLayout && <Header />}
+      {/* Header — hidden for Employers, Auth pages, and Recruiter routes */}
+      {!hideUserHeaderFooter && <Header />}
 
       {/* Main Page Content */}
-      <main
-        id="main-content"
-        className="relative w-full"
-      >
+      <main id="main-content" className="relative w-full">
         <Outlet />
       </main>
 
-      {/* Footer */}
-       {!hideLayout && <Footer />}
+      {/* Footer — hidden for Employers, Auth pages, and Recruiter routes */}
+      {!hideUserHeaderFooter && <Footer />}
     </div>
   );
 }

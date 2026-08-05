@@ -1,43 +1,39 @@
 import React, { useState } from "react";
-import {
-  TextInput,
-  PasswordInput,
-  Button,
-  Checkbox,
-} from "@mantine/core";
+import { TextInput, PasswordInput, Button, Checkbox } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import {
-  Mail,
-  Lock,
-  ArrowRight,
-  CheckCircle2,
-  CircleAlert,
-} from "lucide-react";
-
+import { Mail, Lock, ArrowRight, CheckCircle2, CircleAlert, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../State/Store";
-import { getUserProfile, signin, signup } from "../State/AuthSlic";
+import { getUserProfile, signin } from "../State/AuthSlic";
 
 const fieldStyles = {
-  label: {
-    color: "#CBD5E1",
-    fontSize: 13,
-    fontWeight: 500,
-    marginBottom: 6,
-  },
+  label: { color: "#F1F5F9", fontSize: 13, fontWeight: 600, marginBottom: 6 },
   input: {
-    backgroundColor: "rgba(255,255,255,0.03)",
-    borderColor: "rgba(255,255,255,0.1)",
-    color: "#fff",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderColor: "rgba(255,255,255,0.15)",
+    color: "#FFFFFF",
+    borderRadius: 12,
+    "&:focus, &:focus-within": {
+      borderColor: "#6366F1 !important",
+      backgroundColor: "rgba(255,255,255,0.08)",
+    },
     "&::placeholder": {
-      color: "#7C8AA0",
-      opacity: 1,
+      color: "#94A3B8 !important",
+      opacity: "1 !important",
+    },
+  },
+  innerInput: {
+    color: "#FFFFFF",
+    "&::placeholder": {
+      color: "#94A3B8 !important",
+      opacity: "1 !important",
     },
   },
 };
 
 function Login({ setIsLogin }) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -46,24 +42,23 @@ function Login({ setIsLogin }) {
     password: "",
   });
 
-  const navigate = useNavigate();
-
   const handleChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }));
+    }
   };
 
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (
-      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)
-    ) {
-      newErrors.email = "Please enter a valid email";
+      newErrors.email = "Email address is required";
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
     }
 
     if (!formData.password.trim()) {
@@ -71,41 +66,39 @@ function Login({ setIsLogin }) {
     }
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      notifications.show({
-        title: "Incomplete Form",
-        message: "Please enter your email and password.",
-        color: "yellow",
-        radius: "md",
-        autoClose: 2500,
-      });
-      return;
-    }
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
+    if (!validateForm()) return;
 
     setLoading(true);
 
     try {
-      // .unwrap() throws on rejection so we abort before getUserProfile
       await dispatch(signin(formData)).unwrap();
-
-      // Token is now in localStorage — fetch the profile to populate Redux
       const profile = await dispatch(getUserProfile()).unwrap();
 
       notifications.show({
-        title: `Welcome back, ${profile?.name || "User"} 👋`,
-        message: "You have successfully signed in.",
-        color: "green",
+        title: `Welcome back, ${profile?.name || "User"}! 👋`,
+        message: "You have successfully signed in to Velora.",
+        color: "indigo",
         radius: "md",
         autoClose: 3000,
         icon: <CheckCircle2 size={18} />,
       });
 
-      navigate("/");
+      const isEmployer =
+        profile?.accountType === "EMPLOYER" ||
+        profile?.role === "EMPLOYER" ||
+        profile?.accountType === "RECRUITER" ||
+        profile?.role === "RECRUITER";
+
+      if (isEmployer) {
+        navigate("/recruiter/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       notifications.show({
         title: "Sign in Failed",
@@ -127,23 +120,25 @@ function Login({ setIsLogin }) {
     <div className="w-full">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-3xl text-white">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-[11px] font-bold text-indigo-400 mb-3">
+          <Sparkles className="h-3 w-3" /> Velora Account Sign In
+        </div>
+        <h1 className="font-satoshi text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
           Welcome back
         </h1>
-        <p className="mt-2 text-sm text-slate-500">
-          Sign in to continue your career journey with Velora.
+        <p className="mt-1.5 text-xs sm:text-sm text-slate-400">
+          Sign in to access your jobs, applications, and AI career tools.
         </p>
       </div>
 
       {/* Form */}
-      <div className="mt-8 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <TextInput
           label="Email address"
           value={formData.email}
           onChange={(e) => handleChange("email", e.target.value)}
-          placeholder="john@example.com"
-          leftSection={<Mail size={16} className="text-slate-500" />}
-          radius="md"
+          placeholder="name@company.com"
+          leftSection={<Mail size={16} className="text-slate-400" />}
           size="md"
           styles={fieldStyles}
           error={errors.email}
@@ -154,8 +149,7 @@ function Login({ setIsLogin }) {
           value={formData.password}
           onChange={(e) => handleChange("password", e.target.value)}
           placeholder="Enter your password"
-          leftSection={<Lock size={16} className="text-slate-500" />}
-          radius="md"
+          leftSection={<Lock size={16} className="text-slate-400" />}
           size="md"
           styles={fieldStyles}
           error={errors.password}
@@ -164,45 +158,41 @@ function Login({ setIsLogin }) {
         <div className="flex items-center justify-between pt-1">
           <Checkbox
             radius="sm"
-            color="#C8A24A"
-            label={
-              <span className="text-sm text-slate-500">
-                Remember me
-              </span>
-            }
+            color="indigo"
+            label={<span className="text-xs text-slate-400">Remember me for 30 days</span>}
           />
 
           <button
             onClick={() => navigate("/reset-password")}
             type="button"
-            className="text-sm text-[#C8A24A] hover:text-[#DDBB63] transition-colors"
+            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
           >
             Forgot password?
           </button>
         </div>
 
         <Button
+          type="submit"
           fullWidth
-          radius="md"
+          radius="xl"
           size="md"
           loading={loading}
           loaderProps={{ type: "dots" }}
           disabled={loading}
           rightSection={!loading && <ArrowRight size={16} />}
-          className="!bg-[#C8A24A] hover:!bg-[#B8923F] !text-[#0B1220] !font-medium transition-colors"
-          onClick={handleSubmit}
+          className="!bg-gradient-to-r !from-indigo-600 !to-violet-600 hover:!from-indigo-500 hover:!to-violet-500 !text-white !font-bold !shadow-lg !shadow-indigo-500/25 transition-all mt-2 cursor-pointer"
         >
-          {loading ? "Signing In..." : "Sign In"}
+          {loading ? "Signing In..." : "Sign In to Velora"}
         </Button>
-      </div>
+      </form>
 
-      {/* Footer */}
-      <p className="mt-8 text-center text-sm text-slate-500">
+      {/* Footer Switcher */}
+      <p className="mt-6 text-center text-xs text-slate-400">
         Don't have an account?{" "}
         <button
           type="button"
           onClick={() => setIsLogin(false)}
-          className="font-medium text-[#C8A24A] hover:text-[#DDBB63] transition-colors"
+          className="font-bold text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
         >
           Create account
         </button>

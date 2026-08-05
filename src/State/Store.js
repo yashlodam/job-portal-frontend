@@ -20,15 +20,17 @@ import authReducer    from "./AuthSlic";
 import profileReducer from "./profileSlice";
 import jobSlice from "./JobSlice";
 import companySlice from "./CompanySlice";
+import applicationReducer from "./applicationSlice";
 import notificationReducer from "../features/notifications/slices/notificationSlice";
 import { notificationApi } from "../features/notifications/api/notificationApi";
 
 // ─── Root Reducer ─────────────────────────────────────────────────────────────
 const rootReducer = combineReducers({
-  auth:    authReducer,
-  profile: profileReducer,
-  job: jobSlice,
-  company: companySlice,
+  auth:        authReducer,
+  profile:     profileReducer,
+  job:         jobSlice,
+  company:     companySlice,
+  application: applicationReducer,
   notification: notificationReducer,
   [notificationApi.reducerPath]: notificationApi.reducer,
 });

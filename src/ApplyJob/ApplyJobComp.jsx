@@ -1,5 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { notifications } from "@mantine/notifications";
 import {
   IconUser,
   IconMail,
@@ -21,7 +23,30 @@ import {
   IconStar,
   IconBuilding,
   IconShield,
+  IconAlertTriangle,
+  IconArrowRight,
+  IconLoader2,
+  IconCheck,
 } from "@tabler/icons-react";
+import { useAppDispatch, useAppSelector } from "../State/Store";
+import { applyToJobThunk } from "../State/applicationThunk";
+import { getJobById } from "../State/JobSlice";
+import { fetchMyProfileThunk, fetchProfileByEmailThunk } from "../State/profileThunk";
+
+/* ─── Helpers ─── */
+function humanise(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatINR(val) {
+  if (!val) return "";
+  if (typeof val === "number") return `₹${val.toLocaleString("en-IN")}`;
+  return val;
+}
 
 /* ─── Animation Variants ─── */
 const fadeSlide = {
@@ -132,8 +157,8 @@ function FileDropZone({ label, hint, accept, file, onFile, onClear }) {
             <IconFileText size={18} className="text-primary-light" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-heading truncate">{file.name}</p>
-            <p className="text-xs text-muted">{(file.size / 1024).toFixed(1)} KB</p>
+            <p className="text-sm font-semibold text-heading truncate">{file.name || file.resumeName || "Attached Resume"}</p>
+            <p className="text-xs text-muted">{file.size ? `${(file.size / 1024).toFixed(1)} KB` : "Resume Document"}</p>
           </div>
           <button
             type="button"
@@ -217,8 +242,59 @@ function StepBar({ current }) {
   );
 }
 
+/* ─── Profile Incomplete Warning Banner ─── */
+function ProfileIncompleteWarning({ missingItems, onProceedAnyway, onGoToProfile }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-8 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 backdrop-blur-md"
+    >
+      <div className="flex items-start gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400">
+          <IconAlertTriangle size={24} />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-base font-bold text-white font-satoshi">Complete Your Profile First</h3>
+          <p className="text-xs text-amber-200/80 mt-1 leading-relaxed">
+            Employers evaluate candidate applications with complete profiles first. Complete your profile details to maximize your callback rate:
+          </p>
+
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            {missingItems.map((item) => (
+              <div key={item.label} className="flex items-center gap-2 text-amber-100">
+                <span className={item.present ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
+                  {item.present ? "✓" : "✗"}
+                </span>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <button
+              onClick={onGoToProfile}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-xs font-bold text-white shadow-lg hover:scale-105 transition cursor-pointer"
+            >
+              <IconUser size={14} /> Go to Profile to Update ↗
+            </button>
+            <button
+              onClick={onProceedAnyway}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-white/70 hover:text-white transition cursor-pointer underline"
+            >
+              Fill Details Manually →
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 /* ─── Success Screen ─── */
-function SuccessScreen({ name }) {
+function SuccessScreen({ name, jobTitle, companyName }) {
+  const navigate = useNavigate();
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.92 }}
@@ -248,16 +324,17 @@ function SuccessScreen({ name }) {
         transition={{ delay: 0.4, duration: 0.4 }}
         className="text-3xl font-extrabold text-heading font-satoshi"
       >
-        Application Submitted!
+        Application Submitted Successfully!
       </motion.h2>
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.4 }}
-        className="mt-3 max-w-sm text-body"
+        className="mt-3 max-w-md text-body"
       >
-        Great work, <span className="text-heading font-semibold">{name || "there"}</span>! Your application
-        has been received. The team will review it and get back to you within 5–7 business days.
+        Congratulations, <span className="text-heading font-semibold">{name || "Applicant"}</span>! Your application for{" "}
+        <span className="text-indigo-400 font-semibold">{jobTitle || "this position"}</span> at{" "}
+        <span className="text-heading font-semibold">{companyName || "the company"}</span> has been sent to the recruiter.
       </motion.p>
 
       <motion.div
@@ -266,19 +343,19 @@ function SuccessScreen({ name }) {
         transition={{ delay: 0.65, duration: 0.4 }}
         className="mt-8 flex flex-wrap justify-center gap-4"
       >
-        <a
-          href="/find-jobs"
-          className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-elevated px-6 py-2.5 text-sm font-semibold text-heading hover:border-primary/30 hover:bg-surface-hover transition-all"
+        <button
+          onClick={() => navigate("/find-jobs")}
+          className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-elevated px-6 py-2.5 text-sm font-semibold text-heading hover:border-primary/30 hover:bg-surface-hover transition-all cursor-pointer"
         >
           Browse More Jobs
-        </a>
-        <a
-          href="/"
-          className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature px-6 py-2.5 text-sm font-semibold text-white shadow-button hover:shadow-[0_0_28px_rgba(99,102,241,0.45)] transition-all"
+        </button>
+        <button
+          onClick={() => navigate("/")}
+          className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature px-6 py-2.5 text-sm font-semibold text-white shadow-button hover:shadow-[0_0_28px_rgba(99,102,241,0.45)] transition-all cursor-pointer"
         >
           <IconSparkles size={15} />
-          Go to Dashboard
-        </a>
+          Go to Home
+        </button>
       </motion.div>
     </motion.div>
   );
@@ -288,21 +365,106 @@ function SuccessScreen({ name }) {
    Main Component
 ══════════════════════════════ */
 function ApplyJobComp() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Redux Selectors
+  const authUser = useAppSelector((state) => state.auth.profile);
+  const userProfile = useAppSelector((state) => state.profile.profile);
+  const { selectedJob } = useAppSelector((state) => state.job);
+  const { applyLoading } = useAppSelector((state) => state.application);
+
+  // Determine active job
+  const jobIdFromQuery = searchParams.get("jobId");
+  const passedJob = location.state?.job || selectedJob;
+  const activeJobId = passedJob?.id || jobIdFromQuery || 1;
+
+  useEffect(() => {
+    if (!passedJob && activeJobId) {
+      dispatch(getJobById(activeJobId));
+    }
+  }, [dispatch, passedJob, activeJobId]);
+
+  useEffect(() => {
+    if (authUser?.email && !userProfile) {
+      dispatch(fetchProfileByEmailThunk(authUser.email));
+    }
+  }, [dispatch, authUser, userProfile]);
+
+  const activeJob = passedJob || selectedJob || {
+    id: activeJobId,
+    jobTitle: "Senior React Engineer",
+    companyName: "TechNova Solutions",
+    companyLogo: null,
+    city: "Pune",
+    state: "Maharashtra",
+    workingMode: "HYBRID",
+    jobType: "FULL_TIME",
+    minimumSalary: 1200000,
+    maximumSalary: 1800000,
+  };
+
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [showProfileWarning, setShowProfileWarning] = useState(false);
   const [errors, setErrors] = useState({});
 
   const [form, setForm] = useState({
-    fullName: "", email: "", phone: "", location: "",
-    linkedin: "", github: "", portfolio: "", currentCompany: "",
-    resume: null, coverDoc: null,
+    fullName: "",
+    email: "",
+    phone: "",
+    location: "",
+    linkedin: "",
+    github: "",
+    portfolio: "",
+    currentCompany: "",
+    resume: null,
+    coverDoc: null,
     coverLetter: "",
-    yearsExp: "", availability: "immediately",
+    yearsExp: "4–6 years",
+    availability: "immediately",
+    selectedResumeId: null,
+    useProfileResume: true,
   });
 
+  // Auto-fill candidate profile from Redux
+  useEffect(() => {
+    const fullName = authUser?.name || userProfile?.name || userProfile?.fullName || "";
+    const email = authUser?.email || userProfile?.email || "";
+    const phone = authUser?.phone || userProfile?.phone || userProfile?.phoneNumber || "";
+    const locationVal = [userProfile?.city, userProfile?.state, userProfile?.country].filter(Boolean).join(", ") || userProfile?.location || "";
+    const linkedinVal = userProfile?.linkedinUrl || userProfile?.linkedin || "";
+    const githubVal = userProfile?.githubUrl || userProfile?.github || "";
+    const websiteVal = userProfile?.website || userProfile?.portfolioUrl || "";
+
+    const hasName = Boolean(fullName);
+    const hasEmail = Boolean(email);
+    const hasPhone = Boolean(phone);
+    const hasResume = Boolean(userProfile?.resume?.resumeUrl || userProfile?.resumeUrl);
+
+    if (!hasName || !hasEmail || !hasPhone || !hasResume) {
+      setShowProfileWarning(true);
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      fullName: prev.fullName || fullName,
+      email: prev.email || email,
+      phone: prev.phone || phone,
+      location: prev.location || locationVal,
+      linkedin: prev.linkedin || linkedinVal,
+      github: prev.github || githubVal,
+      portfolio: prev.portfolio || websiteVal,
+      resume: prev.resume || userProfile?.resume || null,
+      selectedResumeId: userProfile?.resume?.id || userProfile?.resumeId || null,
+    }));
+  }, [authUser, userProfile]);
+
   const set = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
-   console.log(form)
+
   /* ── Validation ── */
   const validate = () => {
     const e = {};
@@ -312,10 +474,33 @@ function ApplyJobComp() {
       if (!form.phone.trim()) e.phone = "Phone number is required";
     }
     if (step === 3) {
-      if (!form.resume) e.resume = "Please upload your resume";
+      if (!form.resume && !form.useProfileResume) e.resume = "Please attach or upload a resume";
+    }
+    if (step === 4) {
+      if (form.coverLetter.length > 2000) e.coverLetter = "Cover letter must not exceed 2000 characters";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
+  };
+
+  const handleSubmitApplication = async () => {
+    if (!validate()) return;
+
+    try {
+      const applicationData = {
+        coverLetter: form.coverLetter ? form.coverLetter.substring(0, 2000) : "",
+        resumeId: form.selectedResumeId ||
+      };
+
+      await dispatch(applyToJobThunk({ jobId: activeJob.id, applicationData })).unwrap();
+      setSubmitted(true);
+    } catch (err) {
+      notifications.show({
+        title: "Submission Error",
+        message: err || "Failed to submit application. Please try again.",
+        color: "red",
+      });
+    }
   };
 
   const goNext = () => {
@@ -324,7 +509,7 @@ function ApplyJobComp() {
       setDir(1);
       setStep((s) => s + 1);
     } else {
-      setSubmitted(true);
+      handleSubmitApplication();
     }
   };
 
@@ -334,56 +519,80 @@ function ApplyJobComp() {
     setErrors({});
   };
 
-  /* ─── Job Meta (mock) ─── */
-  const job = {
-    title: "Software Engineer III",
-    company: "Google",
-    logo: "/Companies/google.svg",
-    location: "Mountain View, CA",
-    type: "Full Time",
-    applicants: 48,
-    posted: "3 days ago",
-  };
+  if (submitted) {
+    return (
+      <SuccessScreen
+        name={form.fullName}
+        jobTitle={activeJob.jobTitle || activeJob.title}
+        companyName={activeJob.companyName || activeJob.company}
+      />
+    );
+  }
 
-  if (submitted) return <SuccessScreen name={form.fullName} />;
+  const missingItems = [
+    { label: "Full Name", present: Boolean(form.fullName) },
+    { label: "Email Address", present: Boolean(form.email) },
+    { label: "Phone Number", present: Boolean(form.phone) },
+    { label: "Saved Resume", present: Boolean(userProfile?.resume?.resumeUrl || userProfile?.resumeUrl) },
+  ];
+
+  const logoSrc = activeJob?.companyLogo
+    ? activeJob.companyLogo.startsWith("http")
+      ? activeJob.companyLogo
+      : `http://localhost:8080/uploads/company/${activeJob.companyLogo}`
+    : null;
 
   return (
     <div className="w-full">
-      {/* ── Job Header Card ── */}
+      {/* Profile Warning */}
+      {showProfileWarning && (
+        <ProfileIncompleteWarning
+          missingItems={missingItems}
+          onProceedAnyway={() => setShowProfileWarning(false)}
+          onGoToProfile={() => navigate("/profiles")}
+        />
+      )}
+
+      {/* ── Dynamic Job Header Card ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mb-8 rounded-2xl border border-border bg-surface p-5 sm:p-6"
+        className="mb-8 rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xl"
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-surface-elevated p-2">
-            <img src={job.logo} alt={job.company} className="h-full w-full object-contain" />
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 font-extrabold text-xl font-satoshi">
+            {logoSrc ? (
+              <img src={logoSrc} alt={activeJob.companyName} className="h-full w-full object-contain rounded-2xl" />
+            ) : (
+              (activeJob.companyName || activeJob.company || "V").charAt(0)
+            )}
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary-light">{job.company}</p>
-            <h2 className="mt-0.5 text-xl sm:text-2xl font-extrabold text-heading font-satoshi leading-tight">
-              {job.title}
+            <p className="text-xs font-bold uppercase tracking-widest text-primary-light font-satoshi">
+              {activeJob.companyName || activeJob.company}
+            </p>
+            <h2 className="mt-0.5 text-xl sm:text-2xl font-black text-heading font-satoshi leading-tight">
+              {activeJob.jobTitle || activeJob.title}
             </h2>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span className="inline-flex items-center gap-1 text-xs text-muted">
-                <IconMapPin size={12} className="text-primary-light" /> {job.location}
+              <span className="inline-flex items-center gap-1 text-xs text-muted font-medium">
+                <IconMapPin size={13} className="text-primary-light" />
+                {[activeJob.city, activeJob.state].filter(Boolean).join(", ") || activeJob.location || "Remote"}
               </span>
-              <span className="inline-flex items-center gap-1 text-xs text-muted">
-                <IconBriefcase size={12} className="text-violet" /> {job.type}
+              <span className="inline-flex items-center gap-1 text-xs text-muted font-medium">
+                <IconBriefcase size={13} className="text-violet" />
+                {humanise(activeJob.jobType || activeJob.type || "FULL_TIME")}
               </span>
-              <span className="inline-flex items-center gap-1 text-xs text-muted">
-                <IconClock size={12} className="text-accent-warm" /> {job.posted}
-              </span>
-              <span className="inline-flex items-center gap-1 text-xs text-muted">
-                <IconUsers size={12} className="text-success" /> {job.applicants} applicants
+              <span className="inline-flex items-center gap-1 text-xs text-indigo-300 font-bold">
+                {formatINR(activeJob.minimumSalary)} - {formatINR(activeJob.maximumSalary)}
               </span>
             </div>
           </div>
 
-          <span className="hidden sm:inline-flex items-center gap-1.5 self-start rounded-full bg-success/10 px-3 py-1 text-xs font-semibold text-success">
-            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+          <span className="hidden sm:inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Accepting Applications
           </span>
         </div>
@@ -400,7 +609,7 @@ function ApplyJobComp() {
       </motion.div>
 
       {/* ── Form Card ── */}
-      <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 overflow-hidden">
+      <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 overflow-hidden shadow-2xl">
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div
             key={step}
@@ -415,7 +624,7 @@ function ApplyJobComp() {
               <motion.div variants={{ visible: { transition: { staggerChildren: 0.07 } } }} initial="hidden" animate="visible" className="space-y-5">
                 <motion.div variants={fadeUp}>
                   <h2 className="text-xl font-bold text-heading font-satoshi">Personal Information</h2>
-                  <p className="text-sm text-muted mt-1">Tell us a bit about yourself.</p>
+                  <p className="text-sm text-muted mt-1">Review or update your contact details for this application.</p>
                 </motion.div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -511,7 +720,7 @@ function ApplyJobComp() {
               <motion.div variants={{ visible: { transition: { staggerChildren: 0.07 } } }} initial="hidden" animate="visible" className="space-y-5">
                 <motion.div variants={fadeUp}>
                   <h2 className="text-xl font-bold text-heading font-satoshi">Online Profiles</h2>
-                  <p className="text-sm text-muted mt-1">Share your professional presence. All fields are optional.</p>
+                  <p className="text-sm text-muted mt-1">Share your professional portfolio & profiles.</p>
                 </motion.div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -551,95 +760,78 @@ function ApplyJobComp() {
                     />
                   </Field>
                 </div>
-
-                {/* Tip box */}
-                <motion.div
-                  variants={fadeUp}
-                  className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex gap-3"
-                >
-                  <IconSparkles size={18} className="text-primary-light shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-heading">Pro tip</p>
-                    <p className="text-xs text-muted mt-0.5">
-                      Candidates with a filled LinkedIn and portfolio are 3× more likely to hear back. Take 2 minutes to add them!
-                    </p>
-                  </div>
-                </motion.div>
               </motion.div>
             )}
 
-            {/* ─── Step 3: Documents ─── */}
+            {/* ─── Step 3: Documents & Resume ─── */}
             {step === 3 && (
               <motion.div variants={{ visible: { transition: { staggerChildren: 0.07 } } }} initial="hidden" animate="visible" className="space-y-5">
                 <motion.div variants={fadeUp}>
                   <h2 className="text-xl font-bold text-heading font-satoshi">Upload Documents</h2>
-                  <p className="text-sm text-muted mt-1">Upload your resume and optional supporting documents.</p>
+                  <p className="text-sm text-muted mt-1">Attach your resume or use your default profile resume.</p>
                 </motion.div>
+
+                {/* Default Resume Toggle option if profile has resume */}
+                {userProfile?.resume && (
+                  <motion.div variants={fadeUp} className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400">
+                        <IconFileText size={20} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-white">Default Profile Resume Attached</p>
+                        <p className="text-[11px] text-indigo-200/70">{userProfile.resume.resumeName || "Resume.pdf"}</p>
+                      </div>
+                    </div>
+                    <span className="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                      <IconCheck size={12} /> Active
+                    </span>
+                  </motion.div>
+                )}
 
                 <motion.div variants={fadeUp}>
                   <label className="text-sm font-medium text-heading mb-2 block">
-                    Resume <span className="text-primary-light">*</span>
+                    Upload Custom Resume <span className="text-muted text-xs font-normal">(Optional if default attached)</span>
                   </label>
                   <FileDropZone
-                    label="Drop your resume here or click to browse"
+                    label="Drop custom resume here or click to browse"
                     hint="PDF, DOC or DOCX — max 5 MB"
                     accept=".pdf,.doc,.docx"
                     file={form.resume}
-                    onFile={set("resume")}
+                    onFile={(f) => {
+                      setForm((prev) => ({ ...prev, resume: f, useProfileResume: false }));
+                    }}
                     onClear={() => set("resume")(null)}
                   />
-                  <AnimatePresence>
-                    {errors.resume && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        className="mt-1.5 text-xs text-danger flex items-center gap-1"
-                      >
-                        <IconX size={11} /> {errors.resume}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                <motion.div variants={fadeUp}>
-                  <label className="text-sm font-medium text-heading mb-2 block">
-                    Cover Letter Document <span className="text-muted text-xs font-normal">(Optional)</span>
-                  </label>
-                  <FileDropZone
-                    label="Drop your cover letter or click to browse"
-                    hint="PDF, DOC or DOCX — max 5 MB"
-                    accept=".pdf,.doc,.docx"
-                    file={form.coverDoc}
-                    onFile={set("coverDoc")}
-                    onClear={() => set("coverDoc")(null)}
-                  />
+                  {errors.resume && (
+                    <p className="mt-1.5 text-xs text-rose-400 font-semibold">{errors.resume}</p>
+                  )}
                 </motion.div>
               </motion.div>
             )}
 
-            {/* ─── Step 4: Cover Letter ─── */}
+            {/* ─── Step 4: Cover Letter (Max 2000 Chars) ─── */}
             {step === 4 && (
               <motion.div variants={{ visible: { transition: { staggerChildren: 0.07 } } }} initial="hidden" animate="visible" className="space-y-5">
                 <motion.div variants={fadeUp}>
                   <h2 className="text-xl font-bold text-heading font-satoshi">Cover Letter</h2>
                   <p className="text-sm text-muted mt-1">
-                    Write a short note about why you're excited about this role. Keep it concise and authentic.
+                    Add an optional cover letter for the hiring manager (max 2000 characters).
                   </p>
                 </motion.div>
 
                 <motion.div variants={fadeUp}>
                   <textarea
-                    rows={9}
+                    rows={8}
+                    maxLength={2000}
                     value={form.coverLetter}
                     onChange={(e) => set("coverLetter")(e.target.value)}
-                    placeholder={`Hi Hiring Team,\n\nI'm excited to apply for the ${job.title} role at ${job.company}. I believe my experience in...\n\nLooking forward to connecting,\n${form.fullName || "Your Name"}`}
-                    className="textarea w-full resize-none text-sm leading-relaxed"
-                    style={{ minHeight: 220 }}
+                    placeholder={`Hi Hiring Team,\n\nI'm excited to apply for the ${activeJob.jobTitle || activeJob.title} position at ${activeJob.companyName || activeJob.company}...`}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 p-4 text-xs text-white placeholder-slate-500 focus:border-indigo-500/60 focus:outline-none"
                   />
                   <div className="flex justify-between mt-1.5">
-                    <p className="text-xs text-muted">Optional — but highly recommended</p>
-                    <p className={`text-xs ${form.coverLetter.length > 2000 ? "text-danger" : "text-muted"}`}>
+                    <p className="text-xs text-muted">Optional cover letter note</p>
+                    <p className={`text-xs font-semibold ${form.coverLetter.length > 2000 ? "text-rose-400" : "text-muted"}`}>
                       {form.coverLetter.length} / 2000
                     </p>
                   </div>
@@ -647,17 +839,15 @@ function ApplyJobComp() {
 
                 {/* Review summary */}
                 <motion.div variants={fadeUp} className="rounded-2xl border border-border bg-surface-elevated p-5 space-y-3">
-                  <h3 className="text-sm font-bold text-heading">Application Summary</h3>
+                  <h3 className="text-sm font-bold text-heading font-satoshi">Application Summary</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     {[
-                      { label: "Name", val: form.fullName || "—" },
+                      { label: "Position", val: activeJob.jobTitle || activeJob.title },
+                      { label: "Company", val: activeJob.companyName || activeJob.company },
+                      { label: "Applicant", val: form.fullName || "—" },
                       { label: "Email", val: form.email || "—" },
                       { label: "Phone", val: form.phone || "—" },
-                      { label: "Location", val: form.location || "—" },
-                      { label: "Experience", val: form.yearsExp || "—" },
-                      { label: "Availability", val: form.availability },
-                      { label: "Resume", val: form.resume ? form.resume.name : "Not uploaded" },
-                      { label: "Portfolio", val: form.portfolio || "—" },
+                      { label: "Resume", val: form.resume?.name || userProfile?.resume?.resumeName || "Profile Default Resume" },
                     ].map(({ label, val }) => (
                       <div key={label} className="flex items-start gap-2">
                         <span className="text-muted shrink-0 w-20">{label}:</span>
@@ -671,7 +861,7 @@ function ApplyJobComp() {
           </motion.div>
         </AnimatePresence>
 
-        {/* ── Navigation ── */}
+        {/* ── Navigation Buttons ── */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -704,9 +894,14 @@ function ApplyJobComp() {
           <button
             type="button"
             onClick={goNext}
-            className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature px-6 py-2.5 text-sm font-semibold text-white shadow-button hover:shadow-[0_0_28px_rgba(99,102,241,0.45)] transition-all cursor-pointer"
+            disabled={applyLoading}
+            className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature px-6 py-2.5 text-sm font-semibold text-white shadow-button hover:shadow-[0_0_28px_rgba(99,102,241,0.45)] transition-all cursor-pointer disabled:opacity-50"
           >
-            {step === STEPS.length ? (
+            {applyLoading ? (
+              <>
+                <IconLoader2 size={16} className="animate-spin" /> Submitting...
+              </>
+            ) : step === STEPS.length ? (
               <>
                 <IconSparkles size={15} /> Submit Application
               </>

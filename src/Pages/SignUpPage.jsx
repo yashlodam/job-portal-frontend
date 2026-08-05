@@ -1,168 +1,103 @@
-import { useState } from "react";
-import {
-  BriefcaseBusiness,
-  ShieldCheck,
-  Users,
-  House,
-  Quote,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { BriefcaseBusiness, ShieldCheck, Users, House, Quote, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import SignUp from "../SignUpLogin/SignUp";
 import Login from "../SignUpLogin/Login";
 
-function SignUpPage() {
-  const [isLogin, setIsLogin] = useState(true);
+function SignUpPage({ defaultIsLogin = true }) {
+  const [isLogin, setIsLogin] = useState(defaultIsLogin);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    setIsLogin(defaultIsLogin);
+  }, [defaultIsLogin]);
+
   return (
-    <div className="min-h-screen bg-[#0B1220] font-[Inter,sans-serif]">
+    <div className="min-h-screen bg-[#070b12] font-inter">
       <div className="flex min-h-screen">
+        {/* LEFT — Brand Hero Panel */}
+        <div className="relative hidden lg:flex w-[48%] flex-col justify-between overflow-hidden bg-gradient-to-br from-[#070b12] via-[#0b0f19] to-[#0f172a] border-r border-white/10 p-14">
+          {/* Ambient Glow Orbs */}
+          <div aria-hidden="true" className="pointer-events-none absolute -top-40 -left-24 h-[500px] w-[500px] rounded-full bg-indigo-600/10 blur-[150px]" />
+          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-violet-600/10 blur-[140px]" />
 
-        {/* LEFT — brand panel */}
-        <div className="relative hidden lg:flex w-[46%] flex-col overflow-hidden bg-[#0F1B2E] border-r border-white/[0.06] px-14 py-14">
-
-          {/* Ambient glow — signature depth element, kept subtle and single-source */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -top-40 -left-24 h-[520px] w-[520px] rounded-full bg-[#C8A24A]/[0.08] blur-[120px]"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute bottom-0 right-0 h-[380px] w-[380px] rounded-full bg-[#C8A24A]/[0.05] blur-[100px]"
-          />
-
-          {/* Wordmark */}
-          <div className="relative flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#C8A24A]">
-              <span className="font-serif text-lg text-[#0B1220]">V</span>
+          {/* Brand Wordmark */}
+          <div className="relative flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl tracking-tight text-white font-serif">
-              Velora
-            </span>
+            <span className="text-2xl font-black tracking-tight text-white font-satoshi">Velora</span>
           </div>
 
           {/* Headline */}
-          <div className="relative flex-1 flex flex-col justify-center max-w-lg">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#C8A24A] mb-5">
-              Career platform for professionals
-            </p>
+          <div className="relative my-auto max-w-lg space-y-6">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-400">
+              <Sparkles className="h-3.5 w-3.5" /> Next-Gen AI Career Platform
+            </span>
 
-            <h1 className="font-serif text-[42px] leading-[1.15] text-white">
-              The role that moves your career forward is here.
+            <h1 className="font-satoshi text-4xl leading-tight font-extrabold text-white">
+              Accelerate your career with AI matching and instant recruiter connect.
             </h1>
 
-            <p className="mt-6 text-[15px] leading-7 text-slate-400 max-w-md">
-              Build a resume recruiters trust, get matched with vetted
-              companies, and prepare for interviews with confidence.
+            <p className="text-sm leading-relaxed text-slate-400">
+              Join 50,000+ candidates and top hiring teams on Velora. Build an ATS-optimized profile, get matched by skills, and track your applications seamlessly.
             </p>
 
-            <div className="mt-10 space-y-5">
+            <div className="space-y-4 pt-2">
               <div className="flex items-start gap-3.5">
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10">
-                  <ShieldCheck size={16} className="text-[#C8A24A]" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                  <ShieldCheck size={18} className="text-indigo-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">
-                    Verified employers only
-                  </p>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Every company on Velora is background-checked.
-                  </p>
+                  <p className="text-sm font-bold text-white">Verified Employers Only</p>
+                  <p className="text-xs text-slate-400">Every recruiter and job posting is background-verified.</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3.5">
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10">
-                  <BriefcaseBusiness size={16} className="text-[#C8A24A]" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                  <BriefcaseBusiness size={18} className="text-indigo-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">
-                    Curated job matching
-                  </p>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Roles ranked by real fit, not keyword volume.
-                  </p>
+                  <p className="text-sm font-bold text-white">AI-Powered Skill Match</p>
+                  <p className="text-xs text-slate-400">Get recommended roles based on actual technical skills.</p>
                 </div>
               </div>
-            </div>
-
-            {/* Testimonial — replaces generic filler copy with a concrete, credible voice */}
-            <div className="mt-10 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-              <Quote size={18} className="text-[#C8A24A]/70 mb-2" />
-              <p className="text-sm leading-6 text-slate-300">
-                Velora matched me with three roles that actually fit my
-                background — I had two offers within a month.
-              </p>
-              <p className="mt-3 text-xs text-slate-500">
-                Priya Nair · Senior Product Manager
-              </p>
             </div>
           </div>
 
-          {/* Stats + social proof */}
-          <div className="relative mt-14">
-            <div className="grid grid-cols-3 divide-x divide-white/[0.06] border-t border-white/[0.06] pt-8">
-              <div className="pl-0">
-                <p className="font-serif text-2xl text-white">50K+</p>
-                <p className="text-xs text-slate-500 mt-1">Members</p>
-              </div>
-              <div className="pl-8">
-                <p className="font-serif text-2xl text-white">8K+</p>
-                <p className="text-xs text-slate-500 mt-1">Companies</p>
-              </div>
-              <div className="pl-8">
-                <p className="font-serif text-2xl text-white">120K+</p>
-                <p className="text-xs text-slate-500 mt-1">Open roles</p>
-              </div>
-            </div>
-
-            <div className="mt-7 flex items-center gap-2 text-slate-500">
-              <Users size={14} />
-              <span className="text-xs">
-                Trusted by hiring teams at Fortune 500 companies
-              </span>
-            </div>
+          {/* Footer Social Proof */}
+          <div className="relative pt-6 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+            <span>50K+ Professionals</span>
+            <span>8K+ Active Hiring Teams</span>
+            <span>120K+ Live Jobs</span>
           </div>
         </div>
 
-        {/* RIGHT — auth form */}
-        <div className="relative flex w-full lg:w-[54%] items-center justify-center bg-[#0B1220] px-6 py-10">
-
+        {/* RIGHT — Form Container */}
+        <div className="relative flex w-full lg:w-[52%] items-center justify-center bg-[#070b12] p-6 sm:p-12">
+          {/* Back Home Button */}
           <button
             onClick={() => navigate("/")}
-            aria-label="Back to home"
-            className="absolute top-6 right-6 flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 backdrop-blur-sm transition-all duration-300 hover:border-[#C8A24A] hover:bg-[#C8A24A]/10 hover:text-[#C8A24A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A24A]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1220]"
+            className="absolute top-6 right-6 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-slate-300 backdrop-blur-md transition-all hover:bg-white/10 hover:text-white cursor-pointer"
           >
-            <House size={16} />
-            Home
+            <House size={15} />
+            <span>Home</span>
           </button>
 
-          <div className="w-full max-w-[400px]">
-
-            {/* Mobile-only compact brand mark */}
-            <div className="lg:hidden flex items-center gap-2.5 mb-10">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#C8A24A]">
-                <span className="font-serif text-base text-[#0B1220]">V</span>
+          <div className="w-full max-w-[460px]">
+            <div className="lg:hidden flex items-center gap-3 mb-8 cursor-pointer" onClick={() => navigate("/")}>
+              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md">
+                <Sparkles className="h-4 w-4 text-white" />
               </div>
-              <span className="text-lg text-white font-serif">Velora</span>
+              <span className="text-xl font-bold text-white font-satoshi">Velora</span>
             </div>
 
-            {/* Card container gives the form a defined edge instead of floating on bare background */}
-            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-7 sm:p-8 shadow-[0_1px_0_0_rgba(255,255,255,0.03)_inset]">
-              {isLogin ? (
-                <Login setIsLogin={setIsLogin} />
-              ) : (
-                <SignUp setIsLogin={setIsLogin} />
-              )}
+            <div className="rounded-3xl border border-white/10 bg-[#0b0f19]/90 p-7 sm:p-9 shadow-2xl backdrop-blur-xl">
+              {isLogin ? <Login setIsLogin={setIsLogin} /> : <SignUp setIsLogin={setIsLogin} />}
             </div>
-
-            <p className="mt-8 text-center text-xs text-slate-600">
-              Protected by industry-standard encryption
-            </p>
           </div>
-
         </div>
-
       </div>
     </div>
   );

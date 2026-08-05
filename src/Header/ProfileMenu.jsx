@@ -97,7 +97,7 @@ function ProfileMenu({user}) {
 
       <Menu.Dropdown onChange={()=> setOpened(true)} className="!bg-slate-900 !border !border-white/10 rounded-xl">
 
-        <Link to="/profiles">
+        <Link to="/profile">
         <Menu.Item
          color="white"
           leftSection={<IconUserCircle size={18} />}

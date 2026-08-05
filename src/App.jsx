@@ -27,6 +27,17 @@ const UploadJob = React.lazy(() => import('./Pages/UploadJob'));
 const About     = React.lazy(() => import('./Pages/About'));
 const JobDetail = React.lazy(() => import('./Pages/JobDetail'));
 const NotificationsPage = React.lazy(() => import('./features/notifications/pages/NotificationsPage'));
+
+// Recruiter Studio Pages
+const RecruiterDashboardPage = React.lazy(() => import('./Pages/recruiter/RecruiterDashboardPage'));
+const RecruiterJobsPage = React.lazy(() => import('./Pages/recruiter/RecruiterJobsPage'));
+const RecruiterApplicationsPage = React.lazy(() => import('./Pages/recruiter/RecruiterApplicationsPage'));
+const RecruiterCandidatesPage = React.lazy(() => import('./Pages/recruiter/RecruiterCandidatesPage'));
+const RecruiterInterviewsPage = React.lazy(() => import('./Pages/recruiter/RecruiterInterviewsPage'));
+const RecruiterCompanyPage = React.lazy(() => import('./Pages/recruiter/RecruiterCompanyPage'));
+const RecruiterAnalyticsPage = React.lazy(() => import('./Pages/recruiter/RecruiterAnalyticsPage'));
+const RecruiterSettingsPage = React.lazy(() => import('./Pages/recruiter/RecruiterSettingsPage'));
+
 const NotFound  = React.lazy(() => import('./Pages/NotFound'));
 
 /* ──────────────────────────────────────────────
@@ -185,11 +196,36 @@ function App() {
               <Route path="/apply-jobs"    element={<ApplyJobPage />} />
               <Route path="/company/:id"       element={<CompanyPage />} />
               <Route path="/posted-job"    element={<PostedJobPage />} />
-              <Route path="/auth"          element={<SignUpPage />} />
-              <Route path="/login"         element={<Login />} />
+              <Route path="/auth"          element={<SignUpPage defaultIsLogin={true} />} />
+              <Route path="/login"         element={<SignUpPage defaultIsLogin={true} />} />
+              <Route path="/signup"        element={<SignUpPage defaultIsLogin={false} />} />
+              <Route path="/register font"      element={<SignUpPage defaultIsLogin={false} />} />
+              <Route path="/register"      element={<SignUpPage defaultIsLogin={false} />} />
               <Route path="/profile"      element={<ProfilePage />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/notifications"  element={<NotificationsPage />} />
+
+              {/* Recruiter Studio Routes */}
+              <Route path="/dashboard font"            element={<RecruiterDashboardPage />} />
+              <Route path="/dashboard"                 element={<RecruiterDashboardPage />} />
+              <Route path="/recruiter/dashboard font"   element={<RecruiterDashboardPage />} />
+              <Route path="/recruiter/dashboard"      element={<RecruiterDashboardPage />} />
+              <Route path="/recruiter/jobs"           element={<RecruiterJobsPage />} />
+              <Route path="/recruiter/jobs/manage font"    element={<RecruiterJobsPage />} />
+              <Route path="/recruiter/jobs/manage"    element={<RecruiterJobsPage />} />
+              <Route path="/recruiter/jobs/featured"  element={<RecruiterJobsPage />} />
+              <Route path="/recruiter/jobs/archived font"  element={<RecruiterJobsPage />} />
+              <Route path="/recruiter/jobs/archived"  element={<RecruiterJobsPage />} />
+              <Route path="/recruiter/applications"   element={<RecruiterApplicationsPage />} />
+              <Route path="/recruiter/candidates/applications" element={<RecruiterApplicationsPage />} />
+              <Route path="/recruiter/candidates"     element={<RecruiterCandidatesPage />} />
+              <Route path="/recruiter/interviews font"    element={<RecruiterInterviewsPage />} />
+              <Route path="/recruiter/interviews"     element={<RecruiterInterviewsPage />} />
+              <Route path="/recruiter/company"        element={<RecruiterCompanyPage />} />
+              <Route path="/recruiter/analytics"      element={<RecruiterAnalyticsPage />} />
+              <Route path="/recruiter/settings font"     element={<RecruiterSettingsPage />} />
+              <Route path="/recruiter/settings"      element={<RecruiterSettingsPage />} />
+
               <Route path="*"             element={<NotFound />} />
             </Route>
           </Routes>

@@ -588,7 +588,7 @@ function JobDetail() {
                   {saved ? "Saved" : "Save"}
                 </button>
                 <button
-                  onClick={() => navigate("/apply-jobs")}
+                  onClick={() => navigate("/apply-jobs", { state: { job: selectedJob } })}
                   className="inline-flex items-center gap-2 rounded-xl gradient-bg-signature h-11 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer"
                 >
                   <Sparkles size={16} />
@@ -898,7 +898,7 @@ function JobDetail() {
 
                   {/* Apply Button */}
                   <button
-                    onClick={() => navigate("/apply-jobs")}
+                    onClick={() => navigate("/apply-jobs", { state: { job: selectedJob } })}
                     className="flex w-full items-center justify-center gap-2 rounded-xl gradient-bg-signature h-11 sm:h-12 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer"
                   >
                     <Sparkles size={16} />
@@ -1162,7 +1162,7 @@ function JobDetail() {
               <Share2 size={20} />
             </button>
             <button
-              onClick={() => navigate("/apply-jobs")}
+              onClick={() => navigate("/apply-jobs", { state: { job: selectedJob } })}
               className="flex flex-1 items-center justify-center gap-2 rounded-xl gradient-bg-signature h-12 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer"
             >
               <Sparkles size={16} />
