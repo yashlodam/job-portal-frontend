@@ -1,23 +1,90 @@
-import React, { useState, useEffect, useRef, useCallback, memo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { Avatar, Button, Indicator } from "@mantine/core";
-import { Sparkles, Bell, Settings, Menu, X } from "lucide-react";
+import { Sparkles, Bell, MessageSquare, Settings, Search, Menu, X, Plus, ChevronDown } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ProfileMenu from "./ProfileMenu";
+import NotificationBell from "../features/notifications/components/NotificationBell";
 import { useAppSelector } from "../State/Store";
 import { useSelector } from "react-redux";
 
 /* ────────────────────────────────────────────────────────────
    Constants
    ──────────────────────────────────────────────────────────── */
-const NAV_LINKS = [
+const USER_NAV_LINKS = [
   { name: "Find Jobs", url: "/find-jobs" },
-  {name:"My Jobs", url:"/my-jobs"},
-  // { name: "Find Talent", url: "/find-talent" },
-  // { name: "Post Job", url: "/upload-job" },
-  // { name: "Posted Job", url: "/posted-job" },
-  { name: "Job History", url: "/auth" },
+  {
+    name: "My Jobs",
+    url: "/my-jobs",
+    children: [
+      { name: "Applied Jobs", url: "/my-jobs/applied" },
+      { name: "Saved Jobs", url: "/my-jobs/saved" },
+      { name: "Interviews", url: "/my-jobs/interviews" },
+      { name: "Offers", url: "/my-jobs/offers" },
+    ],
+  },
+  {
+    name: "Career Hub",
+    url: "/career-hub",
+    children: [
+      { name: "AI Resume Builder", url: "/career-hub/resume-builder" },
+      { name: "AI Resume Analyzer", url: "/career-hub/resume-analyzer" },
+      { name: "AI Interview Coach", url: "/career-hub/interview-coach" },
+      { name: "Skill Assessments", url: "/career-hub/assessments" },
+      { name: "Career Roadmaps", url: "/career-hub/roadmaps" },
+      { name: "Salary Insights", url: "/career-hub/salary-insights" },
+    ],
+  },
 ];
+
+const RECRUITER_NAV_LINKS = [
+  { name: "Dashboard", url: "/dashboard" },
+  {
+    name: "Jobs",
+    url: "/recruiter/jobs",
+    children: [
+      { name: "Post Job", url: "/upload-job" },
+      { name: "Manage Jobs", url: "/recruiter/jobs/manage" },
+      { name: "Featured Jobs", url: "/recruiter/jobs/featured" },
+      { name: "Archived Jobs", url: "/recruiter/jobs/archived" },
+    ],
+  },
+  {
+    name: "Candidates",
+    url: "/recruiter/candidates",
+    children: [
+      { name: "Find Talent", url: "/find-talent" },
+      { name: "Applications", url: "/recruiter/candidates/applications" },
+      { name: "Shortlisted Candidates", url: "/recruiter/candidates/shortlist" },
+      { name: "Interviews", url: "/recruiter/candidates/interviews" },
+    ],
+  },
+  { name: "Company", url: "/company" },
+];
+
+const ADMIN_NAV_LINKS = [
+  { name: "Dashboard", url: "/admin/dashboard" },
+  { name: "Users", url: "/admin/users" },
+  { name: "Recruiters", url: "/admin/recruiters" },
+  { name: "Companies", url: "/admin/companies" },
+  { name: "Jobs", url: "/admin/jobs" },
+  { name: "Reports", url: "/admin/reports" },
+];
+
+// Role → nav link lookup, kept as a static map instead of a switch that
+// gets recreated (and re-evaluated) on every render.
+const NAV_LINKS_BY_ROLE = {
+  RECRUITER: RECRUITER_NAV_LINKS,
+  ADMIN: ADMIN_NAV_LINKS,
+  JOB_SEEKER: USER_NAV_LINKS,
+};
+
+// Role → primary CTA. Admin intentionally has none — the admin header is
+// a monitoring surface, not an action surface.
+const PRIMARY_CTA_BY_ROLE = {
+  RECRUITER: { label: "Post a Job", url: "/upload-job", icon: Plus },
+  JOB_SEEKER: { label: "Find Jobs", url: "/find-jobs", icon: Search },
+};
 
 const FOCUS_RING =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06080F]";
@@ -52,9 +119,23 @@ const mobileLinkVariants = {
 };
 
 /* ────────────────────────────────────────────────────────────
-   Small, reusable icon-button used for both the desktop and
-   mobile rows. Pulling this out removes the duplicated markup
-   that existed between the two "Settings" buttons.
+   Pure helpers — moved outside the component so they aren't
+   redefined on every render, and so they're independently testable.
+   ──────────────────────────────────────────────────────────── */
+function getNavLinksForRole(role) {
+  return NAV_LINKS_BY_ROLE[role] ?? USER_NAV_LINKS;
+}
+
+function isNavItemActive(item, pathname) {
+  if (item.url && (pathname === item.url || pathname.startsWith(item.url))) return true;
+  return item.children?.some(
+    (child) => child.url && (pathname === child.url || pathname.startsWith(child.url))
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
+   Small, reusable icon-button used across the desktop and
+   mobile rows, with an optional unread-count badge.
    ──────────────────────────────────────────────────────────── */
 const IconButton = memo(function IconButton({
   icon: Icon,
@@ -62,18 +143,32 @@ const IconButton = memo(function IconButton({
   onClick,
   hoverRotate = 0,
   className = "",
+  badgeCount = 0,
 }) {
+  const hasBadge = badgeCount > 0;
+
   return (
     <motion.button
       type="button"
       whileHover={{ scale: 1.06, rotate: hoverRotate }}
       whileTap={{ scale: 0.92 }}
       transition={{ type: "spring", stiffness: 350, damping: 18 }}
-      aria-label={label}
+      aria-label={hasBadge ? `${label} (${badgeCount} unread)` : label}
       onClick={onClick}
-      className={`rounded-xl p-2.5 text-[#708090] transition-colors duration-200 hover:bg-[#161B22] hover:text-[#F1F5F9] ${FOCUS_RING} ${className}`}
+      className={`relative rounded-xl p-2.5 text-[#708090] transition-colors duration-200 hover:bg-[#161B22] hover:text-[#F1F5F9] ${FOCUS_RING} ${className}`}
     >
-      <Icon size={18} strokeWidth={1.8} />
+      {hasBadge ? (
+        <Indicator
+          color="var(--color-primary, #6366F1)"
+          size={7}
+          offset={3}
+          label={badgeCount > 9 ? "9+" : undefined}
+        >
+          <Icon size={18} strokeWidth={1.8} />
+        </Indicator>
+      ) : (
+        <Icon size={18} strokeWidth={1.8} />
+      )}
     </motion.button>
   );
 });
@@ -88,6 +183,13 @@ function Header() {
   // while the async check is in flight, preventing any visual flash.
   const isAuthRestored = useSelector((state) => state.auth.isAuthRestored);
 
+  // Real unread counts, with a safe fallback to 0 so the badge never
+  // renders (or claims an unread item) until the slice actually exists.
+  const unreadNotifications = useAppSelector(
+    (state) => state.notifications?.unreadCount ?? 0
+  );
+  const unreadMessages = useAppSelector((state) => state.messages?.unreadCount ?? 0);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -97,6 +199,18 @@ function Header() {
   const headerRef = useRef(null);
   const mobileNavRef = useRef(null);
   const toggleBtnRef = useRef(null);
+
+  const role = user?.role;
+
+  // Track expanded state for submenus in mobile drawer (e.g. My Jobs, Career Hub)
+  const [expandedMobileSubmenu, setExpandedMobileSubmenu] = useState({});
+
+  const toggleMobileSubmenu = useCallback((name) => {
+    setExpandedMobileSubmenu((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
+  }, []);
 
   /* Close menu on route change */
   useEffect(() => {
@@ -155,332 +269,532 @@ function Header() {
     };
   }, [mobileOpen, handleKeyDown]);
 
-  const handleBellClick = useCallback(() => {
-    navigate("/notifications");
-  }, [navigate]);
+  const handleBellClick = useCallback(() => navigate("/notifications"), [navigate]);
+  const handleMessagesClick = useCallback(() => navigate("/messages"), [navigate]);
+  const handleSettingsClick = useCallback(() => navigate("/settings"), [navigate]);
+  const handleAiClick = useCallback(() => navigate("/ai-assistant"), [navigate]);
 
-  const handleSettingsClick = useCallback(() => {
-    navigate("/settings");
-  }, [navigate]);
+  // Memoized so these aren't recomputed on unrelated re-renders
+  // (e.g. the scroll-driven `scrolled` state changing).
+  const navLinks = useMemo(() => getNavLinksForRole(role), [role]);
+  const primaryCta = PRIMARY_CTA_BY_ROLE[role];
 
   const displayName = user?.name ?? "Guest";
   const displayRole = user?.role ?? "Sign in to see your role";
   const initials = displayName.charAt(0).toUpperCase();
 
   return (
-    <header
-      ref={headerRef}
-      role="banner"
-      className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
-        scrolled
-          ? "border-white/[0.08] bg-[#06080F]/92 shadow-[0_4px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
-          : "border-white/[0.05] bg-[#06080F]/72 backdrop-blur-xl"
-      }`}
-    >
-      {/* Top gradient accent line */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, rgba(99,102,241,0.35), transparent)",
-        }}
-      />
+    <>
+      {/* Skip link — first focusable element, invisible until tabbed to.
+          Essential once a header carries this much nav + interactive chrome. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-[#161B22] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+      >
+        Skip to main content
+      </a>
 
-      {/* ─── Main nav row ─── */}
-      <div className="section-container grid h-16 grid-cols-[auto_1fr_auto] items-center sm:h-[68px] lg:h-[72px]">
-        {/* Column 1: Logo */}
-        <Link
-          to="/"
-          className={`group flex shrink-0 items-center gap-2 rounded-xl sm:gap-2.5 ${FOCUS_RING}`}
-          aria-label="Velora — home"
-        >
-          <motion.div
-            whileHover={{ scale: 1.08, rotate: 4 }}
-            whileTap={{ scale: 0.94 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="flex h-8 w-8 items-center justify-center rounded-xl shadow-lg group-hover:shadow-[0_0_24px_rgba(99,102,241,0.5)] sm:h-9 sm:w-9"
-            style={{ background: BRAND_GRADIENT }}
+      <header
+        ref={headerRef}
+        role="banner"
+        className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
+          scrolled
+            ? "border-white/[0.08] bg-[#06080F]/92 shadow-[0_4px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
+            : "border-white/[0.05] bg-[#06080F]/72 backdrop-blur-xl"
+        }`}
+      >
+        {/* Top gradient accent line */}
+        <div
+          className="absolute top-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(99,102,241,0.35), transparent)",
+          }}
+        />
+
+        {/* ─── Main nav row ─── */}
+        <div className="section-container grid h-16 grid-cols-[auto_1fr_auto] items-center gap-3 sm:h-[68px] lg:h-[72px]">
+          {/* Column 1: Logo */}
+          <Link
+            to="/"
+            className={`group flex shrink-0 items-center gap-2 rounded-xl sm:gap-2.5 ${FOCUS_RING}`}
+            aria-label="Velora — home"
           >
-            <Sparkles className="text-white" size={16} strokeWidth={2.5} />
-          </motion.div>
-          <span
-            className="text-lg font-black tracking-tight text-[#F1F5F9] sm:text-xl lg:text-2xl"
-            style={{ fontFamily: "var(--font-satoshi)" }}
-          >
-            Velora
-          </span>
-        </Link>
-
-        {/* Column 2: Desktop Navigation */}
-        <nav
-          role="navigation"
-          aria-label="Main navigation"
-          className="hidden  items-center justify-center gap-8 rounded-2xl border border-white/[0.06] bg-white/[0.025] p-1.5 backdrop-blur-xl md:flex lg:gap-12"
-        >
-          {NAV_LINKS.map((item) => {
-            const active = location.pathname === item.url;
-
-            return (
-              <Link
-                key={item.url}
-                to={item.url}
-                aria-current={active ? "page" : undefined}
-                className={`
-                  group relative flex h-10 items-center justify-center
-                  whitespace-nowrap rounded-xl px-3.5 text-sm font-medium
-                  transition-colors duration-300 lg:px-4
-                  ${FOCUS_RING}
-                  ${active ? "text-white" : "text-[#94A3B8] hover:text-[#F1F5F9]"}
-                `}
-              >
-                {/* Active background */}
-                {active && (
-                  <motion.span
-                    layoutId="nav-active-bg"
-                    className="absolute inset-0 rounded-xl border border-white/[0.07] bg-[#161B22] shadow-[0_4px_16px_rgba(0,0,0,0.25)]"
-                    transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                  />
-                )}
-
-                {/* Hover background */}
-                <span className="absolute inset-0 rounded-xl bg-white/[0.04] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-                {/* Label */}
-                <span
-                  className={`relative z-10 transition-all duration-300 ${
-                    active ? "font-semibold text-white" : "group-hover:text-white"
-                  }`}
-                >
-                  {item.name}
-                </span>
-
-                {/* Active gradient indicator */}
-                <span
-                  className={`absolute bottom-1 left-1/2 z-10 h-[2px] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 transition-all duration-300 ${
-                    active
-                      ? "w-5 opacity-100"
-                      : "w-0 opacity-0 group-hover:w-3 group-hover:opacity-50"
-                  }`}
-                />
-
-                {/* Active glow */}
-                {active && (
-                  <span
-                    className="pointer-events-none absolute -bottom-2 left-1/2 h-4 w-12 -translate-x-1/2 rounded-full bg-indigo-500/10 blur-xl"
-                    aria-hidden="true"
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Column 3: Right section */}
-        <div className="flex shrink-0 items-center justify-end gap-0.5 sm:gap-1 lg:gap-1.5">
-          {/* Avatar / login — md = icon only, lg = chip with name */}
-          <div
-            className={`hidden items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-2 py-2 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-cyan-500/30 hover:shadow-cyan-500/10 md:flex`}
-          >
-            {/* Show nothing while auth state is being determined — prevents flash */}
-            {!isAuthRestored ? (
-              <div className="h-[42px] w-24 animate-pulse rounded-xl bg-white/[0.06]" />
-            ) : user ? (
-              <ProfileMenu user={user} />
-            ) : (
-              <Link to="/auth" className={`rounded-xl ${FOCUS_RING}`}>
-                <Button
-                  radius="xl"
-                  size="md"
-                  variant="filled"
-                  className="transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.02]"
-                  styles={{
-                    root: {
-                      height: 42,
-                      paddingInline: 26,
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      background:
-                        "linear-gradient(135deg,#6366F1 0%,#7C3AED 55%,#8B5CF6 100%)",
-                      color: "#fff",
-                      fontWeight: 700,
-                      letterSpacing: "0.3px",
-                      boxShadow:
-                        "0 10px 28px rgba(99,102,241,.35), inset 0 1px 0 rgba(255,255,255,.12)",
-                      transition: "box-shadow .3s cubic-bezier(.4,0,.2,1)",
-                    },
-                  }}
-                >
-                  Login
-                </Button>
-              </Link>
-            )}
-          </div>
-
-          {/* Divider — lg only */}
-          <div
-            className="mx-1 hidden h-5 w-px lg:block"
-            style={{ background: "rgba(148,163,184,0.10)" }}
-          />
-
-          {/* Notification bell */}
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.92 }}
-            aria-label="Notifications (1 unread)"
-            onClick={handleBellClick}
-            className={`relative rounded-xl p-2.5 text-[#708090] transition-colors duration-200 hover:bg-[#161B22] hover:text-[#F1F5F9] ${FOCUS_RING}`}
-          >
-            <Indicator color="var(--color-primary)" size={7} offset={3} processing>
-              <Bell size={18} strokeWidth={1.8} />
-            </Indicator>
-          </motion.button>
-
-          {/* Settings (desktop) */}
-          <IconButton
-            icon={Settings}
-            label="Settings"
-            onClick={handleSettingsClick}
-            hoverRotate={45}
-            className="hidden sm:block"
-          />
-
-          {/* Mobile menu toggle */}
-          <motion.button
-            ref={toggleBtnRef}
-            type="button"
-            whileTap={{ scale: 0.9 }}
-            aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-nav"
-            onClick={() => setMobileOpen((v) => !v)}
-            className={`ml-0.5 rounded-xl p-2.5 text-[#708090] transition-colors duration-200 hover:bg-[#161B22] hover:text-[#F1F5F9] md:hidden ${FOCUS_RING}`}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              {mobileOpen ? (
-                <motion.span
-                  key="close"
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                  className="block"
-                >
-                  <X size={20} />
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="open"
-                  initial={{ rotate: 90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: -90, opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                  className="block"
-                >
-                  <Menu size={20} />
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
-        </div>
-      </div>
-
-      {/* ─── Mobile Navigation Panel ─── */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.nav
-            id="mobile-nav"
-            ref={mobileNavRef}
-            role="navigation"
-            aria-label="Mobile navigation"
-            variants={mobileMenuVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="overflow-hidden border-t md:hidden"
-            style={{
-              borderColor: "rgba(148,163,184,0.08)",
-              background: "rgba(13,17,23,0.97)",
-              backdropFilter: "blur(32px)",
-              WebkitBackdropFilter: "blur(32px)",
-            }}
-          >
-            <div
-              className="section-container py-3"
-              style={{
-                paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
-              }}
+            <motion.div
+              whileHover={{ scale: 1.08, rotate: 4 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              className="flex h-8 w-8 items-center justify-center rounded-xl shadow-lg group-hover:shadow-[0_0_24px_rgba(99,102,241,0.5)] sm:h-9 sm:w-9"
+              style={{ background: BRAND_GRADIENT }}
             >
-              {NAV_LINKS.map((item, i) => {
-                const active = location.pathname === item.url;
+              <Sparkles className="text-white" size={16} strokeWidth={2.5} />
+            </motion.div>
+            <span
+              className="hidden text-lg font-black tracking-tight text-[#F1F5F9] sm:inline-block sm:text-xl lg:text-2xl"
+              style={{ fontFamily: "var(--font-satoshi)" }}
+            >
+              Velora
+            </span>
+          </Link>
+
+          {/* Column 2: Desktop Navigation */}
+          <nav
+            role="navigation"
+            aria-label="Main navigation"
+            className="hidden items-center justify-center gap-8 rounded-2xl border border-white/[0.06] bg-white/[0.025] p-1.5 backdrop-blur-xl md:flex lg:gap-12"
+          >
+            {navLinks.map((item) => {
+                const active = isNavItemActive(item, location.pathname);
+
                 return (
-                  <motion.div
-                    key={item.url}
-                    custom={i}
-                    variants={mobileLinkVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                  >
+                  <div key={item.name} className="group relative">
                     <Link
                       to={item.url}
                       aria-current={active ? "page" : undefined}
-                      className={`relative flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition-colors duration-200 active:scale-[0.98] ${FOCUS_RING} ${
-                        active
-                          ? "bg-[#161B22] text-[#F1F5F9]"
-                          : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
-                      }`}
+                      className={`
+                        group relative flex h-10 items-center justify-center
+                        whitespace-nowrap rounded-xl px-3.5 text-sm font-medium
+                        transition-colors duration-300 lg:px-4
+                        ${FOCUS_RING}
+                        ${active ? "text-white" : "text-[#94A3B8] hover:text-[#F1F5F9]"}
+                      `}
                     >
+                      {/* Active background */}
                       {active && (
-                        <span
-                          className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full"
-                          style={{ background: BRAND_GRADIENT }}
+                        <motion.span
+                          layoutId="nav-active-bg"
+                          className="absolute inset-0 rounded-xl border border-white/[0.07] bg-[#161B22] shadow-[0_4px_16px_rgba(0,0,0,0.25)]"
+                          transition={{ type: "spring", stiffness: 400, damping: 35 }}
                         />
                       )}
-                      {item.name}
+
+                      {/* Hover background */}
+                      <span className="absolute inset-0 rounded-xl bg-white/[0.04] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                      {/* Label */}
+                      <span
+                        className={`relative z-10 transition-all duration-300 ${
+                          active ? "font-semibold text-white" : "group-hover:text-white"
+                        }`}
+                      >
+                        {item.name}
+                      </span>
+
+                      {/* Active gradient indicator */}
+                      <span
+                        className={`absolute bottom-1 left-1/2 z-10 h-[2px] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 transition-all duration-300 ${
+                          active
+                            ? "w-5 opacity-100"
+                            : "w-0 opacity-0 group-hover:w-3 group-hover:opacity-50"
+                        }`}
+                      />
+
+                      {/* Active glow */}
+                      {active && (
+                        <span
+                          className="pointer-events-none absolute -bottom-2 left-1/2 h-4 w-12 -translate-x-1/2 rounded-full bg-indigo-500/10 blur-xl"
+                          aria-hidden="true"
+                        />
+                      )}
                     </Link>
-                  </motion.div>
+
+                    {item.children && (
+                      // The hover-triggered dropdown used to sit `mt-2` below the
+                      // trigger, which left an 8px dead zone that belonged to
+                      // neither the link nor the dropdown. Moving the cursor
+                      // diagonally through that gap dropped the :hover state and
+                      // closed the menu before the click could land. Fixing this
+                      // by starting the invisible hit-box flush against the
+                      // trigger (top-full, no margin) and pushing the visible
+                      // card down with padding instead — the hoverable area is
+                      // now unbroken from the trigger all the way to the menu.
+                      <div className="invisible absolute left-0 top-full z-30 w-56 pt-2 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                        <div className="overflow-hidden rounded-3xl border border-white/[0.06] bg-[#070B11]/95 p-2 shadow-[0_12px_32px_rgba(0,0,0,0.4)]">
+                          {item.children.map((child) => {
+                            const childActive = location.pathname === child.url;
+                            return (
+                              <Link
+                                key={child.url}
+                                to={child.url}
+                                aria-current={childActive ? "page" : undefined}
+                                className={`relative block rounded-2xl px-3 py-2 text-sm font-medium transition-colors duration-200 ${FOCUS_RING} ${
+                                  childActive
+                                    ? "bg-[#11171F] text-white"
+                                    : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
+                                }`}
+                              >
+                                {child.name}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
+            </nav>
 
-              {/* Mobile user row — now reflects real auth state instead of a hardcoded user */}
-              <Link
-                to={user ? "/profile" : "/auth"}
-                className={`mt-3 flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-colors duration-200 hover:bg-[#161B22] ${FOCUS_RING}`}
+          {/* Column 3: Right section */}
+          <div className="flex shrink-0 items-center justify-end gap-0.5 sm:gap-1 lg:gap-1.5">
+            {/* Primary role CTA — the one dominant action per role.
+                Admin has none by design (monitoring surface, not an action one). */}
+            {primaryCta && (
+              <Link to={primaryCta.url} className={`hidden rounded-xl sm:block ${FOCUS_RING}`}>
+                <Button
+                  radius="xl"
+                  size="sm"
+                  leftSection={<primaryCta.icon size={15} strokeWidth={2} />}
+                  className="transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.02]"
+                  styles={{
+                    root: {
+                      height: 38,
+                      paddingInline: 18,
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: BRAND_GRADIENT,
+                      color: "#fff",
+                      fontWeight: 600,
+                      boxShadow: "0 6px 20px rgba(99,102,241,.3)",
+                    },
+                  }}
+                >
+                  {primaryCta.label}
+                </Button>
+              </Link>
+            )}
+
+            {/* AI assistant entry point — this is the product's differentiator,
+                so it gets a persistent, always-visible slot rather than living
+                inside a menu. */}
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.92 }}
+              onClick={handleAiClick}
+              aria-label="Ask AI assistant"
+              className={`hidden items-center gap-1.5 rounded-xl border border-[#6366F1]/25 bg-[#6366F1]/10 px-3 py-2 text-sm font-medium text-[#A5B4FC] transition-colors duration-200 hover:bg-[#6366F1]/20 sm:flex ${FOCUS_RING}`}
+            >
+              <Sparkles size={15} strokeWidth={2} />
+              <span className="hidden lg:inline">Ask AI</span>
+            </motion.button>
+
+            {/* Divider — lg only */}
+            <div
+              className="mx-1 hidden h-5 w-px lg:block"
+              style={{ background: "rgba(148,163,184,0.10)" }}
+            />
+
+            {/* Messages — distinct from notifications; hidden for admins,
+                who don't have a peer-to-peer inbox in this product. */}
+            {role !== "ADMIN" && (
+              <IconButton
+                icon={MessageSquare}
+                label="Messages"
+                onClick={handleMessagesClick}
+                badgeCount={unreadMessages}
+                className="hidden sm:block"
+              />
+            )}
+
+            {/* Notifications — full feature notification bell with badge and dropdown */}
+            <NotificationBell />
+
+            {/* Settings (desktop) */}
+            <IconButton
+              icon={Settings}
+              label="Settings"
+              onClick={handleSettingsClick}
+              hoverRotate={45}
+              className="hidden sm:block"
+            />
+
+            {/* Avatar / login */}
+            <div className="ml-1 hidden items-center md:flex">
+              {!isAuthRestored ? (
+                <div className="h-[42px] w-24 animate-pulse rounded-xl bg-white/[0.06]" />
+              ) : user ? (
+                <ProfileMenu user={user} />
+              ) : (
+                <Link to="/auth" className={`rounded-xl ${FOCUS_RING}`}>
+                  <Button
+                    radius="xl"
+                    size="md"
+                    variant="filled"
+                    className="transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:scale-[1.02]"
+                    styles={{
+                      root: {
+                        height: 42,
+                        paddingInline: 26,
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        background:
+                          "linear-gradient(135deg,#6366F1 0%,#7C3AED 55%,#8B5CF6 100%)",
+                        color: "#fff",
+                        fontWeight: 700,
+                        letterSpacing: "0.3px",
+                        boxShadow:
+                          "0 10px 28px rgba(99,102,241,.35), inset 0 1px 0 rgba(255,255,255,.12)",
+                        transition: "box-shadow .3s cubic-bezier(.4,0,.2,1)",
+                      },
+                    }}
+                  >
+                    Login
+                  </Button>
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile menu toggle */}
+            <motion.button
+              ref={toggleBtnRef}
+              type="button"
+              whileTap={{ scale: 0.9 }}
+              aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav"
+              onClick={() => setMobileOpen((v) => !v)}
+              className={`ml-0.5 rounded-xl p-2.5 text-[#708090] transition-colors duration-200 hover:bg-[#161B22] hover:text-[#F1F5F9] md:hidden ${FOCUS_RING}`}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {mobileOpen ? (
+                  <motion.span
+                    key="close"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="block"
+                  >
+                    <X size={20} />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="open"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="block"
+                  >
+                    <Menu size={20} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </div>
+        </div>
+
+        {/* ─── Mobile Navigation Panel ─── */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.nav
+              id="mobile-nav"
+              ref={mobileNavRef}
+              role="navigation"
+              aria-label="Mobile navigation"
+              variants={mobileMenuVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="overflow-hidden border-t md:hidden"
+              style={{
+                borderColor: "rgba(148,163,184,0.08)",
+                background: "rgba(13,17,23,0.97)",
+                backdropFilter: "blur(32px)",
+                WebkitBackdropFilter: "blur(32px)",
+              }}
+            >
+              <div
+                className="section-container py-3"
                 style={{
-                  borderColor: "rgba(148,163,184,0.08)",
-                  background: "rgba(22,27,34,0.60)",
+                  paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
                 }}
               >
-                <Avatar src={user?.avatarUrl} radius="xl" size={32}>
-                  {initials}
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-[#F1F5F9]">
-                    {displayName}
-                  </p>
-                  <p className="truncate text-xs text-[#708090]">{displayRole}</p>
-                </div>
+                {/* Mobile primary CTA */}
+                {primaryCta && (
+                  <Link
+                    to={primaryCta.url}
+                    className={`mb-3 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white ${FOCUS_RING}`}
+                    style={{ background: BRAND_GRADIENT }}
+                  >
+                    <primaryCta.icon size={16} strokeWidth={2} />
+                    {primaryCta.label}
+                  </Link>
+                )}
+
+                {navLinks.map((item, i) => {
+                  const active = isNavItemActive(item, location.pathname);
+                  const hasChildren = item.children && item.children.length > 0;
+                  const isExpanded = !!expandedMobileSubmenu[item.name];
+
+                  if (hasChildren) {
+                    return (
+                      <motion.div
+                        key={item.name}
+                        custom={i}
+                        variants={mobileLinkVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className="mb-1"
+                      >
+                        {/* Accordion header button */}
+                        <button
+                          type="button"
+                          onClick={() => toggleMobileSubmenu(item.name)}
+                          className={`flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-base font-semibold transition-all duration-200 cursor-pointer ${FOCUS_RING} ${
+                            active
+                              ? "bg-[#161B22] text-[#F1F5F9]"
+                              : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
+                          }`}
+                        >
+                          <span className="flex items-center gap-3">
+                            {active && (
+                              <span
+                                className="h-5 w-[3px] rounded-full"
+                                style={{ background: BRAND_GRADIENT }}
+                              />
+                            )}
+                            {item.name}
+                          </span>
+                          <ChevronDown
+                            size={18}
+                            className={`transition-transform duration-300 ${
+                              isExpanded ? "rotate-180 text-indigo-400" : "text-[#708090]"
+                            }`}
+                          />
+                        </button>
+
+                        {/* Accordion dropdown body */}
+                        <AnimatePresence initial={false}>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2, ease: "easeInOut" }}
+                              className="overflow-hidden"
+                            >
+                              <div className="my-1.5 space-y-1 pl-4 pr-1 border-l-2 border-white/10 ml-5">
+                                <Link
+                                  to={item.url}
+                                  onClick={() => setMobileOpen(false)}
+                                  className={`block rounded-xl px-3.5 py-2 text-sm font-medium transition-colors ${
+                                    location.pathname === item.url
+                                      ? "text-indigo-400 bg-indigo-500/10 font-semibold"
+                                      : "text-white/70 hover:text-white hover:bg-white/5"
+                                  }`}
+                                >
+                                  {item.name} Overview
+                                </Link>
+
+                                {item.children.map((child) => {
+                                  const childActive = location.pathname === child.url;
+                                  return (
+                                    <Link
+                                      key={child.url}
+                                      to={child.url}
+                                      onClick={() => setMobileOpen(false)}
+                                      aria-current={childActive ? "page" : undefined}
+                                      className={`block rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-200 ${FOCUS_RING} ${
+                                        childActive
+                                          ? "bg-indigo-500/15 text-indigo-300 font-semibold"
+                                          : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
+                                      }`}
+                                    >
+                                      {child.name}
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  }
+
+                  return (
+                    <motion.div
+                      key={item.name}
+                      custom={i}
+                      variants={mobileLinkVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      className="mb-1"
+                    >
+                      <Link
+                        to={item.url}
+                        onClick={() => setMobileOpen(false)}
+                        aria-current={active ? "page" : undefined}
+                        className={`relative flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition-colors duration-200 active:scale-[0.98] ${FOCUS_RING} ${
+                          active
+                            ? "bg-[#161B22] text-[#F1F5F9]"
+                            : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
+                        }`}
+                      >
+                        {active && (
+                          <span
+                            className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full"
+                            style={{ background: BRAND_GRADIENT }}
+                          />
+                        )}
+                        {item.name}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+
+                {/* AI assistant — mobile row */}
                 <button
                   type="button"
-                  aria-label="Settings"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSettingsClick();
-                  }}
-                  className={`shrink-0 rounded-lg p-2 text-[#708090] transition-colors duration-200 hover:bg-[#0D1117] hover:text-[#F1F5F9] active:scale-90 ${FOCUS_RING}`}
+                  onClick={handleAiClick}
+                  className={`mt-2 flex w-full items-center gap-3 rounded-xl border border-[#6366F1]/25 bg-[#6366F1]/10 px-4 py-3.5 text-base font-medium text-[#A5B4FC] ${FOCUS_RING}`}
                 >
-                  <Settings size={16} strokeWidth={1.8} />
+                  <Sparkles size={18} strokeWidth={2} />
+                  Ask AI Assistant
                 </button>
-              </Link>
 
-              {/* Bottom safe-area spacer */}
-              <div className="h-4" />
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
-    </header>
+                {/* Mobile user row — reflects real auth state */}
+                <Link
+                  to={user ? "/profile" : "/auth"}
+                  className={`mt-3 flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-colors duration-200 hover:bg-[#161B22] ${FOCUS_RING}`}
+                  style={{
+                    borderColor: "rgba(148,163,184,0.08)",
+                    background: "rgba(22,27,34,0.60)",
+                  }}
+                >
+                  <Avatar src={user?.avatarUrl} radius="xl" size={32}>
+                    {initials}
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-[#F1F5F9]">
+                      {displayName}
+                    </p>
+                    <p className="truncate text-xs text-[#708090]">{displayRole}</p>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Settings"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleSettingsClick();
+                    }}
+                    className={`shrink-0 rounded-lg p-2 text-[#708090] transition-colors duration-200 hover:bg-[#0D1117] hover:text-[#F1F5F9] active:scale-90 ${FOCUS_RING}`}
+                  >
+                    <Settings size={16} strokeWidth={1.8} />
+                  </button>
+                </Link>
+
+                {/* Bottom safe-area spacer */}
+                <div className="h-4" />
+              </div>
+            </motion.nav>
+          )}
+        </AnimatePresence>
+      </header>
+    </>
   );
 }
 

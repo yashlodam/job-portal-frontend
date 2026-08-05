@@ -733,20 +733,43 @@ function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const tempUrl = URL.createObjectURL(file);
+    const tempName = file.name;
+
     try {
-      // Optimistically show the uploaded file name in the UI so the user
-      // sees immediate feedback while the server processes the upload.
+      // Immediate optimistic UI update with blob URL & filename
       setData((prev) => ({
         ...prev,
         resume: {
-          resumeUrl: prev?.resume?.resumeUrl ?? null,
-          resumeName: file.name,
+          resumeUrl: tempUrl,
+          resumeName: tempName,
         },
       }));
 
-      await dispatch(addResumeThunk(file)).unwrap();
+      const result = await dispatch(addResumeThunk(file)).unwrap();
+      const resData = result?.data ?? result;
+      const uploadedUrl =
+        resData?.resumeUrl ??
+        resData?.url ??
+        resData?.fileUrl ??
+        (typeof resData === "string" ? resData : null);
+      const uploadedName =
+        resData?.resumeName ?? resData?.fileName ?? resData?.name ?? tempName;
+
+      if (uploadedUrl || uploadedName) {
+        setData((prev) => ({
+          ...prev,
+          resume: {
+            resumeUrl: uploadedUrl || tempUrl,
+            resumeName: uploadedName,
+          },
+        }));
+      }
+
+      // Re-fetch profile to keep everything 100% in sync with backend
+      dispatch(fetchMyProfileThunk());
     } catch (error) {
-      console.error(error);
+      console.error("Resume upload error:", error);
     } finally {
       e.target.value = "";
     }
@@ -1982,14 +2005,14 @@ const deleteResume = useCallback(async () => {
       <button
         type="button"
         onClick={() => resumeInputRef.current?.click()}
-        className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition"
+        className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition cursor-pointer"
       >
-      {data.resume?.resumeUrl ? "Replace Resume" : "Upload Resume"}
+      {(data.resume?.resumeUrl || data.resume?.resumeName) ? "Replace Resume" : "Upload Resume"}
       </button>
     </div>
   </div>
 
-  {data.resume?.resumeUrl ? (
+  {(data.resume?.resumeUrl || data.resume?.resumeName) ? (
     <div className="rounded-xl border border-white/10 bg-surface-elevated p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -2012,22 +2035,34 @@ const deleteResume = useCallback(async () => {
         </div>
 
         <div className="flex gap-2">
-          <a
-            href={`http://localhost:8080/uploads/${data.resume.resumeUrl}`}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-lg border border-white/10 p-2 hover:bg-white/5"
-          >
-            <IconEye size={18} />
-          </a>
+          {data.resume.resumeUrl && (
+            <>
+              <a
+                href={
+                  data.resume.resumeUrl.startsWith("blob:") || data.resume.resumeUrl.startsWith("http")
+                    ? data.resume.resumeUrl
+                    : `http://localhost:8080/uploads/${data.resume.resumeUrl}`
+                }
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-lg border border-white/10 p-2 hover:bg-white/5"
+              >
+                <IconEye size={18} />
+              </a>
 
-          <a
-            href={`http://localhost:8080/uploads/${data.resume.resumeUrl}`}
-            download
-            className="rounded-lg border border-white/10 p-2 hover:bg-white/5"
-          >
-            <IconDownload size={18} />
-          </a>
+              <a
+                href={
+                  data.resume.resumeUrl.startsWith("blob:") || data.resume.resumeUrl.startsWith("http")
+                    ? data.resume.resumeUrl
+                    : `http://localhost:8080/uploads/${data.resume.resumeUrl}`
+                }
+                download
+                className="rounded-lg border border-white/10 p-2 hover:bg-white/5"
+              >
+                <IconDownload size={18} />
+              </a>
+            </>
+          )}
 
           <button
             type="button"

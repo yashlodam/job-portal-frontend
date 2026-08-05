@@ -203,18 +203,21 @@ const profileSlice = createSlice({
         setSuccess(state);
         // unwrap ApiResponse<ProfileResponse> → extract resumeUrl / resumeName
         const data = unwrap(action.payload);
-        const resumeUrl  = data?.resumeUrl  ?? null;
-        const resumeName = data?.resumeName ?? null;
+        const resumeUrl  = data?.resumeUrl  ?? data?.url ?? data?.fileUrl ?? (typeof data === "string" ? data : null);
+        const resumeName = data?.resumeName ?? data?.fileName ?? data?.name ?? null;
+
+        const finalResumeUrl = resumeUrl || state.profile?.resumeUrl || state.resume?.resumeUrl || null;
+        const finalResumeName = resumeName || state.profile?.resumeName || state.resume?.resumeName || null;
 
         // Update the dedicated resume cache
-        state.resume = { resumeUrl, resumeName };
+        state.resume = { resumeUrl: finalResumeUrl, resumeName: finalResumeName };
 
         // Merge resume fields into the canonical profile object
         if (state.profile) {
-          state.profile.resumeUrl  = resumeUrl;
-          state.profile.resumeName = resumeName;
+          state.profile.resumeUrl  = finalResumeUrl;
+          state.profile.resumeName = finalResumeName;
         } else {
-          state.profile = { resumeUrl, resumeName };
+          state.profile = { resumeUrl: finalResumeUrl, resumeName: finalResumeName };
         }
       })
       .addCase(addResumeThunk.rejected, setError)

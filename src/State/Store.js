@@ -20,18 +20,24 @@ import authReducer    from "./AuthSlic";
 import profileReducer from "./profileSlice";
 import jobSlice from "./JobSlice";
 import companySlice from "./CompanySlice";
+import notificationReducer from "../features/notifications/slices/notificationSlice";
+import { notificationApi } from "../features/notifications/api/notificationApi";
 
 // ─── Root Reducer ─────────────────────────────────────────────────────────────
 const rootReducer = combineReducers({
   auth:    authReducer,
   profile: profileReducer,
   job: jobSlice,
-  company: companySlice
+  company: companySlice,
+  notification: notificationReducer,
+  [notificationApi.reducerPath]: notificationApi.reducer,
 });
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 export const store = configureStore({
   reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(notificationApi.middleware),
 });
 
 // ─── Typed Hooks ──────────────────────────────────────────────────────────────

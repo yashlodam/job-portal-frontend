@@ -26,6 +26,7 @@ const FindTalent = React.lazy(() => import('./Pages/FindTalent'));
 const UploadJob = React.lazy(() => import('./Pages/UploadJob'));
 const About     = React.lazy(() => import('./Pages/About'));
 const JobDetail = React.lazy(() => import('./Pages/JobDetail'));
+const NotificationsPage = React.lazy(() => import('./features/notifications/pages/NotificationsPage'));
 const NotFound  = React.lazy(() => import('./Pages/NotFound'));
 
 /* ──────────────────────────────────────────────
@@ -176,7 +177,7 @@ function App() {
               <Route path="/"              element={<Home />} />
               <Route path="/find-jobs"     element={<FindJobs />} />
               <Route path="/find-talent"   element={<FindTalent />} />
-              <Route path="/profile"       element={<Profile />} />
+              <Route path="/profiles"       element={<Profile />} />
               <Route path="/upload-job"    element={<UploadJob />} />
               <Route path="/talent-profile" element={<TalentProfilePage />} />
               <Route path="/about"         element={<About />} />
@@ -186,8 +187,9 @@ function App() {
               <Route path="/posted-job"    element={<PostedJobPage />} />
               <Route path="/auth"          element={<SignUpPage />} />
               <Route path="/login"         element={<Login />} />
-              <Route path="/profiles"      element={<ProfilePage />} />
+              <Route path="/profile"      element={<ProfilePage />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/notifications"  element={<NotificationsPage />} />
               <Route path="*"             element={<NotFound />} />
             </Route>
           </Routes>
