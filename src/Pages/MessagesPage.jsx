@@ -243,33 +243,31 @@ export default function MessagesPage() {
               />
             </div>
 
-            {/* Filter Pills */}
-            <div className="flex items-center gap-2.5 mt-3 text-xs font-semibold font-satoshi">
+            {/* Filter Pills — Exact WhatsApp Web Design System */}
+            <div className="flex items-center gap-2 mt-3 text-xs font-semibold font-satoshi">
               <button
                 type="button"
                 onClick={() => setFilter("all")}
-                className={`px-3.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer ${
+                className={`px-3.5 py-1 rounded-full transition-all duration-150 cursor-pointer font-bold ${
                   filter === "all"
-                    ? "bg-[#00a884] text-[#0b141a] font-black shadow-[0_0_15px_rgba(0,168,132,0.4)] border border-[#00a884]"
-                    : "bg-[#202c33] text-slate-300 border border-[#222d34] hover:bg-[#2a3942] hover:text-white"
+                    ? "bg-[#0a332c] text-[#00a884] border border-[#00a884]/40"
+                    : "bg-[#202c33] text-[#8696a0] border border-transparent hover:bg-[#2a3942] hover:text-[#d1d7db]"
                 }`}
               >
-                All Chats
+                All
               </button>
               <button
                 type="button"
                 onClick={() => setFilter("unread")}
-                className={`px-3.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3.5 py-1 rounded-full transition-all duration-150 cursor-pointer flex items-center gap-1.5 font-bold ${
                   filter === "unread"
-                    ? "bg-[#00a884] text-[#0b141a] font-black shadow-[0_0_15px_rgba(0,168,132,0.4)] border border-[#00a884]"
-                    : "bg-[#202c33] text-slate-300 border border-[#222d34] hover:bg-[#2a3942] hover:text-white"
+                    ? "bg-[#0a332c] text-[#00a884] border border-[#00a884]/40"
+                    : "bg-[#202c33] text-[#8696a0] border border-transparent hover:bg-[#2a3942] hover:text-[#d1d7db]"
                 }`}
               >
                 <span>Unread</span>
                 {conversations.some((c) => c.unread > 0) && (
-                  <span className={`px-1.5 py-0.2 text-[10px] rounded-full font-extrabold ${
-                    filter === "unread" ? "bg-[#0b141a] text-[#00a884]" : "bg-[#00a884] text-[#0b141a]"
-                  }`}>
+                  <span className="bg-[#00a884] text-[#111b21] font-black px-1.5 py-0.2 rounded-full text-[10px]">
                     {conversations.reduce((acc, c) => acc + c.unread, 0)}
                   </span>
                 )}
