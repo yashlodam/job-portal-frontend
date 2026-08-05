@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { getJobById, getSimilarJobs } from "../State/JobSlice";
+import { saveJobThunk, unsaveJobThunk, checkIsJobSavedThunk } from "../State/savedJobThunk";
 
 /* ===========================
     Animation Variants
@@ -391,23 +392,34 @@ function JobNotFound() {
 function JobDetail() {
   const { id }    = useParams();
   const navigate  = useNavigate();
-  const [saved,      setSaved]      = useState(false);
-  const [shareOpen,  setShareOpen]  = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const dispatch = useAppDispatch();
 
-  // All data comes from Redux — no frontend calculation of similar jobs
+  // All data comes from Redux
   const { selectedJob, similarJobs, loading } = useAppSelector((state) => state.job);
+  const { isCurrentJobSaved } = useAppSelector((state) => state.savedJob);
 
-  console.log("Selected Job:", selectedJob);
-  // Fetch job details AND similar jobs together whenever the route id changes
+  const saved = isCurrentJobSaved;
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (id) {
       const jobId = Number(id);
       dispatch(getJobById(jobId));
       dispatch(getSimilarJobs(jobId));
+      dispatch(checkIsJobSavedThunk(jobId));
     }
   }, [id, dispatch]);
+
+  const handleToggleSave = () => {
+    if (!id) return;
+    const jobId = Number(id);
+    if (isCurrentJobSaved) {
+      dispatch(unsaveJobThunk(jobId));
+    } else {
+      dispatch(saveJobThunk(jobId));
+    }
+  };
 
   // ── All hooks called. Conditional renders below are safe. ──
 
@@ -577,7 +589,7 @@ function JobDetail() {
                   <Share2 size={18} />
                 </button>
                 <button
-                  onClick={() => setSaved(!saved)}
+                  onClick={handleToggleSave}
                   className={`inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition-all cursor-pointer ${
                     saved
                       ? "border-primary/30 bg-primary/10 text-primary-light"
@@ -907,7 +919,7 @@ function JobDetail() {
 
                   {/* Save Button */}
                   <button
-                    onClick={() => setSaved(!saved)}
+                    onClick={handleToggleSave}
                     className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition-all cursor-pointer ${
                       saved
                         ? "border-primary/30 bg-primary/10 text-primary-light"
@@ -1144,7 +1156,7 @@ function JobDetail() {
         <div className="glass-strong border-t border-border px-4 py-3">
           <div className="flex items-center gap-3 max-w-md mx-auto">
             <button
-              onClick={() => setSaved(!saved)}
+              onClick={handleToggleSave}
               className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-all cursor-pointer ${
                 saved
                   ? "border-primary/30 bg-primary/10 text-primary-light"

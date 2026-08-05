@@ -32,6 +32,7 @@ import { useAppDispatch, useAppSelector } from "../State/Store";
 import { applyToJobThunk } from "../State/applicationThunk";
 import { getJobById } from "../State/JobSlice";
 import { fetchMyProfileThunk, fetchProfileByEmailThunk } from "../State/profileThunk";
+import { fetchMyResumesThunk } from "../State/resumeThunk";
 
 /* ─── Helpers ─── */
 function humanise(str) {
@@ -373,8 +374,13 @@ function ApplyJobComp() {
   // Redux Selectors
   const authUser = useAppSelector((state) => state.auth.profile);
   const userProfile = useAppSelector((state) => state.profile.profile);
+  const { resumes, defaultResume } = useAppSelector((state) => state.resume);
   const { selectedJob } = useAppSelector((state) => state.job);
   const { applyLoading } = useAppSelector((state) => state.application);
+
+  useEffect(() => {
+    dispatch(fetchMyResumesThunk());
+  }, [dispatch]);
 
   // Determine active job
   const jobIdFromQuery = searchParams.get("jobId");
@@ -430,7 +436,7 @@ function ApplyJobComp() {
     useProfileResume: true,
   });
 
-  // Auto-fill candidate profile from Redux
+  // Auto-fill candidate profile and pre-select default resume from Redux
   useEffect(() => {
     const fullName = authUser?.name || userProfile?.name || userProfile?.fullName || "";
     const email = authUser?.email || userProfile?.email || "";
@@ -440,10 +446,11 @@ function ApplyJobComp() {
     const githubVal = userProfile?.githubUrl || userProfile?.github || "";
     const websiteVal = userProfile?.website || userProfile?.portfolioUrl || "";
 
+    const activeResume = defaultResume || resumes[0] || userProfile?.resume;
     const hasName = Boolean(fullName);
     const hasEmail = Boolean(email);
     const hasPhone = Boolean(phone);
-    const hasResume = Boolean(userProfile?.resume?.resumeUrl || userProfile?.resumeUrl);
+    const hasResume = Boolean(activeResume?.id || activeResume?.resumeUrl || userProfile?.resumeUrl);
 
     if (!hasName || !hasEmail || !hasPhone || !hasResume) {
       setShowProfileWarning(true);
@@ -458,10 +465,10 @@ function ApplyJobComp() {
       linkedin: prev.linkedin || linkedinVal,
       github: prev.github || githubVal,
       portfolio: prev.portfolio || websiteVal,
-      resume: prev.resume || userProfile?.resume || null,
-      selectedResumeId: userProfile?.resume?.id || userProfile?.resumeId || null,
+      resume: prev.resume || activeResume || null,
+      selectedResumeId: prev.selectedResumeId || activeResume?.id || null,
     }));
-  }, [authUser, userProfile]);
+  }, [authUser, userProfile, defaultResume, resumes]);
 
   const set = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -489,7 +496,7 @@ function ApplyJobComp() {
     try {
       const applicationData = {
         coverLetter: form.coverLetter ? form.coverLetter.substring(0, 2000) : "",
-        resumeId: form.selectedResumeId ||
+        resumeId: form.selectedResumeId || null,
       };
 
       await dispatch(applyToJobThunk({ jobId: activeJob.id, applicationData })).unwrap();

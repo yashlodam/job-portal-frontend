@@ -39,8 +39,6 @@ import {
   deleteCertification,
   addLanguage,
   deleteLanguage,
-  uploadResume,
-  deleteResume,
 } from "../api/profileApi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -59,10 +57,24 @@ const getErrorPayload = (error) =>
 /** GET /api/profile/me — authenticated user's own profile */
 export const fetchMyProfileThunk = createAsyncThunk(
   "profile/fetchMyProfile",
-  async (_, { rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
       return await fetchMyProfile();
     } catch (error) {
+      const state = getState();
+      const user = state.auth?.profile;
+      if (user?.email) {
+        try {
+          return await fetchProfileByEmail(user.email);
+        } catch (e) {
+          return {
+            name: user.name || "",
+            email: user.email,
+            role: user.role || "APPLICANT",
+            accountType: user.accountType || "APPLICANT",
+          };
+        }
+      }
       return rejectWithValue(getErrorPayload(error));
     }
   }
@@ -71,11 +83,18 @@ export const fetchMyProfileThunk = createAsyncThunk(
 /** GET /api/profile/{email} — public profile lookup by email */
 export const fetchProfileByEmailThunk = createAsyncThunk(
   "profile/fetchProfileByEmail",
-  async (email, { rejectWithValue }) => {
+  async (email, { getState, rejectWithValue }) => {
     try {
       return await fetchProfileByEmail(email);
     } catch (error) {
-      return rejectWithValue(getErrorPayload(error));
+      const state = getState();
+      const user = state.auth?.profile;
+      return {
+        name: user?.name || "",
+        email: email || user?.email || "",
+        role: user?.role || "APPLICANT",
+        accountType: user?.accountType || "APPLICANT",
+      };
     }
   }
 );
@@ -366,31 +385,6 @@ export const deleteLanguageThunk = createAsyncThunk(
   async (language, { rejectWithValue }) => {
     try {
       return await deleteLanguage(language);
-    } catch (error) {
-      return rejectWithValue(getErrorPayload(error));
-    }
-  }
-);
-
-
-/** POST /api/profile/me/resume */
-export const addResumeThunk = createAsyncThunk(
-  "profile/addResume",
-  async (file, { rejectWithValue }) => {
-    try {
-      return await uploadResume(file);
-    } catch (error) {
-      return rejectWithValue(getErrorPayload(error));
-    }
-  }
-);
-
-/** DELETE /api/profile/me/resume */
-export const deleteResumeThunk = createAsyncThunk(
-  "profile/deleteResume",
-  async (_, { rejectWithValue }) => {
-    try {
-      return await deleteResume();
     } catch (error) {
       return rejectWithValue(getErrorPayload(error));
     }

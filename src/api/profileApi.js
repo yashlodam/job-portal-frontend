@@ -210,24 +210,3 @@ export const uploadBannerImage = async (file) => {
 
   return res.data;
 };
-
-// =======================
-// RESUME
-// =======================
-
-export const uploadResume = async (file) => {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const res = await api.post(
-    "/profile/me/resume",
-    formData
-  );
-
-  return res.data;
-};
-
-export const deleteResume = async () => {
-  const res = await api.delete("/profile/me/resume");
-  return res.data;
-};

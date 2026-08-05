@@ -21,6 +21,8 @@ import profileReducer from "./profileSlice";
 import jobSlice from "./JobSlice";
 import companySlice from "./CompanySlice";
 import applicationReducer from "./applicationSlice";
+import resumeReducer from "./resumeSlice";
+import savedJobReducer from "./savedJobSlice";
 import notificationReducer from "../features/notifications/slices/notificationSlice";
 import { notificationApi } from "../features/notifications/api/notificationApi";
 
@@ -28,6 +30,8 @@ import { notificationApi } from "../features/notifications/api/notificationApi";
 const rootReducer = combineReducers({
   auth:        authReducer,
   profile:     profileReducer,
+  resume:      resumeReducer,
+  savedJob:    savedJobReducer,
   job:         jobSlice,
   company:     companySlice,
   application: applicationReducer,

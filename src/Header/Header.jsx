@@ -26,8 +26,10 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ProfileMenu from "./ProfileMenu";
 import NotificationBell from "../features/notifications/components/NotificationBell";
-import { useAppSelector } from "../State/Store";
+import { useAppDispatch, useAppSelector } from "../State/Store";
 import { useSelector } from "react-redux";
+import { fetchMySavedJobsThunk } from "../State/savedJobThunk";
+import { fetchMyApplicationsThunk } from "../State/applicationThunk";
 
 /* ────────────────────────────────────────────────────────────
    Constants
@@ -251,14 +253,19 @@ const IconButton = memo(function IconButton({
    Header
    ──────────────────────────────────────────────────────────── */
 function Header() {
+  const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.profile);
-  // isAuthRestored is false until the startup /profile check resolves.
-  // We use it to render a neutral skeleton instead of the Login button
-  // while the async check is in flight, preventing any visual flash.
   const isAuthRestored = useSelector((state) => state.auth.isAuthRestored);
+  const { savedJobs } = useAppSelector((state) => state.savedJob);
+  const { myApplications } = useAppSelector((state) => state.application);
 
-  // Real unread counts, with a safe fallback to 0 so the badge never
-  // renders (or claims an unread item) until the slice actually exists.
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchMySavedJobsThunk());
+      dispatch(fetchMyApplicationsThunk());
+    }
+  }, [dispatch, user]);
+
   const unreadNotifications = useAppSelector(
     (state) => state.notifications?.unreadCount ?? 0
   );
@@ -492,6 +499,12 @@ function Header() {
                             {item.children.map((child) => {
                               const childActive = location.pathname === child.url;
                               const Icon = child.icon;
+                              const badgeText =
+                                child.url === "/my-jobs/saved"
+                                  ? (savedJobs?.length > 0 ? String(savedJobs.length) : null)
+                                  : child.url === "/my-jobs/applied"
+                                  ? (myApplications?.length > 0 ? String(myApplications.length) : null)
+                                  : child.badge;
                               return (
                                 <Link
                                   key={child.url}
@@ -513,9 +526,9 @@ function Header() {
                                       <span className="text-xs font-bold text-white font-satoshi group-hover/child:text-indigo-300 transition-colors">
                                         {child.name}
                                       </span>
-                                      {child.badge && (
-                                        <span className="rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 px-1.5 py-0.2 text-[9px] font-black text-white shadow-sm">
-                                          {child.badge}
+                                      {badgeText && (
+                                        <span className="rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 px-2 py-0.2 text-[9px] font-black text-white shadow-sm">
+                                          {badgeText}
                                         </span>
                                       )}
                                     </div>
@@ -792,6 +805,12 @@ function Header() {
                                 {item.children.map((child) => {
                                   const childActive = location.pathname === child.url;
                                   const Icon = child.icon;
+                                  const badgeText =
+                                    child.url === "/my-jobs/saved"
+                                      ? (savedJobs?.length > 0 ? String(savedJobs.length) : null)
+                                      : child.url === "/my-jobs/applied"
+                                      ? (myApplications?.length > 0 ? String(myApplications.length) : null)
+                                      : child.badge;
                                   return (
                                     <Link
                                       key={child.url}
@@ -812,9 +831,9 @@ function Header() {
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1.5">
                                           <span className="text-xs font-bold text-white font-satoshi">{child.name}</span>
-                                          {child.badge && (
+                                          {badgeText && (
                                             <span className="rounded-full bg-indigo-500/30 px-1.5 py-0.2 text-[9px] font-bold text-indigo-300 border border-indigo-500/40">
-                                              {child.badge}
+                                              {badgeText}
                                             </span>
                                           )}
                                         </div>

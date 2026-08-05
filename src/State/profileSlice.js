@@ -54,8 +54,6 @@ import {
   deleteCertificationThunk,
   addLanguageThunk,
   deleteLanguageThunk,
-  addResumeThunk,
-  deleteResumeThunk,
 } from "./profileThunk";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -197,35 +195,6 @@ const profileSlice = createSlice({
 
 
 
-      // Resume upload — merge returned resume fields into existing profile
-      .addCase(addResumeThunk.pending, startLoading)
-      .addCase(addResumeThunk.fulfilled, (state, action) => {
-        setSuccess(state);
-        // unwrap ApiResponse<ProfileResponse> → extract resumeUrl / resumeName
-        const data = unwrap(action.payload);
-        const resumeUrl  = data?.resumeUrl  ?? data?.url ?? data?.fileUrl ?? (typeof data === "string" ? data : null);
-        const resumeName = data?.resumeName ?? data?.fileName ?? data?.name ?? null;
-
-        const finalResumeUrl = resumeUrl || state.profile?.resumeUrl || state.resume?.resumeUrl || null;
-        const finalResumeName = resumeName || state.profile?.resumeName || state.resume?.resumeName || null;
-
-        // Update the dedicated resume cache
-        state.resume = { resumeUrl: finalResumeUrl, resumeName: finalResumeName };
-
-        // Merge resume fields into the canonical profile object
-        if (state.profile) {
-          state.profile.resumeUrl  = finalResumeUrl;
-          state.profile.resumeName = finalResumeName;
-        } else {
-          state.profile = { resumeUrl: finalResumeUrl, resumeName: finalResumeName };
-        }
-      })
-      .addCase(addResumeThunk.rejected, setError)
-
-      // ══════════════════════════════════════════════════════════════════════
-      // PUT /profile/me/profile-image
-      // Response: ApiResponse<ProfileResponse>
-      // ══════════════════════════════════════════════════════════════════════
       .addCase(uploadProfileImageThunk.pending, startLoading)
       .addCase(uploadProfileImageThunk.fulfilled, (state, action) => {
         setSuccess(state);
@@ -236,17 +205,6 @@ const profileSlice = createSlice({
         }
       })
       .addCase(uploadProfileImageThunk.rejected, setError)
-
-      .addCase(deleteResumeThunk.pending, startLoading)
-      .addCase(deleteResumeThunk.fulfilled, (state) => {
-        setSuccess(state);
-        state.resume = null;
-        if (state.profile) {
-          state.profile.resumeUrl = null;
-          state.profile.resumeName = null;
-        }
-      })
-      .addCase(deleteResumeThunk.rejected, setError)
       // ══════════════════════════════════════════════════════════════════════
       // PUT /profile/me/banner-image
       // Response: ApiResponse<ProfileResponse>

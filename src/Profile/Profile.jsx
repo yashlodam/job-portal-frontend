@@ -59,9 +59,13 @@ import {
   addLanguageThunk,
   deleteLanguageThunk,
   fetchMyProfileThunk,
-  addResumeThunk,
-  deleteResumeThunk,
 } from "../State/profileThunk";
+import {
+  fetchMyResumesThunk,
+  uploadResumeThunk,
+  deleteResumeThunk,
+  setDefaultResumeThunk,
+} from "../State/resumeThunk";
 
 // ── Selectors ─────────────────────────────────────────────────────────────────
 import {
@@ -728,71 +732,58 @@ function Profile() {
   }, [data, dispatch]);
 
 
- const handleResumeUpload = useCallback(
-  async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { resumes, uploadLoading } = useAppSelector((state) => state.resume);
 
-    const tempUrl = URL.createObjectURL(file);
-    const tempName = file.name;
+  useEffect(() => {
+    dispatch(fetchMyResumesThunk());
+  }, [dispatch]);
 
-    try {
-      // Immediate optimistic UI update with blob URL & filename
-      setData((prev) => ({
-        ...prev,
-        resume: {
-          resumeUrl: tempUrl,
-          resumeName: tempName,
-        },
-      }));
+  const handleResumeUpload = useCallback(
+    async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-      const result = await dispatch(addResumeThunk(file)).unwrap();
-      const resData = result?.data ?? result;
-      const uploadedUrl =
-        resData?.resumeUrl ??
-        resData?.url ??
-        resData?.fileUrl ??
-        (typeof resData === "string" ? resData : null);
-      const uploadedName =
-        resData?.resumeName ?? resData?.fileName ?? resData?.name ?? tempName;
-
-      if (uploadedUrl || uploadedName) {
-        setData((prev) => ({
-          ...prev,
-          resume: {
-            resumeUrl: uploadedUrl || tempUrl,
-            resumeName: uploadedName,
-          },
-        }));
+      try {
+        await dispatch(
+          uploadResumeThunk({
+            file,
+            resumeName: file.name,
+            isDefault: resumes.length === 0,
+          })
+        ).unwrap();
+        dispatch(fetchMyResumesThunk());
+      } catch (error) {
+        console.error("Resume upload error:", error);
+      } finally {
+        e.target.value = "";
       }
+    },
+    [dispatch, resumes]
+  );
 
-      // Re-fetch profile to keep everything 100% in sync with backend
-      dispatch(fetchMyProfileThunk());
-    } catch (error) {
-      console.error("Resume upload error:", error);
-    } finally {
-      e.target.value = "";
-    }
-  },
-  [dispatch]
-);
+  const handleDeleteResume = useCallback(
+    async (resumeId) => {
+      try {
+        await dispatch(deleteResumeThunk(resumeId)).unwrap();
+        dispatch(fetchMyResumesThunk());
+      } catch (error) {
+        console.error("Delete resume error:", error);
+      }
+    },
+    [dispatch]
+  );
 
-const deleteResume = useCallback(async () => {
-  
-  try {
-    await dispatch(deleteResumeThunk()).unwrap();
-
-    setData((prev) => ({
-      ...prev,
-      resume: {
-        resumeUrl: null,
-        resumeName: null,
-      },
-    }));
-  } catch (error) {
-    console.error(error);
-  }
-}, [dispatch]);
+  const handleSetDefaultResume = useCallback(
+    async (resumeId) => {
+      try {
+        await dispatch(setDefaultResumeThunk(resumeId)).unwrap();
+        dispatch(fetchMyResumesThunk());
+      } catch (error) {
+        console.error("Set default resume error:", error);
+      }
+    },
+    [dispatch]
+  );
   /* ================================================================
      HEADER section handlers
      ================================================================ */
@@ -1991,12 +1982,15 @@ const deleteResume = useCallback(async () => {
 ════════════════════════════════════════════════ */}
 <Section>
   <div className="flex items-center justify-between mb-4">
-    <h2 className={sectionHeadingCls}>Resume</h2>
+    <div>
+      <h2 className={sectionHeadingCls}>Resumes</h2>
+      <p className="text-xs text-muted mt-0.5">Manage your application resumes. Set a default resume for 1-click job applications.</p>
+    </div>
 
     <div className="flex items-center gap-2">
       <input
         type="file"
-        accept=".pdf"
+        accept=".pdf,.doc,.docx"
         ref={resumeInputRef}
         className="hidden"
         onChange={handleResumeUpload}
@@ -2004,97 +1998,115 @@ const deleteResume = useCallback(async () => {
 
       <button
         type="button"
+        disabled={uploadLoading}
         onClick={() => resumeInputRef.current?.click()}
-        className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition cursor-pointer"
+        className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition cursor-pointer disabled:opacity-50"
       >
-      {(data.resume?.resumeUrl || data.resume?.resumeName) ? "Replace Resume" : "Upload Resume"}
+        <IconPlus size={16} />
+        {uploadLoading ? "Uploading..." : "Upload New Resume"}
       </button>
     </div>
   </div>
 
-  {(data.resume?.resumeUrl || data.resume?.resumeName) ? (
-    <div className="rounded-xl border border-white/10 bg-surface-elevated p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-red-500/10">
-            <IconFileCv
-              size={30}
-              className="text-red-400"
-            />
-          </div>
+  {resumes && resumes.length > 0 ? (
+    <div className="space-y-3">
+      {resumes.map((res) => {
+        const fileUrl =
+          res.resumeUrl && (res.resumeUrl.startsWith("blob:") || res.resumeUrl.startsWith("http"))
+            ? res.resumeUrl
+            : res.resumeUrl
+            ? `http://localhost:8080/uploads/${res.resumeUrl}`
+            : null;
 
-          <div>
-            <h3 className="font-semibold text-heading">
-              {data.resume.resumeName || "Resume.pdf"}
-            </h3>
-
-            <p className="mt-1 text-sm text-muted">
-              ATS Friendly Resume
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          {data.resume.resumeUrl && (
-            <>
-              <a
-                href={
-                  data.resume.resumeUrl.startsWith("blob:") || data.resume.resumeUrl.startsWith("http")
-                    ? data.resume.resumeUrl
-                    : `http://localhost:8080/uploads/${data.resume.resumeUrl}`
-                }
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg border border-white/10 p-2 hover:bg-white/5"
-              >
-                <IconEye size={18} />
-              </a>
-
-              <a
-                href={
-                  data.resume.resumeUrl.startsWith("blob:") || data.resume.resumeUrl.startsWith("http")
-                    ? data.resume.resumeUrl
-                    : `http://localhost:8080/uploads/${data.resume.resumeUrl}`
-                }
-                download
-                className="rounded-lg border border-white/10 p-2 hover:bg-white/5"
-              >
-                <IconDownload size={18} />
-              </a>
-            </>
-          )}
-
-          <button
-            type="button"
-            onClick={deleteResume}
-            className="rounded-lg border border-red-500/30 p-2 text-red-400 hover:bg-red-500/10"
+        return (
+          <div
+            key={res.id}
+            className={`rounded-2xl border p-4 transition-all duration-200 ${
+              res.isDefault
+                ? "border-indigo-500/40 bg-indigo-500/10 shadow-lg shadow-indigo-500/5"
+                : "border-white/10 bg-surface-elevated hover:border-white/20"
+            }`}
           >
-            <IconTrash size={18} />
-          </button>
-        </div>
-      </div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-500/15 text-red-400">
+                  <IconFileCv size={26} />
+                </div>
+
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-heading truncate">{res.resumeName || res.fileName || "Resume.pdf"}</h3>
+                    {res.isDefault && (
+                      <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
+                        ✓ Default Resume
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted mt-0.5">
+                    Uploaded {res.createdAt ? new Date(res.createdAt).toLocaleDateString() : "Recently"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {!res.isDefault && (
+                  <button
+                    type="button"
+                    onClick={() => handleSetDefaultResume(res.id)}
+                    className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                  >
+                    Make Default
+                  </button>
+                )}
+
+                {fileUrl && (
+                  <>
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg border border-white/10 p-2 text-slate-300 hover:bg-white/10 hover:text-white transition"
+                      title="View Resume"
+                    >
+                      <IconEye size={16} />
+                    </a>
+
+                    <a
+                      href={fileUrl}
+                      download
+                      className="rounded-lg border border-white/10 p-2 text-slate-300 hover:bg-white/10 hover:text-white transition"
+                      title="Download Resume"
+                    >
+                      <IconDownload size={16} />
+                    </a>
+                  </>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => handleDeleteResume(res.id)}
+                  className="rounded-lg border border-rose-500/30 p-2 text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+                  title="Delete Resume"
+                >
+                  <IconTrash size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   ) : (
-    <div className="rounded-xl border-2 border-dashed border-white/10 py-10 text-center">
-      <IconFileCv
-        size={42}
-        className="mx-auto mb-3 text-primary-light"
-      />
-
-      <h3 className="font-semibold text-heading">
-        No Resume Uploaded
-      </h3>
-
-      <p className="mt-2 text-sm text-muted">
-        Upload your latest resume in PDF format.
-      </p>
-
+    <div className="rounded-2xl border-2 border-dashed border-white/10 py-10 text-center">
+      <IconFileCv size={42} className="mx-auto mb-3 text-primary-light" />
+      <h3 className="font-semibold text-heading">No Resumes Uploaded</h3>
+      <p className="mt-1 text-sm text-muted">Upload your resume to apply for open positions with 1 click.</p>
       <button
         type="button"
         onClick={() => resumeInputRef.current?.click()}
-        className="mt-5 rounded-xl bg-primary px-5 py-2 font-semibold text-white hover:bg-primary-dark"
+        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark transition cursor-pointer"
       >
-        Upload Resume
+        <IconPlus size={16} /> Upload Resume
       </button>
     </div>
   )}

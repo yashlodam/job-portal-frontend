@@ -31,18 +31,37 @@ import {
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { fetchMyApplicationsThunk, withdrawApplicationThunk } from "../State/applicationThunk";
+import { fetchMySavedJobsThunk, unsaveJobThunk } from "../State/savedJobThunk";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card";
 import { StatusChip } from "../components/ui/Badge";
 import { Tabs } from "../components/ui/Tabs";
 import { Modal } from "../components/ui/Modal";
 import { EmptyState } from "../components/ui/LoadingSkeleton";
 
+const formatDate = (dateStr) => {
+  if (!dateStr) return "Recently";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch (e) {
+    return dateStr;
+  }
+};
+
 export default function MyJobsPage() {
   const dispatch = useAppDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { myApplications, loading } = useAppSelector((state) => state.application);
+  const { myApplications } = useAppSelector((state) => state.application);
+  const { savedJobs: liveSavedJobs } = useAppSelector((state) => state.savedJob);
 
   // Determine active tab from URL path
   const getTabFromPath = (path) => {
@@ -62,6 +81,7 @@ export default function MyJobsPage() {
 
   useEffect(() => {
     dispatch(fetchMyApplicationsThunk());
+    dispatch(fetchMySavedJobsThunk());
   }, [dispatch]);
 
   const handleTabChange = (tabId) => {
@@ -75,27 +95,11 @@ export default function MyJobsPage() {
     }
   };
 
-  // Saved Jobs Mock/Fallback if state empty
-  const savedJobs = [
-    {
-      id: 201,
-      title: "Senior Full Stack Engineer",
-      company: "Stripe",
-      location: "San Francisco, CA (Hybrid)",
-      type: "Full Time",
-      salary: "$160,000 - $190,000",
-      savedDate: "Aug 2, 2026",
-    },
-    {
-      id: 202,
-      title: "Staff AI Product Manager",
-      company: "OpenAI",
-      location: "Remote",
-      type: "Full Time",
-      salary: "$180,000 - $220,000",
-      savedDate: "Aug 4, 2026",
-    },
-  ];
+  const handleUnsaveJob = (jobId) => {
+    dispatch(unsaveJobThunk(jobId));
+  };
+
+  const savedJobs = liveSavedJobs || [];
 
   // Interviews Mock
   const interviewList = [
@@ -206,7 +210,7 @@ export default function MyJobsPage() {
                       <div className="mt-4 pt-3 border-t border-white/5 space-y-2 text-xs text-slate-400">
                         <div className="flex items-center justify-between">
                           <span>Applied Date:</span>
-                          <span className="font-medium text-white">{app.appliedDate || app.createdAt || "Recently"}</span>
+                          <span className="font-medium text-white">{formatDate(app.appliedAt || app.appliedDate || app.createdAt)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span>Application ID:</span>
@@ -239,48 +243,77 @@ export default function MyJobsPage() {
 
         {/* Tab 2: SAVED JOBS */}
         {activeTab === "saved" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {savedJobs.map((job) => (
-              <Card key={job.id} className="p-5 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-bold text-white font-satoshi text-lg">{job.title}</h3>
-                      <p className="text-xs text-indigo-400 font-semibold">{job.company}</p>
-                    </div>
-                    <span className="text-[11px] text-slate-400 bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
-                      Saved {job.savedDate}
-                    </span>
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-white/5 space-y-2 text-xs text-slate-400">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-3.5 w-3.5 text-slate-500" /> {job.location}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="h-3.5 w-3.5 text-slate-500" /> {job.type} · {job.salary}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between">
+          <div>
+            {savedJobs.length === 0 ? (
+              <EmptyState
+                title="No Saved Jobs"
+                description="You haven't bookmarked any jobs yet. Save jobs to apply later."
+                action={
                   <Link
-                    to={`/jobs/${job.id}`}
-                    className="text-xs font-semibold text-slate-400 hover:text-white transition"
+                    to="/find-jobs"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 transition"
                   >
-                    View Description →
+                    <Search className="h-4 w-4" /> Explore Open Jobs
                   </Link>
+                }
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {savedJobs.map((item) => {
+                  const job = item.job || item;
+                  const jobId = job.id || item.jobId || item.id;
+                  const title = job.jobTitle || job.title || "Position";
+                  const company = job.companyName || job.company || "Company";
+                  const location = [job.city, job.state].filter(Boolean).join(", ") || job.location || "Remote";
+                  const salary = job.minimumSalary ? `₹${job.minimumSalary.toLocaleString()} - ₹${job.maximumSalary.toLocaleString()}` : job.salary || "";
 
-                  <Link
-                    to="/apply-jobs"
-                    state={{ job }}
-                    className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-indigo-500 transition"
-                  >
-                    Apply Now
-                  </Link>
-                </div>
-              </Card>
-            ))}
+                  return (
+                    <Card key={jobId} className="p-5 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h3 className="font-bold text-white font-satoshi text-lg">{title}</h3>
+                            <p className="text-xs text-indigo-400 font-semibold mt-0.5">{company}</p>
+                          </div>
+                          <button
+                            onClick={() => handleUnsaveJob(jobId)}
+                            className="flex items-center gap-1 rounded-full bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 text-[11px] font-bold text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"
+                          >
+                            <Trash2 className="h-3 w-3" /> Unsave
+                          </button>
+                        </div>
+
+                        <div className="mt-4 pt-3 border-t border-white/5 space-y-2 text-xs text-slate-400">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-3.5 w-3.5 text-slate-500" /> {location}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="h-3.5 w-3.5 text-slate-500" /> {job.jobType || "Full Time"} {salary && `· ${salary}`}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between">
+                        <Link
+                          to={`/jobs/${jobId}`}
+                          className="text-xs font-semibold text-slate-400 hover:text-white transition"
+                        >
+                          View Job Details →
+                        </Link>
+
+                        <Link
+                          to="/apply-jobs"
+                          state={{ job }}
+                          className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-indigo-500 transition"
+                        >
+                          Apply Now
+                        </Link>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -387,7 +420,7 @@ export default function MyJobsPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Applied On:</span>
-              <span className="text-white font-medium">{selectedApp?.appliedDate || selectedApp?.createdAt || "Recently"}</span>
+              <span className="text-white font-medium">{formatDate(selectedApp?.appliedAt || selectedApp?.appliedDate || selectedApp?.createdAt)}</span>
             </div>
           </div>
 
