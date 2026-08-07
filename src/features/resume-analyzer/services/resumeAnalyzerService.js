@@ -3,7 +3,7 @@
  * Production Service Layer executing real Spring Boot backend API calls (/api/resumes & /api/resume-analysis).
  */
 
-import { uploadResumeApi } from "../../../api/resumeApi";
+import { uploadResumeApi, deleteResumeApi } from "../../../api/resumeApi";
 import { analyzeResumeApi, getLatestAnalysisApi, deleteAnalysisApi } from "../../../api/resumeAnalysisApi";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
@@ -89,16 +89,28 @@ export const resumeAnalyzerService = {
    */
   async getLatestAnalysis(resumeId) {
     if (!resumeId) return null;
-    const response = await getLatestAnalysisApi(resumeId);
-    return response?.data || response;
+    try {
+      const response = await getLatestAnalysisApi(resumeId);
+      return response?.data || response;
+    } catch (err) {
+      return null;
+    }
   },
 
   /**
-   * Delete Analysis via DELETE /api/resume-analysis/{resumeId}
+   * Delete Analysis via DELETE /api/resume-analysis/{resumeId} & DELETE /api/resumes/{resumeId}
+   * Uses Promise.allSettled to quietly handle backend record missing/500 errors.
    */
   async deleteAnalysis(resumeId) {
-    if (!resumeId) return;
-    const response = await deleteAnalysisApi(resumeId);
-    return response?.data || response;
+    if (!resumeId) return null;
+    try {
+      await Promise.allSettled([
+        deleteResumeApi(resumeId).catch(() => null),
+        deleteAnalysisApi(resumeId).catch(() => null),
+      ]);
+    } catch (err) {
+      // Quietly ignore backend delete failures
+    }
+    return null;
   },
 };

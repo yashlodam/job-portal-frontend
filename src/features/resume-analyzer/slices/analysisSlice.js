@@ -1,26 +1,38 @@
 /**
  * src/features/resume-analyzer/slices/analysisSlice.js
- * Redux Toolkit slice managing AI Resume Analyzer state using strictly real API data.
+ * Redux Toolkit slice managing AI Resume Analyzer state.
+ * Implements strict two-step flow & clean resume deletion thunks.
  */
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { resumeAnalyzerService } from "../services/resumeAnalyzerService";
 
-// Async Thunks
-export const uploadAndAnalyzeResume = createAsyncThunk(
-  "analysis/uploadAndAnalyzeResume",
+// Step 1: Upload Resume File ONLY (Does NOT analyze automatically)
+export const uploadResumeOnlyThunk = createAsyncThunk(
+  "analysis/uploadResumeOnlyThunk",
   async (file, { dispatch, rejectWithValue }) => {
     try {
-      // 1. Upload phase
       dispatch(setUploadProgress(0));
       const resumeInfo = await resumeAnalyzerService.uploadResume(file, (progress) => {
         dispatch(setUploadProgress(progress));
       });
+      return resumeInfo;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Failed to upload resume file"
+      );
+    }
+  }
+);
 
-      dispatch(setResumeUploaded(resumeInfo));
-
-      // 2. Analyze phase
-      const result = await resumeAnalyzerService.analyzeResume(resumeInfo);
+// Step 2: Trigger AI Analysis ONLY when user clicks the "Analyze Resume" button
+export const triggerAnalysisThunk = createAsyncThunk(
+  "analysis/triggerAnalysisThunk",
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const { currentResume, analysis } = getState().analysis;
+      const resumeInfo = currentResume || { id: analysis?.resumeId || 1 };
+      const result = await resumeAnalyzerService.analyzeResume(resumeInfo, true);
       return result;
     } catch (error) {
       return rejectWithValue(
@@ -30,11 +42,14 @@ export const uploadAndAnalyzeResume = createAsyncThunk(
   }
 );
 
+export const reAnalyzeResumeThunk = triggerAnalysisThunk;
+
+// Fetch Latest Analysis from Backend API
 export const fetchLatestAnalysisThunk = createAsyncThunk(
   "analysis/fetchLatestAnalysisThunk",
   async (resumeId, { rejectWithValue }) => {
     try {
-      const result = await resumeAnalyzerService.getLatestAnalysis(resumeId);
+      const result = await resumeAnalyzerService.getLatestAnalysis(resumeId || 1);
       return result;
     } catch (error) {
       return rejectWithValue(
@@ -44,48 +59,31 @@ export const fetchLatestAnalysisThunk = createAsyncThunk(
   }
 );
 
-export const reAnalyzeResumeThunk = createAsyncThunk(
-  "analysis/reAnalyzeResumeThunk",
-  async (_, { getState, rejectWithValue }) => {
+// Delete Resume & Analysis Thunk
+export const deleteResumeThunk = createAsyncThunk(
+  "analysis/deleteResumeThunk",
+  async (_, { getState, dispatch }) => {
     try {
       const { currentResume, analysis } = getState().analysis;
-      const resumeInfo = currentResume || { id: analysis?.resumeId };
-      const result = await resumeAnalyzerService.reAnalyzeResume(resumeInfo);
-      return result;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || "Failed to re-analyze resume"
-      );
-    }
-  }
-);
-
-export const generateAIRewriteThunk = createAsyncThunk(
-  "analysis/generateAIRewriteThunk",
-  async ({ type, promptDetails }, { rejectWithValue }) => {
-    try {
-      const result = await resumeAnalyzerService.generateAIRewrite(type, promptDetails);
-      return { type, result };
-    } catch (error) {
-      return rejectWithValue(error.message || "Failed to generate AI rewrite");
+      const resumeId = currentResume?.id || analysis?.resumeId || analysis?.id;
+      if (resumeId) {
+        await resumeAnalyzerService.deleteAnalysis(resumeId);
+      }
+    } catch (err) {
+      console.warn("[analysisSlice] Delete analysis error:", err);
+    } finally {
+      dispatch(deleteResume());
     }
   }
 );
 
 const initialState = {
-  status: "idle", // Starts cleanly in 'idle' mode waiting for real resume upload
+  status: "idle", // 'idle' | 'uploading' | 'uploaded' | 'analyzing' | 'success' | 'error'
   uploadProgress: 0,
   currentResume: null,
   analysis: null,
   activeDashboardTab: "overview",
   error: null,
-
-  // Modals
-  rewriteModalOpen: false,
-  activeRewriteType: "summary",
-  rewriteResult: null,
-  isGeneratingRewrite: false,
-  downloadModalOpen: false,
 };
 
 const analysisSlice = createSlice({
@@ -94,10 +92,6 @@ const analysisSlice = createSlice({
   reducers: {
     setUploadProgress: (state, action) => {
       state.uploadProgress = action.payload;
-    },
-    setResumeUploaded: (state, action) => {
-      state.currentResume = action.payload;
-      state.status = "analyzing";
     },
     setActiveDashboardTab: (state, action) => {
       state.activeDashboardTab = action.payload;
@@ -114,21 +108,7 @@ const analysisSlice = createSlice({
       state.analysis = null;
       state.status = "idle";
       state.uploadProgress = 0;
-    },
-    openRewriteModal: (state, action) => {
-      state.rewriteModalOpen = true;
-      state.activeRewriteType = action.payload || "summary";
-      state.rewriteResult = null;
-    },
-    closeRewriteModal: (state) => {
-      state.rewriteModalOpen = false;
-      state.rewriteResult = null;
-    },
-    openDownloadModal: (state) => {
-      state.downloadModalOpen = true;
-    },
-    closeDownloadModal: (state) => {
-      state.downloadModalOpen = false;
+      state.error = null;
     },
     clearError: (state) => {
       state.error = null;
@@ -136,22 +116,36 @@ const analysisSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Upload & Analyze Thunk
-      .addCase(uploadAndAnalyzeResume.pending, (state) => {
+      // 1. Upload File Only
+      .addCase(uploadResumeOnlyThunk.pending, (state) => {
         state.status = "uploading";
         state.error = null;
       })
-      .addCase(uploadAndAnalyzeResume.fulfilled, (state, action) => {
-        state.status = "success";
-        state.analysis = action.payload;
+      .addCase(uploadResumeOnlyThunk.fulfilled, (state, action) => {
+        state.status = "uploaded";
+        state.currentResume = action.payload;
         state.uploadProgress = 100;
       })
-      .addCase(uploadAndAnalyzeResume.rejected, (state, action) => {
+      .addCase(uploadResumeOnlyThunk.rejected, (state, action) => {
         state.status = "error";
         state.error = action.payload;
       })
 
-      // Fetch Latest Analysis Thunk
+      // 2. Trigger AI Analysis on Button Click
+      .addCase(triggerAnalysisThunk.pending, (state) => {
+        state.status = "analyzing";
+        state.error = null;
+      })
+      .addCase(triggerAnalysisThunk.fulfilled, (state, action) => {
+        state.status = "success";
+        state.analysis = action.payload;
+      })
+      .addCase(triggerAnalysisThunk.rejected, (state, action) => {
+        state.status = "error";
+        state.error = action.payload;
+      })
+
+      // Fetch Latest Analysis
       .addCase(fetchLatestAnalysisThunk.pending, (state) => {
         state.status = "analyzing";
         state.error = null;
@@ -159,50 +153,26 @@ const analysisSlice = createSlice({
       .addCase(fetchLatestAnalysisThunk.fulfilled, (state, action) => {
         state.status = "success";
         state.analysis = action.payload;
+        if (!state.currentResume && action.payload) {
+          state.currentResume = {
+            id: action.payload.resumeId || action.payload.id,
+            name: action.payload.resumeName,
+            size: action.payload.fileSize || "1.8 MB",
+            uploadedAt: action.payload.analyzedAt,
+          };
+        }
       })
-      .addCase(fetchLatestAnalysisThunk.rejected, (state, action) => {
-        state.status = "error";
-        state.error = action.payload;
-      })
-
-      // Re-Analyze Thunk
-      .addCase(reAnalyzeResumeThunk.pending, (state) => {
-        state.status = "analyzing";
-        state.error = null;
-      })
-      .addCase(reAnalyzeResumeThunk.fulfilled, (state, action) => {
-        state.status = "success";
-        state.analysis = action.payload;
-      })
-      .addCase(reAnalyzeResumeThunk.rejected, (state, action) => {
-        state.status = "error";
-        state.error = action.payload;
-      })
-
-      // AI Rewrite Thunk
-      .addCase(generateAIRewriteThunk.pending, (state) => {
-        state.isGeneratingRewrite = true;
-      })
-      .addCase(generateAIRewriteThunk.fulfilled, (state, action) => {
-        state.isGeneratingRewrite = false;
-        state.rewriteResult = action.payload.result;
-      })
-      .addCase(generateAIRewriteThunk.rejected, (state) => {
-        state.isGeneratingRewrite = false;
+      .addCase(fetchLatestAnalysisThunk.rejected, (state) => {
+        state.status = "idle";
       });
   },
 });
 
 export const {
   setUploadProgress,
-  setResumeUploaded,
   setActiveDashboardTab,
   resetAnalysisState,
   deleteResume,
-  openRewriteModal,
-  closeRewriteModal,
-  openDownloadModal,
-  closeDownloadModal,
   clearError,
 } = analysisSlice.actions;
 

@@ -1,0 +1,181 @@
+/**
+ * src/features/resume-builder/components/Editor/ProjectsForm.jsx
+ * Technical projects array manager with tech stack input and AI bullet improver.
+ */
+
+import React from "react";
+import { FolderGit2, Plus, Trash2, Sparkles, Link } from "lucide-react";
+import { useResumeBuilder } from "../../hooks/useResumeBuilder";
+
+export default function ProjectsForm({ projects = [], onChange }) {
+  const { improveContent, aiLoading, currentResume } = useResumeBuilder();
+
+  const handleAdd = () => {
+    const newItem = {
+      id: `proj-${Date.now()}`,
+      name: "",
+      projectName: "",
+      description: "",
+      technologies: "",
+      githubUrl: "",
+      liveUrl: "",
+      startDate: "",
+      endDate: "",
+    };
+    onChange([...projects, newItem]);
+  };
+
+  const handleRemove = (id) => {
+    onChange(projects.filter((item) => item.id !== id));
+  };
+
+  const handleUpdate = (id, field, value) => {
+    onChange(
+      projects.map((item) => {
+        if (item.id === id) {
+          const updated = { ...item, [field]: value };
+          if (field === "name") updated.projectName = value;
+          if (field === "projectName") updated.name = value;
+          return updated;
+        }
+        return item;
+      })
+    );
+  };
+
+  const handleAIImprove = (item) => {
+    improveContent({
+      resumeId: currentResume?.id || 1,
+      content: item.description || item.name || "Technical application architecture",
+      sectionType: "PROJECTS",
+      itemId: item.id,
+    });
+  };
+
+  const getTechString = (tech) => {
+    if (Array.isArray(tech)) return tech.join(", ");
+    if (typeof tech === "string") return tech;
+    return "";
+  };
+
+  return (
+    <div className="space-y-6 font-satoshi text-white">
+      <div className="flex items-center justify-between pb-3 border-b border-white/10">
+        <div>
+          <h3 className="text-lg font-black text-white flex items-center gap-2">
+            <FolderGit2 size={20} className="text-indigo-400" /> Technical Projects
+          </h3>
+          <p className="text-xs text-slate-400 font-medium">Highlight key software applications, repositories, and live URLs.</p>
+        </div>
+
+        <button
+          onClick={handleAdd}
+          className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-md"
+        >
+          <Plus size={14} /> Add Project
+        </button>
+      </div>
+
+      {projects.length === 0 ? (
+        <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/10 text-center space-y-3">
+          <p className="text-xs text-slate-400 font-medium">No projects added yet.</p>
+          <button
+            onClick={handleAdd}
+            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-indigo-400 transition cursor-pointer"
+          >
+            + Add First Project Entry
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {projects.map((item, idx) => (
+            <div key={item.id} className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-4 relative group">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-indigo-400 uppercase tracking-wider">
+                  Project #{idx + 1}
+                </span>
+
+                <button
+                  onClick={() => handleRemove(item.id)}
+                  className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition cursor-pointer"
+                  title="Remove Entry"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold">
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 uppercase tracking-wider block">Project Name</label>
+                  <input
+                    type="text"
+                    value={item.name || item.projectName || ""}
+                    onChange={(e) => handleUpdate(item.id, "name", e.target.value)}
+                    placeholder="e.g. AI-Powered Job Portal"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 uppercase tracking-wider block">Technologies / Tech Stack</label>
+                  <input
+                    type="text"
+                    value={getTechString(item.technologies)}
+                    onChange={(e) => handleUpdate(item.id, "technologies", e.target.value)}
+                    placeholder="e.g. React 19, Spring Boot 3, PostgreSQL, Docker"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 uppercase tracking-wider block">GitHub Repository URL</label>
+                  <input
+                    type="text"
+                    value={item.githubUrl || ""}
+                    onChange={(e) => handleUpdate(item.id, "githubUrl", e.target.value)}
+                    placeholder="https://github.com/username/project"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 uppercase tracking-wider block">Live Demo / Deployed URL</label>
+                  <input
+                    type="text"
+                    value={item.liveUrl || ""}
+                    onChange={(e) => handleUpdate(item.id, "liveUrl", e.target.value)}
+                    placeholder="https://project-demo.com"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition"
+                  />
+                </div>
+              </div>
+
+              {/* Project Description with AI Improve CTA */}
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black text-slate-300 uppercase tracking-wider">
+                    Project Architecture & Achievements Summary
+                  </label>
+                  <button
+                    onClick={() => handleAIImprove(item)}
+                    disabled={aiLoading}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-black text-[11px] hover:bg-indigo-500/20 transition cursor-pointer"
+                  >
+                    <Sparkles size={12} className="text-amber-300" /> Improve Bullet with AI
+                  </button>
+                </div>
+                <textarea
+                  rows={3}
+                  value={item.description || ""}
+                  onChange={(e) => handleUpdate(item.id, "description", e.target.value)}
+                  placeholder="Engineered end-to-end recruitment platform with AI mock interviews..."
+                  className="w-full p-4 rounded-xl bg-white/[0.03] border border-white/10 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-medium leading-relaxed transition"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

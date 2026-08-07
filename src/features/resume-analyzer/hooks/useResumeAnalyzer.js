@@ -5,16 +5,13 @@
 
 import { useSelector, useDispatch } from "react-redux";
 import {
-  uploadAndAnalyzeResume,
+  uploadResumeOnlyThunk,
+  triggerAnalysisThunk,
+  fetchLatestAnalysisThunk,
   reAnalyzeResumeThunk,
-  generateAIRewriteThunk,
   setActiveDashboardTab,
   resetAnalysisState,
   deleteResume,
-  openRewriteModal,
-  closeRewriteModal,
-  openDownloadModal,
-  closeDownloadModal,
   clearError,
 } from "../slices/analysisSlice";
 
@@ -24,16 +21,13 @@ export function useResumeAnalyzer() {
 
   return {
     ...state,
-    uploadResume: (file) => dispatch(uploadAndAnalyzeResume(file)),
+    uploadResumeOnly: (file) => dispatch(uploadResumeOnlyThunk(file)),
+    triggerAnalysis: () => dispatch(triggerAnalysisThunk()),
+    fetchLatestAnalysis: (resumeId) => dispatch(fetchLatestAnalysisThunk(resumeId)),
     reAnalyze: () => dispatch(reAnalyzeResumeThunk()),
-    generateRewrite: (type, promptDetails) => dispatch(generateAIRewriteThunk({ type, promptDetails })),
     setTab: (tab) => dispatch(setActiveDashboardTab(tab)),
     resetState: () => dispatch(resetAnalysisState()),
     removeResume: () => dispatch(deleteResume()),
-    showRewriteModal: (type) => dispatch(openRewriteModal(type)),
-    hideRewriteModal: () => dispatch(closeRewriteModal()),
-    showDownloadModal: () => dispatch(openDownloadModal()),
-    hideDownloadModal: () => dispatch(closeDownloadModal()),
     dismissError: () => dispatch(clearError()),
   };
 }

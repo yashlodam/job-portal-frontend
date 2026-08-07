@@ -72,11 +72,20 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const { status } = error.response;
+    // Extract exact backend message if returned by Spring Boot (e.g. JobPortalException)
+    const backendMsg =
+      typeof error.response?.data === "object"
+        ? error.response?.data?.message || error.response?.data?.error
+        : typeof error.response?.data === "string"
+        ? error.response.data
+        : null;
+
+    if (backendMsg) {
+      error.userMessage = backendMsg;
+    }
 
     switch (status) {
       case 401:
-        // Token expired or missing — auto-logout only if we had a token
         if (localStorage.getItem("jwt")) {
           console.warn("[API] 401 Unauthorised — token expired. Logging out.");
           store.dispatch(logout());
@@ -85,27 +94,25 @@ api.interceptors.response.use(
 
       case 403:
         console.warn("[API] 403 Forbidden — you do not have permission for this action.");
-        error.userMessage = "You do not have permission to perform this action.";
+        if (!error.userMessage) error.userMessage = "You do not have permission to perform this action.";
         break;
 
       case 404:
         console.warn(`[API] 404 Not Found — ${error.config?.url}`);
-        error.userMessage = "The requested resource was not found.";
+        if (!error.userMessage) error.userMessage = "The requested resource was not found.";
         break;
 
       case 500:
       case 502:
       case 503:
         console.error(`[API] ${status} Server Error — ${error.config?.url}`);
-        error.userMessage = "A server error occurred. Please try again later.";
+        if (!error.userMessage) error.userMessage = "A server error occurred. Please try again later.";
         break;
 
       default:
         console.error(
           `[API] Unexpected error ${status}:`,
-          typeof error.response?.data === "object"
-            ? (error.response?.data?.message || JSON.stringify(error.response.data))
-            : String(error.response?.data || error.message)
+          error.userMessage || error.message
         );
     }
 

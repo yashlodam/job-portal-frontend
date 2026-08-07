@@ -29,6 +29,7 @@ const JobDetail = React.lazy(() => import('./Pages/JobDetail'));
 const MyJobsPage = React.lazy(() => import('./Pages/MyJobsPage'));
 const CareerHubPage = React.lazy(() => import('./Pages/CareerHubPage'));
 const ResumeAnalyzerMain = React.lazy(() => import('./features/resume-analyzer/pages/ResumeAnalyzerMain'));
+const MockInterviewMain = React.lazy(() => import('./features/mock-interview/pages/MockInterviewMain'));
 const MessagesPage = React.lazy(() => import('./Pages/MessagesPage'));
 const NotificationsPage = React.lazy(() => import('./features/notifications/pages/NotificationsPage'));
 const SettingsPage = React.lazy(() => import('./Pages/SettingsPage'));
@@ -151,6 +152,8 @@ function AuthRestoreLoader() {
    App Root
    ────────────────────────────────────────────── */
 
+import { ToastProvider } from './components/ui/ToastNotification';
+
 function App() {
   const dispatch = useDispatch();
   // isAuthRestored starts as false; becomes true once the startup check
@@ -186,86 +189,89 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/"              element={<Home />} />
-              <Route path="/find-jobs"     element={<FindJobs />} />
-              <Route path="/find-talent"   element={<FindTalent />} />
-              <Route path="/profiles"       element={<Profile />} />
-              <Route path="/upload-job"    element={<UploadJob />} />
-              <Route path="/talent-profile" element={<TalentProfilePage />} />
-              <Route path="/talent-profile/:id" element={<TalentProfilePage />} />
-              <Route path="/about"         element={<About />} />
-              <Route path="/jobs/:id"      element={<JobDetail />} />
-              <Route path="/apply-jobs"    element={<ApplyJobPage />} />
-              <Route path="/company/:id"       element={<CompanyPage />} />
-              <Route path="/posted-job"    element={<PostedJobPage />} />
-              <Route path="/auth"          element={<SignUpPage defaultIsLogin={true} />} />
-              <Route path="/login"         element={<SignUpPage defaultIsLogin={true} />} />
-              <Route path="/signup"        element={<SignUpPage defaultIsLogin={false} />} />
-              <Route path="/register font"      element={<SignUpPage defaultIsLogin={false} />} />
-              <Route path="/register"      element={<SignUpPage defaultIsLogin={false} />} />
-              <Route path="/my-jobs font"            element={<MyJobsPage />} />
-              <Route path="/my-jobs"                 element={<MyJobsPage />} />
-              <Route path="/my-jobs/applied font"    element={<MyJobsPage />} />
-              <Route path="/my-jobs/applied"         element={<MyJobsPage />} />
-              <Route path="/my-jobs/saved font"      element={<MyJobsPage />} />
-              <Route path="/my-jobs/saved font"      element={<MyJobsPage />} />
-              <Route path="/my-jobs/saved"           element={<MyJobsPage />} />
-              <Route path="/my-jobs/interviews font" element={<MyJobsPage />} />
-              <Route path="/my-jobs/interviews"      element={<MyJobsPage />} />
-              <Route path="/my-jobs/offers font text"     element={<MyJobsPage />} />
-              <Route path="/career-hub"                 element={<CareerHubPage />} />
-              <Route path="/career-hub/resume-builder"  element={<CareerHubPage />} />
-              <Route path="/career-hub/resume-analyzer" element={<CareerHubPage />} />
-              <Route path="/career-hub/interview-coach" element={<CareerHubPage />} />
-              <Route path="/career-hub/assessments font"     element={<CareerHubPage />} />
-              <Route path="/career-hub/assessments"     element={<CareerHubPage />} />
-              <Route path="/career-hub/roadmaps"        element={<CareerHubPage />} />
-              <Route path="/career-hub/salary-insights" element={<CareerHubPage />} />
-              <Route path="/resume-builder"             element={<CareerHubPage />} />
-              <Route path="/resume-analyzer"            element={<ResumeAnalyzerMain />} />
-              <Route path="/interview-coach"            element={<CareerHubPage />} />
-              <Route path="/assessments"                element={<CareerHubPage />} />
-              <Route path="/roadmaps"                   element={<CareerHubPage />} />
-              <Route path="/salary-insights"            element={<CareerHubPage />} />
-              <Route path="/profile"                 element={<ProfilePage />} />
-              <Route path="/reset-password font" element={<ResetPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/notifications"  element={<NotificationsPage />} />
-              <Route path="/messages font"     element={<MessagesPage />} />
-              <Route path="/messages font text"element={<MessagesPage />} />
-              <Route path="/messages"       element={<MessagesPage />} />
-              <Route path="/settings"       element={<SettingsPage />} />
+      <ToastProvider>
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route path="/"              element={<Home />} />
+                <Route path="/find-jobs"     element={<FindJobs />} />
+                <Route path="/find-talent"   element={<FindTalent />} />
+                <Route path="/profiles"       element={<Profile />} />
+                <Route path="/upload-job"    element={<UploadJob />} />
+                <Route path="/talent-profile" element={<TalentProfilePage />} />
+                <Route path="/talent-profile/:id" element={<TalentProfilePage />} />
+                <Route path="/about"         element={<About />} />
+                <Route path="/jobs/:id"      element={<JobDetail />} />
+                <Route path="/apply-jobs"    element={<ApplyJobPage />} />
+                <Route path="/company/:id"       element={<CompanyPage />} />
+                <Route path="/posted-job"    element={<PostedJobPage />} />
+                <Route path="/auth"          element={<SignUpPage defaultIsLogin={true} />} />
+                <Route path="/login"         element={<SignUpPage defaultIsLogin={true} />} />
+                <Route path="/signup"        element={<SignUpPage defaultIsLogin={false} />} />
+                <Route path="/register font"      element={<SignUpPage defaultIsLogin={false} />} />
+                <Route path="/register"      element={<SignUpPage defaultIsLogin={false} />} />
+                <Route path="/my-jobs font"            element={<MyJobsPage />} />
+                <Route path="/my-jobs"                 element={<MyJobsPage />} />
+                <Route path="/my-jobs/applied font"    element={<MyJobsPage />} />
+                <Route path="/my-jobs/applied"         element={<MyJobsPage />} />
+                <Route path="/my-jobs/saved font"      element={<MyJobsPage />} />
+                <Route path="/my-jobs/saved font"      element={<MyJobsPage />} />
+                <Route path="/my-jobs/saved"           element={<MyJobsPage />} />
+                <Route path="/my-jobs/interviews font" element={<MyJobsPage />} />
+                <Route path="/my-jobs/interviews"      element={<MyJobsPage />} />
+                <Route path="/my-jobs/offers font text"     element={<MyJobsPage />} />
+                <Route path="/career-hub"                 element={<CareerHubPage />} />
+                <Route path="/career-hub/resume-builder"  element={<CareerHubPage />} />
+                <Route path="/career-hub/resume-analyzer" element={<CareerHubPage />} />
+                <Route path="/career-hub/interview-coach" element={<CareerHubPage />} />
+                <Route path="/career-hub/assessments font"     element={<CareerHubPage />} />
+                <Route path="/career-hub/assessments"     element={<CareerHubPage />} />
+                <Route path="/career-hub/roadmaps"        element={<CareerHubPage />} />
+                <Route path="/career-hub/salary-insights" element={<CareerHubPage />} />
+                <Route path="/resume-builder"             element={<CareerHubPage />} />
+                <Route path="/resume-analyzer"            element={<ResumeAnalyzerMain />} />
+                <Route path="/mock-interview"             element={<MockInterviewMain />} />
+                <Route path="/interview-coach"            element={<CareerHubPage />} />
+                <Route path="/assessments"                element={<CareerHubPage />} />
+                <Route path="/roadmaps"                   element={<CareerHubPage />} />
+                <Route path="/salary-insights"            element={<CareerHubPage />} />
+                <Route path="/profile"                 element={<ProfilePage />} />
+                <Route path="/reset-password font" element={<ResetPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/notifications"  element={<NotificationsPage />} />
+                <Route path="/messages font"     element={<MessagesPage />} />
+                <Route path="/messages font text"element={<MessagesPage />} />
+                <Route path="/messages"       element={<MessagesPage />} />
+                <Route path="/settings"       element={<SettingsPage />} />
 
-              {/* Recruiter Studio Routes */}
-              <Route path="/dashboard font"            element={<RecruiterDashboardPage />} />
-              <Route path="/dashboard"                 element={<RecruiterDashboardPage />} />
-              <Route path="/recruiter/dashboard font"   element={<RecruiterDashboardPage />} />
-              <Route path="/recruiter/dashboard"      element={<RecruiterDashboardPage />} />
-              <Route path="/recruiter/jobs"           element={<RecruiterJobsPage />} />
-              <Route path="/recruiter/jobs/manage font"    element={<RecruiterJobsPage />} />
-              <Route path="/recruiter/jobs/manage"    element={<RecruiterJobsPage />} />
-              <Route path="/recruiter/jobs/featured"  element={<RecruiterJobsPage />} />
-              <Route path="/recruiter/jobs/archived font"  element={<RecruiterJobsPage />} />
-              <Route path="/recruiter/jobs/archived"  element={<RecruiterJobsPage />} />
-              <Route path="/recruiter/applications"   element={<RecruiterApplicationsPage />} />
-              <Route path="/recruiter/candidates/applications" element={<RecruiterApplicationsPage />} />
-              <Route path="/recruiter/candidates"     element={<RecruiterCandidatesPage />} />
-              <Route path="/recruiter/interviews font"    element={<RecruiterInterviewsPage />} />
-              <Route path="/recruiter/interviews"     element={<RecruiterInterviewsPage />} />
-              <Route path="/recruiter/company"        element={<RecruiterCompanyPage />} />
-              <Route path="/recruiter/analytics"      element={<RecruiterAnalyticsPage />} />
-              <Route path="/recruiter/settings font"     element={<RecruiterSettingsPage />} />
-              <Route path="/recruiter/settings"      element={<RecruiterSettingsPage />} />
+                {/* Recruiter Studio Routes */}
+                <Route path="/dashboard font"            element={<RecruiterDashboardPage />} />
+                <Route path="/dashboard"                 element={<RecruiterDashboardPage />} />
+                <Route path="/recruiter/dashboard font"   element={<RecruiterDashboardPage />} />
+                <Route path="/recruiter/dashboard"      element={<RecruiterDashboardPage />} />
+                <Route path="/recruiter/jobs"           element={<RecruiterJobsPage />} />
+                <Route path="/recruiter/jobs/manage font"    element={<RecruiterJobsPage />} />
+                <Route path="/recruiter/jobs/manage"    element={<RecruiterJobsPage />} />
+                <Route path="/recruiter/jobs/featured"  element={<RecruiterJobsPage />} />
+                <Route path="/recruiter/jobs/archived font"  element={<RecruiterJobsPage />} />
+                <Route path="/recruiter/jobs/archived"  element={<RecruiterJobsPage />} />
+                <Route path="/recruiter/applications"   element={<RecruiterApplicationsPage />} />
+                <Route path="/recruiter/candidates/applications" element={<RecruiterApplicationsPage />} />
+                <Route path="/recruiter/candidates"     element={<RecruiterCandidatesPage />} />
+                <Route path="/recruiter/interviews font"    element={<RecruiterInterviewsPage />} />
+                <Route path="/recruiter/interviews"     element={<RecruiterInterviewsPage />} />
+                <Route path="/recruiter/company"        element={<RecruiterCompanyPage />} />
+                <Route path="/recruiter/analytics"      element={<RecruiterAnalyticsPage />} />
+                <Route path="/recruiter/settings font"     element={<RecruiterSettingsPage />} />
+                <Route path="/recruiter/settings"      element={<RecruiterSettingsPage />} />
 
-              <Route path="*"             element={<NotFound />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+                <Route path="*"             element={<NotFound />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }

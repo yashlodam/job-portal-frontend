@@ -24,7 +24,7 @@ import SkillChips from "../components/SkillChips";
 import ResumeUploadPage from "./ResumeUploadPage";
 
 export default function ResumeAnalysisDashboard({ onReUploadClick }) {
-  const { analysis, status, reAnalyze } = useResumeAnalyzer();
+  const { analysis, status, reAnalyze, removeResume } = useResumeAnalyzer();
 
   if (status === "analyzing" || status === "uploading") {
     return <LoadingSkeleton />;
@@ -76,7 +76,10 @@ export default function ResumeAnalysisDashboard({ onReUploadClick }) {
             <RotateCcw size={14} /> Re-Analyze
           </button>
           <button
-            onClick={onReUploadClick}
+            onClick={() => {
+              removeResume();
+              if (onReUploadClick) onReUploadClick();
+            }}
             className="flex items-center gap-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 text-xs font-black text-white shadow-lg transition cursor-pointer"
           >
             <Upload size={14} /> Upload New Resume
