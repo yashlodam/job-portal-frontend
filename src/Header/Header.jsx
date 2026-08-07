@@ -523,6 +523,7 @@ function Header() {
                                 <Link
                                   key={child.url}
                                   to={child.url}
+                                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                                   aria-current={childActive ? "page" : undefined}
                                   className={`group/child relative flex items-start gap-3.5 rounded-2xl p-3 transition-all duration-200 ${FOCUS_RING} ${
                                     childActive

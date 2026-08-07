@@ -25,6 +25,7 @@ import resumeReducer from "./resumeSlice";
 import savedJobReducer from "./savedJobSlice";
 import notificationReducer from "../features/notifications/slices/notificationSlice";
 import { notificationApi } from "../features/notifications/api/notificationApi";
+import analysisReducer from "../features/resume-analyzer/slices/analysisSlice";
 
 // ─── Root Reducer ─────────────────────────────────────────────────────────────
 const rootReducer = combineReducers({
@@ -36,6 +37,7 @@ const rootReducer = combineReducers({
   company:     companySlice,
   application: applicationReducer,
   notification: notificationReducer,
+  analysis:    analysisReducer,
   [notificationApi.reducerPath]: notificationApi.reducer,
 });
 

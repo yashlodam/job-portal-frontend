@@ -28,6 +28,7 @@ const About     = React.lazy(() => import('./Pages/About'));
 const JobDetail = React.lazy(() => import('./Pages/JobDetail'));
 const MyJobsPage = React.lazy(() => import('./Pages/MyJobsPage'));
 const CareerHubPage = React.lazy(() => import('./Pages/CareerHubPage'));
+const ResumeAnalyzerMain = React.lazy(() => import('./features/resume-analyzer/pages/ResumeAnalyzerMain'));
 const MessagesPage = React.lazy(() => import('./Pages/MessagesPage'));
 const NotificationsPage = React.lazy(() => import('./features/notifications/pages/NotificationsPage'));
 const SettingsPage = React.lazy(() => import('./Pages/SettingsPage'));
@@ -216,20 +217,20 @@ function App() {
               <Route path="/my-jobs/interviews font" element={<MyJobsPage />} />
               <Route path="/my-jobs/interviews"      element={<MyJobsPage />} />
               <Route path="/my-jobs/offers font text"     element={<MyJobsPage />} />
-              <Route path="/my-jobs/offers"          element={<MyJobsPage />} />
               <Route path="/career-hub"                 element={<CareerHubPage />} />
-              <Route path="/career-hub/resume-builder font"  element={<CareerHubPage />} />
-              <Route path="/career-hub/resume-builder font text" element={<CareerHubPage />} />
               <Route path="/career-hub/resume-builder"  element={<CareerHubPage />} />
               <Route path="/career-hub/resume-analyzer" element={<CareerHubPage />} />
               <Route path="/career-hub/interview-coach" element={<CareerHubPage />} />
               <Route path="/career-hub/assessments font"     element={<CareerHubPage />} />
-              <Route path="/career-hub/assessments opacity"   element={<CareerHubPage />} />
               <Route path="/career-hub/assessments"     element={<CareerHubPage />} />
-              <Route path="/career-hub/roadmaps font text"    element={<CareerHubPage />} />
               <Route path="/career-hub/roadmaps"        element={<CareerHubPage />} />
-              <Route path="/career-hub/salary-insights font" element={<CareerHubPage />} />
               <Route path="/career-hub/salary-insights" element={<CareerHubPage />} />
+              <Route path="/resume-builder"             element={<CareerHubPage />} />
+              <Route path="/resume-analyzer"            element={<ResumeAnalyzerMain />} />
+              <Route path="/interview-coach"            element={<CareerHubPage />} />
+              <Route path="/assessments"                element={<CareerHubPage />} />
+              <Route path="/roadmaps"                   element={<CareerHubPage />} />
+              <Route path="/salary-insights"            element={<CareerHubPage />} />
               <Route path="/profile"                 element={<ProfilePage />} />
               <Route path="/reset-password font" element={<ResetPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />

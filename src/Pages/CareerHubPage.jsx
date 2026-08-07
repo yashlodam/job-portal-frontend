@@ -43,17 +43,18 @@ import {
 } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
+import ResumeAnalyzerMain from "../features/resume-analyzer/pages/ResumeAnalyzerMain";
 
 export default function CareerHubPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const getActiveTab = (path) => {
-    if (path.includes("/resume-analyzer")) return "analyzer";
-    if (path.includes("/interview-coach")) return "interview";
-    if (path.includes("/assessments")) return "assessments";
-    if (path.includes("/roadmaps")) return "roadmaps";
-    if (path.includes("/salary-insights")) return "salary";
+    if (path.includes("analyzer")) return "analyzer";
+    if (path.includes("interview")) return "interview";
+    if (path.includes("assessments")) return "assessments";
+    if (path.includes("roadmaps")) return "roadmaps";
+    if (path.includes("salary")) return "salary";
     return "builder";
   };
 
@@ -157,7 +158,7 @@ export default function CareerHubPage() {
             transition={{ duration: 0.25 }}
           >
             {activeTab === "builder" && <ResumeBuilderSection />}
-            {activeTab === "analyzer" && <ResumeAnalyzerSection />}
+            {activeTab === "analyzer" && <ResumeAnalyzerMain />}
             {activeTab === "interview" && <InterviewCoachSection />}
             {activeTab === "assessments" && <AssessmentsSection />}
             {activeTab === "roadmaps" && <RoadmapsSection />}
