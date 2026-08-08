@@ -17,6 +17,7 @@ import SkillsForm from "../components/Editor/SkillsForm";
 import CertificationsForm from "../components/Editor/CertificationsForm";
 import AchievementsForm from "../components/Editor/AchievementsForm";
 import ResumePreviewContainer from "../components/Preview/ResumePreviewContainer";
+import AISuggestionModal from "../components/AI/AISuggestionModal";
 
 export default function ResumeEditorPage() {
   const toast = useToast();
@@ -178,6 +179,9 @@ export default function ResumeEditorPage() {
           <ResumePreviewContainer resume={currentResume} />
         </div>
       </div>
+
+      {/* AI Suggestion Modal — only shown for non-auto-applied suggestions */}
+      <AISuggestionModal />
     </div>
   );
 }

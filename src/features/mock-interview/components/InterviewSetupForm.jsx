@@ -6,7 +6,7 @@
 import React, { useState } from "react";
 import TrackSelector from "./TrackSelector";
 import DifficultySelector from "./DifficultySelector";
-import { INTERVIEW_TYPES } from "../constants/interviewData";
+import { INTERVIEW_TYPES, INTERVIEW_TRACKS } from "../constants/interviewData";
 import { Sparkles, Clock, HelpCircle, ArrowRight } from "lucide-react";
 
 export default function InterviewSetupForm({ initialConfig, onSubmit, isLoading = false }) {
@@ -22,8 +22,10 @@ export default function InterviewSetupForm({ initialConfig, onSubmit, isLoading 
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const trackObj = INTERVIEW_TRACKS.find((t) => t.id === trackId) || INTERVIEW_TRACKS[0];
     onSubmit({
       trackId,
+      trackTitle: trackObj.title,
       difficulty,
       interviewType,
       questionCount: Number(questionCount),

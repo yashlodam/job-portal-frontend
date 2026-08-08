@@ -35,9 +35,11 @@ import { Card } from "../../components/ui/Card";
 import { Modal } from "../../components/ui/Modal";
 import { useAppDispatch, useAppSelector } from "../../State/Store";
 import { getMyJobs, deleteJob, updateJob } from "../../State/JobSlice";
+import { useToast } from "../../components/ui/ToastNotification";
 
 export default function RecruiterJobsPage() {
   const dispatch = useAppDispatch();
+  const toast = useToast();
   const [searchParams] = useSearchParams();
   const { myJobs = [], loading } = useAppSelector((state) => state.job);
 
@@ -80,10 +82,12 @@ export default function RecruiterJobsPage() {
     if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
       try {
         await dispatch(deleteJob(jobId)).unwrap();
+        toast.info(`Job "${title}" deleted.`);
         setSuccessMsg(`Job "${title}" deleted successfully.`);
         dispatch(getMyJobs());
         setTimeout(() => setSuccessMsg(""), 3000);
       } catch (err) {
+        toast.error(err || "Failed to delete job.");
         console.error("Delete job error:", err);
       }
     }
@@ -162,11 +166,13 @@ export default function RecruiterJobsPage() {
 
     try {
       await dispatch(updateJob({ jobId: editingJob.id, jobData: payload })).unwrap();
+      toast.success(`Job "${editForm.title}" updated successfully!`);
       setSuccessMsg(`Job "${editForm.title}" updated successfully!`);
       setShowEditModal(false);
       dispatch(getMyJobs());
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
+      toast.error(err || "Failed to update job.");
       console.error("Failed to update job:", err);
     } finally {
       setIsSubmitting(false);

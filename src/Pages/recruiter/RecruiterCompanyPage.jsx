@@ -42,9 +42,11 @@ import {
   uploadCompanyLogo,
   uploadCompanyCover,
 } from "../../State/CompanySlice";
+import { useToast } from "../../components/ui/ToastNotification";
 
 export default function RecruiterCompanyPage() {
   const dispatch = useAppDispatch();
+  const toast = useToast();
   const user = useAppSelector((state) => state.auth.profile);
   const { myCompany, loading, error } = useAppSelector((state) => state.company);
 
@@ -73,15 +75,15 @@ export default function RecruiterCompanyPage() {
   useEffect(() => {
     if (myCompany) {
       setFormData({
-        companyName: myCompany.companyName || "",
+        companyName: myCompany.companyName || myCompany.name || "",
         website: myCompany.website || "",
         logo: myCompany.logo || "",
-        industry: myCompany.industry || "",
-        companySize: myCompany.companySize || "",
-        headquarters: myCompany.headquarters || myCompany.location || "",
-        foundedYear: myCompany.foundedYear || "",
+        industry: myCompany.industry || "Software & Technology",
+        companySize: myCompany.companySize || "50-200 Employees",
+        headquarters: myCompany.headquarters || "Mumbai, Maharashtra, India",
+        foundedYear: myCompany.foundedYear || "2020",
         email: myCompany.email || user?.email || "",
-        phone: myCompany.phone || "",
+        phone: myCompany.phone || "+91 98765 43210",
         description: myCompany.description || "",
         mission: myCompany.mission || "",
         benefits: myCompany.benefits || "",
@@ -115,15 +117,18 @@ export default function RecruiterCompanyPage() {
     try {
       if (myCompany) {
         await dispatch(updateCompany(payload)).unwrap();
+        toast.success("Company profile updated successfully!");
         setSuccessMsg("Company profile updated successfully!");
       } else {
         await dispatch(createCompany(payload)).unwrap();
+        toast.success("Company profile created successfully!");
         setSuccessMsg("Company profile created successfully!");
       }
       setIsEditing(false);
       dispatch(getMyCompany());
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
+      toast.error(err || "Failed to save company profile.");
       console.error("Save company error:", err);
     }
   };
@@ -133,11 +138,28 @@ export default function RecruiterCompanyPage() {
     if (!file) return;
     try {
       await dispatch(uploadCompanyLogo(file)).unwrap();
+      toast.success("Company logo uploaded successfully!");
       setSuccessMsg("Logo uploaded successfully!");
       dispatch(getMyCompany());
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
+      toast.error(err || "Failed to upload logo.");
       console.error("Logo upload error:", err);
+    }
+  };
+
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await dispatch(uploadCompanyCover(file)).unwrap();
+      toast.success("Company cover image updated!");
+      setSuccessMsg("Cover image uploaded successfully!");
+      dispatch(getMyCompany());
+      setTimeout(() => setSuccessMsg(""), 3000);
+    } catch (err) {
+      toast.error(err || "Failed to upload cover image.");
+      console.error("Cover upload error:", err);
     }
   };
 

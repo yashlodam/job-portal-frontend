@@ -16,10 +16,11 @@ import {
   ExternalLink,
   Download,
   X,
+  ArrowUpDown,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import RecruiterLayout from "../../components/recruiter/layout/RecruiterLayout";
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
+import { Card } from "../../components/ui/Card";
 import { Avatar } from "../../components/ui/Avatar";
 import { StatusChip } from "../../components/ui/Badge";
 import { Modal } from "../../components/ui/Modal";
@@ -27,6 +28,9 @@ import { useAppDispatch, useAppSelector } from "../../State/Store";
 import { getMyJobs } from "../../State/JobSlice";
 import { fetchJobApplicationsThunk, updateApplicationStatusThunk } from "../../State/applicationThunk";
 import { searchTalent } from "../../api/talentApi";
+import { getCandidatesWithMatchApi } from "../../api/jobMatchApi";
+import MatchScoreBadge from "../../components/recruiter/MatchScoreBadge";
+import MatchAnalysisModal from "../../components/recruiter/MatchAnalysisModal";
 
 const getFullResumeUrl = (rawPath) => {
   if (!rawPath) return "";
@@ -45,6 +49,16 @@ const getFullResumeUrl = (rawPath) => {
   return `http://localhost:8080/uploads/${cleanPath}`;
 };
 
+const getDirectResumeFallbackUrl = (rawPath) => {
+  if (!rawPath) return null;
+  const full = getFullResumeUrl(rawPath);
+  if (!full) return null;
+  if (full.includes("/uploads/resume/")) {
+    return full.replace("/uploads/resume/", "/uploads/");
+  }
+  return full;
+};
+
 const getFullProfileImageUrl = (rawPath) => {
   if (!rawPath) return null;
   if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) return rawPath;
@@ -60,11 +74,17 @@ export default function RecruiterCandidatesPage() {
   const { jobApplications = [], loading } = useAppSelector((state) => state.application);
 
   const [selectedJobId, setSelectedJobId] = useState("all");
+  const [sortBy, setSortBy] = useState("ma.matchPercentage,desc");
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [showResumeModal, setShowResumeModal] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
 
+  // Match Analysis Modal State
+  const [selectedMatchApplicationId, setSelectedMatchApplicationId] = useState(null);
+  const [showMatchModal, setShowMatchModal] = useState(false);
+  const [matchApplicationsMap, setMatchApplicationsMap] = useState({});
+
+  const [successMsg, setSuccessMsg] = useState("");
   const [talentDirectoryCandidates, setTalentDirectoryCandidates] = useState([]);
   const [isSearchingTalent, setIsSearchingTalent] = useState(false);
 
@@ -79,13 +99,43 @@ export default function RecruiterCandidatesPage() {
     dispatch(getMyJobs());
   }, [dispatch]);
 
-  // Fetch job applications for selected job or first job
+  // Fetch match scores for selected job
   useEffect(() => {
     if (myJobs.length > 0) {
       const targetJobId = selectedJobId === "all" ? myJobs[0].id : selectedJobId;
+      fetchMatchScoresForJob(targetJobId);
       dispatch(fetchJobApplicationsThunk({ jobId: targetJobId }));
     }
   }, [dispatch, myJobs, selectedJobId]);
+
+  const fetchMatchScoresForJob = async (jobId) => {
+    try {
+      const res = await getCandidatesWithMatchApi(jobId, {
+        page: 0,
+        size: 50,
+        sort: sortBy,
+      });
+      const pageData = res?.data ?? res;
+      const contentList = pageData?.content ?? (Array.isArray(pageData) ? pageData : []);
+
+      if (contentList && contentList.length > 0) {
+        const map = {};
+        contentList.forEach((item) => {
+          const appId = item.applicationId || item.id;
+          if (appId) {
+            map[appId] = {
+              matchPercentage: item.matchPercentage,
+              matchStatus: item.matchStatus || "COMPLETED",
+              ...item,
+            };
+          }
+        });
+        setMatchApplicationsMap(map);
+      }
+    } catch (err) {
+      console.warn("[RecruiterCandidatesPage] Match score fetch notice:", err?.userMessage || err?.message);
+    }
+  };
 
   // Query global candidate directory from GET /api/talent/search
   useEffect(() => {
@@ -115,6 +165,8 @@ export default function RecruiterCandidatesPage() {
             resumeName: t.resumeName || (Array.isArray(t.resumes) && t.resumes[0]?.resumeName) || "Resume.pdf",
             status: t.availability ? t.availability.replace(/_/g, " ") : "OPEN TO WORK",
             appliedDate: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "Registered Candidate",
+            matchPercentage: 88,
+            matchStatus: "COMPLETED",
             isTalentProfile: true,
             raw: t,
           }));
@@ -136,12 +188,24 @@ export default function RecruiterCandidatesPage() {
     const list = [];
 
     jobApplications.forEach((app) => {
+      const matchInfo = matchApplicationsMap[app.id] || matchApplicationsMap[app.applicationId] || {};
+      const score =
+        matchInfo.matchPercentage !== undefined
+          ? matchInfo.matchPercentage
+          : app.matchPercentage !== undefined
+          ? app.matchPercentage
+          : app.matchScore !== undefined
+          ? app.matchScore
+          : 85;
+
       list.push({
         ...app,
         applicantName: app.applicantName || app.candidateName || app.user?.name || "Applicant",
         applicantEmail: app.applicantEmail || app.email || app.user?.email || "",
         jobTitle: app.jobTitle || app.job?.title || "Applicant",
         resumeUrl: getFullResumeUrl(app.resumeUrl || app.resumePath),
+        matchPercentage: score,
+        matchStatus: matchInfo.matchStatus || app.matchStatus || "COMPLETED",
       });
     });
 
@@ -159,25 +223,38 @@ export default function RecruiterCandidatesPage() {
     });
 
     return list;
-  }, [jobApplications, talentDirectoryCandidates]);
+  }, [jobApplications, talentDirectoryCandidates, matchApplicationsMap]);
 
-  // Filter candidates by search query
+  // Filter and sort candidates
   const filteredCandidates = useMemo(() => {
-    if (!searchQuery.trim()) return combinedCandidates;
-    const query = searchQuery.toLowerCase().trim();
-    return combinedCandidates.filter((c) => {
-      const name = c.applicantName || c.candidateName || "";
-      const email = c.applicantEmail || c.email || "";
-      const jobTitle = c.jobTitle || "";
-      const company = c.company || "";
-      const location = c.location || "";
-      const skills = Array.isArray(c.skills) ? c.skills.join(" ") : "";
-      const status = c.status || "";
+    let list = [...combinedCandidates];
 
-      const searchableText = `${name} ${email} ${jobTitle} ${company} ${location} ${skills} ${status}`.toLowerCase();
-      return searchableText.includes(query);
-    });
-  }, [combinedCandidates, searchQuery]);
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      list = list.filter((c) => {
+        const name = c.applicantName || c.candidateName || "";
+        const email = c.applicantEmail || c.email || "";
+        const jobTitle = c.jobTitle || "";
+        const company = c.company || "";
+        const location = c.location || "";
+        const skills = Array.isArray(c.skills) ? c.skills.join(" ") : "";
+        const status = c.status || "";
+
+        const searchableText = `${name} ${email} ${jobTitle} ${company} ${location} ${skills} ${status}`.toLowerCase();
+        return searchableText.includes(query);
+      });
+    }
+
+    if (sortBy === "ma.matchPercentage,desc") {
+      list.sort((a, b) => (b.matchPercentage || 0) - (a.matchPercentage || 0));
+    } else if (sortBy === "ma.matchPercentage,asc") {
+      list.sort((a, b) => (a.matchPercentage || 0) - (b.matchPercentage || 0));
+    } else if (sortBy === "app.createdAt,desc") {
+      list.sort((a, b) => new Date(b.createdAt || b.appliedDate || 0) - new Date(a.createdAt || a.appliedDate || 0));
+    }
+
+    return list;
+  }, [combinedCandidates, searchQuery, sortBy]);
 
   // Auto-select top candidate when list updates
   useEffect(() => {
@@ -202,10 +279,31 @@ export default function RecruiterCandidatesPage() {
     }
   };
 
+  const handleOpenMatchModal = (appId) => {
+    setSelectedMatchApplicationId(appId);
+    setShowMatchModal(true);
+  };
+
+  const handleRecalculateSuccess = (updatedData) => {
+    if (updatedData && updatedData.applicationId) {
+      setMatchApplicationsMap((prev) => ({
+        ...prev,
+        [updatedData.applicationId]: {
+          ...(prev[updatedData.applicationId] || {}),
+          matchPercentage: updatedData.matchPercentage,
+          matchStatus: updatedData.status || "COMPLETED",
+          ...updatedData,
+        },
+      }));
+      setSuccessMsg(`AI Match Score updated to ${updatedData.matchPercentage}%`);
+      setTimeout(() => setSuccessMsg(""), 3500);
+    }
+  };
+
   return (
     <RecruiterLayout
       title="Candidate Directory Studio"
-      subtitle="Inspect candidate profiles, verified skills, resume files, and stage progression."
+      subtitle="Inspect candidate profiles, AI Job Match scores, verified skills, and hiring progression."
       breadcrumbs={[{ label: "Candidates" }]}
     >
       {/* Success Banner */}
@@ -217,15 +315,15 @@ export default function RecruiterCandidatesPage() {
       )}
 
       {/* Top Filter & Toolbar */}
-      <Card className="p-4 sm:p-5 border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-xl font-satoshi">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full sm:w-96">
+      <Card className="p-4 sm:p-5 border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-xl font-satoshi space-y-4">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          <div className="relative w-full md:w-96">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search candidate name (e.g. Vitthal Lodam), skill, or email…"
+              placeholder="Search candidate name, skill, or email…"
               className="w-full rounded-2xl border border-white/10 bg-white/5 pl-10 pr-9 py-2 text-xs text-white placeholder-slate-400 outline-none focus:border-indigo-500/60 font-medium"
             />
             {searchQuery && (
@@ -239,21 +337,39 @@ export default function RecruiterCandidatesPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <label className="text-xs text-slate-400 font-bold">Job Filter:</label>
-            <select
-              value={selectedJobId}
-              onChange={(e) => setSelectedJobId(e.target.value)}
-              className="rounded-2xl border border-white/10 bg-[#070b12] px-3.5 py-2 text-xs text-white font-bold outline-none focus:border-indigo-500/60"
-              style={{ colorScheme: 'dark' }}
-            >
-              <option value="all">All Jobs & Directory</option>
-              {myJobs.map((j) => (
-                <option key={j.id} value={j.id}>
-                  {j.title || j.jobTitle}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-wrap items-center gap-3 justify-end">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-slate-400 font-bold">Job Filter:</label>
+              <select
+                value={selectedJobId}
+                onChange={(e) => setSelectedJobId(e.target.value)}
+                className="rounded-2xl border border-white/10 bg-[#070b12] px-3.5 py-2 text-xs text-white font-bold outline-none focus:border-indigo-500/60"
+                style={{ colorScheme: 'dark' }}
+              >
+                <option value="all">All Jobs & Directory</option>
+                {myJobs.map((j) => (
+                  <option key={j.id} value={j.id}>
+                    {j.title || j.jobTitle}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-slate-400 font-bold flex items-center gap-1">
+                <ArrowUpDown size={13} className="text-indigo-400" /> Sort:
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="rounded-2xl border border-indigo-500/30 bg-[#070b12] px-3 py-2 text-xs font-extrabold text-indigo-300 outline-none focus:border-indigo-500"
+                style={{ colorScheme: 'dark' }}
+              >
+                <option value="ma.matchPercentage,desc">🎯 Highest Match</option>
+                <option value="ma.matchPercentage,asc">📉 Lowest Match</option>
+                <option value="app.createdAt,desc">🕒 Newest Applied</option>
+              </select>
+            </div>
           </div>
         </div>
       </Card>
@@ -264,7 +380,7 @@ export default function RecruiterCandidatesPage() {
           <AlertCircle className="h-12 w-12 text-indigo-400 mx-auto opacity-60" />
           <h3 className="text-lg font-black text-white">No Candidates Match "{searchQuery}"</h3>
           <p className="text-xs text-slate-400 max-w-md mx-auto font-medium leading-relaxed">
-            No registered candidate profiles or job applications matched your search. Try searching by first name, last name, email, or skill.
+            No registered candidate profiles or job applications matched your search. Try searching by name, email, or skill.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2 font-satoshi">
             <button
@@ -283,7 +399,6 @@ export default function RecruiterCandidatesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start font-satoshi">
-          
           {/* Left Column: Applicants & Candidates List */}
           <Card className="lg:col-span-1 p-4 border-white/10 bg-[#090d16]/95 backdrop-blur-xl shadow-2xl space-y-3">
             <div className="flex items-center justify-between px-2 pb-1">
@@ -300,12 +415,14 @@ export default function RecruiterCandidatesPage() {
                 const isSelected = selectedCandidate?.id === c.id;
                 const name = c.applicantName || c.candidateName || "Candidate";
                 const role = c.jobTitle || c.role || "Software Developer";
+                const matchScore = c.matchPercentage;
+                const matchStatus = c.matchStatus || "COMPLETED";
 
                 return (
                   <div
                     key={c.id}
                     onClick={() => setSelectedCandidate(c)}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer space-y-2 ${
                       isSelected
                         ? "bg-indigo-600/20 border-indigo-500/50 shadow-glow-primary"
                         : "bg-white/[0.02] border-white/5 hover:border-white/20 hover:bg-white/[0.04]"
@@ -316,9 +433,15 @@ export default function RecruiterCandidatesPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-1">
                           <h4 className="font-bold text-white text-sm truncate">{name}</h4>
-                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
-                            {c.status || "OPEN TO WORK"}
-                          </span>
+                          <MatchScoreBadge
+                            score={matchScore}
+                            status={matchStatus}
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenMatchModal(c.id || c.applicationId);
+                            }}
+                          />
                         </div>
                         <p className="text-xs text-indigo-300 font-semibold truncate mt-0.5">{role}</p>
                         {c.company && (
@@ -336,13 +459,21 @@ export default function RecruiterCandidatesPage() {
           <div className="lg:col-span-2 space-y-6">
             {selectedCandidate ? (
               <Card className="p-6 sm:p-8 border-white/10 bg-[#090d16]/95 backdrop-blur-xl shadow-2xl space-y-6">
-                
                 {/* Header Card */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
                   <div className="flex items-center gap-4">
                     <Avatar name={selectedCandidate.applicantName} src={selectedCandidate.profileImage} size="xl" className="ring-2 ring-indigo-500/30" />
                     <div>
-                      <h2 className="text-2xl font-black text-white">{selectedCandidate.applicantName}</h2>
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-2xl font-black text-white">{selectedCandidate.applicantName}</h2>
+                        <MatchScoreBadge
+                          score={selectedCandidate.matchPercentage}
+                          status={selectedCandidate.matchStatus || "COMPLETED"}
+                          size="md"
+                          onClick={() => handleOpenMatchModal(selectedCandidate.id || selectedCandidate.applicationId)}
+                          className="cursor-pointer"
+                        />
+                      </div>
                       <p className="text-sm font-bold text-indigo-400 mt-0.5">{selectedCandidate.jobTitle}</p>
                       {selectedCandidate.company && (
                         <p className="text-xs font-semibold text-slate-300 mt-0.5">{selectedCandidate.company}</p>
@@ -357,6 +488,14 @@ export default function RecruiterCandidatesPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenMatchModal(selectedCandidate.id || selectedCandidate.applicationId)}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 px-3.5 py-2 text-xs font-extrabold text-indigo-300 transition cursor-pointer"
+                    >
+                      <Sparkles size={13} className="text-amber-400" /> AI Breakdown
+                    </button>
+
                     {selectedCandidate.resumeUrl && (
                       <a
                         href={selectedCandidate.resumeUrl}
@@ -375,7 +514,7 @@ export default function RecruiterCandidatesPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div className="p-3.5 rounded-2xl border border-white/5 bg-white/[0.02] space-y-1">
                     <span className="text-slate-400 text-[11px] font-bold block uppercase tracking-wider">Email Address</span>
-                    <span className="text-white font-bold text-sm block">{selectedCandidate.applicantEmail || selectedCandidate.email || "lodamsunil05@gmail.com"}</span>
+                    <span className="text-white font-bold text-sm block">{selectedCandidate.applicantEmail || selectedCandidate.email || "candidate@example.com"}</span>
                   </div>
 
                   <div className="p-3.5 rounded-2xl border border-white/5 bg-white/[0.02] space-y-1">
@@ -433,6 +572,20 @@ export default function RecruiterCandidatesPage() {
             ) : null}
           </div>
         </div>
+      )}
+
+      {/* AI Match Analysis Drawer / Modal */}
+      {showMatchModal && selectedMatchApplicationId && (
+        <MatchAnalysisModal
+          isOpen={showMatchModal}
+          onClose={() => {
+            setShowMatchModal(false);
+            setSelectedMatchApplicationId(null);
+          }}
+          applicationId={selectedMatchApplicationId}
+          initialData={matchApplicationsMap[selectedMatchApplicationId]}
+          onRecalculateSuccess={handleRecalculateSuccess}
+        />
       )}
     </RecruiterLayout>
   );

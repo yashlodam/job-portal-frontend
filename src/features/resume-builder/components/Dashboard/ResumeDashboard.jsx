@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import { Plus, FileText, Sparkles, FolderKanban } from "lucide-react";
 import { useResumeBuilder } from "../../hooks/useResumeBuilder";
 import { useToast } from "../../../../components/ui/ToastNotification";
+import { pdfGenerationService } from "../../services/pdfGenerationService";
 import ResumeCard from "./ResumeCard";
 import CreateResumeModal from "./CreateResumeModal";
 
@@ -54,10 +55,24 @@ export default function ResumeDashboard() {
     window.location.href = "/career-hub/resume-analyzer";
   };
 
-  const handleDownload = (resume) => {
+  const handleDownload = async (resume) => {
     setCurrentResume(resume);
     setViewMode("preview");
-    toast.success("Opening printable PDF preview...");
+
+    // Wait 100ms for Preview DOM sheet to mount, then trigger instant PDF download
+    setTimeout(async () => {
+      const sourceElement = document.getElementById("printable-resume-sheet");
+      if (sourceElement) {
+        try {
+          toast.info("Generating Resume...");
+          const candidateName = resume?.personalInfo?.fullName || resume?.fullName || "Candidate";
+          await pdfGenerationService.generateResumePdf(sourceElement, candidateName);
+          toast.success("Resume Downloaded Successfully");
+        } catch (err) {
+          toast.error("Unable to generate resume. Please try again.");
+        }
+      }
+    }, 150);
   };
 
   const handleDelete = async (id) => {

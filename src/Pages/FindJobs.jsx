@@ -27,6 +27,7 @@ import {
   filterJobs,
 } from "../State/JobSlice";
 import { saveJobThunk, unsaveJobThunk } from "../State/savedJobThunk";
+import { useToast } from "../components/ui/ToastNotification";
 
 /* ================================================================
    CONSTANTS
@@ -302,6 +303,7 @@ function FilterSidebarContent({ filters, onToggleFilter, onSetSalary, onClearAll
    ================================================================ */
 function JobCard({ job, view }) {
   const dispatch = useAppDispatch();
+  const toast = useToast();
   const { savedJobIds } = useAppSelector((state) => state.savedJob);
   const [logoError, setLogoError] = useState(false);
 
@@ -314,8 +316,10 @@ function JobCard({ job, view }) {
     if (!job.id) return;
     if (isSaved) {
       dispatch(unsaveJobThunk(Number(job.id)));
+      toast.info("Job removed from saved bookmarks.");
     } else {
       dispatch(saveJobThunk(Number(job.id)));
+      toast.success("Job bookmarked successfully!");
     }
   };
 

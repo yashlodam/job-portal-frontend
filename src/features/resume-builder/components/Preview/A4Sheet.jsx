@@ -10,27 +10,27 @@ import MinimalTemplate from "../Templates/MinimalTemplate";
 import SoftwareEngineerTemplate from "../Templates/SoftwareEngineerTemplate";
 import CorporateTemplate from "../Templates/CorporateTemplate";
 import CreativeTemplate from "../Templates/CreativeTemplate";
+import { BLANK_RESUME_SCHEMA } from "../../constants/resumeTemplates";
 
 export default function A4Sheet({ resume }) {
-  if (!resume) return null;
-
-  const templateId = resume.templateId || "professional";
+  const safeResume = resume || BLANK_RESUME_SCHEMA;
+  const templateId = (safeResume.templateId || "professional").toLowerCase();
 
   const renderTemplate = () => {
     switch (templateId) {
       case "modern":
-        return <ModernTemplate resume={resume} />;
+        return <ModernTemplate resume={safeResume} />;
       case "minimal":
-        return <MinimalTemplate resume={resume} />;
+        return <MinimalTemplate resume={safeResume} />;
       case "software_engineer":
-        return <SoftwareEngineerTemplate resume={resume} />;
+        return <SoftwareEngineerTemplate resume={safeResume} />;
       case "corporate":
-        return <CorporateTemplate resume={resume} />;
+        return <CorporateTemplate resume={safeResume} />;
       case "creative":
-        return <CreativeTemplate resume={resume} />;
+        return <CreativeTemplate resume={safeResume} />;
       case "professional":
       default:
-        return <ProfessionalTemplate resume={resume} />;
+        return <ProfessionalTemplate resume={safeResume} />;
     }
   };
 

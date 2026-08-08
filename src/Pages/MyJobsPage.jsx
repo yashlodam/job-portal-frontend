@@ -40,6 +40,7 @@ import { StatusChip } from "../components/ui/Badge";
 import { Tabs } from "../components/ui/Tabs";
 import { Modal } from "../components/ui/Modal";
 import { EmptyState } from "../components/ui/LoadingSkeleton";
+import { useToast } from "../components/ui/ToastNotification";
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "Recently";
@@ -92,14 +93,26 @@ export default function MyJobsPage() {
     navigate(`/my-jobs/${tabId}`);
   };
 
-  const handleWithdraw = (appId) => {
+  const toast = useToast();
+
+  const handleWithdraw = async (appId) => {
     if (window.confirm("Are you sure you want to withdraw this application?")) {
-      dispatch(withdrawApplicationThunk(appId));
+      try {
+        await dispatch(withdrawApplicationThunk(appId)).unwrap();
+        toast.info("Application withdrawn successfully.");
+      } catch (err) {
+        toast.error(err || "Failed to withdraw application.");
+      }
     }
   };
 
-  const handleUnsaveJob = (jobId) => {
-    dispatch(unsaveJobThunk(jobId));
+  const handleUnsaveJob = async (jobId) => {
+    try {
+      await dispatch(unsaveJobThunk(jobId)).unwrap();
+      toast.info("Job removed from saved bookmarks.");
+    } catch (err) {
+      toast.error(err || "Failed to unsave job.");
+    }
   };
 
   const savedJobs = liveSavedJobs || [];

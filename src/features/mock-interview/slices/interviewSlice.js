@@ -40,18 +40,18 @@ export const submitAndEvaluateThunk = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { sessionId, currentInterview, answers, questions } = getState().interview;
+      const targetSessionId = sessionId || currentInterview?.id;
 
-      // Submit all recorded answers to Spring Boot API
-      for (const q of questions) {
-        const qId = q?.id || q?.questionId;
-        if (qId) {
-          const text = answers[qId] || answers[q.orderNumber] || "Candidate provided technical explanation.";
-          await interviewService.submitAnswer(sessionId || currentInterview?.id, qId, text);
-        }
+      // Submit all recorded answers
+      for (let idx = 0; idx < questions.length; idx++) {
+        const q = questions[idx];
+        const qId = q?.id ?? q?.questionId ?? idx;
+        const text = answers[qId] || answers[String(qId)] || answers[q?.orderNumber] || answers[idx] || "Candidate provided technical explanation.";
+        await interviewService.submitAnswer(targetSessionId, qId, text);
       }
 
       // Fetch final complete report from backend
-      const report = await interviewService.getReport(sessionId || currentInterview?.id);
+      const report = await interviewService.getReport(targetSessionId);
       return report;
     } catch (error) {
       return rejectWithValue(
@@ -179,10 +179,11 @@ const interviewSlice = createSlice({
         state.loading = "idle";
         state.sessionId = action.payload.session?.id || action.payload.session?.sessionId;
         state.currentInterview = {
+          ...state.currentInterview,
           ...action.payload.setupConfig,
           id: state.sessionId,
         };
-        state.questions = action.payload.questions;
+        state.questions = action.payload.questions || [];
         state.currentQuestionIndex = 0;
         state.answers = {};
         state.activeTab = "live";
@@ -194,8 +195,12 @@ const interviewSlice = createSlice({
 
       // Fetch Next Question
       .addCase(fetchNextQuestionThunk.fulfilled, (state, action) => {
-        if (action.payload && !state.questions.some((q) => q.id === action.payload.id)) {
-          state.questions.push(action.payload);
+        if (action.payload) {
+          const newQ = action.payload;
+          const newId = newQ.id ?? newQ.questionId ?? `q-${Date.now()}`;
+          if (!state.questions.some((q) => (q.id ?? q.questionId) === newId)) {
+            state.questions.push({ ...newQ, id: newId });
+          }
         }
       })
 

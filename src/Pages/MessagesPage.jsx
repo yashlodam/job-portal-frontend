@@ -29,6 +29,7 @@ import {
   Building2,
   Briefcase,
 } from "lucide-react";
+import { useToast } from "../components/ui/ToastNotification";
 
 /* Mock WhatsApp Conversations */
 const MOCK_CONVERSATIONS = [
@@ -144,6 +145,7 @@ const SMART_REPLIES = [
 ];
 
 export default function MessagesPage() {
+  const toast = useToast();
   const [conversations, setConversations] = useState(MOCK_CONVERSATIONS);
   const [activeId, setActiveId] = useState("conv-1");
   const [search, setSearch] = useState("");
@@ -193,6 +195,7 @@ export default function MessagesPage() {
     );
 
     setInputText("");
+    toast.success("Message sent!");
   };
 
   const filteredConvs = conversations.filter((c) => {

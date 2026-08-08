@@ -11,8 +11,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Ca
 import { Tabs } from "../../components/ui/Tabs";
 import { Avatar } from "../../components/ui/Avatar";
 import { Modal } from "../../components/ui/Modal";
+import { useToast } from "../../components/ui/ToastNotification";
 
 export default function RecruiterInterviewsPage() {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState("upcoming");
   const [showScheduleModal, setShowScheduleModal] = useState(false);
 
@@ -87,17 +89,24 @@ export default function RecruiterInterviewsPage() {
       </div>
 
       <Modal isOpen={showScheduleModal} onClose={() => setShowScheduleModal(false)} title="Schedule New Interview">
-        <form onSubmit={(e) => { e.preventDefault(); setShowScheduleModal(false); }} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setShowScheduleModal(false);
+            toast.success("Candidate interview scheduled successfully!");
+          }}
+          className="space-y-4 font-satoshi"
+        >
           <div>
             <label className="block text-xs font-semibold text-white/70 mb-1">Candidate Name</label>
-            <input type="text" placeholder="e.g. Sarah Jenkins" className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white" />
+            <input type="text" required placeholder="e.g. Sarah Jenkins" className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-white/70 mb-1">Date & Time</label>
-            <input type="datetime-local" className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white" />
+            <input type="datetime-local" required className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500" style={{ colorScheme: 'dark' }} />
           </div>
-          <button type="submit" className="w-full rounded-2xl bg-indigo-600 py-3 text-xs font-bold text-white hover:bg-indigo-500">
-            Confirm Interview
+          <button type="submit" className="w-full rounded-2xl bg-indigo-600 py-3 text-xs font-bold text-white hover:bg-indigo-500 transition cursor-pointer shadow-lg">
+            Confirm & Send Calendar Invite
           </button>
         </form>
       </Modal>

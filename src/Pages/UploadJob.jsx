@@ -31,6 +31,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { createJob } from "../State/JobSlice";
 import { getMyCompany } from "../State/CompanySlice";
+import { useToast } from "../components/ui/ToastNotification";
 
 /* ===========================
     Step Configuration
@@ -1235,6 +1236,7 @@ function validateStep(step, form) {
 
 function UploadJob() {
   const dispatch = useAppDispatch();
+  const toast = useToast();
   const { myCompany, loading: companyLoading } = useAppSelector((state) => state.company);
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -1425,7 +1427,9 @@ function UploadJob() {
 
     try {
       await dispatch(createJob(payload)).unwrap();
+      toast.success("Job opening created and published successfully!");
     } catch (err) {
+      toast.error(err || "Failed to post job via API.");
       console.error("Failed to post job via API:", err);
     }
     setPublished(true);

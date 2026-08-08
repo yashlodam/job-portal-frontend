@@ -31,6 +31,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { getJobById, getSimilarJobs } from "../State/JobSlice";
 import { saveJobThunk, unsaveJobThunk, checkIsJobSavedThunk } from "../State/savedJobThunk";
+import { useToast } from "../components/ui/ToastNotification";
 
 /* ===========================
     Animation Variants
@@ -147,10 +148,12 @@ const humanise = (str) =>
 function ShareModal({ isOpen, onClose, jobTitle }) {
   const [copied, setCopied] = useState(false);
   const modalRef = React.useRef(null);
+  const toast = useToast();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
+    toast.success("Job link copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -411,13 +414,17 @@ function JobDetail() {
     }
   }, [id, dispatch]);
 
+  const toast = useToast();
+
   const handleToggleSave = () => {
     if (!id) return;
     const jobId = Number(id);
     if (isCurrentJobSaved) {
       dispatch(unsaveJobThunk(jobId));
+      toast.info("Job removed from saved bookmarks.");
     } else {
       dispatch(saveJobThunk(jobId));
+      toast.success("Job bookmarked successfully!");
     }
   };
 

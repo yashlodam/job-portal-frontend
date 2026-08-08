@@ -5,16 +5,21 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Bot, Sparkles, Zap, ShieldCheck, Award, MessageSquare, Terminal, ArrowRight, Brain, Cpu } from "lucide-react";
+import { Bot, Sparkles, Zap, ShieldCheck, ArrowRight, Brain } from "lucide-react";
 import InterviewHero from "../components/InterviewHero";
 import TrackSelector from "../components/TrackSelector";
 import { useMockInterview } from "../hooks/useMockInterview";
+import { INTERVIEW_TRACKS } from "../constants/interviewData";
 
 export default function MockInterviewLandingPage({ onStartClick, onTrackSelect }) {
-  const { setConfig } = useMockInterview();
+  const { setConfig, currentInterview } = useMockInterview();
 
   const handleSelectTrack = (trackId) => {
-    setConfig({ trackId });
+    const trackObj = INTERVIEW_TRACKS.find((t) => t.id === trackId) || INTERVIEW_TRACKS[0];
+    setConfig({
+      trackId,
+      trackTitle: trackObj.title,
+    });
     if (onTrackSelect) onTrackSelect(trackId);
   };
 
@@ -107,7 +112,10 @@ export default function MockInterviewLandingPage({ onStartClick, onTrackSelect }
           </button>
         </div>
 
-        <TrackSelector selectedTrackId="java-fullstack" onSelectTrack={handleSelectTrack} />
+        <TrackSelector
+          selectedTrackId={currentInterview?.trackId || "java-fullstack"}
+          onSelectTrack={handleSelectTrack}
+        />
       </div>
 
       {/* 4. Bottom CTA Section */}

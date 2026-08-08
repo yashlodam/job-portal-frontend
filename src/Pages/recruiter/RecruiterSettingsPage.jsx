@@ -10,8 +10,10 @@ import RecruiterLayout from "../../components/recruiter/layout/RecruiterLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Tabs } from "../../components/ui/Tabs";
 import { useAppSelector } from "../../State/Store";
+import { useToast } from "../../components/ui/ToastNotification";
 
 export default function RecruiterSettingsPage() {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState("profile");
   const { user } = useAppSelector((state) => state.auth);
 
@@ -20,6 +22,7 @@ export default function RecruiterSettingsPage() {
   const handleSave = (e) => {
     e.preventDefault();
     setSaved(true);
+    toast.success("Recruiter settings updated successfully!");
     setTimeout(() => setSaved(false), 2500);
   };
 

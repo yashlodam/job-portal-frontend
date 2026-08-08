@@ -20,6 +20,7 @@ import {
   Key,
 } from "lucide-react";
 import { useAppSelector } from "../State/Store";
+import { useToast } from "../components/ui/ToastNotification";
 
 export default function SettingsPage() {
   const user = useAppSelector((state) => state.auth.profile);
@@ -41,13 +42,14 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [twoFactor, setTwoFactor] = useState(true);
-
-  // Feedback Banner
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const toast = useToast();
 
   const handleSaveSettings = (e) => {
     e.preventDefault();
     setSavedSuccess(true);
+    toast.success("Account settings updated successfully!");
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 

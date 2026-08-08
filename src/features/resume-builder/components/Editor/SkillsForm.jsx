@@ -1,14 +1,17 @@
 /**
  * src/features/resume-builder/components/Editor/SkillsForm.jsx
- * Categorized Skills Form allowing fluid typing for Programming Languages, Frameworks, Tools, and Soft Skills.
+ * Categorized Skills Form with AI Suggest Skills feature.
+ * AI suggestions are merged into skills.technical via Redux directly.
  */
 
 import React from "react";
-import { Cpu, Code2, Wrench, Layers, UserCheck } from "lucide-react";
+import { Cpu, Code2, Wrench, Layers, UserCheck, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import { useResumeBuilder } from "../../hooks/useResumeBuilder";
+import { useToast } from "../../../../components/ui/ToastNotification";
 
 export default function SkillsForm({ skills = {}, onChange }) {
-  const { currentResume } = useResumeBuilder();
+  const toast = useToast();
+  const { suggestSkills, aiLoading, aiSuggestion, currentResume } = useResumeBuilder();
 
   const handleCategoryChange = (category, rawText) => {
     onChange({
@@ -22,6 +25,22 @@ export default function SkillsForm({ skills = {}, onChange }) {
     return "";
   };
 
+  const handleSuggestSkills = async () => {
+    if (!currentResume?.id) {
+      toast.error("Please save your resume before using AI skill suggestions.");
+      return;
+    }
+    toast.info("AI is analyzing your resume and suggesting skills...");
+    try {
+      await suggestSkills(currentResume.id);
+      toast.success("AI skill suggestions merged into your Technical Skills!");
+    } catch {
+      toast.error("AI skill suggestion failed. Please try again.");
+    }
+  };
+
+  const isSkillsApplied = aiSuggestion?.targetField === "skills" && aiSuggestion?.applied;
+
   return (
     <div className="space-y-6 font-satoshi text-white">
       <div className="flex items-center justify-between pb-3 border-b border-white/10">
@@ -31,7 +50,28 @@ export default function SkillsForm({ skills = {}, onChange }) {
           </h3>
           <p className="text-xs text-slate-400 font-medium">Categorize your languages, frameworks, developer tools, and soft skills.</p>
         </div>
+
+        <button
+          onClick={handleSuggestSkills}
+          disabled={aiLoading}
+          className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs transition cursor-pointer shadow-lg disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+        >
+          {aiLoading ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <Sparkles size={13} className="text-amber-300" />
+          )}
+          {aiLoading ? "Suggesting..." : "Suggest with AI"}
+        </button>
       </div>
+
+      {/* AI Applied Banner */}
+      {isSkillsApplied && !aiLoading && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+          <CheckCircle2 size={14} />
+          AI suggested skills have been merged into your Technical Skills below.
+        </div>
+      )}
 
       <div className="space-y-5 text-xs font-bold">
         {/* Technical Languages */}

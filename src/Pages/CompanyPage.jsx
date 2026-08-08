@@ -36,6 +36,7 @@ import {
 } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { getCompanyById, getCompanyJobs } from "../State/CompanySlice";
+import { useToast } from "../components/ui/ToastNotification";
 
 /* ═══════════════════════════════════════
    ANIMATION VARIANTS
@@ -272,6 +273,7 @@ function LoadingSkeleton() {
 ═══════════════════════════════════════ */
 export default function CompanyPage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [tab, setTab] = useState("Overview");
   const [saved, setSaved] = useState(false);
   const [showAllJobs, setShowAllJobs] = useState(false);
@@ -362,7 +364,15 @@ export default function CompanyPage() {
                 className="flex items-center gap-2"
               >
                 <button
-                  onClick={() => setSaved(!saved)}
+                  onClick={() => {
+                    const next = !saved;
+                    setSaved(next);
+                    if (next) {
+                      toast.success("Company bookmarked to your followed list!");
+                    } else {
+                      toast.info("Company removed from bookmarks.");
+                    }
+                  }}
                   className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all cursor-pointer backdrop-blur ${
                     saved
                       ? "border-primary/40 bg-primary/15 text-primary-light"
@@ -372,7 +382,13 @@ export default function CompanyPage() {
                   <IconBookmark size={15} />
                   {saved ? "Saved" : "Save"}
                 </button>
-                <button className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-heading hover:bg-white/10 transition-all cursor-pointer backdrop-blur">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast.success("Company profile link copied to clipboard!");
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-heading hover:bg-white/10 transition-all cursor-pointer backdrop-blur"
+                >
                   <IconShare size={15} />
                   Share
                 </button>

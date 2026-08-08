@@ -1,20 +1,44 @@
 /**
  * src/features/resume-builder/components/Preview/ResumePreviewContainer.jsx
- * Enterprise Professional A4 Live Preview Canvas with Zoom Controls & PDF Download.
+ * Enterprise Production-Ready A4 PDF Generator & Preview Canvas.
+ * Generates 1-Page, High-DPI ATS-Friendly PDF downloads directly using pdfGenerationService (100% Decoupled from AI).
  */
 
 import React, { useState } from "react";
-import { ZoomIn, ZoomOut, Download, Printer, Layout, Sparkles, Eye, RotateCcw } from "lucide-react";
+import { ZoomIn, ZoomOut, Download, Layout, Loader2 } from "lucide-react";
 import { useResumeBuilder } from "../../hooks/useResumeBuilder";
+import { useToast } from "../../../../components/ui/ToastNotification";
 import { RESUME_TEMPLATES } from "../../constants/resumeTemplates";
+import { pdfGenerationService } from "../../services/pdfGenerationService";
 import A4Sheet from "./A4Sheet";
 
 export default function ResumePreviewContainer({ resume }) {
+  const toast = useToast();
   const { setSelectedTemplate } = useResumeBuilder();
   const [zoom, setZoom] = useState(100);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPDF = async () => {
+    if (isDownloading) return;
+
+    const sourceElement = document.getElementById("printable-resume-sheet");
+    if (!sourceElement) {
+      toast.error("Unable to generate resume. Please try again.");
+      return;
+    }
+
+    const candidateName = resume?.personalInfo?.fullName || resume?.fullName || "Candidate";
+
+    try {
+      setIsDownloading(true);
+      toast.info("Generating Resume...");
+      await pdfGenerationService.generateResumePdf(sourceElement, candidateName);
+      toast.success("Resume Downloaded Successfully");
+    } catch (err) {
+      toast.error("Unable to generate resume. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleZoomReset = () => {
@@ -43,7 +67,7 @@ export default function ResumePreviewContainer({ resume }) {
           </select>
         </div>
 
-        {/* Zoom & PDF Actions */}
+        {/* Zoom & Direct PDF Download Actions */}
         <div className="flex items-center gap-2.5">
           {/* Zoom Control Group */}
           <div className="flex items-center gap-1 bg-white/[0.04] border border-white/10 px-2.5 py-1 rounded-xl text-xs">
@@ -70,14 +94,24 @@ export default function ResumePreviewContainer({ resume }) {
             </button>
           </div>
 
-          {/* Download PDF & Print CTA */}
+          {/* Direct Download PDF CTA Button */}
           <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-xl hover:scale-105"
-            title="Download PDF or Print Resume"
+            onClick={handleDownloadPDF}
+            disabled={isDownloading}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-xl hover:scale-105 disabled:opacity-50"
+            title="Download 1-Page ATS PDF Resume"
           >
-            <Download size={15} />
-            <span>Download PDF</span>
+            {isDownloading ? (
+              <>
+                <Loader2 size={16} className="animate-spin text-amber-300" />
+                <span>Generating Resume...</span>
+              </>
+            ) : (
+              <>
+                <Download size={16} />
+                <span>Download Resume</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -87,7 +121,7 @@ export default function ResumePreviewContainer({ resume }) {
         <div
           id="printable-resume-sheet"
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}
-          className="transition-transform duration-200 w-full max-w-[210mm] shadow-2xl"
+          className="transition-transform duration-200 w-full max-w-[210mm] shadow-2xl bg-white"
         >
           <A4Sheet resume={resume} />
         </div>
