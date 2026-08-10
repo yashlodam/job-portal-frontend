@@ -12,9 +12,39 @@ import {
   IconClock,
   IconAward,
 } from "@tabler/icons-react";
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createOrGetConversationApi, resolveCandidateUserId } from "../../api/chatApi";
+import { useToast } from "../../components/ui/ToastNotification";
 
 function Profile(profile) {
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [messaging, setMessaging] = useState(false);
+
+  const handleMessage = async () => {
+    setMessaging(true);
+    try {
+      const candidateUserId = await resolveCandidateUserId(profile);
+      if (!candidateUserId) {
+        toast.error("Could not find candidate user account to start conversation.");
+        return;
+      }
+      const conv = await createOrGetConversationApi(candidateUserId);
+      const convId = conv?.id;
+      if (convId) {
+        toast.success(`Opening conversation with ${profile.name || "candidate"}…`);
+        navigate(`/recruiter/messages?convId=${convId}`);
+      } else {
+        navigate("/recruiter/messages");
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to start conversation. Please try again.");
+    } finally {
+      setMessaging(false);
+    }
+  };
+
   const experiences = profile.experiences || profile.experience || [];
   const educations = profile.educations || profile.education || [];
   const certifications = profile.certifications || [];
@@ -97,6 +127,8 @@ function Profile(profile) {
 
             <button
               type="button"
+              onClick={handleMessage}
+              disabled={messaging}
               className="
                 inline-flex
                 h-10
@@ -113,10 +145,13 @@ function Profile(profile) {
                 transition-all
                 duration-300
                 hover:bg-primary-light
+                cursor-pointer
+                disabled:opacity-60
+                disabled:cursor-not-allowed
               "
             >
               <IconMessage size={16} />
-              Message Candidate
+              {messaging ? "Opening Chat…" : "Message Candidate"}
             </button>
           </div>
         </div>

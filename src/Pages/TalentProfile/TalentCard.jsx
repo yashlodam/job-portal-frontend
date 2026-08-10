@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   IconHeart,
   IconMapPin,
   IconMessage,
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
+import { createOrGetConversationApi, resolveCandidateUserId } from "../../api/chatApi";
+import { useToast } from "../../components/ui/ToastNotification";
 
 const getFullImageUrl = (rawPath) => {
   if (!rawPath) return null;
@@ -32,11 +34,14 @@ function ExperienceBadge({ level }) {
 
 function TalentCard({ talent: customTalent }) {
   const navigate = useNavigate();
+  const toast = useToast();
+  const [messaging, setMessaging] = useState(false);
 
   if (!customTalent) return null;
 
   const talent = {
     id: customTalent.id,
+    userId: customTalent.userId || customTalent.user?.id || customTalent.id,
     name: customTalent.name || customTalent.fullName || "Candidate",
     role: customTalent.headline || customTalent.role || customTalent.title || customTalent.professionalTitle || "Software Specialist",
     company: customTalent.currentCompany || customTalent.company || "Independent",
@@ -46,6 +51,31 @@ function TalentCard({ talent: customTalent }) {
     profileImage: getFullImageUrl(customTalent.profileImage || customTalent.avatar),
     skills: Array.isArray(customTalent.skills) ? customTalent.skills : [],
     about: customTalent.about || customTalent.bio || "",
+    raw: customTalent,
+  };
+
+  const handleMessage = async (e) => {
+    e.stopPropagation();
+    setMessaging(true);
+    try {
+      const candidateUserId = await resolveCandidateUserId(customTalent);
+      if (!candidateUserId) {
+        toast.error("Could not find candidate user account to start conversation.");
+        return;
+      }
+      const conv = await createOrGetConversationApi(candidateUserId);
+      const convId = conv?.id;
+      if (convId) {
+        toast.success(`Opening conversation with ${talent.name}…`);
+        navigate(`/recruiter/messages?convId=${convId}`);
+      } else {
+        navigate("/recruiter/messages");
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to start conversation. Please try again.");
+    } finally {
+      setMessaging(false);
+    }
   };
 
   const initials = talent.name
@@ -98,23 +128,20 @@ function TalentCard({ talent: customTalent }) {
             <h3 className="truncate font-satoshi text-base font-bold text-white">
               {talent.name}
             </h3>
-
-            <p className="mt-0.5 truncate text-xs text-indigo-400 font-semibold font-satoshi">
+            <p className="truncate font-satoshi text-xs font-semibold text-indigo-300 mt-0.5">
               {talent.role}
-              {talent.company && (
-                <>
-                  <span className="mx-1 text-slate-500">•</span>
-                  <span className="text-slate-300">{talent.company}</span>
-                </>
-              )}
             </p>
+            {talent.company && (
+              <p className="truncate font-satoshi text-[11px] text-slate-400 mt-0.5">
+                {talent.company}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Save Button */}
+        {/* Favorite Icon */}
         <button
           type="button"
-          aria-label="Save talent"
           className="
             flex
             h-9
@@ -122,58 +149,66 @@ function TalentCard({ talent: customTalent }) {
             shrink-0
             items-center
             justify-center
-            rounded-full
+            rounded-xl
+            border
+            border-white/10
+            bg-white/5
             text-slate-400
             transition-all
-            hover:bg-white/10
-            hover:text-white
+            hover:border-rose-500/30
+            hover:bg-rose-500/10
+            hover:text-rose-400
+            cursor-pointer
           "
         >
-          <IconHeart size={20} stroke={1.6} />
+          <IconHeart size={16} />
         </button>
       </div>
 
-      {/* Skills */}
-      {talent.skills.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {talent.skills.slice(0, 3).map((skill, i) => (
-            <span
-              key={typeof skill === "string" ? skill : i}
-              className="
-                rounded-lg
-                border
-                border-indigo-500/20
-                bg-indigo-500/10
-                px-2.5
-                py-0.5
-                text-[11px]
-                font-semibold
-                text-indigo-300
-                font-satoshi
-              "
-            >
-              {typeof skill === "string" ? skill : skill.name}
-            </span>
-          ))}
-        </div>
-      )}
-
       {/* About */}
       {talent.about && (
-        <p className="mt-3 line-clamp-2 text-xs leading-5 text-slate-300 font-satoshi">
+        <p className="mt-3 line-clamp-2 font-satoshi text-xs text-slate-300 font-normal leading-relaxed">
           {talent.about}
         </p>
       )}
 
-      {/* Badges: Experience Level & Status */}
-      <div className="mt-4 flex items-center justify-between gap-2 font-satoshi">
-        <ExperienceBadge level={talent.experienceLevel} />
+      {/* Skills */}
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {talent.skills.slice(0, 4).map((skill, index) => (
+          <span
+            key={index}
+            className="
+              rounded-lg
+              border
+              border-indigo-500/20
+              bg-indigo-500/10
+              px-2.5
+              py-1
+              font-satoshi
+              text-[11px]
+              font-semibold
+              text-indigo-300
+            "
+          >
+            {typeof skill === "string" ? skill : skill.name}
+          </span>
+        ))}
+        {talent.skills.length > 4 && (
+          <span className="rounded-lg bg-white/5 px-2 py-1 font-satoshi text-[11px] font-semibold text-slate-400">
+            +{talent.skills.length - 4}
+          </span>
+        )}
+      </div>
+
+      {/* Badges */}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <AvailabilityBadge type={talent.availability} />
+        <ExperienceBadge level={talent.experienceLevel} />
       </div>
 
       {/* Location */}
-      <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-400 font-satoshi">
-        <IconMapPin size={14} className="shrink-0 text-indigo-400" />
+      <div className="mt-3.5 flex items-center gap-1.5 font-satoshi text-xs text-slate-400">
+        <IconMapPin size={15} className="shrink-0 text-indigo-400" />
         <span className="truncate">{talent.location}</span>
       </div>
 
@@ -207,6 +242,8 @@ function TalentCard({ talent: customTalent }) {
 
         <button
           type="button"
+          onClick={handleMessage}
+          disabled={messaging}
           className="
             flex
             h-9
@@ -222,10 +259,11 @@ function TalentCard({ talent: customTalent }) {
             transition-all
             hover:bg-indigo-500
             cursor-pointer
+            disabled:opacity-60
           "
         >
           <IconMessage size={15} />
-          Message
+          {messaging ? "Opening…" : "Message"}
         </button>
       </div>
     </div>

@@ -41,28 +41,8 @@ import { fetchJobApplicationsThunk, updateApplicationStatusThunk } from "../../S
 import { getCandidatesWithMatchApi } from "../../api/jobMatchApi";
 import MatchScoreBadge from "../../components/recruiter/MatchScoreBadge";
 import MatchAnalysisModal from "../../components/recruiter/MatchAnalysisModal";
-import { createOrGetConversationApi } from "../../api/chatApi";
+import { createOrGetConversationApi, resolveCandidateUserId } from "../../api/chatApi";
 import { useToast } from "../../components/ui/ToastNotification";
-
-/**
- * Extract the candidate's USER account ID from an application object.
- * Tries every field name Spring Boot might use depending on the DTO shape.
- */
-function extractCandidateUserId(app) {
-  return (
-    app.applicantId       ||
-    app.candidateId       ||
-    app.userId            ||
-    app.candidateUserId   ||
-    app.jobSeekerId       ||
-    app.user?.id          ||
-    app.applicant?.id     ||
-    app.candidate?.id     ||
-    app.jobSeekerProfile?.userId ||
-    app.profile?.userId   ||
-    null
-  );
-}
 
 const getFullResumeUrl = (rawPath) => {
   if (!rawPath) return null;
@@ -203,38 +183,31 @@ export default function RecruiterApplicationsPage() {
 
   const handleMessageCandidate = async (app) => {
     const appId = app.id || app.applicationId;
-
-    // Merge match map data (candidates-with-match API may include userId)
     const matchInfo = matchApplicationsMap[app.id] || matchApplicationsMap[app.applicationId] || {};
     const merged = { ...matchInfo, ...app };
 
-    // Try every possible field name for the candidate's user account ID
-    const candidateUserId = extractCandidateUserId(merged);
-
-    // Debug: log the full object so you can see what fields the backend returns
-    console.debug("[Message] app object fields:", Object.keys(merged));
-    console.debug("[Message] resolved candidateUserId:", candidateUserId);
-
-    if (!candidateUserId) {
-      toast.error(
-        "Cannot message this candidate — their user ID was not included in the application data. Check the browser console for available fields."
-      );
-      return;
-    }
-
     setMessagingAppId(appId);
     try {
+      const candidateUserId = await resolveCandidateUserId(merged);
+      console.debug("[Message] resolved candidateUserId:", candidateUserId, "from", merged);
+
+      if (!candidateUserId) {
+        toast.error("Could not find candidate user account to start conversation.");
+        return;
+      }
+
       const conv = await createOrGetConversationApi(candidateUserId, appId || null);
       const convId = conv?.id;
+      const name = merged.candidateName || merged.applicantName || merged.user?.name || "candidate";
       if (convId) {
-        const name = merged.candidateName || merged.applicantName || merged.user?.name || "candidate";
-        toast.success(`Opening chat with ${name}…`);
+        toast.success(`Opening conversation with ${name}…`);
         navigate(`/recruiter/messages?convId=${convId}`);
       } else {
         navigate("/recruiter/messages");
       }
     } catch (err) {
-      toast.error("Failed to open conversation. Please try again.");
+      console.error("handleMessageCandidate error:", err);
+      toast.error(err?.response?.data?.message || "Failed to start conversation. Please try again.");
     } finally {
       setMessagingAppId(null);
     }
@@ -284,6 +257,7 @@ export default function RecruiterApplicationsPage() {
       const matchStatus = matchInfo.matchStatus || app.matchStatus || "COMPLETED";
 
       return {
+        ...matchInfo,
         ...app,
         matchPercentage: matchScore,
         matchStatus,

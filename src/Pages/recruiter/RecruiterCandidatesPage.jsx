@@ -33,7 +33,7 @@ import { searchTalent } from "../../api/talentApi";
 import { getCandidatesWithMatchApi } from "../../api/jobMatchApi";
 import MatchScoreBadge from "../../components/recruiter/MatchScoreBadge";
 import MatchAnalysisModal from "../../components/recruiter/MatchAnalysisModal";
-import { createOrGetConversationApi } from "../../api/chatApi";
+import { createOrGetConversationApi, resolveCandidateUserId } from "../../api/chatApi";
 import { useToast } from "../../components/ui/ToastNotification";
 
 const getFullResumeUrl = (rawPath) => {
@@ -160,6 +160,7 @@ export default function RecruiterCandidatesPage() {
           const mapped = list.map((t) => ({
             id: `talent-${t.id}`,
             realTalentId: t.id,
+            userId: t.userId || t.user?.id || t.id,
             applicantName: t.name || t.fullName || t.user?.name || "Registered Candidate",
             applicantEmail: t.email || "",
             jobTitle: t.headline || t.professionalTitle || t.role || t.title || "Software Developer",
@@ -206,7 +207,9 @@ export default function RecruiterCandidatesPage() {
           : 85;
 
       list.push({
+        ...matchInfo,
         ...app,
+        userId: app.userId || app.candidateId || app.applicantId || app.user?.id || matchInfo.userId || matchInfo.candidateId,
         applicantName: app.applicantName || app.candidateName || app.user?.name || "Applicant",
         applicantEmail: app.applicantEmail || app.email || app.user?.email || "",
         jobTitle: app.jobTitle || app.job?.title || "Applicant",
@@ -292,31 +295,32 @@ export default function RecruiterCandidatesPage() {
   };
 
   const handleMessageCandidate = async (candidate) => {
-    const candidateUserId =
-      candidate.userId ||
-      candidate.candidateId ||
-      candidate.user?.id ||
-      candidate.realTalentId;
-    if (!candidateUserId) {
-      toast.error("Cannot message this candidate — user ID not available.");
-      return;
-    }
-    const appId = !String(candidate.id).startsWith("talent-")
-      ? candidate.id || candidate.applicationId
-      : null;
     setMessagingCandidateId(candidate.id);
     try {
+      const candidateUserId = await resolveCandidateUserId(candidate);
+      console.debug("[Candidates Message] resolved userId:", candidateUserId, "from", candidate);
+
+      if (!candidateUserId) {
+        toast.error("Could not find candidate user account to start conversation.");
+        return;
+      }
+
+      const appId = !String(candidate.id).startsWith("talent-")
+        ? candidate.id || candidate.applicationId
+        : null;
+
       const conv = await createOrGetConversationApi(candidateUserId, appId);
       const convId = conv?.id;
+      const name = candidate.applicantName || candidate.candidateName || "candidate";
       if (convId) {
-        const name = candidate.applicantName || candidate.candidateName || "candidate";
-        toast.success(`Opening chat with ${name}…`);
+        toast.success(`Opening conversation with ${name}…`);
         navigate(`/recruiter/messages?convId=${convId}`);
       } else {
         navigate("/recruiter/messages");
       }
     } catch (err) {
-      toast.error("Failed to open conversation. Please try again.");
+      console.error("handleMessageCandidate error:", err);
+      toast.error(err?.response?.data?.message || "Failed to start conversation. Please try again.");
     } finally {
       setMessagingCandidateId(null);
     }
