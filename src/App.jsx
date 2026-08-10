@@ -43,6 +43,7 @@ const RecruiterInterviewsPage = React.lazy(() => import('./Pages/recruiter/Recru
 const RecruiterCompanyPage = React.lazy(() => import('./Pages/recruiter/RecruiterCompanyPage'));
 const RecruiterAnalyticsPage = React.lazy(() => import('./Pages/recruiter/RecruiterAnalyticsPage'));
 const RecruiterSettingsPage = React.lazy(() => import('./Pages/recruiter/RecruiterSettingsPage'));
+const RecruiterMessagesPage = React.lazy(() => import('./Pages/recruiter/RecruiterMessagesPage'));
 
 const NotFound  = React.lazy(() => import('./Pages/NotFound'));
 
@@ -265,6 +266,7 @@ function App() {
                 <Route path="/recruiter/analytics"      element={<RecruiterAnalyticsPage />} />
                 <Route path="/recruiter/settings font"     element={<RecruiterSettingsPage />} />
                 <Route path="/recruiter/settings"      element={<RecruiterSettingsPage />} />
+                <Route path="/recruiter/messages"      element={<RecruiterMessagesPage />} />
 
                 <Route path="*"             element={<NotFound />} />
               </Route>

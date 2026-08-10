@@ -1,17 +1,12 @@
 /**
- * src/Pages/MessagesPage.jsx
+ * src/Pages/recruiter/RecruiterMessagesPage.jsx
  *
- * Real-time WhatsApp-style Chat for Job Portal.
- *
- * Data Layer:
- *  - REST: GET /api/chat/conversations, GET messages, PATCH read, GET unread-count
- *  - WebSocket: STOMP over SockJS at ws://localhost:8080/ws
- *    • /topic/conversations/{id}          → new messages
- *    • /topic/conversations/{id}/typing   → typing indicators
- *    • /topic/conversations/{id}/read     → read receipts
- *    • /topic/conversations/{id}/presence → online / offline
- *
- * UI: WhatsApp Web dark theme — preserved from original design.
+ * Recruiter-side real-time chat page.
+ * - Wraps inside RecruiterLayout (sidebar, navbar, etc.)
+ * - Reuses the same WhatsApp-style MessagesPage UI
+ * - Reads ?convId= from URL to auto-open a conversation
+ *   (set by Message buttons on Applications/Candidates pages)
+ * - Full WebSocket real-time: sends, typing, presence, read receipts
  */
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
@@ -38,20 +33,22 @@ import {
   RefreshCw,
   WifiOff,
   Wifi,
+  Users,
 } from "lucide-react";
-import { useToast } from "../components/ui/ToastNotification";
-import { useChat } from "../hooks/useChat";
-import { useAppSelector } from "../State/Store";
-import { getOtherParticipant } from "../api/chatApi";
+import RecruiterLayout from "../../components/recruiter/layout/RecruiterLayout";
+import { useToast } from "../../components/ui/ToastNotification";
+import { useChat } from "../../hooks/useChat";
+import { useAppSelector } from "../../State/Store";
+import { getOtherParticipant } from "../../api/chatApi";
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
 const SMART_REPLIES = [
-  "I'd love to schedule a call!",
-  "Could you share the salary range?",
-  "I've attached my updated resume.",
-  "Thanks! What are the next steps?",
-  "When can we connect to discuss further?",
+  "Thank you for applying! We'd love to schedule a call.",
+  "Could you share your available times this week?",
+  "We've reviewed your application — great fit!",
+  "What is your current notice period?",
+  "We'd like to move forward with next steps.",
 ];
 
 function formatMsgTime(iso) {
@@ -71,6 +68,10 @@ function formatMsgTime(iso) {
   }
 }
 
+function getInitial(name) {
+  return (name || "?").charAt(0).toUpperCase();
+}
+
 function getProfileImageUrl(path) {
   if (!path) return null;
   if (path.startsWith("http")) return path;
@@ -78,14 +79,10 @@ function getProfileImageUrl(path) {
   return `http://localhost:8080/${clean}`;
 }
 
-function getInitial(name) {
-  return (name || "?").charAt(0).toUpperCase();
-}
-
 /* ─── Avatar component ─────────────────────────────────────────────────────── */
 function ChatAvatar({ user, size = "md", online = false }) {
-  const sizeClass = size === "sm" ? "h-8 w-8 text-xs" : size === "lg" ? "h-16 w-16 text-2xl" : "h-12 w-12 text-base";
-  const dotSize = size === "sm" ? "h-2.5 w-2.5" : "h-3.5 w-3.5";
+  const sizeClass = size === "sm" ? "h-8 w-8 text-xs" : size === "lg" ? "h-16 w-16 text-2xl" : "h-10 w-10 text-sm";
+  const dotSize = size === "sm" ? "h-2.5 w-2.5" : "h-3 w-3";
   const imgUrl = getProfileImageUrl(user?.profileImage);
 
   return (
@@ -93,7 +90,7 @@ function ChatAvatar({ user, size = "md", online = false }) {
       {imgUrl ? (
         <img
           src={imgUrl}
-          alt={user?.name || "User"}
+          alt={user?.name || "Candidate"}
           className={`${sizeClass} rounded-full object-cover`}
           onError={(e) => { e.target.style.display = "none"; if (e.target.nextSibling) e.target.nextSibling.style.display = "flex"; }}
         />
@@ -112,18 +109,16 @@ function ChatAvatar({ user, size = "md", online = false }) {
 
 /* ─── Main Component ────────────────────────────────────────────────────────── */
 
-export default function MessagesPage() {
+export default function RecruiterMessagesPage() {
   const toast = useToast();
   const [searchParams] = useSearchParams();
   const currentUser = useAppSelector((state) => state.auth.profile);
   const currentUserId = currentUser?.id;
+  const chat = useChat();
 
   const urlConvId = searchParams.get("convId");
   const urlConvIdNum = urlConvId ? Number(urlConvId) : null;
 
-  const chat = useChat();
-
-  // ── State ─────────────────────────────────────────────────────────────────
   const [conversations, setConversations] = useState([]);
   const [activeConvId, setActiveConvId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -144,14 +139,13 @@ export default function MessagesPage() {
   const typingTimerRef = useRef(null);
   const prevConvIdRef = useRef(null);
 
-  // ── Active conversation object ────────────────────────────────────────────
   const activeConv = conversations.find((c) => c.id === activeConvId) || null;
   const otherParticipant = useMemo(
     () => getOtherParticipant(activeConv, currentUserId),
     [activeConv, currentUserId]
   );
 
-  // ── Load conversations on mount ──────────────────────────────────────────
+  // Load conversations on mount
   useEffect(() => {
     loadAllConversations();
   }, []);
@@ -163,7 +157,7 @@ export default function MessagesPage() {
       const list = Array.isArray(data) ? data : [];
       setConversations(list);
 
-      // Auto-select conversation if urlConvIdNum is present or first item
+      // If URL has a specific convId, open it; else auto-select first
       if (urlConvIdNum && list.some((c) => c.id === urlConvIdNum)) {
         setActiveConvId(urlConvIdNum);
         setShowMobileChat(true);
@@ -171,17 +165,16 @@ export default function MessagesPage() {
         setActiveConvId(list[0].id);
       }
     } catch (err) {
-      toast.error("Failed to load conversations. Check your connection.");
+      toast.error("Failed to load conversations.");
     } finally {
       setLoadingConvs(false);
     }
   };
 
-  // ── Load messages & subscribe when activeConvId changes ──────────────────
+  // Load messages & subscribe when activeConvId changes
   useEffect(() => {
     if (!activeConvId) return;
 
-    // Unsubscribe from previous conversation
     if (prevConvIdRef.current && prevConvIdRef.current !== activeConvId) {
       chat.unsubscribeFromConversation(prevConvIdRef.current);
     }
@@ -192,7 +185,6 @@ export default function MessagesPage() {
     setHasMore(false);
     setOtherTyping(false);
 
-    // Set initial online state from conversation data
     const conv = conversations.find((c) => c.id === activeConvId);
     const other = getOtherParticipant(conv, currentUserId);
     setOtherOnline(Boolean(other?.online));
@@ -200,9 +192,7 @@ export default function MessagesPage() {
     loadMessagesPage(activeConvId, 0);
     subscribeAndRead(activeConvId);
 
-    return () => {
-      clearTimeout(typingTimerRef.current);
-    };
+    return () => clearTimeout(typingTimerRef.current);
   }, [activeConvId]);
 
   const loadMessagesPage = async (convId, pageNum) => {
@@ -211,7 +201,6 @@ export default function MessagesPage() {
     try {
       const pageData = await chat.loadMessages(convId, pageNum);
       const content = pageData?.content ?? (Array.isArray(pageData) ? pageData : []);
-      // Backend returns newest-first → reverse for display (oldest at top)
       const items = [...content].reverse();
       if (pageNum === 0) {
         setMessages(items);
@@ -221,7 +210,7 @@ export default function MessagesPage() {
       }
       setHasMore(!pageData?.last && content.length > 0);
       setPage(pageNum);
-    } catch (err) {
+    } catch {
       if (pageNum === 0) toast.error("Failed to load messages.");
     } finally {
       setLoadingMsgs(false);
@@ -231,19 +220,14 @@ export default function MessagesPage() {
 
   const subscribeAndRead = useCallback(
     (convId) => {
-      // Mark read via REST + WS
       chat.markAsRead(convId);
-
-      // Mark read in local state
       setConversations((prev) =>
         prev.map((c) => (c.id === convId ? { ...c, myUnreadCount: 0 } : c))
       );
 
-      // Subscribe to real-time events
       chat.subscribeToConversation(convId, {
         onMessage: (msg) => {
           setMessages((prev) => {
-            // If this is our optimistic message echo, replace it
             const isOurOptimistic =
               msg.sender?.id === currentUserId &&
               prev.some((m) => m._optimistic && m.content === msg.content);
@@ -252,12 +236,10 @@ export default function MessagesPage() {
                 m._optimistic && m.content === msg.content ? msg : m
               );
             }
-            // Avoid duplicate IDs
             if (prev.some((m) => m.id === msg.id)) return prev;
             return [...prev, msg];
           });
           setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-          // Auto mark read if we're looking at this conversation
           if (msg.sender?.id !== currentUserId) {
             chat.markAsRead(convId);
             setConversations((prev) =>
@@ -268,27 +250,24 @@ export default function MessagesPage() {
           }
         },
         onTyping: (data) => {
-          if (data.userId !== currentUserId) {
-            setOtherTyping(data.typing === true);
-          }
+          if (data.userId !== currentUserId) setOtherTyping(data.typing === true);
         },
-        onRead: (receipt) => {
-          console.log("[Chat] Read receipt:", receipt);
-        },
+        onRead: () => {},
         onPresence: (presence) => {
           if (presence.user?.id !== currentUserId) {
             setOtherOnline(presence.online === true);
             setConversations((prev) =>
-              prev.map((c) => {
-                if (c.id !== convId) return c;
-                return {
-                  ...c,
-                  otherParticipant: {
-                    ...(c.otherParticipant || {}),
-                    online: presence.online === true,
-                  },
-                };
-              })
+              prev.map((c) =>
+                c.id !== convId
+                  ? c
+                  : {
+                      ...c,
+                      otherParticipant: {
+                        ...(c.otherParticipant || {}),
+                        online: presence.online === true,
+                      },
+                    }
+              )
             );
           }
         },
@@ -297,22 +276,16 @@ export default function MessagesPage() {
     [chat, currentUserId]
   );
 
-  // ── Select conversation ───────────────────────────────────────────────────
   const handleSelectConv = (convId) => {
-    if (convId === activeConvId) {
-      setShowMobileChat(true);
-      return;
-    }
+    if (convId === activeConvId) { setShowMobileChat(true); return; }
     setActiveConvId(convId);
     setShowMobileChat(true);
   };
 
-  // ── Send message ──────────────────────────────────────────────────────────
   const handleSend = (textToSend) => {
     const text = (textToSend || inputText).trim();
     if (!text || !activeConvId) return;
 
-    // Optimistic UI — append immediately
     const optimisticMsg = {
       id: `opt-${Date.now()}`,
       _optimistic: true,
@@ -323,58 +296,43 @@ export default function MessagesPage() {
       messageType: "TEXT",
       sentAt: new Date().toISOString(),
       deleted: false,
-      edited: false,
     };
     setMessages((prev) => [...prev, optimisticMsg]);
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 30);
 
     const sent = chat.sendMessage(activeConvId, text);
     if (!sent) {
-      // WS unavailable — remove optimistic and show error
       setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
       toast.error("Message failed to send — WebSocket not connected.");
     } else {
-      // Stop typing indicator
-      sendTypingOff();
+      clearTimeout(typingTimerRef.current);
+      chat.sendTyping(activeConvId, false);
     }
-
     setInputText("");
   };
 
-  // ── Typing indicator ──────────────────────────────────────────────────────
   const handleInputChange = (e) => {
     setInputText(e.target.value);
     chat.sendTyping(activeConvId, true);
     clearTimeout(typingTimerRef.current);
-    typingTimerRef.current = setTimeout(() => {
-      chat.sendTyping(activeConvId, false);
-    }, 2000);
+    typingTimerRef.current = setTimeout(() => chat.sendTyping(activeConvId, false), 2000);
   };
 
-  const sendTypingOff = () => {
-    clearTimeout(typingTimerRef.current);
-    chat.sendTyping(activeConvId, false);
-  };
-
-  // ── Delete message ────────────────────────────────────────────────────────
   const handleDelete = async (msg) => {
     try {
       const updated = await chat.deleteMessage(activeConvId, msg.id);
-      setMessages((prev) => prev.map((m) => (m.id === msg.id ? (updated || { ...m, deleted: true, content: "This message was deleted." }) : m)));
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msg.id ? (updated || { ...m, deleted: true, content: "This message was deleted." }) : m
+        )
+      );
       toast.success("Message deleted.");
     } catch {
       toast.error("Failed to delete message.");
     }
   };
 
-  // ── Load older messages ───────────────────────────────────────────────────
-  const handleLoadOlder = () => {
-    if (!loadingOlder && hasMore) {
-      loadMessagesPage(activeConvId, page + 1);
-    }
-  };
-
-  // ── Filtered conversations with robust multi-field search ─────────────────
+  // ── Multi-field Search Filter ─────────────────────────────────────────────
   const filteredConvs = useMemo(() => {
     return conversations.filter((c) => {
       const other = getOtherParticipant(c, currentUserId);
@@ -405,112 +363,97 @@ export default function MessagesPage() {
 
   const totalUnread = conversations.reduce((acc, c) => acc + (c.myUnreadCount || c.unreadCount || 0), 0);
 
-  /* ─── Render ─────────────────────────────────────────────────────────────── */
-
   return (
-    <div className="h-[calc(100vh-68px)] w-full bg-[#111b21] font-inter text-slate-100 flex flex-col overflow-hidden">
-      {/* ── WhatsApp Main Container ── */}
-      <div className="flex-1 flex w-full max-w-[1600px] mx-auto overflow-hidden shadow-2xl border-t border-[#222d34]">
+    <RecruiterLayout
+      title="Messages"
+      subtitle="Chat directly with candidates in real-time."
+      breadcrumbs={[{ label: "Messages" }]}
+    >
+      {/* Full-height chat container */}
+      <div className="h-[calc(100vh-140px)] min-h-[600px] w-full bg-[#111b21] rounded-2xl overflow-hidden border border-white/10 shadow-2xl flex font-inter text-slate-100">
 
-        {/* ────────────────────────────────────────────────────────────────────
-            LEFT SIDEBAR: Conversation List
-           ──────────────────────────────────────────────────────────────────── */}
+        {/* ── Conversation Sidebar ───────────────────────────────────────── */}
         <div
-          className={`w-full md:w-[380px] lg:w-[420px] shrink-0 bg-[#111b21] border-r border-[#222d34] flex flex-col ${
+          className={`w-full md:w-[340px] lg:w-[380px] shrink-0 bg-[#111b21] border-r border-[#222d34] flex flex-col ${
             showMobileChat ? "hidden md:flex" : "flex"
           }`}
         >
-          {/* Sidebar Top Header */}
-          <div className="h-16 bg-[#202c33] px-4 flex items-center justify-between border-b border-[#222d34] shrink-0">
+          {/* Sidebar Header */}
+          <div className="h-14 bg-[#202c33] px-4 flex items-center justify-between border-b border-[#222d34] shrink-0">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center font-extrabold text-white text-base shadow">
-                {getInitial(currentUser?.name)}
-              </div>
+              <Users size={16} className="text-[#00a884]" />
               <div>
                 <span className="font-extrabold text-sm text-white font-satoshi block leading-tight">
-                  Messages
+                  Candidate Messages
                 </span>
                 {chat.connected ? (
                   <span className="text-[10px] text-[#00a884] flex items-center gap-1">
-                    <Wifi size={10} /> Live
+                    <Wifi size={9} /> Live
                   </span>
                 ) : (
                   <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                    <WifiOff size={10} /> Offline
+                    <WifiOff size={9} /> Offline
                   </span>
                 )}
               </div>
             </div>
-
-            <div className="flex items-center gap-3 text-slate-400">
-              <Sparkles size={18} className="text-amber-400" />
-              <button
-                type="button"
-                onClick={loadAllConversations}
-                title="Refresh"
-                className="hover:text-white transition cursor-pointer p-1"
-              >
-                <RefreshCw size={16} />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={loadAllConversations}
+              title="Refresh conversations"
+              className="text-slate-400 hover:text-white p-1"
+            >
+              <RefreshCw size={14} />
+            </button>
           </div>
 
-          {/* Search + Filters */}
+          {/* Search + Filter */}
           <div className="p-3 bg-[#111b21] border-b border-[#222d34]">
             <div className="relative">
-              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search conversations, names, messages…"
-                className="w-full rounded-lg bg-[#202c33] pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 outline-none border-none"
+                placeholder="Search candidates, jobs, messages…"
+                className="w-full rounded-lg bg-[#202c33] pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 outline-none"
               />
             </div>
-
-            <div className="flex items-center gap-2 mt-3 text-xs font-semibold font-satoshi">
-              <button
-                type="button"
-                onClick={() => setFilter("all")}
-                className={`px-3.5 py-1 rounded-full transition-all duration-150 cursor-pointer font-bold ${
-                  filter === "all"
-                    ? "bg-[#0a332c] text-[#00a884] border border-[#00a884]/40"
-                    : "bg-[#202c33] text-[#8696a0] border border-transparent hover:bg-[#2a3942] hover:text-[#d1d7db]"
-                }`}
-              >
-                All
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilter("unread")}
-                className={`px-3.5 py-1 rounded-full transition-all duration-150 cursor-pointer flex items-center gap-1.5 font-bold ${
-                  filter === "unread"
-                    ? "bg-[#0a332c] text-[#00a884] border border-[#00a884]/40"
-                    : "bg-[#202c33] text-[#8696a0] border border-transparent hover:bg-[#2a3942] hover:text-[#d1d7db]"
-                }`}
-              >
-                <span>Unread</span>
-                {totalUnread > 0 && (
-                  <span className="bg-[#00a884] text-[#111b21] font-black px-1.5 rounded-full text-[10px]">
-                    {totalUnread}
-                  </span>
-                )}
-              </button>
+            <div className="flex items-center gap-2 mt-2.5 text-[11px] font-bold">
+              {["all", "unread"].map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setFilter(f)}
+                  className={`px-3 py-1 rounded-full transition cursor-pointer capitalize font-bold ${
+                    filter === f
+                      ? "bg-[#0a332c] text-[#00a884] border border-[#00a884]/40"
+                      : "bg-[#202c33] text-[#8696a0] border border-transparent hover:bg-[#2a3942]"
+                  }`}
+                >
+                  {f}
+                  {f === "unread" && totalUnread > 0 && (
+                    <span className="ml-1.5 bg-[#00a884] text-black font-black px-1 rounded-full text-[9px]">
+                      {totalUnread}
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Conversations List */}
+          {/* Conversations */}
           <div className="flex-1 overflow-y-auto divide-y divide-[#222d34]/60">
             {loadingConvs ? (
-              <div className="flex flex-col items-center justify-center h-40 gap-3">
-                <Loader2 size={24} className="text-[#00a884] animate-spin" />
-                <p className="text-xs text-slate-400">Loading conversations…</p>
+              <div className="flex items-center justify-center h-32 gap-2">
+                <Loader2 size={20} className="text-[#00a884] animate-spin" />
+                <span className="text-xs text-slate-400">Loading…</span>
               </div>
             ) : filteredConvs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40 gap-3 px-6 text-center">
-                <MessageSquare size={32} className="text-slate-600" />
+              <div className="flex flex-col items-center justify-center h-40 gap-2 px-4 text-center">
+                <MessageSquare size={28} className="text-slate-600" />
                 <p className="text-xs text-slate-400">
-                  {search ? "No conversations match your search." : "No conversations yet. Start chatting!"}
+                  {search ? "No matches found." : "No conversations yet. Message a candidate from the Applications or Candidates page."}
                 </p>
               </div>
             ) : (
@@ -526,32 +469,27 @@ export default function MessagesPage() {
                   <div
                     key={conv.id}
                     onClick={() => handleSelectConv(conv.id)}
-                    className={`p-3.5 flex items-center gap-3 transition cursor-pointer relative ${
+                    className={`p-3 flex items-center gap-3 cursor-pointer transition ${
                       isActive ? "bg-[#2a3942]" : "hover:bg-[#202c33]"
                     }`}
                   >
+                    {/* Avatar */}
                     <ChatAvatar user={other} online={isOnline} />
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-bold text-white truncate font-satoshi">
-                          {other?.name || "User"}
-                        </h4>
-                        <span className="text-[11px] font-medium text-slate-400 shrink-0 ml-2">
+                        <h4 className="text-xs font-bold text-white truncate">{other?.name || "Candidate"}</h4>
+                        <span className="text-[10px] text-slate-400 shrink-0 ml-2">
                           {formatMsgTime(conv.lastMessageAt || conv.updatedAt)}
                         </span>
                       </div>
-
                       {conv.jobTitle && (
-                        <p className="text-xs font-semibold text-[#00a884] truncate mt-0.5">
+                        <p className="text-[10px] font-semibold text-[#00a884] truncate">
                           {conv.jobTitle}
                         </p>
                       )}
-
-                      <p className="text-xs text-slate-400 truncate mt-1 flex items-center gap-1">
-                        {lastMsgIsMe && (
-                          <CheckCheck size={14} className="text-[#53bdeb] shrink-0" />
-                        )}
+                      <p className="text-[10px] text-slate-400 truncate flex items-center gap-1">
+                        {lastMsgIsMe && <CheckCheck size={11} className="text-[#53bdeb] shrink-0" />}
                         <span>
                           {lastMsg?.deleted
                             ? "This message was deleted."
@@ -561,7 +499,7 @@ export default function MessagesPage() {
                     </div>
 
                     {unread > 0 && (
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#00a884] text-[10px] font-black text-black shadow">
+                      <span className="h-4 w-4 shrink-0 flex items-center justify-center rounded-full bg-[#00a884] text-[9px] font-black text-black">
                         {unread}
                       </span>
                     )}
@@ -572,56 +510,51 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* ────────────────────────────────────────────────────────────────────
-            RIGHT: Active Chat Window
-           ──────────────────────────────────────────────────────────────────── */}
+        {/* ── Chat Window ─────────────────────────────────────────────────── */}
         <div
           className={`flex-1 bg-[#0b141a] flex flex-col relative ${
             !showMobileChat ? "hidden md:flex" : "flex"
           }`}
         >
-          {/* Wallpaper texture */}
+          {/* Wallpaper */}
           <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#202c33_1px,transparent_1px)] [background-size:16px_16px]" />
 
           {!activeConv ? (
-            /* Empty state when no conversation selected */
             <div className="flex-1 flex flex-col items-center justify-center text-center px-8 gap-4 z-10">
-              <div className="h-20 w-20 rounded-full bg-[#202c33] flex items-center justify-center">
-                <MessageSquare size={36} className="text-[#00a884]" />
+              <div className="h-16 w-16 rounded-full bg-[#202c33] flex items-center justify-center">
+                <MessageSquare size={28} className="text-[#00a884]" />
               </div>
-              <h2 className="text-xl font-black text-white font-satoshi">
-                JobPortal Messages
+              <h2 className="text-lg font-black text-white font-satoshi">
+                Recruiter Messaging
               </h2>
-              <p className="text-sm text-slate-400 max-w-sm">
-                Select a conversation to start messaging recruiters and candidates.
+              <p className="text-xs text-slate-400 max-w-sm">
+                Select a conversation to start messaging candidates, or click "Message" on any candidate in Applications or Candidates.
               </p>
-              <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#182229] border border-[#222d34] px-3 py-1.5 text-[11px] text-[#8696a0] font-medium">
-                <Lock size={12} className="text-amber-400 shrink-0" />
-                Messages are end-to-end encrypted.
+              <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#182229] border border-[#222d34] px-3 py-1.5 text-[11px] text-[#8696a0]">
+                <Lock size={11} className="text-amber-400 shrink-0" />
+                End-to-end encrypted
               </div>
             </div>
           ) : (
             <>
               {/* Chat Header */}
-              <div className="h-16 bg-[#202c33] px-4 flex items-center justify-between border-b border-[#222d34] z-10 shrink-0">
+              <div className="h-14 bg-[#202c33] px-4 flex items-center justify-between border-b border-[#222d34] z-10 shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
                   <button
                     type="button"
                     onClick={() => setShowMobileChat(false)}
                     className="md:hidden text-slate-400 hover:text-white p-1"
                   >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={18} />
                   </button>
-
                   <div className="relative shrink-0">
                     <ChatAvatar user={otherParticipant} size="sm" online={otherOnline || otherParticipant?.online} />
                   </div>
-
                   <div className="min-w-0">
                     <h3 className="text-sm font-extrabold text-white truncate font-satoshi">
-                      {otherParticipant?.name || "User"}
+                      {otherParticipant?.name || "Candidate"}
                     </h3>
-                    <p className="text-xs font-medium truncate">
+                    <p className="text-[11px]">
                       {otherTyping ? (
                         <span className="text-[#00a884] animate-pulse">typing…</span>
                       ) : otherOnline || otherParticipant?.online ? (
@@ -634,56 +567,50 @@ export default function MessagesPage() {
                     </p>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-4 text-slate-400 shrink-0">
-                  <Video size={19} className="cursor-pointer hover:text-white" />
-                  <Phone size={18} className="cursor-pointer hover:text-white" />
-                  <Search size={18} className="cursor-pointer hover:text-white" />
+                <div className="flex items-center gap-3 text-slate-400 shrink-0">
+                  <Search size={16} className="cursor-pointer hover:text-white" />
                   <button
                     type="button"
                     onClick={() => setShowInfoPanel(!showInfoPanel)}
-                    className={`p-1 rounded-lg transition ${showInfoPanel ? "text-[#00a884]" : "hover:text-white"}`}
+                    className={`p-1 ${showInfoPanel ? "text-[#00a884]" : "hover:text-white"}`}
                   >
-                    <Info size={19} />
+                    <Info size={17} />
                   </button>
                 </div>
               </div>
 
-              {/* Chat Body + Info Sidebar */}
+              {/* Messages + Info Panel */}
               <div className="flex-1 flex overflow-hidden z-10">
-                {/* Message Timeline */}
                 <div className="flex-1 flex flex-col overflow-hidden">
-                  {/* Load older */}
                   {hasMore && (
                     <div className="flex justify-center pt-2 shrink-0">
                       <button
                         type="button"
-                        onClick={handleLoadOlder}
+                        onClick={() => loadMessagesPage(activeConvId, page + 1)}
                         disabled={loadingOlder}
                         className="text-[11px] text-[#00a884] font-bold flex items-center gap-1.5 hover:underline cursor-pointer"
                       >
-                        {loadingOlder ? <Loader2 size={12} className="animate-spin" /> : null}
+                        {loadingOlder && <Loader2 size={11} className="animate-spin" />}
                         Load older messages
                       </button>
                     </div>
                   )}
 
                   <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    {/* Encrypted note */}
                     <div className="flex justify-center my-2">
-                      <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#182229] border border-[#222d34] px-3 py-1.5 text-[11px] text-[#8696a0] font-medium max-w-md text-center">
-                        <Lock size={12} className="text-amber-400 shrink-0" />
-                        Messages are end-to-end encrypted. No one outside of this chat can read them.
+                      <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#182229] border border-[#222d34] px-3 py-1.5 text-[11px] text-[#8696a0]">
+                        <Lock size={11} className="text-amber-400 shrink-0" />
+                        Messages are end-to-end encrypted.
                       </div>
                     </div>
 
                     {loadingMsgs ? (
                       <div className="flex justify-center py-10">
-                        <Loader2 size={28} className="text-[#00a884] animate-spin" />
+                        <Loader2 size={24} className="text-[#00a884] animate-spin" />
                       </div>
                     ) : messages.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-12 gap-2">
-                        <MessageSquare size={28} className="text-slate-600" />
+                        <MessageSquare size={24} className="text-slate-600" />
                         <p className="text-xs text-slate-500">No messages yet. Say hello!</p>
                       </div>
                     ) : (
@@ -700,14 +627,12 @@ export default function MessagesPage() {
                             <div
                               className={`relative max-w-[85%] sm:max-w-md rounded-2xl px-3.5 py-2 text-xs leading-relaxed shadow ${
                                 isMe
-                                  ? "bg-[#005c4b] text-white rounded-tr-none font-medium"
-                                  : "bg-[#202c33] text-slate-100 rounded-tl-none font-medium"
+                                  ? "bg-[#005c4b] text-white rounded-tr-none"
+                                  : "bg-[#202c33] text-slate-100 rounded-tl-none"
                               } ${isDeleted ? "opacity-60 italic" : ""}`}
                             >
                               <p>
-                                {isDeleted
-                                  ? "This message was deleted."
-                                  : msg.displayContent || msg.content}
+                                {isDeleted ? "This message was deleted." : msg.displayContent || msg.content}
                                 {msg.edited && !isDeleted && (
                                   <em className="text-[10px] text-slate-400 ml-1">(edited)</em>
                                 )}
@@ -716,20 +641,17 @@ export default function MessagesPage() {
                                 <span>{formatMsgTime(msg.sentAt)}</span>
                                 {isMe && !isDeleted && (
                                   isOptimistic
-                                    ? <Check size={14} className="text-slate-400" />
-                                    : <CheckCheck size={14} className="text-[#53bdeb]" />
+                                    ? <Check size={12} className="text-slate-400" />
+                                    : <CheckCheck size={12} className="text-[#53bdeb]" />
                                 )}
                               </div>
-
-                              {/* Delete button (hover) */}
                               {isMe && !isDeleted && !isOptimistic && (
                                 <button
                                   type="button"
                                   onClick={() => handleDelete(msg)}
                                   className="absolute -top-2 -left-7 opacity-0 group-hover:opacity-100 p-1 rounded-full bg-[#182229] border border-[#222d34] text-rose-400 hover:text-rose-300 transition"
-                                  title="Delete message"
                                 >
-                                  <Trash2 size={12} />
+                                  <Trash2 size={11} />
                                 </button>
                               )}
                             </div>
@@ -738,7 +660,6 @@ export default function MessagesPage() {
                       })
                     )}
 
-                    {/* Typing indicator */}
                     <AnimatePresence>
                       {otherTyping && (
                         <motion.div
@@ -759,10 +680,10 @@ export default function MessagesPage() {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* AI Quick Reply Chips */}
+                  {/* Quick Replies */}
                   <div className="px-4 py-2 flex items-center gap-2 overflow-x-auto border-t border-[#222d34] shrink-0 bg-[#0b141a]">
                     <span className="text-[10px] font-bold text-[#00a884] flex items-center gap-1 shrink-0 font-satoshi">
-                      <Sparkles size={12} /> AI Quick Reply:
+                      <Sparkles size={11} /> Quick Reply:
                     </span>
                     {SMART_REPLIES.map((reply) => (
                       <button
@@ -777,41 +698,32 @@ export default function MessagesPage() {
                   </div>
                 </div>
 
-                {/* Info Panel (Desktop) */}
+                {/* Info Panel */}
                 {showInfoPanel && (
-                  <div className="hidden lg:flex w-72 shrink-0 bg-[#111b21] border-l border-[#222d34] flex-col p-4 space-y-5 overflow-y-auto">
+                  <div className="hidden lg:flex w-64 shrink-0 bg-[#111b21] border-l border-[#222d34] flex-col p-4 space-y-4 overflow-y-auto">
                     <div className="text-center pt-2">
-                      <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-extrabold text-white text-2xl mx-auto shadow-lg">
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-extrabold text-white text-xl mx-auto">
                         {getInitial(otherParticipant?.name)}
                       </div>
-                      <h4 className="mt-3 text-sm font-extrabold text-white font-satoshi">
-                        {otherParticipant?.name || "User"}
+                      <h4 className="mt-2 text-sm font-extrabold text-white font-satoshi">
+                        {otherParticipant?.name || "Candidate"}
                       </h4>
-                      <p className="text-xs text-slate-400 mt-1">
-                        {otherParticipant?.accountType === "EMPLOYER" || otherParticipant?.accountType === "RECRUITER" ? "Recruiter" : "Candidate"}
-                      </p>
                       {otherParticipant?.email && (
-                        <p className="text-xs text-slate-500 mt-0.5 truncate">{otherParticipant.email}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{otherParticipant.email}</p>
                       )}
                     </div>
 
                     {activeConv?.jobTitle && (
-                      <div className="p-3 rounded-xl bg-[#202c33] border border-[#222d34] space-y-1.5 text-xs">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Related Job</span>
-                        <h5 className="font-bold text-white text-xs">{activeConv.jobTitle}</h5>
+                      <div className="p-3 rounded-xl bg-[#202c33] border border-[#222d34] text-xs space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Job</span>
+                        <p className="font-bold text-white">{activeConv.jobTitle}</p>
                       </div>
                     )}
 
-                    <div className="p-3 rounded-xl bg-[#202c33] border border-[#222d34] space-y-1.5 text-xs">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Conversation</span>
-                      <p className="text-slate-400">Status: <span className="text-white font-semibold">{activeConv.status || "ACTIVE"}</span></p>
-                      <p className="text-slate-400">Started: <span className="text-white font-semibold">{formatMsgTime(activeConv.createdAt)}</span></p>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-[#202c33] border border-[#222d34] space-y-1 text-[11px] text-slate-300">
+                    <div className="p-3 rounded-xl bg-[#202c33] border border-[#222d34] text-[11px] space-y-1.5">
                       <div className="flex items-center gap-1.5">
                         <div className={`h-2 w-2 rounded-full ${otherOnline || otherParticipant?.online ? "bg-[#00a884]" : "bg-slate-500"}`} />
-                        <span>{otherOnline || otherParticipant?.online ? "Online now" : "Offline"}</span>
+                        <span className="text-slate-300">{otherOnline || otherParticipant?.online ? "Online now" : "Offline"}</span>
                       </div>
                     </div>
                   </div>
@@ -819,10 +731,9 @@ export default function MessagesPage() {
               </div>
 
               {/* Input Bar */}
-              <div className="h-16 bg-[#202c33] px-4 flex items-center gap-3 border-t border-[#222d34] z-10 shrink-0">
-                <Smile size={20} className="text-slate-400 hover:text-white cursor-pointer" />
-                <Paperclip size={20} className="text-slate-400 hover:text-white cursor-pointer" />
-
+              <div className="h-14 bg-[#202c33] px-4 flex items-center gap-3 border-t border-[#222d34] z-10 shrink-0">
+                <Smile size={18} className="text-slate-400 hover:text-white cursor-pointer" />
+                <Paperclip size={18} className="text-slate-400 hover:text-white cursor-pointer" />
                 <input
                   type="text"
                   value={inputText}
@@ -830,25 +741,24 @@ export default function MessagesPage() {
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                   placeholder="Type a message…"
                   maxLength={5000}
-                  className="flex-1 rounded-xl bg-[#2a3942] px-4 py-2.5 text-xs text-white placeholder-slate-400 outline-none border-none"
+                  className="flex-1 rounded-xl bg-[#2a3942] px-4 py-2 text-xs text-white placeholder-slate-400 outline-none"
                 />
-
                 {inputText.trim() ? (
                   <button
                     type="button"
                     onClick={() => handleSend()}
-                    className="h-10 w-10 rounded-full bg-[#00a884] flex items-center justify-center text-black font-bold shadow hover:scale-105 transition cursor-pointer"
+                    className="h-9 w-9 rounded-full bg-[#00a884] flex items-center justify-center text-black shadow hover:scale-105 transition cursor-pointer"
                   >
-                    <Send size={16} />
+                    <Send size={14} />
                   </button>
                 ) : (
-                  <Mic size={20} className="text-slate-400 hover:text-white cursor-pointer" />
+                  <Mic size={18} className="text-slate-400 hover:text-white cursor-pointer" />
                 )}
               </div>
             </>
           )}
         </div>
       </div>
-    </div>
+    </RecruiterLayout>
   );
 }

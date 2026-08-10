@@ -17,8 +17,10 @@ import {
   Download,
   X,
   ArrowUpDown,
+  MessageSquare,
+  Loader2,
 } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import RecruiterLayout from "../../components/recruiter/layout/RecruiterLayout";
 import { Card } from "../../components/ui/Card";
 import { Avatar } from "../../components/ui/Avatar";
@@ -31,6 +33,8 @@ import { searchTalent } from "../../api/talentApi";
 import { getCandidatesWithMatchApi } from "../../api/jobMatchApi";
 import MatchScoreBadge from "../../components/recruiter/MatchScoreBadge";
 import MatchAnalysisModal from "../../components/recruiter/MatchAnalysisModal";
+import { createOrGetConversationApi } from "../../api/chatApi";
+import { useToast } from "../../components/ui/ToastNotification";
 
 const getFullResumeUrl = (rawPath) => {
   if (!rawPath) return "";
@@ -70,6 +74,8 @@ const getFullProfileImageUrl = (rawPath) => {
 export default function RecruiterCandidatesPage() {
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const toast = useToast();
   const { myJobs = [] } = useAppSelector((state) => state.job);
   const { jobApplications = [], loading } = useAppSelector((state) => state.application);
 
@@ -78,6 +84,7 @@ export default function RecruiterCandidatesPage() {
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [showResumeModal, setShowResumeModal] = useState(false);
+  const [messagingCandidateId, setMessagingCandidateId] = useState(null);
 
   // Match Analysis Modal State
   const [selectedMatchApplicationId, setSelectedMatchApplicationId] = useState(null);
@@ -282,6 +289,37 @@ export default function RecruiterCandidatesPage() {
   const handleOpenMatchModal = (appId) => {
     setSelectedMatchApplicationId(appId);
     setShowMatchModal(true);
+  };
+
+  const handleMessageCandidate = async (candidate) => {
+    const candidateUserId =
+      candidate.userId ||
+      candidate.candidateId ||
+      candidate.user?.id ||
+      candidate.realTalentId;
+    if (!candidateUserId) {
+      toast.error("Cannot message this candidate — user ID not available.");
+      return;
+    }
+    const appId = !String(candidate.id).startsWith("talent-")
+      ? candidate.id || candidate.applicationId
+      : null;
+    setMessagingCandidateId(candidate.id);
+    try {
+      const conv = await createOrGetConversationApi(candidateUserId, appId);
+      const convId = conv?.id;
+      if (convId) {
+        const name = candidate.applicantName || candidate.candidateName || "candidate";
+        toast.success(`Opening chat with ${name}…`);
+        navigate(`/recruiter/messages?convId=${convId}`);
+      } else {
+        navigate("/recruiter/messages");
+      }
+    } catch (err) {
+      toast.error("Failed to open conversation. Please try again.");
+    } finally {
+      setMessagingCandidateId(null);
+    }
   };
 
   const handleRecalculateSuccess = (updatedData) => {
@@ -494,6 +532,21 @@ export default function RecruiterCandidatesPage() {
                       className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 px-3.5 py-2 text-xs font-extrabold text-indigo-300 transition cursor-pointer"
                     >
                       <Sparkles size={13} className="text-amber-400" /> AI Breakdown
+                    </button>
+
+                    {/* Message Candidate Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleMessageCandidate(selectedCandidate)}
+                      disabled={messagingCandidateId === selectedCandidate.id}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 px-3.5 py-2 text-xs font-extrabold text-teal-300 transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                      title="Send a direct message to this candidate"
+                    >
+                      {messagingCandidateId === selectedCandidate.id
+                        ? <Loader2 size={13} className="animate-spin" />
+                        : <MessageSquare size={13} />
+                      }
+                      Message
                     </button>
 
                     {selectedCandidate.resumeUrl && (

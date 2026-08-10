@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Search,
   FileText,
@@ -26,6 +26,8 @@ import {
   SlidersHorizontal,
   ArrowUpDown,
   RotateCcw,
+  MessageSquare,
+  Loader2,
 } from "lucide-react";
 import RecruiterLayout from "../../components/recruiter/layout/RecruiterLayout";
 import { Card } from "../../components/ui/Card";
@@ -39,6 +41,28 @@ import { fetchJobApplicationsThunk, updateApplicationStatusThunk } from "../../S
 import { getCandidatesWithMatchApi } from "../../api/jobMatchApi";
 import MatchScoreBadge from "../../components/recruiter/MatchScoreBadge";
 import MatchAnalysisModal from "../../components/recruiter/MatchAnalysisModal";
+import { createOrGetConversationApi } from "../../api/chatApi";
+import { useToast } from "../../components/ui/ToastNotification";
+
+/**
+ * Extract the candidate's USER account ID from an application object.
+ * Tries every field name Spring Boot might use depending on the DTO shape.
+ */
+function extractCandidateUserId(app) {
+  return (
+    app.applicantId       ||
+    app.candidateId       ||
+    app.userId            ||
+    app.candidateUserId   ||
+    app.jobSeekerId       ||
+    app.user?.id          ||
+    app.applicant?.id     ||
+    app.candidate?.id     ||
+    app.jobSeekerProfile?.userId ||
+    app.profile?.userId   ||
+    null
+  );
+}
 
 const getFullResumeUrl = (rawPath) => {
   if (!rawPath) return null;
@@ -73,6 +97,8 @@ const getDirectResumeFallbackUrl = (rawPath) => {
 export default function RecruiterApplicationsPage() {
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const toast = useToast();
   const { myJobs = [] } = useAppSelector((state) => state.job);
   const { jobApplications = [], loading } = useAppSelector((state) => state.application);
 
@@ -82,6 +108,7 @@ export default function RecruiterApplicationsPage() {
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [showResumeModal, setShowResumeModal] = useState(false);
+  const [messagingAppId, setMessagingAppId] = useState(null);
 
   // Match Analysis Modal State
   const [selectedMatchApplicationId, setSelectedMatchApplicationId] = useState(null);
@@ -173,6 +200,46 @@ export default function RecruiterApplicationsPage() {
     setSelectedMatchApplicationId(appId);
     setShowMatchModal(true);
   };
+
+  const handleMessageCandidate = async (app) => {
+    const appId = app.id || app.applicationId;
+
+    // Merge match map data (candidates-with-match API may include userId)
+    const matchInfo = matchApplicationsMap[app.id] || matchApplicationsMap[app.applicationId] || {};
+    const merged = { ...matchInfo, ...app };
+
+    // Try every possible field name for the candidate's user account ID
+    const candidateUserId = extractCandidateUserId(merged);
+
+    // Debug: log the full object so you can see what fields the backend returns
+    console.debug("[Message] app object fields:", Object.keys(merged));
+    console.debug("[Message] resolved candidateUserId:", candidateUserId);
+
+    if (!candidateUserId) {
+      toast.error(
+        "Cannot message this candidate — their user ID was not included in the application data. Check the browser console for available fields."
+      );
+      return;
+    }
+
+    setMessagingAppId(appId);
+    try {
+      const conv = await createOrGetConversationApi(candidateUserId, appId || null);
+      const convId = conv?.id;
+      if (convId) {
+        const name = merged.candidateName || merged.applicantName || merged.user?.name || "candidate";
+        toast.success(`Opening chat with ${name}…`);
+        navigate(`/recruiter/messages?convId=${convId}`);
+      } else {
+        navigate("/recruiter/messages");
+      }
+    } catch (err) {
+      toast.error("Failed to open conversation. Please try again.");
+    } finally {
+      setMessagingAppId(null);
+    }
+  };
+
 
   const handleRecalculateSuccess = (updatedData) => {
     if (updatedData) {
@@ -436,6 +503,21 @@ export default function RecruiterApplicationsPage() {
                       className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 px-3 py-1.5 text-xs font-extrabold text-indigo-300 transition cursor-pointer shrink-0"
                     >
                       <Sparkles size={12} className="text-amber-400" /> AI Breakdown
+                    </button>
+
+                    {/* Message Candidate Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleMessageCandidate(app)}
+                      disabled={messagingAppId === targetAppId}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 px-3 py-1.5 text-xs font-extrabold text-teal-300 transition cursor-pointer shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+                      title="Send a message to this candidate"
+                    >
+                      {messagingAppId === targetAppId
+                        ? <Loader2 size={12} className="animate-spin" />
+                        : <MessageSquare size={12} />
+                      }
+                      Message
                     </button>
                   </div>
 

@@ -32,6 +32,7 @@ import { useSelector } from "react-redux";
 import { logout } from "../State/AuthSlic";
 import { fetchMySavedJobsThunk } from "../State/savedJobThunk";
 import { fetchMyApplicationsThunk } from "../State/applicationThunk";
+import { getUnreadCountApi } from "../api/chatApi";
 
 /* ────────────────────────────────────────────────────────────
    Constants
@@ -269,7 +270,18 @@ function Header() {
   const unreadNotifications = useAppSelector(
     (state) => state.notifications?.unreadCount ?? 0
   );
-  const unreadMessages = useAppSelector((state) => state.messages?.unreadCount ?? 0);
+
+  // Live unread message count — polled from REST API every 30s
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  useEffect(() => {
+    if (!user) return;
+    const fetchCount = () => {
+      getUnreadCountApi().then(setUnreadMessages).catch(() => {});
+    };
+    fetchCount();
+    const id = setInterval(fetchCount, 30_000);
+    return () => clearInterval(id);
+  }, [user]);
 
   const navigate = useNavigate();
   const location = useLocation();

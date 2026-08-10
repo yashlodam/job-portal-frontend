@@ -27,9 +27,12 @@ import {
   PlusCircle,
   X,
   LogOut,
+  MessageSquare,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../../State/Store";
 import { logout } from "../../../State/AuthSlic";
+import { getUnreadCountApi } from "../../../api/chatApi";
+import { useState, useEffect } from "react";
 
 export const RECRUITER_NAV_ITEMS = [
   { name: "Dashboard", url: "/recruiter/dashboard", icon: LayoutDashboard },
@@ -37,6 +40,7 @@ export const RECRUITER_NAV_ITEMS = [
   { name: "Applications", url: "/recruiter/applications", icon: Users },
   { name: "Interviews", url: "/recruiter/interviews", icon: Calendar },
   { name: "Candidates", url: "/recruiter/candidates", icon: UserCheck },
+  { name: "Messages", url: "/recruiter/messages", icon: MessageSquare, isMessages: true },
   { name: "Company", url: "/recruiter/company", icon: Building2 },
   { name: "Analytics", url: "/recruiter/analytics", icon: BarChart3 },
   { name: "Settings", url: "/recruiter/settings", icon: Settings },
@@ -47,6 +51,15 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.profile);
+  const [msgUnread, setMsgUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetch = () => getUnreadCountApi().then(setMsgUnread).catch(() => {});
+    fetch();
+    const id = setInterval(fetch, 30_000);
+    return () => clearInterval(id);
+  }, [user]);
 
   const isLinkActive = (path) => {
     if (path === "/recruiter/dashboard") return location.pathname === path;
@@ -102,11 +115,11 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
           </div>
         )}
 
-        {/* Navigation Links */}
         <nav className="mt-6 space-y-1">
           {RECRUITER_NAV_ITEMS.map((item) => {
             const active = isLinkActive(item.url);
             const Icon = item.icon;
+            const badgeNum = item.isMessages ? msgUnread : 0;
 
             return (
               <Link
@@ -120,13 +133,26 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
                     : "text-white/60 hover:bg-white/5 hover:text-white"
                 }`}
               >
-                <Icon className={`h-4 w-4 shrink-0 transition-colors ${active ? "text-indigo-400" : "text-white/50 group-hover:text-white"}`} />
+                <div className="relative shrink-0">
+                  <Icon className={`h-4 w-4 transition-colors ${active ? "text-indigo-400" : "text-white/50 group-hover:text-white"}`} />
+                  {badgeNum > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white">
+                      {badgeNum > 9 ? "9+" : badgeNum}
+                    </span>
+                  )}
+                </div>
 
                 {!collapsed && <span className="truncate">{item.name}</span>}
 
-                {!collapsed && item.badge && (
+                {!collapsed && item.badge && !item.isMessages && (
                   <span className="ml-auto rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-extrabold text-emerald-400 border border-emerald-500/30">
                     {item.badge}
+                  </span>
+                )}
+
+                {!collapsed && item.isMessages && badgeNum > 0 && (
+                  <span className="ml-auto rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-extrabold text-rose-300 border border-rose-500/30">
+                    {badgeNum}
                   </span>
                 )}
 
