@@ -85,89 +85,142 @@ export const deleteMessageApi = async (conversationId, messageId) => {
 };
 
 /**
- * Universal helper to extract the other participant's profile details
- * from any conversation shape returned by the backend.
+ * Universal helper to extract the other participant's profile details,
+ * company name, and professional badge indicators (Recruiter vs Candidate)
+ * from any conversation shape returned by Spring Boot.
  */
-export function getOtherParticipant(conv, currentUserId) {
-  if (!conv) return { name: "User", email: "", online: false };
+export function getOtherParticipant(conv, currentUserId, knownCompaniesMap = {}) {
+  if (!conv) {
+    return { name: "User", email: "", online: false, isRecruiter: false, role: "", companyName: "" };
+  }
+
+  let rawUser = null;
+  let isOnline = false;
+  let lastSeen = null;
+
+  // Search all possible company fields across the conversation structure
+  let company =
+    conv.companyName ||
+    conv.company ||
+    conv.job?.companyName ||
+    conv.job?.company ||
+    conv.jobApplication?.job?.companyName ||
+    conv.jobApplication?.job?.company ||
+    conv.jobApplication?.companyName ||
+    conv.jobApplication?.company ||
+    conv.recruiter?.companyName ||
+    conv.recruiter?.company ||
+    conv.recruiterProfile?.companyName ||
+    conv.recruiterProfile?.company ||
+    conv.employerProfile?.companyName ||
+    conv.employerProfile?.company ||
+    conv.employer?.companyName ||
+    conv.employer?.company ||
+    "";
 
   // 1. Check conv.otherParticipant
   if (conv.otherParticipant) {
     const op = conv.otherParticipant;
-    const u = op.user || op.profile || op;
-    return {
-      id: u.id || u.userId || op.id || op.userId,
-      name: u.name || u.fullName || u.username || op.name || op.fullName || "User",
-      email: u.email || op.email || "",
-      profileImage: u.profileImage || u.avatar || op.profileImage || op.avatar || null,
-      accountType: u.accountType || u.role || op.accountType || op.role || "",
-      online: Boolean(op.online ?? u.online ?? false),
-      lastSeenAt: op.lastSeenAt || u.lastSeenAt || null,
-    };
+    rawUser = op.user || op.profile || op;
+    isOnline = Boolean(op.online ?? rawUser.online ?? false);
+    lastSeen = op.lastSeenAt || rawUser.lastSeenAt || null;
+    company = company || op.companyName || op.company || rawUser.companyName || rawUser.company || "";
   }
-
   // 2. Check conv.otherUser
-  if (conv.otherUser) {
-    const u = conv.otherUser;
-    return {
-      id: u.id || u.userId,
-      name: u.name || u.fullName || u.username || "User",
-      email: u.email || "",
-      profileImage: u.profileImage || u.avatar || null,
-      accountType: u.accountType || u.role || "",
-      online: Boolean(u.online ?? false),
-      lastSeenAt: u.lastSeenAt || null,
-    };
+  else if (conv.otherUser) {
+    rawUser = conv.otherUser;
+    isOnline = Boolean(rawUser.online ?? false);
+    lastSeen = rawUser.lastSeenAt || null;
+    company = company || rawUser.companyName || rawUser.company || "";
   }
-
   // 3. Check conv.candidate / conv.recruiter
-  if (conv.candidate || conv.recruiter) {
+  else if (conv.candidate || conv.recruiter) {
     const isCurrentUserRecruiter =
       currentUserId &&
       (conv.recruiter?.id === currentUserId || conv.recruiter?.userId === currentUserId);
     const target = isCurrentUserRecruiter
       ? conv.candidate || conv.recruiter
       : conv.recruiter || conv.candidate;
-    const u = target?.user || target;
-    return {
-      id: u.id || u.userId || target.id,
-      name: u.name || u.fullName || target.name || "User",
-      email: u.email || target.email || "",
-      profileImage: u.profileImage || target.profileImage || null,
-      accountType: u.accountType || u.role || target.role || "",
-      online: Boolean(target.online ?? false),
-      lastSeenAt: target.lastSeenAt || null,
-    };
+    rawUser = target?.user || target;
+    isOnline = Boolean(target.online ?? false);
+    lastSeen = target.lastSeenAt || null;
+    company = company || target.companyName || target.company || rawUser.companyName || rawUser.company || "";
   }
-
   // 4. Check conv.participants array
-  if (Array.isArray(conv.participants) && conv.participants.length > 0) {
+  else if (Array.isArray(conv.participants) && conv.participants.length > 0) {
     const other =
       conv.participants.find(
         (p) =>
           (p.userId || p.id || p.user?.id || p.user?.userId) !== currentUserId
       ) || conv.participants[0];
-    const u = other.user || other.profile || other;
-    return {
-      id: u.id || u.userId || other.userId || other.id,
-      name: u.name || u.fullName || u.username || other.name || "User",
-      email: u.email || other.email || "",
-      profileImage: u.profileImage || u.avatar || other.profileImage || null,
-      accountType: u.accountType || u.role || other.role || "",
-      online: Boolean(other.online ?? u.online ?? false),
-      lastSeenAt: other.lastSeenAt || u.lastSeenAt || null,
+    rawUser = other.user || other.profile || other;
+    isOnline = Boolean(other.online ?? rawUser.online ?? false);
+    lastSeen = other.lastSeenAt || rawUser.lastSeenAt || null;
+    company = company || other.companyName || other.company || rawUser.companyName || rawUser.company || "";
+  }
+  // 5. Direct fields fallback
+  else {
+    rawUser = {
+      id: conv.recipientId || conv.participantId || conv.targetUserId || null,
+      name: conv.participantName || conv.recipientName || conv.title || "User",
+      email: conv.participantEmail || conv.recipientEmail || "",
+      profileImage: conv.participantImage || conv.recipientImage || null,
+      accountType: conv.participantRole || "",
     };
+    isOnline = Boolean(conv.online ?? false);
+    lastSeen = conv.lastSeenAt || null;
   }
 
-  // 5. Direct fields fallback
+  const otherId = rawUser.id || rawUser.userId;
+
+  // Cross-reference with knownCompaniesMap (applications / jobs / recruiter IDs)
+  if (!company && knownCompaniesMap) {
+    if (otherId && knownCompaniesMap[otherId]) {
+      company = knownCompaniesMap[otherId];
+    } else if (conv.jobApplicationId && knownCompaniesMap[`app_${conv.jobApplicationId}`]) {
+      company = knownCompaniesMap[`app_${conv.jobApplicationId}`];
+    } else if (conv.jobId && knownCompaniesMap[`job_${conv.jobId}`]) {
+      company = knownCompaniesMap[`job_${conv.jobId}`];
+    } else if (conv.jobTitle && knownCompaniesMap[`title_${conv.jobTitle}`]) {
+      company = knownCompaniesMap[`title_${conv.jobTitle}`];
+    }
+  }
+
+  // If company is still not found, check if title contains "at [Company]" or "from [Company]"
+  if (!company && (conv.title || conv.jobTitle)) {
+    const fullTitle = conv.title || conv.jobTitle || "";
+    const match = fullTitle.match(/(?:at|@|from|for)\s+([A-Za-z0-9&.\s_-]+)$/i);
+    if (match && match[1]) {
+      company = match[1].trim();
+    }
+  }
+
+  const accountType = (
+    rawUser.accountType ||
+    rawUser.role ||
+    rawUser.userType ||
+    ""
+  ).toUpperCase();
+
+  const isRecruiter =
+    accountType === "EMPLOYER" ||
+    accountType === "RECRUITER" ||
+    accountType.includes("RECRUIT") ||
+    accountType.includes("EMPLOY") ||
+    Boolean(company) ||
+    Boolean(conv.jobTitle);
+
   return {
-    id: conv.recipientId || conv.participantId || conv.targetUserId || null,
-    name: conv.participantName || conv.recipientName || conv.title || "User",
-    email: conv.participantEmail || conv.recipientEmail || "",
-    profileImage: conv.participantImage || conv.recipientImage || null,
-    accountType: "",
-    online: Boolean(conv.online ?? false),
-    lastSeenAt: conv.lastSeenAt || null,
+    id: otherId || null,
+    name: rawUser.name || rawUser.fullName || rawUser.username || (isRecruiter ? "Hiring Manager" : "Candidate"),
+    email: rawUser.email || "",
+    profileImage: rawUser.profileImage || rawUser.avatar || null,
+    accountType: accountType || (isRecruiter ? "RECRUITER" : "JOB_SEEKER"),
+    isRecruiter,
+    companyName: company || "",
+    headline: rawUser.headline || rawUser.title || rawUser.role || (isRecruiter ? (company ? `Recruiter @ ${company}` : "Verified Recruiter") : "Job Applicant"),
+    online: isOnline,
+    lastSeenAt: lastSeen,
   };
 }
 

@@ -22,6 +22,7 @@ import {
   Layers,
   UserCheck,
   LogOut,
+  ChevronRight,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -611,15 +612,14 @@ function Header() {
               style={{ background: "rgba(148,163,184,0.10)" }}
             />
 
-            {/* Messages — distinct from notifications; hidden for admins,
-                who don't have a peer-to-peer inbox in this product. */}
+            {/* Messages — distinct from notifications; hidden for admins */}
             {role !== "ADMIN" && (
               <IconButton
                 icon={MessageSquare}
                 label="Messages"
                 onClick={handleMessagesClick}
                 badgeCount={unreadMessages}
-                className="hidden sm:block"
+                className="flex"
               />
             )}
 
@@ -745,6 +745,43 @@ function Header() {
                   >
                     <primaryCta.icon size={16} strokeWidth={2} />
                     {primaryCta.label}
+                  </Link>
+                )}
+
+                {/* Mobile Direct Messages Quick Link */}
+                {role !== "ADMIN" && (
+                  <Link
+                    to="/messages"
+                    onClick={() => setMobileOpen(false)}
+                    className={`mb-3 flex items-center justify-between gap-3 rounded-2xl p-3.5 border transition-all ${
+                      location.pathname === "/messages"
+                        ? "bg-indigo-600/20 border-indigo-500/40 text-white shadow-lg"
+                        : "bg-white/[0.04] border-white/10 text-slate-200 hover:bg-white/[0.08]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-white shadow-md">
+                        <MessageSquare size={18} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-extrabold text-white font-satoshi truncate">
+                            Messages & Chats
+                          </span>
+                          {unreadMessages > 0 && (
+                            <span className="inline-flex items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-md animate-pulse">
+                              {unreadMessages} new
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
+                          Direct chat with recruiters & employers
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 text-slate-400">
+                      <ChevronRight size={16} />
+                    </div>
                   </Link>
                 )}
 
@@ -919,24 +956,39 @@ function Header() {
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-white/10 flex items-center gap-2">
+                    <div className="pt-2 border-t border-white/10 grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileOpen(false);
+                          handleMessagesClick();
+                        }}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer relative"
+                      >
+                        <MessageSquare size={13} className="text-indigo-400" />
+                        <span>Chat</span>
+                        {unreadMessages > 0 && (
+                          <span className="h-2 w-2 rounded-full bg-rose-500" />
+                        )}
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => {
                           setMobileOpen(false);
                           handleSettingsClick();
                         }}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
                       >
-                        <Settings size={14} /> Settings
+                        <Settings size={13} /> Settings
                       </button>
 
                       <button
                         type="button"
                         onClick={handleLogout}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition cursor-pointer"
                       >
-                        <LogOut size={14} /> Logout
+                        <LogOut size={13} /> Logout
                       </button>
                     </div>
                   </div>

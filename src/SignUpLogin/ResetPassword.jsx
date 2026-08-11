@@ -221,7 +221,7 @@ function ResetPassword() {
                     </h1>
 
                     <p className="mt-2 text-center text-sm text-slate-400">
-                        Securely recover access to your Velora account.
+                        Securely recover access to your JobPortal AI account.
                     </p>
 
                     <form onSubmit={handleSubmit} className="mt-9 space-y-6" noValidate>

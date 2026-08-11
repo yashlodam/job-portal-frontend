@@ -16,6 +16,9 @@ import ResetPassword from './SignUpLogin/ResetPassword';
 import { restoreAuthState } from './State/AuthSlic';
 import { getAllJobs, getCategories, getWorkModes } from './State/JobSlice';
 import { useAppSelector } from './State/Store';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import PublicRoute from './components/auth/PublicRoute';
+import { ToastProvider } from './components/ui/ToastNotification';
 
 /* ──────────────────────────────────────────────
    Lazy-loaded routes — large pages loaded on demand
@@ -123,7 +126,7 @@ function PageLoader() {
 function AuthRestoreLoader() {
   return (
     <div
-      className="flex min-h-dvh flex-col items-center justify-center gap-4"
+      className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-[#070b12]"
       role="status"
       aria-label="Restoring session"
     >
@@ -142,8 +145,8 @@ function AuthRestoreLoader() {
           />
         </div>
       </div>
-      <p className="text-sm font-medium" style={{ color: 'var(--color-muted)' }}>
-        Restoring your session…
+      <p className="text-sm font-medium text-slate-400 font-satoshi">
+        Connecting to JobPortal AI…
       </p>
     </div>
   );
@@ -153,27 +156,17 @@ function AuthRestoreLoader() {
    App Root
    ────────────────────────────────────────────── */
 
-import { ToastProvider } from './components/ui/ToastNotification';
-
 function App() {
   const dispatch = useDispatch();
   // isAuthRestored starts as false; becomes true once the startup check
   // (restoreAuthState thunk) resolves — whether the user is logged in or not.
   const isAuthRestored = useSelector((state) => state.auth.isAuthRestored);
 
-  const categories =  useAppSelector((state)=> state.job.categories);
-  const jobs = useAppSelector((state)=> state.job.jobs);
-  const workModes = useAppSelector((state)=> state.job.workModes);
-
-  console.log("Jobs state in App.jsx:", jobs); // Debugging log
-  console.log("Categories state in App.jsx:", categories); // Debugging log
-  console.log("Work Modes state in App.jsx:", workModes); // Debugging log
-
-  useEffect(()=>{
-    dispatch(getAllJobs())
-    dispatch(getCategories())
-    dispatch(getWorkModes())
-  },[dispatch])
+  useEffect(() => {
+    dispatch(getAllJobs());
+    dispatch(getCategories());
+    dispatch(getWorkModes());
+  }, [dispatch]);
 
   useEffect(() => {
     // Runs exactly once on mount. Reads the JWT from localStorage;
@@ -194,81 +187,85 @@ function App() {
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              <Route element={<Layout />}>
-                <Route path="/"              element={<Home />} />
-                <Route path="/find-jobs"     element={<FindJobs />} />
-                <Route path="/find-talent"   element={<FindTalent />} />
-                <Route path="/profiles"       element={<Profile />} />
-                <Route path="/upload-job"    element={<UploadJob />} />
-                <Route path="/talent-profile" element={<TalentProfilePage />} />
-                <Route path="/talent-profile/:id" element={<TalentProfilePage />} />
-                <Route path="/about"         element={<About />} />
-                <Route path="/jobs/:id"      element={<JobDetail />} />
-                <Route path="/apply-jobs"    element={<ApplyJobPage />} />
-                <Route path="/company/:id"       element={<CompanyPage />} />
-                <Route path="/posted-job"    element={<PostedJobPage />} />
+              {/* ─────────────────────────────────────────────────────────────
+                  PUBLIC AUTH ROUTES
+                  Accessible ONLY when NOT logged in.
+                  If already logged in, redirects to / or /recruiter/dashboard.
+                 ───────────────────────────────────────────────────────────── */}
+              <Route element={<PublicRoute />}>
                 <Route path="/auth"          element={<SignUpPage defaultIsLogin={true} />} />
                 <Route path="/login"         element={<SignUpPage defaultIsLogin={true} />} />
                 <Route path="/signup"        element={<SignUpPage defaultIsLogin={false} />} />
-                <Route path="/register font"      element={<SignUpPage defaultIsLogin={false} />} />
                 <Route path="/register"      element={<SignUpPage defaultIsLogin={false} />} />
-                <Route path="/my-jobs font"            element={<MyJobsPage />} />
-                <Route path="/my-jobs"                 element={<MyJobsPage />} />
-                <Route path="/my-jobs/applied font"    element={<MyJobsPage />} />
-                <Route path="/my-jobs/applied"         element={<MyJobsPage />} />
-                <Route path="/my-jobs/saved font"      element={<MyJobsPage />} />
-                <Route path="/my-jobs/saved font"      element={<MyJobsPage />} />
-                <Route path="/my-jobs/saved"           element={<MyJobsPage />} />
-                <Route path="/my-jobs/interviews font" element={<MyJobsPage />} />
-                <Route path="/my-jobs/interviews"      element={<MyJobsPage />} />
-                <Route path="/my-jobs/offers font text"     element={<MyJobsPage />} />
-                <Route path="/career-hub"                 element={<CareerHubPage />} />
-                <Route path="/career-hub/resume-builder"  element={<CareerHubPage />} />
-                <Route path="/career-hub/resume-analyzer" element={<CareerHubPage />} />
-                <Route path="/career-hub/interview-coach" element={<CareerHubPage />} />
-                <Route path="/career-hub/assessments font"     element={<CareerHubPage />} />
-                <Route path="/career-hub/assessments"     element={<CareerHubPage />} />
-                <Route path="/career-hub/roadmaps"        element={<CareerHubPage />} />
-                <Route path="/career-hub/salary-insights" element={<CareerHubPage />} />
-                <Route path="/resume-builder"             element={<CareerHubPage />} />
-                <Route path="/resume-analyzer"            element={<ResumeAnalyzerMain />} />
-                <Route path="/mock-interview"             element={<MockInterviewMain />} />
-                <Route path="/interview-coach"            element={<CareerHubPage />} />
-                <Route path="/assessments"                element={<CareerHubPage />} />
-                <Route path="/roadmaps"                   element={<CareerHubPage />} />
-                <Route path="/salary-insights"            element={<CareerHubPage />} />
-                <Route path="/profile"                 element={<ProfilePage />} />
-                <Route path="/reset-password font" element={<ResetPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/notifications"  element={<NotificationsPage />} />
-                <Route path="/messages font"     element={<MessagesPage />} />
-                <Route path="/messages font text"element={<MessagesPage />} />
-                <Route path="/messages"       element={<MessagesPage />} />
-                <Route path="/settings"       element={<SettingsPage />} />
+              </Route>
 
-                {/* Recruiter Studio Routes */}
-                <Route path="/dashboard font"            element={<RecruiterDashboardPage />} />
-                <Route path="/dashboard"                 element={<RecruiterDashboardPage />} />
-                <Route path="/recruiter/dashboard font"   element={<RecruiterDashboardPage />} />
-                <Route path="/recruiter/dashboard"      element={<RecruiterDashboardPage />} />
-                <Route path="/recruiter/jobs"           element={<RecruiterJobsPage />} />
-                <Route path="/recruiter/jobs/manage font"    element={<RecruiterJobsPage />} />
-                <Route path="/recruiter/jobs/manage"    element={<RecruiterJobsPage />} />
-                <Route path="/recruiter/jobs/featured"  element={<RecruiterJobsPage />} />
-                <Route path="/recruiter/jobs/archived font"  element={<RecruiterJobsPage />} />
-                <Route path="/recruiter/jobs/archived"  element={<RecruiterJobsPage />} />
-                <Route path="/recruiter/applications"   element={<RecruiterApplicationsPage />} />
-                <Route path="/recruiter/candidates/applications" element={<RecruiterApplicationsPage />} />
-                <Route path="/recruiter/candidates"     element={<RecruiterCandidatesPage />} />
-                <Route path="/recruiter/interviews font"    element={<RecruiterInterviewsPage />} />
-                <Route path="/recruiter/interviews"     element={<RecruiterInterviewsPage />} />
-                <Route path="/recruiter/company"        element={<RecruiterCompanyPage />} />
-                <Route path="/recruiter/analytics"      element={<RecruiterAnalyticsPage />} />
-                <Route path="/recruiter/settings font"     element={<RecruiterSettingsPage />} />
-                <Route path="/recruiter/settings"      element={<RecruiterSettingsPage />} />
-                <Route path="/recruiter/messages"      element={<RecruiterMessagesPage />} />
+              {/* ─────────────────────────────────────────────────────────────
+                  PROTECTED APPLICATION ROUTES
+                  Guarded — redirects unauthenticated users to /login first.
+                 ───────────────────────────────────────────────────────────── */}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<Layout />}>
+                  {/* Candidate / Job Seeker Pages */}
+                  <Route path="/"              element={<Home />} />
+                  <Route path="/find-jobs"     element={<FindJobs />} />
+                  <Route path="/find-talent"   element={<FindTalent />} />
+                  <Route path="/profiles"      element={<Profile />} />
+                  <Route path="/upload-job"    element={<UploadJob />} />
+                  <Route path="/talent-profile" element={<TalentProfilePage />} />
+                  <Route path="/talent-profile/:id" element={<TalentProfilePage />} />
+                  <Route path="/about"         element={<About />} />
+                  <Route path="/jobs/:id"      element={<JobDetail />} />
+                  <Route path="/apply-jobs"    element={<ApplyJobPage />} />
+                  <Route path="/company/:id"   element={<CompanyPage />} />
+                  <Route path="/posted-job"    element={<PostedJobPage />} />
 
-                <Route path="*"             element={<NotFound />} />
+                  {/* My Jobs Section */}
+                  <Route path="/my-jobs"                 element={<MyJobsPage />} />
+                  <Route path="/my-jobs/applied"         element={<MyJobsPage />} />
+                  <Route path="/my-jobs/saved"           element={<MyJobsPage />} />
+                  <Route path="/my-jobs/interviews"      element={<MyJobsPage />} />
+
+                  {/* Career Hub & AI Suite */}
+                  <Route path="/career-hub"                 element={<CareerHubPage />} />
+                  <Route path="/career-hub/resume-builder"  element={<CareerHubPage />} />
+                  <Route path="/career-hub/resume-analyzer" element={<CareerHubPage />} />
+                  <Route path="/career-hub/interview-coach" element={<CareerHubPage />} />
+                  <Route path="/career-hub/assessments"     element={<CareerHubPage />} />
+                  <Route path="/career-hub/roadmaps"        element={<CareerHubPage />} />
+                  <Route path="/career-hub/salary-insights" element={<CareerHubPage />} />
+                  <Route path="/resume-builder"             element={<CareerHubPage />} />
+                  <Route path="/resume-analyzer"            element={<ResumeAnalyzerMain />} />
+                  <Route path="/mock-interview"             element={<MockInterviewMain />} />
+                  <Route path="/interview-coach"            element={<CareerHubPage />} />
+                  <Route path="/assessments"                element={<CareerHubPage />} />
+                  <Route path="/roadmaps"                   element={<CareerHubPage />} />
+                  <Route path="/salary-insights"            element={<CareerHubPage />} />
+
+                  {/* Profile, Notifications, Messages & Settings */}
+                  <Route path="/profile"        element={<ProfilePage />} />
+                  <Route path="/notifications"  element={<NotificationsPage />} />
+                  <Route path="/messages"       element={<MessagesPage />} />
+                  <Route path="/settings"       element={<SettingsPage />} />
+
+                  {/* Recruiter Studio Routes */}
+                  <Route path="/dashboard"                element={<RecruiterDashboardPage />} />
+                  <Route path="/recruiter/dashboard"      element={<RecruiterDashboardPage />} />
+                  <Route path="/recruiter/jobs"           element={<RecruiterJobsPage />} />
+                  <Route path="/recruiter/jobs/manage"    element={<RecruiterJobsPage />} />
+                  <Route path="/recruiter/jobs/featured"  element={<RecruiterJobsPage />} />
+                  <Route path="/recruiter/jobs/archived"  element={<RecruiterJobsPage />} />
+                  <Route path="/recruiter/applications"   element={<RecruiterApplicationsPage />} />
+                  <Route path="/recruiter/candidates/applications" element={<RecruiterApplicationsPage />} />
+                  <Route path="/recruiter/candidates"     element={<RecruiterCandidatesPage />} />
+                  <Route path="/recruiter/interviews"     element={<RecruiterInterviewsPage />} />
+                  <Route path="/recruiter/company"        element={<RecruiterCompanyPage />} />
+                  <Route path="/recruiter/analytics"      element={<RecruiterAnalyticsPage />} />
+                  <Route path="/recruiter/settings"      element={<RecruiterSettingsPage />} />
+                  <Route path="/recruiter/messages"      element={<RecruiterMessagesPage />} />
+
+                  <Route path="*" element={<NotFound />} />
+                </Route>
               </Route>
             </Routes>
           </Suspense>

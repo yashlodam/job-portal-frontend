@@ -54,7 +54,7 @@ const DreamJob = memo(() => {
 
   const handleSearch = useCallback(
     (e) => {
-      e.preventDefault();
+      e?.preventDefault();
       const params = new URLSearchParams();
       if (jobTitle.trim()) params.set("keyword", jobTitle.trim());
       if (location.trim()) params.set("city", location.trim());
@@ -120,54 +120,60 @@ const DreamJob = memo(() => {
               Discover thousands of verified tech opportunities, auto-generate tailored AI cover letters, track applications in real time, and get hired faster.
             </motion.p>
 
-            {/* ── SEARCH FORM ── */}
+            {/* ── ULTRA-PREMIUM SEARCH FORM ── */}
             <motion.form
               variants={fadeUp}
-              className="relative w-full max-w-3xl my-6 sm:my-8"
+              className="relative w-full max-w-2xl my-7 sm:my-9"
               onSubmit={handleSearch}
             >
-              {/* Outer Ambient Glow Halo */}
+              {/* Outer Ambient Glow */}
               <div
-                className="pointer-events-none absolute -inset-3 rounded-3xl md:rounded-full bg-gradient-to-r from-indigo-600/35 via-purple-600/30 to-pink-500/30 opacity-90 blur-2xl"
+                className="pointer-events-none absolute -inset-2 rounded-3xl md:rounded-full bg-gradient-to-r from-indigo-600/30 via-purple-600/25 to-pink-500/25 blur-xl"
                 aria-hidden="true"
               />
 
-              <div className="relative overflow-hidden rounded-3xl md:rounded-full border border-indigo-500/40 bg-[#0c1222]/95 backdrop-blur-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] p-2.5 sm:p-3">
+              {/* Search Container */}
+              <div className="relative rounded-3xl md:rounded-full border border-white/15 bg-[#0b101e]/90 p-3 sm:p-3.5 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] transition-all duration-300 hover:border-indigo-500/50">
                 <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-0">
-                  {/* Job title input */}
-                  <div className="flex h-12 flex-1 items-center gap-3 px-5">
-                    <Search size={19} className="shrink-0 text-indigo-400" />
+                  
+                  {/* Job Title Input Box */}
+                  <div className="flex h-12 md:h-11 flex-1 items-center gap-3 rounded-2xl md:rounded-none bg-white/[0.04] md:bg-transparent px-4 border border-white/5 md:border-none">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400">
+                      <Search size={16} />
+                    </div>
                     <input
                       type="text"
                       value={jobTitle}
                       onChange={(e) => setJobTitle(e.target.value)}
-                      placeholder="Job title, skill or keyword..."
-                      className="w-full bg-transparent text-xs sm:text-sm text-white border-0 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-slate-400 font-medium"
+                      placeholder="Job title, skill or keyword…"
+                      className="w-full bg-transparent text-xs sm:text-sm text-white placeholder:text-slate-400 font-medium outline-none border-none ring-0 focus:outline-none focus:ring-0 focus:border-none shadow-none"
                     />
                   </div>
 
-                  {/* Vertical Divider Line */}
-                  <div className="hidden md:block h-7 w-px bg-white/15 shrink-0 mx-4" />
+                  {/* Vertical Divider (Desktop) */}
+                  <div className="hidden md:block h-8 w-px bg-white/10 shrink-0 mx-2" />
 
-                  {/* Location input */}
-                  <div className="flex h-12 flex-1 items-center gap-3 px-5">
-                    <MapPin size={19} className="shrink-0 text-purple-400" />
+                  {/* Location Input Box */}
+                  <div className="flex h-12 md:h-11 flex-1 items-center gap-3 rounded-2xl md:rounded-none bg-white/[0.04] md:bg-transparent px-4 border border-white/5 md:border-none">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400">
+                      <MapPin size={16} />
+                    </div>
                     <input
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      placeholder="City, state or remote..."
-                      className="w-full bg-transparent text-xs sm:text-sm text-white border-0 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-slate-400 font-medium"
+                      placeholder="City, state or remote…"
+                      className="w-full bg-transparent text-xs sm:text-sm text-white placeholder:text-slate-400 font-medium outline-none border-none ring-0 focus:outline-none focus:ring-0 focus:border-none shadow-none"
                     />
                   </div>
 
-                  {/* Search Button */}
+                  {/* Submit Button */}
                   <button
                     type="submit"
-                    className="inline-flex h-12 sm:h-11 items-center justify-center gap-2 rounded-2xl md:rounded-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 px-8 text-xs font-black uppercase tracking-wider text-white shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] hover:scale-105 transition-all duration-300 cursor-pointer shrink-0"
+                    className="inline-flex h-12 md:h-11 w-full md:w-auto items-center justify-center gap-2 rounded-2xl md:rounded-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-7 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shrink-0 font-satoshi"
                   >
                     <Sparkles size={15} className="text-amber-300 fill-amber-300/20" />
-                    Search Jobs
+                    <span>Search Jobs</span>
                   </button>
                 </div>
               </div>

@@ -192,7 +192,7 @@ function About() {
             transition={{ duration: 0.5 }}
             className="flex justify-center"
           >
-            <PageBadge>About Velora</PageBadge>
+            <PageBadge>About JobPortal AI</PageBadge>
           </motion.div>
 
           <motion.h1

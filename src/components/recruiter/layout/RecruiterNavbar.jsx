@@ -1,18 +1,31 @@
 /**
  * src/components/recruiter/layout/RecruiterNavbar.jsx
  *
- * Top Navbar for Recruiter Dashboard with Search, Notification Bell, and Profile controls.
+ * Top Navbar for Recruiter Dashboard with Search, Messages, Notification Bell, and Profile controls.
  */
 
-import React from "react";
-import { Link } from "react-router-dom";
-import { Menu, PlusCircle, Sparkles } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, PlusCircle, Sparkles, MessageSquare } from "lucide-react";
 import NotificationBell from "../../../features/notifications/components/NotificationBell";
 import ProfileMenu from "../../../Header/ProfileMenu";
 import { useAppSelector } from "../../../State/Store";
+import { getUnreadCountApi } from "../../../api/chatApi";
 
 export default function RecruiterNavbar({ onOpenMobileSidebar }) {
-  const { user } = useAppSelector((state) => state.auth);
+  const user = useAppSelector((state) => state.auth.profile);
+  const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchUnread = () => {
+      getUnreadCountApi().then(setUnreadCount).catch(() => {});
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   return (
     <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#070b12]/80 px-4 sm:px-6 backdrop-blur-2xl">
@@ -20,7 +33,7 @@ export default function RecruiterNavbar({ onOpenMobileSidebar }) {
       <div className="flex items-center gap-3">
         <button
           onClick={onOpenMobileSidebar}
-          className="flex md:hidden h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition"
+          className="flex md:hidden h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition cursor-pointer"
           aria-label="Open sidebar"
         >
           <Menu className="h-5 w-5" />
@@ -28,7 +41,7 @@ export default function RecruiterNavbar({ onOpenMobileSidebar }) {
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3 ml-4">
+      <div className="flex items-center gap-2 sm:gap-3 ml-4">
         {/* Post Job Quick CTA */}
         <Link
           to="/upload-job"
@@ -42,6 +55,21 @@ export default function RecruiterNavbar({ onOpenMobileSidebar }) {
         <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 text-[11px] font-bold text-indigo-400">
           <Sparkles className="h-3 w-3" /> Recruiter
         </span>
+
+        {/* Messages Quick Icon Button */}
+        <button
+          type="button"
+          onClick={() => navigate("/recruiter/messages")}
+          title="Candidate Messages"
+          className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+        >
+          <MessageSquare size={18} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-lg animate-pulse">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </button>
 
         {/* Notification Bell Integration */}
         <NotificationBell />

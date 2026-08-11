@@ -100,7 +100,7 @@ function SignUp({ setIsLogin }) {
       await dispatch(signup(payload)).unwrap();
 
       notifications.show({
-        title: "Welcome to Velora! 🎉",
+        title: "Welcome to JobPortal AI! 🎉",
         message: "Your account has been created successfully. Please sign in with your credentials.",
         color: "indigo",
         radius: "md",
@@ -130,10 +130,10 @@ function SignUp({ setIsLogin }) {
       {/* Header */}
       <div>
         <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-[11px] font-bold text-indigo-400 mb-3">
-          <Sparkles className="h-3 w-3" /> Create Your Velora Account
+          <Sparkles className="h-3 w-3" /> Create Your JobPortal AI Account
         </div>
         <h1 className="font-satoshi text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          Join Velora Today
+          Join JobPortal AI Today
         </h1>
         <p className="mt-1.5 text-xs sm:text-sm text-slate-400">
           Discover opportunities or hire top talent using AI matching.

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { TextInput, PasswordInput, Button, Checkbox } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Mail, Lock, ArrowRight, CheckCircle2, CircleAlert, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAppDispatch } from "../State/Store";
 import { getUserProfile, signin } from "../State/AuthSlic";
 
@@ -36,6 +36,8 @@ function Login({ setIsLogin }) {
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -81,7 +83,7 @@ function Login({ setIsLogin }) {
 
       notifications.show({
         title: `Welcome back, ${profile?.name || "User"}! 👋`,
-        message: "You have successfully signed in to Velora.",
+        message: "You have successfully signed in to JobPortal AI.",
         color: "indigo",
         radius: "md",
         autoClose: 3000,
@@ -94,10 +96,12 @@ function Login({ setIsLogin }) {
         profile?.accountType === "RECRUITER" ||
         profile?.role === "RECRUITER";
 
+      const origin = location.state?.from?.pathname;
+
       if (isEmployer) {
-        navigate("/recruiter/dashboard");
+        navigate(origin && origin.startsWith("/recruiter") ? origin : "/recruiter/dashboard", { replace: true });
       } else {
-        navigate("/");
+        navigate(origin && !origin.startsWith("/login") && !origin.startsWith("/signup") && !origin.startsWith("/auth") ? origin : "/", { replace: true });
       }
     } catch (error) {
       notifications.show({
@@ -121,7 +125,7 @@ function Login({ setIsLogin }) {
       {/* Header */}
       <div>
         <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-[11px] font-bold text-indigo-400 mb-3">
-          <Sparkles className="h-3 w-3" /> Velora Account Sign In
+          <Sparkles className="h-3 w-3" /> JobPortal AI Account Sign In
         </div>
         <h1 className="font-satoshi text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
           Welcome back
@@ -134,38 +138,33 @@ function Login({ setIsLogin }) {
       {/* Form */}
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <TextInput
-          label="Email address"
+          label="Email Address"
+          placeholder="you@example.com"
+          type="email"
           value={formData.email}
           onChange={(e) => handleChange("email", e.target.value)}
-          placeholder="name@company.com"
-          leftSection={<Mail size={16} className="text-slate-400" />}
-          size="md"
-          styles={fieldStyles}
           error={errors.email}
+          leftSection={<Mail size={16} className="text-slate-400" />}
+          styles={fieldStyles}
+          required
         />
 
         <PasswordInput
           label="Password"
+          placeholder="Enter your password"
           value={formData.password}
           onChange={(e) => handleChange("password", e.target.value)}
-          placeholder="Enter your password"
-          leftSection={<Lock size={16} className="text-slate-400" />}
-          size="md"
-          styles={fieldStyles}
           error={errors.password}
+          leftSection={<Lock size={16} className="text-slate-400" />}
+          styles={fieldStyles}
+          required
         />
 
         <div className="flex items-center justify-between pt-1">
-          <Checkbox
-            radius="sm"
-            color="indigo"
-            label={<span className="text-xs text-slate-400">Remember me for 30 days</span>}
-          />
-
           <button
-            onClick={() => navigate("/reset-password")}
             type="button"
-            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+            onClick={() => navigate("/reset-password")}
+            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
           >
             Forgot password?
           </button>
@@ -182,7 +181,7 @@ function Login({ setIsLogin }) {
           rightSection={!loading && <ArrowRight size={16} />}
           className="!bg-gradient-to-r !from-indigo-600 !to-violet-600 hover:!from-indigo-500 hover:!to-violet-500 !text-white !font-bold !shadow-lg !shadow-indigo-500/25 transition-all mt-2 cursor-pointer"
         >
-          {loading ? "Signing In..." : "Sign In to Velora"}
+          {loading ? "Signing In..." : "Sign In to JobPortal AI"}
         </Button>
       </form>
 

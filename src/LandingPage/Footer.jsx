@@ -99,7 +99,7 @@ export default function Footer() {
                 <Sparkles size={20} className="text-white fill-white/20" />
               </div>
               <span className="text-2xl font-black text-white font-satoshi tracking-tight">
-                Velora <span className="text-indigo-400">Jobs</span>
+                JobPortal <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">AI</span>
               </span>
             </Link>
 
@@ -189,7 +189,7 @@ export default function Footer() {
         {/* Bottom Copyright & Live Status Row */}
         <div className="mt-14 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 font-satoshi">
           <p className="text-xs text-slate-400 font-medium flex items-center gap-1">
-            © {new Date().getFullYear()} Velora Jobs Platform. Engineered for excellence.
+            © {new Date().getFullYear()} JobPortal AI Platform. Engineered for excellence.
           </p>
 
           <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 shadow-sm">
