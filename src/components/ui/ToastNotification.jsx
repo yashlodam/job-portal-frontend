@@ -97,7 +97,7 @@ export const ToastProvider = ({ children }) => {
     );
   }, []);
 
-  const toastMethods = {
+  const toastMethods = React.useMemo(() => ({
     success: (msg, duration = 3500, options) => addToast(msg, "success", duration, options),
     error: (msg, duration = 4500, options) => addToast(msg, "error", duration, options),
     warning: (msg, duration = 4000, options) => addToast(msg, "warning", duration, options),
@@ -110,7 +110,7 @@ export const ToastProvider = ({ children }) => {
       timersRef.current = {};
       setToasts([]);
     },
-  };
+  }), [addToast, removeToast, updateToast]);
 
   // Bind global singleton
   useEffect(() => {
@@ -145,9 +145,9 @@ export const ToastProvider = ({ children }) => {
               <motion.div
                 key={t.id}
                 layout
-                initial={{ opacity: 0, y: 30, scale: 0.9, filter: "blur(4px)" }}
-                animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -20, scale: 0.9, filter: "blur(4px)" }}
+                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.9 }}
                 transition={{ type: "spring", stiffness: 450, damping: 30 }}
                 className={`pointer-events-auto p-4 rounded-2xl border backdrop-blur-2xl shadow-2xl flex items-start justify-between gap-3 text-xs sm:text-sm font-bold relative overflow-hidden group ${bgClasses}`}
               >

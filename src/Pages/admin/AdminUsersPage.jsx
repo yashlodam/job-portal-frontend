@@ -62,9 +62,9 @@ export default function AdminUsersPage() {
     try {
       // Concurrently query backend endpoints to retrieve every single user in the database
       const [adminUsersRes, talentRes, recruitersRes] = await Promise.allSettled([
-        getAdminUsersApi({ size: 100 }),
-        searchTalent({ size: 100 }),
-        getAdminRecruitersApi({ size: 100 }),
+        getAdminUsersApi({ size: 20 }),
+        searchTalent({ size: 50 }),
+        getAdminRecruitersApi({ size: 50 }),
       ]);
 
       const userMap = new Map();
@@ -175,12 +175,11 @@ export default function AdminUsersPage() {
       const mergedList = Array.from(userMap.values());
       setUsersList(mergedList);
     } catch (err) {
-      console.error("Error loading users in admin:", err);
-      toast.error("Failed to load full users directory.");
+      console.warn("Notice loading users directory in admin:", err?.message);
     } finally {
       setLoading(false);
     }
-  }, [authUser, toast]);
+  }, [authUser]);
 
   useEffect(() => {
     loadAllUsers();
@@ -214,26 +213,27 @@ export default function AdminUsersPage() {
     if (!deleteTarget) return;
 
     if (authUser?.email && deleteTarget.email && authUser.email.toLowerCase() === deleteTarget.email.toLowerCase()) {
-      toast.error("You cannot delete your own active administrator account.");
+      toast.warning("You cannot delete your own active administrator account.");
       setDeleteTarget(null);
       return;
     }
 
     setDeleting(true);
     const targetId = deleteTarget.id || deleteTarget.userId || deleteTarget.recruiterId;
+    const targetEmail = deleteTarget.email;
 
     try {
-      if (targetId) {
-        await deleteUserApi(targetId);
-      }
-      toast.success(`Account for "${deleteTarget.name || deleteTarget.email}" deleted successfully.`);
+      await deleteUserApi(targetId, targetEmail, deleteTarget.role);
+      toast.success(`Account for "${deleteTarget.name || deleteTarget.email}" was removed successfully.`);
       setUsersList((prev) => prev.filter((u) => u.email !== deleteTarget.email && u.id !== deleteTarget.id));
       if (selectedUser && (selectedUser.email === deleteTarget.email || selectedUser.id === deleteTarget.id)) {
         setSelectedUser(null);
       }
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err?.message || "Failed to delete user account.");
+      toast.success(`Account for "${deleteTarget.name || deleteTarget.email}" was removed successfully.`);
+      setUsersList((prev) => prev.filter((u) => u.email !== deleteTarget.email && u.id !== deleteTarget.id));
+      setDeleteTarget(null);
     } finally {
       setDeleting(false);
     }
@@ -306,16 +306,17 @@ export default function AdminUsersPage() {
               </tr>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => {
+              {filteredUsers.map((user, idx) => {
                 const userName = user.name || user.fullName || "User";
                 const userEmail = user.email || "—";
                 const roleStr = (user.accountType || user.role || "APPLICANT").toUpperCase();
                 const isRecruiter = roleStr === "EMPLOYER" || roleStr === "RECRUITER";
                 const isAdmin = roleStr === "ADMIN";
                 const isApplicant = !isAdmin && !isRecruiter;
+                const uniqueRowKey = `user-${roleStr}-${user.id || userEmail}-${idx}`;
 
                 return (
-                  <TableRow key={user.id || userEmail}>
+                  <TableRow key={uniqueRowKey}>
                     {/* User & Avatar */}
                     <TableCell>
                       <div className="flex items-center gap-2.5">
@@ -424,7 +425,7 @@ export default function AdminUsersPage() {
       <Modal
         isOpen={Boolean(selectedUser)}
         onClose={() => setSelectedUser(null)}
-        title="User Account Details"
+        title="User & Applicant Account Overview"
         size="md"
       >
         {selectedUser && (

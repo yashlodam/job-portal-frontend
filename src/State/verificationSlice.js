@@ -92,9 +92,11 @@ export const fetchAdminRecruiterDetails = createAsyncThunk(
 
 export const approveRecruiter = createAsyncThunk(
   "verification/approveRecruiter",
-  async (id, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
     try {
-      const data = await approveRecruiterApi(id);
+      const id = typeof payload === "object" ? payload.id || payload.recruiterId || payload.userId : payload;
+      const reason = typeof payload === "object" ? payload.reason : undefined;
+      const data = await approveRecruiterApi(id, reason);
       return { id, data };
     } catch (error) {
       return rejectWithValue(
@@ -109,8 +111,10 @@ export const approveRecruiter = createAsyncThunk(
 
 export const rejectRecruiter = createAsyncThunk(
   "verification/rejectRecruiter",
-  async ({ id, reason }, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
     try {
+      const id = typeof payload === "object" ? payload.id || payload.recruiterId || payload.userId : payload;
+      const reason = typeof payload === "object" ? payload.reason : undefined;
       const data = await rejectRecruiterApi(id, reason);
       return { id, reason, data };
     } catch (error) {
@@ -126,8 +130,10 @@ export const rejectRecruiter = createAsyncThunk(
 
 export const suspendRecruiter = createAsyncThunk(
   "verification/suspendRecruiter",
-  async ({ id, reason }, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
     try {
+      const id = typeof payload === "object" ? payload.id || payload.recruiterId || payload.userId : payload;
+      const reason = typeof payload === "object" ? payload.reason : undefined;
       const data = await suspendRecruiterApi(id, reason);
       return { id, reason, data };
     } catch (error) {
@@ -269,13 +275,15 @@ const verificationSlice = createSlice({
         state.successMessage = "Recruiter approved successfully.";
         const { id } = action.payload;
         state.adminRecruiters.content = state.adminRecruiters.content.map((r) =>
-          (r.id === id || r.userId === id || r._id === id)
-            ? { ...r, verificationStatus: "APPROVED", status: "APPROVED" }
+          (r.recruiterId === id || r.id === id || r.userId === id || r._id === id)
+            ? { ...r, verificationStatus: "APPROVED", status: "APPROVED", isActive: true, is_active: true }
             : r
         );
-        if (state.selectedRecruiter && (state.selectedRecruiter.id === id || state.selectedRecruiter.userId === id)) {
+        if (state.selectedRecruiter && (state.selectedRecruiter.recruiterId === id || state.selectedRecruiter.id === id || state.selectedRecruiter.userId === id)) {
           state.selectedRecruiter.verificationStatus = "APPROVED";
           state.selectedRecruiter.status = "APPROVED";
+          state.selectedRecruiter.isActive = true;
+          state.selectedRecruiter.is_active = true;
         }
       })
       .addCase(approveRecruiter.rejected, (state, action) => {
@@ -293,14 +301,16 @@ const verificationSlice = createSlice({
         state.successMessage = "Recruiter verification rejected.";
         const { id, reason } = action.payload;
         state.adminRecruiters.content = state.adminRecruiters.content.map((r) =>
-          (r.id === id || r.userId === id || r._id === id)
-            ? { ...r, verificationStatus: "REJECTED", status: "REJECTED", rejectionReason: reason }
+          (r.recruiterId === id || r.id === id || r.userId === id || r._id === id)
+            ? { ...r, verificationStatus: "REJECTED", status: "REJECTED", rejectionReason: reason, isActive: false, is_active: false }
             : r
         );
-        if (state.selectedRecruiter && (state.selectedRecruiter.id === id || state.selectedRecruiter.userId === id)) {
+        if (state.selectedRecruiter && (state.selectedRecruiter.recruiterId === id || state.selectedRecruiter.id === id || state.selectedRecruiter.userId === id)) {
           state.selectedRecruiter.verificationStatus = "REJECTED";
           state.selectedRecruiter.status = "REJECTED";
           state.selectedRecruiter.rejectionReason = reason;
+          state.selectedRecruiter.isActive = false;
+          state.selectedRecruiter.is_active = false;
         }
       })
       .addCase(rejectRecruiter.rejected, (state, action) => {

@@ -72,6 +72,9 @@ export default function RecruiterCompanyPage() {
     dispatch(getMyCompany());
   }, [dispatch]);
 
+  const userEmail = user?.email || "";
+  const companyId = myCompany?.id || myCompany?._id;
+
   useEffect(() => {
     if (myCompany) {
       setFormData({
@@ -82,16 +85,14 @@ export default function RecruiterCompanyPage() {
         companySize: myCompany.companySize || "50-200 Employees",
         headquarters: myCompany.headquarters || "Mumbai, Maharashtra, India",
         foundedYear: myCompany.foundedYear || "2020",
-        email: myCompany.email || user?.email || "",
+        email: myCompany.email || userEmail || "",
         phone: myCompany.phone || "+91 98765 43210",
         description: myCompany.description || "",
         mission: myCompany.mission || "",
         benefits: myCompany.benefits || "",
       });
-    } else if (!loading) {
-      setIsEditing(true);
     }
-  }, [myCompany, user, loading]);
+  }, [companyId, userEmail]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

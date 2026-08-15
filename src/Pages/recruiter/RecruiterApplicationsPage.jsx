@@ -109,11 +109,13 @@ export default function RecruiterApplicationsPage() {
     dispatch(getMyJobs());
   }, [dispatch]);
 
+  const firstJobId = myJobs[0]?.id;
+
   useEffect(() => {
-    if (myJobs.length > 0 && !selectedJobId) {
-      setSelectedJobId(myJobs[0].id);
+    if (firstJobId && !selectedJobId) {
+      setSelectedJobId(firstJobId);
     }
-  }, [myJobs, selectedJobId]);
+  }, [firstJobId, selectedJobId]);
 
   // Fetch job applications + candidates with match scores
   useEffect(() => {

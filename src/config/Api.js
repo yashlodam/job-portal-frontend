@@ -84,6 +84,8 @@ api.interceptors.response.use(
       error.userMessage = backendMsg;
     }
 
+    const status = error.response?.status;
+
     switch (status) {
       case 401:
         if (localStorage.getItem("jwt")) {

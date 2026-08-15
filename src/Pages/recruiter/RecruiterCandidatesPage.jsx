@@ -106,14 +106,15 @@ export default function RecruiterCandidatesPage() {
     dispatch(getMyJobs());
   }, [dispatch]);
 
+  const primaryJobId = myJobs.length > 0 ? (selectedJobId === "all" ? myJobs[0].id : selectedJobId) : null;
+
   // Fetch match scores for selected job
   useEffect(() => {
-    if (myJobs.length > 0) {
-      const targetJobId = selectedJobId === "all" ? myJobs[0].id : selectedJobId;
-      fetchMatchScoresForJob(targetJobId);
-      dispatch(fetchJobApplicationsThunk({ jobId: targetJobId }));
+    if (primaryJobId) {
+      fetchMatchScoresForJob(primaryJobId);
+      dispatch(fetchJobApplicationsThunk({ jobId: primaryJobId }));
     }
-  }, [dispatch, myJobs, selectedJobId]);
+  }, [dispatch, primaryJobId, sortBy]);
 
   const fetchMatchScoresForJob = async (jobId) => {
     try {
