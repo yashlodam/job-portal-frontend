@@ -2,11 +2,16 @@
  * src/components/recommendation/RecommendedJobsSection.jsx
  *
  * Applicant-facing Personalized Job Recommendations feed.
- * Features:
- * - Deterministic scoring engine integration (skills, location, experience, freshness).
- * - Instant Quick-Skill Onboarding for first-time / new users.
- * - Interactive Match Breakdown Modal.
- * - 5-tier color coded match badges.
+ * Synced with updated backend API response shape:
+ *  - matchedSkills         → matched required skills
+ *  - missingSkills         → missing required skills
+ *  - matchedPreferredSkills → preferred skills candidate has (bonus)
+ *  - skillMatchScore       → 0-100
+ *  - experienceMatchScore  → 0-100
+ *  - locationMatchScore    → 0-100
+ *  - freshnessScore        → 0-100 (new)
+ *  - matchReason           → human-readable string
+ *  - matchGrade            → EXCELLENT / GREAT / GOOD / FAIR / LOW
  */
 
 import React, { useEffect, useState } from "react";
@@ -23,15 +28,16 @@ import {
   TrendingUp,
   CheckCircle2,
   XCircle,
-  SlidersHorizontal,
+  Star,
   Flame,
-  Award,
   ArrowRight,
-  Info,
   RefreshCw,
   Zap,
   Plus,
   Check,
+  Clock,
+  Target,
+  Award,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../State/Store";
 import { fetchRecommendations } from "../../State/recommendationSlice";
@@ -54,21 +60,89 @@ const POPULAR_SKILLS = [
   "DevOps",
 ];
 
+// ── Grade helpers ──────────────────────────────────────────────────────────────
+
+function getMatchColors(percentage) {
+  if (percentage >= 85)
+    return {
+      bg: "bg-emerald-500/15",
+      text: "text-emerald-400",
+      border: "border-emerald-500/30",
+      bar: "bg-emerald-500",
+      badgeBg: "bg-emerald-500",
+      badgeText: "text-slate-950",
+    };
+  if (percentage >= 70)
+    return {
+      bg: "bg-indigo-500/15",
+      text: "text-indigo-400",
+      border: "border-indigo-500/30",
+      bar: "bg-indigo-500",
+      badgeBg: "bg-indigo-500",
+      badgeText: "text-white",
+    };
+  if (percentage >= 55)
+    return {
+      bg: "bg-cyan-500/15",
+      text: "text-cyan-400",
+      border: "border-cyan-500/30",
+      bar: "bg-cyan-500",
+      badgeBg: "bg-cyan-500",
+      badgeText: "text-slate-950",
+    };
+  if (percentage >= 35)
+    return {
+      bg: "bg-amber-500/15",
+      text: "text-amber-400",
+      border: "border-amber-500/30",
+      bar: "bg-amber-500",
+      badgeBg: "bg-amber-500",
+      badgeText: "text-slate-950",
+    };
+  return {
+    bg: "bg-rose-500/15",
+    text: "text-rose-400",
+    border: "border-rose-500/30",
+    bar: "bg-rose-500",
+    badgeBg: "bg-rose-500",
+    badgeText: "text-white",
+  };
+}
+
+function ScoreBar({ label, value, colorClass }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-[11px]">
+        <span className="text-slate-400 font-semibold">{label}</span>
+        <span className={`font-black ${colorClass}`}>{value}%</span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${value}%` }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className={`h-full rounded-full ${value >= 70 ? "bg-emerald-500" : value >= 40 ? "bg-amber-500" : "bg-rose-500"}`}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── Main Component ─────────────────────────────────────────────────────────────
+
 export default function RecommendedJobsSection({ limit = 10, showHeading = true, className = "" }) {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const toast = useToast();
 
-  const { recommendations, loading, error } = useAppSelector((state) => state.recommendations);
-  const { profile: authUser } = useAppSelector((state) => state.auth);
-  const { profile: userProfile } = useAppSelector((state) => state.profile);
-  const { savedJobs } = useAppSelector((state) => state.savedJob);
+  const { recommendations, loading } = useAppSelector((s) => s.recommendations);
+  const { profile: authUser } = useAppSelector((s) => s.auth);
+  const { profile: userProfile } = useAppSelector((s) => s.profile);
+  const { savedJobs } = useAppSelector((s) => s.savedJob);
 
   const [minMatch, setMinMatch] = useState(0);
-  const [selectedJobForModal, setSelectedJobForModal] = useState(null);
+  const [selectedJob, setSelectedJob] = useState(null);
   const [addingSkill, setAddingSkill] = useState(null);
 
-  // Active skills in candidate profile
   const candidateSkills = (userProfile?.skills || authUser?.skills || []).map((s) =>
     typeof s === "string" ? s.trim() : (s.name || "").trim()
   );
@@ -77,25 +151,20 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
     dispatch(fetchRecommendations({ limit, minMatch }));
   }, [dispatch, limit, minMatch]);
 
-  const handleRefresh = () => {
-    dispatch(fetchRecommendations({ limit, minMatch }));
-  };
+  const handleRefresh = () => dispatch(fetchRecommendations({ limit, minMatch }));
 
   const handleQuickAddSkill = async (skillName) => {
     if (candidateSkills.some((s) => s.toLowerCase() === skillName.toLowerCase())) {
       toast.info(`"${skillName}" is already in your profile.`);
       return;
     }
-
     setAddingSkill(skillName);
     try {
-      const updatedSkillsList = [...candidateSkills, skillName];
-      await dispatch(updateSkillsThunk({ skills: updatedSkillsList })).unwrap();
-      toast.success(`Added "${skillName}"! Recalculating recommendations…`);
-      // Refresh recommendations immediately
+      await dispatch(updateSkillsThunk({ skills: [...candidateSkills, skillName] })).unwrap();
+      toast.success(`Added "${skillName}"! Recalculating…`);
       dispatch(fetchRecommendations({ limit, minMatch }));
-    } catch (err) {
-      toast.error("Failed to add skill. Please try from Profile page.");
+    } catch {
+      toast.error("Failed to add skill. Try from Profile page.");
     } finally {
       setAddingSkill(null);
     }
@@ -104,70 +173,24 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
   const handleToggleSave = async (e, job) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const isSaved = savedJobs?.some((sj) => sj.job?.id === job.id || sj.id === job.id);
+    const alreadySaved = savedJobs?.some((sj) => sj.job?.id === job.id || sj.id === job.id);
     try {
-      if (isSaved) {
+      if (alreadySaved) {
         await dispatch(unsaveJobThunk(job.id)).unwrap();
         toast.info(`Removed "${job.jobTitle}" from saved jobs`);
       } else {
         await dispatch(saveJobThunk(job.id)).unwrap();
-        toast.success(`Saved "${job.jobTitle}" to your bookmarks`);
+        toast.success(`Saved "${job.jobTitle}" to bookmarks`);
       }
     } catch (err) {
       toast.error(err || "Failed to update saved job");
     }
   };
 
-  const getMatchGradeColor = (percentage) => {
-    if (percentage >= 85) {
-      return {
-        bg: "bg-emerald-500/15",
-        text: "text-emerald-400",
-        border: "border-emerald-500/30",
-        ring: "ring-emerald-500/20",
-        badge: "bg-emerald-500 text-slate-950",
-      };
-    }
-    if (percentage >= 70) {
-      return {
-        bg: "bg-indigo-500/15",
-        text: "text-indigo-400",
-        border: "border-indigo-500/30",
-        ring: "ring-indigo-500/20",
-        badge: "bg-indigo-500 text-white",
-      };
-    }
-    if (percentage >= 50) {
-      return {
-        bg: "bg-cyan-500/15",
-        text: "text-cyan-400",
-        border: "border-cyan-500/30",
-        ring: "ring-cyan-500/20",
-        badge: "bg-cyan-500 text-slate-950",
-      };
-    }
-    if (percentage >= 30) {
-      return {
-        bg: "bg-amber-500/15",
-        text: "text-amber-400",
-        border: "border-amber-500/30",
-        ring: "ring-amber-500/20",
-        badge: "bg-amber-500 text-slate-950",
-      };
-    }
-    return {
-      bg: "bg-rose-500/15",
-      text: "text-rose-400",
-      border: "border-rose-500/30",
-      ring: "ring-rose-500/20",
-      badge: "bg-rose-500 text-white",
-    };
-  };
-
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* ── Section Header ─────────────────────────────────────────────────── */}
+
+      {/* ── Section Header ──────────────────────────────────────────────────── */}
       {showHeading && (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/10 pb-4">
           <div>
@@ -179,43 +202,35 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               Recommended Jobs for You
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Ranked by your skills, experience fit, and work preferences.
+              Ranked by your skills, experience fit, location, and posting freshness.
             </p>
           </div>
 
-          {/* Filters & Refresh Controls */}
+          {/* Filters & Refresh */}
           <div className="flex items-center gap-2.5">
             <div className="flex items-center rounded-xl bg-white/5 border border-white/10 p-1 text-xs">
-              <button
-                onClick={() => setMinMatch(0)}
-                className={`px-3 py-1.5 rounded-lg font-bold transition ${
-                  minMatch === 0 ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white"
-                }`}
-              >
-                All Matches
-              </button>
-              <button
-                onClick={() => setMinMatch(50)}
-                className={`px-3 py-1.5 rounded-lg font-bold transition ${
-                  minMatch === 50 ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white"
-                }`}
-              >
-                50%+ Fit
-              </button>
-              <button
-                onClick={() => setMinMatch(75)}
-                className={`px-3 py-1.5 rounded-lg font-bold transition ${
-                  minMatch === 75 ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white"
-                }`}
-              >
-                75%+ Top
-              </button>
+              {[
+                { label: "All", value: 0 },
+                { label: "50%+ Fit", value: 50 },
+                { label: "75%+ Top", value: 75 },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setMinMatch(opt.value)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                    minMatch === opt.value
+                      ? "bg-indigo-600 text-white shadow"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
-
             <button
               onClick={handleRefresh}
-              title="Refresh recommendations"
               disabled={loading}
+              title="Refresh recommendations"
               className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
@@ -224,7 +239,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
         </div>
       )}
 
-      {/* ── New User Quick-Skill Onboarding Banner (If user has <= 2 skills) ── */}
+      {/* ── Quick-Skill Onboarding (new users with ≤ 2 skills) ──────────────── */}
       {candidateSkills.length <= 2 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -233,7 +248,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/30">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
@@ -241,7 +256,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                   ✨ Quick Start: Select your top skills to unlock instant matches
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Click any skill below to add it to your profile and immediately recalculate your match scores.
+                  Click any skill below to add it and immediately recalculate your match scores.
                 </p>
               </div>
             </div>
@@ -254,23 +269,21 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
             </Link>
           </div>
 
-          {/* Quick-add Skill Chips */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
             {POPULAR_SKILLS.map((skill) => {
               const isSelected = candidateSkills.some(
                 (s) => s.toLowerCase() === skill.toLowerCase()
               );
               const isAdding = addingSkill === skill;
-
               return (
                 <button
                   key={skill}
                   onClick={() => handleQuickAddSkill(skill)}
                   disabled={isSelected || isAdding}
-                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
                     isSelected
                       ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300 cursor-default"
-                      : "border-white/10 bg-white/5 text-slate-300 hover:bg-indigo-600 hover:border-indigo-500 hover:text-white shadow-sm"
+                      : "border-white/10 bg-white/5 text-slate-300 hover:bg-indigo-600 hover:border-indigo-500 hover:text-white shadow-sm cursor-pointer"
                   }`}
                 >
                   {isSelected ? (
@@ -278,7 +291,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                   ) : isAdding ? (
                     <RefreshCw className="h-3 w-3 animate-spin text-indigo-400" />
                   ) : (
-                    <Plus className="h-3 w-3 text-slate-400 group-hover:text-white" />
+                    <Plus className="h-3 w-3 text-slate-400" />
                   )}
                   <span>{skill}</span>
                 </button>
@@ -288,14 +301,11 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
         </motion.div>
       )}
 
-      {/* ── Loading Skeleton ────────────────────────────────────────────────── */}
+      {/* ── Loading Skeleton ─────────────────────────────────────────────────── */}
       {loading && recommendations.length === 0 && (
         <div className={`grid grid-cols-1 md:grid-cols-2 ${limit > 4 ? "xl:grid-cols-3" : "xl:grid-cols-2"} gap-5`}>
           {[1, 2, 3, 4].map((n) => (
-            <div
-              key={n}
-              className="rounded-2xl border border-white/10 bg-[#090d16] p-5 space-y-4 animate-pulse"
-            >
+            <div key={n} className="rounded-2xl border border-white/10 bg-[#090d16] p-5 space-y-4 animate-pulse">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 rounded-xl bg-white/10" />
@@ -316,7 +326,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
         </div>
       )}
 
-      {/* ── Empty State ────────────────────────────────────────────────────── */}
+      {/* ── Empty State ──────────────────────────────────────────────────────── */}
       {!loading && recommendations.length === 0 && (
         <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-[#090d16] p-8 sm:p-12 text-center space-y-4">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
@@ -349,10 +359,10 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
         </div>
       )}
 
-      {/* ── Recommendations Grid ────────────────────────────────────────────── */}
+      {/* ── Recommendations Grid ──────────────────────────────────────────────── */}
       <div className={`grid grid-cols-1 md:grid-cols-2 ${limit > 4 ? "xl:grid-cols-3" : "xl:grid-cols-2"} gap-5`}>
         {recommendations.map((job, idx) => {
-          const colors = getMatchGradeColor(job.matchPercentage);
+          const colors = getMatchColors(job.matchPercentage);
           const isSaved = savedJobs?.some((sj) => sj.job?.id === job.id || sj.id === job.id);
 
           return (
@@ -364,14 +374,14 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               className="group relative flex flex-col justify-between rounded-2xl border border-white/10 bg-[#090d16] hover:bg-[#0c1220] hover:border-indigo-500/30 transition-all p-5 shadow-lg shadow-black/20"
             >
               <div className="space-y-3.5">
-                {/* Header: Company + Title + Match Badge */}
+                {/* Company Logo + Title + Match Badge */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0">
                     <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
                       {job.companyLogo ? (
                         <img
                           src={job.companyLogo}
-                          alt={job.companyName || "Company"}
+                          alt={job.companyName}
                           className="h-full w-full object-contain p-1"
                         />
                       ) : (
@@ -391,7 +401,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                     </div>
                   </div>
 
-                  {/* Match Percentage Badge */}
+                  {/* Match Badge */}
                   <div className="flex flex-col items-end shrink-0">
                     <div
                       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-black text-xs border ${colors.bg} ${colors.text} ${colors.border}`}
@@ -408,8 +418,12 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                 {/* Metadata Pills */}
                 <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-0.5 border border-white/5">
-                    <MapPin className="h-3 w-3 text-slate-400" />
-                    {job.city ? `${job.city}${job.state ? `, ${job.state}` : ""}` : "Remote"}
+                    <MapPin className="h-3 w-3" />
+                    {job.workingMode === "REMOTE"
+                      ? "Remote"
+                      : job.city
+                      ? `${job.city}${job.state ? `, ${job.state}` : ""}`
+                      : "Flexible"}
                   </span>
 
                   {job.workingMode && (
@@ -420,7 +434,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
 
                   {job.minimumSalary && job.maximumSalary && (
                     <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 text-emerald-400 px-2 py-0.5 border border-emerald-500/20 font-semibold">
-                      ₹{(job.minimumSalary / 100000).toFixed(1)}-{(job.maximumSalary / 100000).toFixed(1)} LPA
+                      ₹{(job.minimumSalary / 100000).toFixed(1)}–{(job.maximumSalary / 100000).toFixed(1)} LPA
                     </span>
                   )}
 
@@ -429,32 +443,38 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                       <Flame className="h-3 w-3 text-rose-400 fill-rose-400" /> Urgent
                     </span>
                   )}
+
+                  {job.featured && !job.urgentHiring && (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 text-amber-300 px-2 py-0.5 border border-amber-500/30 text-[10px] font-extrabold uppercase">
+                      <Star className="h-3 w-3 text-amber-400 fill-amber-400" /> Featured
+                    </span>
+                  )}
                 </div>
 
-                {/* Reason Banner */}
+                {/* Why Recommended Banner */}
                 {job.matchReason && (
                   <div className="rounded-xl bg-white/[0.03] border border-white/5 px-3 py-2 text-[11px] text-slate-300 flex items-center justify-between gap-2">
                     <span className="truncate">
-                      💡 <strong className="text-white">Why Recommended:</strong> {job.matchReason}
+                      💡 <strong className="text-white">Why:</strong> {job.matchReason}
                     </span>
                     <button
-                      onClick={() => setSelectedJobForModal(job)}
+                      onClick={() => setSelectedJob(job)}
                       className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 shrink-0 underline ml-1 cursor-pointer"
                     >
-                      View Breakdown
+                      Details
                     </button>
                   </div>
                 )}
 
-                {/* Skills Preview */}
-                {job.matchedSkills && job.matchedSkills.length > 0 && (
+                {/* Matched Required Skills */}
+                {job.matchedSkills?.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 pt-1">
                     <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider mr-1">
                       Matched:
                     </span>
-                    {job.matchedSkills.slice(0, 4).map((skill, sIdx) => (
+                    {job.matchedSkills.slice(0, 4).map((skill, i) => (
                       <span
-                        key={sIdx}
+                        key={i}
                         className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300"
                       >
                         <CheckCircle2 className="h-2.5 w-2.5 text-emerald-400" />
@@ -462,22 +482,43 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                       </span>
                     ))}
                     {job.matchedSkills.length > 4 && (
-                      <span className="text-[10px] font-bold text-slate-500">
+                      <button
+                        onClick={() => setSelectedJob(job)}
+                        className="text-[10px] font-bold text-slate-400 hover:text-indigo-400 transition"
+                      >
                         +{job.matchedSkills.length - 4} more
-                      </span>
+                      </button>
                     )}
                   </div>
                 )}
 
-                {/* Missing Skills Preview */}
-                {job.missingSkills && job.missingSkills.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                {/* Matched Preferred Skills (bonus) */}
+                {job.matchedPreferredSkills?.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider mr-1">
+                      Bonus:
+                    </span>
+                    {job.matchedPreferredSkills.slice(0, 3).map((skill, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 text-[11px] font-medium text-indigo-300"
+                      >
+                        <Star className="h-2.5 w-2.5 text-indigo-400" />
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Missing Skills */}
+                {job.missingSkills?.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider mr-1">
                       Missing:
                     </span>
-                    {job.missingSkills.slice(0, 3).map((skill, sIdx) => (
+                    {job.missingSkills.slice(0, 3).map((skill, i) => (
                       <span
-                        key={sIdx}
+                        key={i}
                         className="inline-flex items-center gap-1 rounded-lg bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 text-[11px] font-medium text-rose-300"
                       >
                         <XCircle className="h-2.5 w-2.5 text-rose-400" />
@@ -485,9 +526,12 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                       </span>
                     ))}
                     {job.missingSkills.length > 3 && (
-                      <span className="text-[10px] font-bold text-slate-500">
+                      <button
+                        onClick={() => setSelectedJob(job)}
+                        className="text-[10px] font-bold text-slate-400 hover:text-indigo-400 transition"
+                      >
                         +{job.missingSkills.length - 3} more
-                      </span>
+                      </button>
                     )}
                   </div>
                 )}
@@ -516,83 +560,92 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                   )}
                 </button>
 
-                <div className="flex items-center gap-2">
-                  <Link
-                    to={`/jobs/${job.id}`}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                  >
-                    <span>View & Apply</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
+                <Link
+                  to={`/jobs/${job.id}`}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  <span>View & Apply</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               </div>
             </motion.div>
           );
         })}
       </div>
 
-      {/* ── Match Breakdown Modal ───────────────────────────────────────────── */}
+      {/* ── Match Breakdown Modal ─────────────────────────────────────────────── */}
       <AnimatePresence>
-        {selectedJobForModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        {selectedJob && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setSelectedJob(null)}
+          >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-lg rounded-3xl border border-white/15 bg-[#090d16] p-6 shadow-2xl space-y-5"
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-lg rounded-3xl border border-white/15 bg-[#090d16] p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
             >
+              {/* Modal Header */}
               <div className="flex items-start justify-between border-b border-white/10 pb-4">
                 <div>
                   <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 text-[11px] font-bold text-indigo-300 mb-1">
                     <Sparkles className="h-3 w-3" /> Match Scoring Breakdown
                   </div>
-                  <h3 className="text-lg font-bold text-white font-satoshi">
-                    {selectedJobForModal.jobTitle}
+                  <h3 className="text-lg font-bold text-white font-satoshi leading-tight">
+                    {selectedJob.jobTitle}
                   </h3>
-                  <p className="text-xs text-slate-400">
-                    {selectedJobForModal.companyName}
-                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">{selectedJob.companyName}</p>
                 </div>
                 <button
-                  onClick={() => setSelectedJobForModal(null)}
+                  onClick={() => setSelectedJob(null)}
                   className="rounded-xl p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* Match Score Gauges */}
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-2xl border border-white/5 bg-white/5 p-3 space-y-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Skill Match</span>
-                  <p className="text-xl font-extrabold text-indigo-400 font-satoshi">
-                    {selectedJobForModal.skillMatchScore}%
-                  </p>
-                </div>
+              {/* Overall Score */}
+              {(() => {
+                const c = getMatchColors(selectedJob.matchPercentage);
+                return (
+                  <div className={`rounded-2xl border ${c.border} ${c.bg} p-4 text-center space-y-1`}>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      Overall Match
+                    </p>
+                    <p className={`text-4xl font-black font-satoshi ${c.text}`}>
+                      {selectedJob.matchPercentage}%
+                    </p>
+                    <span
+                      className={`inline-block rounded-full px-3 py-0.5 text-xs font-black uppercase tracking-wider ${c.badgeBg} ${c.badgeText}`}
+                    >
+                      {selectedJob.matchGrade}
+                    </span>
+                  </div>
+                );
+              })()}
 
-                <div className="rounded-2xl border border-white/5 bg-white/5 p-3 space-y-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Experience</span>
-                  <p className="text-xl font-extrabold text-indigo-400 font-satoshi">
-                    {selectedJobForModal.experienceMatchScore}%
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/5 bg-white/5 p-3 space-y-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Location</span>
-                  <p className="text-xl font-extrabold text-indigo-400 font-satoshi">
-                    {selectedJobForModal.locationMatchScore}%
-                  </p>
-                </div>
+              {/* Score Breakdown Bars (4 dimensions) */}
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Score Breakdown
+                </p>
+                <ScoreBar label="Skill Match (55% weight)" value={selectedJob.skillMatchScore ?? 0} />
+                <ScoreBar label="Location Fit (25% weight)" value={selectedJob.locationMatchScore ?? 0} />
+                <ScoreBar label="Experience Fit (15% weight)" value={selectedJob.experienceMatchScore ?? 0} />
+                <ScoreBar label="Job Freshness (5% weight)" value={selectedJob.freshnessScore ?? 0} />
               </div>
 
-              {/* Matched Skills List */}
+              {/* Matched Required Skills */}
               <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-300 block">
-                  ✓ Matched Required Skills:
+                <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                  Matched Required Skills
                 </span>
-                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1">
-                  {selectedJobForModal.matchedSkills && selectedJobForModal.matchedSkills.length > 0 ? (
-                    selectedJobForModal.matchedSkills.map((s, i) => (
+                <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                  {selectedJob.matchedSkills?.length > 0 ? (
+                    selectedJob.matchedSkills.map((s, i) => (
                       <span
                         key={i}
                         className="rounded-lg bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-xs font-medium text-emerald-300"
@@ -601,19 +654,40 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-slate-500 italic">No exact skill matches</span>
+                    <span className="text-xs text-slate-500 italic">No exact required skill matches</span>
                   )}
                 </div>
               </div>
 
-              {/* Missing Skills List */}
-              {selectedJobForModal.missingSkills && selectedJobForModal.missingSkills.length > 0 && (
+              {/* Matched Preferred Skills */}
+              {selectedJob.matchedPreferredSkills?.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-400 block">
-                    ✕ Recommended Skills to Learn:
+                  <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    <Star className="h-3.5 w-3.5 text-indigo-400" />
+                    Preferred Skills You Have (Bonus)
                   </span>
-                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1">
-                    {selectedJobForModal.missingSkills.map((s, i) => (
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedJob.matchedPreferredSkills.map((s, i) => (
+                      <span
+                        key={i}
+                        className="rounded-lg bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-1 text-xs font-medium text-indigo-300"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Missing Required Skills */}
+              {selectedJob.missingSkills?.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+                    <XCircle className="h-3.5 w-3.5 text-rose-400" />
+                    Skills to Learn for This Role
+                  </span>
+                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                    {selectedJob.missingSkills.map((s, i) => (
                       <span
                         key={i}
                         className="rounded-lg bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 text-xs font-medium text-rose-300"
@@ -625,16 +699,24 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                 </div>
               )}
 
+              {/* Why Recommended */}
+              {selectedJob.matchReason && (
+                <div className="rounded-xl bg-white/[0.03] border border-white/5 px-4 py-3 text-xs text-slate-300 leading-relaxed">
+                  💡 <strong className="text-white">Why recommended:</strong> {selectedJob.matchReason}
+                </div>
+              )}
+
+              {/* Footer Actions */}
               <div className="pt-2 flex justify-end gap-2">
                 <button
-                  onClick={() => setSelectedJobForModal(null)}
+                  onClick={() => setSelectedJob(null)}
                   className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition"
                 >
                   Close
                 </button>
                 <Link
-                  to={`/jobs/${selectedJobForModal.id}`}
-                  onClick={() => setSelectedJobForModal(null)}
+                  to={`/jobs/${selectedJob.id}`}
+                  onClick={() => setSelectedJob(null)}
                   className="rounded-xl bg-indigo-600 px-5 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20"
                 >
                   Apply to Job
