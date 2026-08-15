@@ -32,6 +32,7 @@ import { useAppDispatch, useAppSelector } from "../State/Store";
 import { getJobById, getSimilarJobs } from "../State/JobSlice";
 import { saveJobThunk, unsaveJobThunk, checkIsJobSavedThunk } from "../State/savedJobThunk";
 import { useToast } from "../components/ui/ToastNotification";
+import CandidateJobMatchWidget from "../components/recommendation/CandidateJobMatchWidget";
 
 /* ===========================
     Animation Variants
@@ -891,6 +892,9 @@ function JobDetail() {
             {/* ===== Right Column: Sidebar ===== */}
             <div className="w-full lg:w-[340px] shrink-0">
               <div className="lg:sticky lg:top-24 space-y-6">
+
+                {/* — Match Fit Analysis Widget — */}
+                <CandidateJobMatchWidget job={selectedJob} />
 
                 {/* — Apply Card — */}
                 <motion.div

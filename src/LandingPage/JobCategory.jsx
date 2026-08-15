@@ -194,7 +194,7 @@ export default function JobCategory() {
   const activeTabMeta = TABS.find((tab) => tab.key === activeTab) ?? TABS[0];
 
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-20 sm:py-24 lg:py-32 font-inter text-slate-200">
+    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200">
       {/* ── Background Ambient Lighting & Mesh Orbs ── */}
       <div
         aria-hidden="true"
@@ -219,7 +219,7 @@ export default function JobCategory() {
         }}
       />
 
-      <div className="section-container relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="section-container relative z-10">
         <SectionHeader
           badge="Career Discovery"
           title={

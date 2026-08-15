@@ -44,6 +44,7 @@ import { Tabs } from "../components/ui/Tabs";
 import { Modal } from "../components/ui/Modal";
 import { EmptyState } from "../components/ui/LoadingSkeleton";
 import { useToast } from "../components/ui/ToastNotification";
+import RecommendedJobsSection from "../components/recommendation/RecommendedJobsSection";
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "Recently";
@@ -69,9 +70,11 @@ export default function MyJobsPage() {
 
   const { myApplications } = useAppSelector((state) => state.application);
   const { savedJobs: liveSavedJobs } = useAppSelector((state) => state.savedJob);
+  const { recommendations } = useAppSelector((state) => state.recommendations);
 
   // Determine active tab from URL path
   const getTabFromPath = (path) => {
+    if (path.includes("/recommended")) return "recommended";
     if (path.includes("/saved")) return "saved";
     if (path.includes("/interviews")) return "interviews";
     if (path.includes("/offers")) return "offers";
@@ -169,6 +172,7 @@ export default function MyJobsPage() {
 
   const TABS_CONFIG = [
     { id: "applied", label: "Applied Jobs", count: myApplications?.length || 0 },
+    { id: "recommended", label: "Recommended ✨", count: recommendations?.length || 0 },
     { id: "saved", label: "Saved Jobs", count: savedJobs?.length || 0 },
     { id: "interviews", label: "Interviews", count: interviewList?.length || 0 },
     { id: "offers", label: "Offers Received", count: offerList?.length || 0 },
@@ -328,6 +332,11 @@ export default function MyJobsPage() {
               </div>
             )}
           </div>
+        )}
+
+        {/* TAB: RECOMMENDED JOBS */}
+        {activeTab === "recommended" && (
+          <RecommendedJobsSection showHeading={false} />
         )}
 
         {/* Tab 2: SAVED JOBS */}

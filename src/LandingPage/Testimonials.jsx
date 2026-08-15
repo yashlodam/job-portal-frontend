@@ -103,13 +103,13 @@ function TestimonialCard({ testimonial, highlight }) {
 
 export default function Testimonials() {
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-20 sm:py-24 font-inter text-slate-200" aria-label="Customer Testimonials">
+    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200" aria-label="Customer Testimonials">
       {/* Background Mesh Glow */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-600/10 blur-[180px]" />
       </div>
 
-      <div className="section-container relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="section-container relative z-10">
         {/* Section Header */}
         <SectionHeader
           badge="Candidate Success Stories"

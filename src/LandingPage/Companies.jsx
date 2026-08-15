@@ -129,26 +129,23 @@ const COMPANY_LOGOS = [
 
 export default function Companies() {
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 border-y border-white/10 font-inter text-slate-200" aria-label="Trusted Companies">
+    <section className="relative overflow-hidden bg-[#05070d] py-10 sm:py-14 border-y border-white/10 font-inter text-slate-200" aria-label="Trusted Companies">
       {/* Ambient Radial Mesh Glow */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-1/2 h-[350px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/10 blur-[170px]" />
       </div>
 
       {/* Section Header */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 text-center mb-10 sm:mb-12">
-        <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 shadow-sm">
+      <div className="section-container relative z-10 text-center mb-6 sm:mb-8">
+        <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-1 shadow-sm">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-indigo-300 font-satoshi">
             Global Enterprise Hiring Partners
           </span>
         </div>
-        <h3 className="mt-3 text-2xl sm:text-4xl font-black text-white font-satoshi tracking-tight">
-          Trusted by Industry Leaders Worldwide
+        <h3 className="mt-2.5 text-2xl sm:text-3xl font-black text-white font-satoshi tracking-tight">
+          Trusted by Top Tech Leaders Worldwide
         </h3>
-        <p className="mt-2 text-xs sm:text-sm text-slate-400 max-w-lg mx-auto font-medium">
-          Top technology companies recruit software engineers, product designers, and managers directly through our AI platform.
-        </p>
       </div>
 
       {/* 3D Glass Marquee Cards */}

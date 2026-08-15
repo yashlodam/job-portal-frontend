@@ -233,14 +233,14 @@ export default function FeaturedJobs() {
   }, [jobs]);
 
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-20 sm:py-24 font-inter text-slate-200">
+    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200">
       {/* Background Mesh Glows */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute right-1/4 top-20 h-[500px] w-[500px] rounded-full bg-indigo-600/10 blur-[180px]" />
         <div className="absolute left-1/4 bottom-10 h-[400px] w-[400px] rounded-full bg-purple-600/10 blur-[160px]" />
       </div>
 
-      <div className="section-container relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="section-container relative z-10">
         {/* Section Header */}
         <SectionHeader
           badge="Featured Opportunities"

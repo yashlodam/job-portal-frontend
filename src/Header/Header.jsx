@@ -412,8 +412,8 @@ function Header() {
         role="banner"
         className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
           scrolled
-            ? "border-white/[0.08] bg-[#06080F]/92 shadow-[0_4px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
-            : "border-white/[0.05] bg-[#06080F]/72 backdrop-blur-xl"
+            ? "border-white/[0.08] bg-[#05070d]/95 shadow-[0_4px_32px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
+            : "border-white/[0.05] bg-[#05070d]/80 backdrop-blur-xl"
         }`}
       >
         {/* Top gradient accent line */}
@@ -456,7 +456,7 @@ function Header() {
           <nav
             role="navigation"
             aria-label="Main navigation"
-            className="hidden items-center justify-center gap-8 rounded-2xl border border-white/[0.06] bg-white/[0.025] p-1.5 backdrop-blur-xl md:flex lg:gap-12"
+            className="hidden items-center justify-center gap-1 sm:gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1.5 backdrop-blur-xl md:flex"
           >
             {navLinks.map((item) => {
                 const active = isNavItemActive(item, location.pathname);

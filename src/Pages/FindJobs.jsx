@@ -28,6 +28,7 @@ import {
 } from "../State/JobSlice";
 import { saveJobThunk, unsaveJobThunk } from "../State/savedJobThunk";
 import { useToast } from "../components/ui/ToastNotification";
+import RecommendedJobsSection from "../components/recommendation/RecommendedJobsSection";
 
 /* ================================================================
    CONSTANTS
@@ -548,6 +549,7 @@ export default function FindJobs() {
   });
 
   /* ── UI-only state ── */
+  const [feedMode, setFeedMode] = useState("all"); // 'all' | 'recommended'
   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0].value);
   const [view, setView] = useState("grid");
   const [page, setPage] = useState(0); // 0-indexed (Spring Boot)
@@ -876,23 +878,56 @@ export default function FindJobs() {
           )}
         </AnimatePresence>
 
-        {/* Results Header */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {/* Mobile filter toggle */}
+        {/* Discovery Feed Mode Toggle */}
+        <div className="mb-6 flex items-center justify-between gap-4 border-b border-border pb-4">
+          <div className="flex items-center rounded-2xl bg-surface border border-border p-1">
             <button
-              onClick={() => setMobileFilters(true)}
-              aria-label="Open filters"
-              className="lg:hidden inline-flex items-center gap-2 rounded-xl border border-border bg-surface-elevated px-4 py-2.5 text-sm font-medium text-body transition-all hover:border-primary/30 hover:text-heading"
+              onClick={() => setFeedMode("all")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                feedMode === "all"
+                  ? "bg-primary text-white shadow-md shadow-primary/20"
+                  : "text-muted hover:text-heading"
+              }`}
             >
-              <SlidersHorizontal size={16} />
-              Filters
-              {activePills.length > 0 && (
-                <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
-                  {activePills.length}
-                </span>
-              )}
+              All Open Positions ({totalElements.toLocaleString()})
             </button>
+            <button
+              onClick={() => setFeedMode("recommended")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                feedMode === "recommended"
+                  ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20"
+                  : "text-muted hover:text-heading"
+              }`}
+            >
+              <Sparkles size={13} className="text-amber-300 animate-pulse" />
+              <span>Recommended for You ✨</span>
+            </button>
+          </div>
+        </div>
+
+        {feedMode === "recommended" ? (
+          <div className="py-2">
+            <RecommendedJobsSection showHeading={false} />
+          </div>
+        ) : (
+          <>
+            {/* Results Header */}
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {/* Mobile filter toggle */}
+                <button
+                  onClick={() => setMobileFilters(true)}
+                  aria-label="Open filters"
+                  className="lg:hidden inline-flex items-center gap-2 rounded-xl border border-border bg-surface-elevated px-4 py-2.5 text-sm font-medium text-body transition-all hover:border-primary/30 hover:text-heading"
+                >
+                  <SlidersHorizontal size={16} />
+                  Filters
+                  {activePills.length > 0 && (
+                    <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                      {activePills.length}
+                    </span>
+                  )}
+                </button>
 
             <p className="text-sm text-body">
               {loading ? (
@@ -1110,6 +1145,8 @@ export default function FindJobs() {
             )}
           </div>
         </div>
+        </>
+        )}
       </div>
 
       {/* ========== MOBILE FILTER OVERLAY ========== */}

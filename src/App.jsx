@@ -262,6 +262,7 @@ function App() {
                   {/* My Jobs Section */}
                   <Route path="/my-jobs"                 element={<MyJobsPage />} />
                   <Route path="/my-jobs/applied"         element={<MyJobsPage />} />
+                  <Route path="/my-jobs/recommended"     element={<MyJobsPage />} />
                   <Route path="/my-jobs/saved"           element={<MyJobsPage />} />
                   <Route path="/my-jobs/interviews"      element={<MyJobsPage />} />
 

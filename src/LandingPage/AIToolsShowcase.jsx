@@ -3,55 +3,70 @@
  *
  * Ultra-Premium "Supercharge Your Career with AI" Bento Showcase Section.
  * Features 3D glassmorphic cards, radial background glow washes,
- * gold Sparkles tags, and interactive navigation CTAs.
+ * gold Sparkles tags, and direct navigation to platform AI tools.
  */
 
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, BarChart3, Sparkles, FileText, MessageSquare, Mic, Bot, Zap, CheckCircle2 } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  Sparkles,
+  FileText,
+  MessageSquare,
+  Mic,
+  Bot,
+  Zap,
+  CheckCircle2,
+  Video,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import SectionHeader from "../components/SectionHeader";
 
 const AI_TOOLS_DATA = [
   {
     id: 1,
-    title: "AI Multi-Tone Cover Letter",
-    description: "Instantly generate 3 tailored cover letter versions (Results-Driven, Vision-Aligned, Executive) customized for your target company.",
-    icon: MessageSquare,
-    link: "/apply?jobId=1",
+    title: "AI ATS Resume Studio",
+    description:
+      "Create high-scoring, ATS-compliant resumes with real-time AI bullet enhancements, keyword optimization, and multi-template export.",
+    icon: FileText,
+    link: "/career-hub/resume-builder",
     gradient: { from: "#6366F1", to: "#8B5CF6", glow: "rgba(99, 102, 241, 0.35)", text: "#A5B4FC" },
-    stats: "50K+ letters generated",
-    tag: "Live Feature",
+    stats: "50K+ Resumes Optimized",
+    tag: "ATS Grade A+",
   },
   {
     id: 2,
-    title: "AI Job Match & Skill Fit",
-    description: "Get instant AI Match Scores evaluating your resume and skills against job requirements with detailed gap analysis.",
+    title: "AI Neural Job Match Fit",
+    description:
+      "Evaluate your skill alignment against 15,000+ live jobs with instant 0–100% Match Scores and personalized skill gap reports.",
     icon: Zap,
     link: "/find-jobs",
     gradient: { from: "#06B6D4", to: "#3B82F6", glow: "rgba(6, 182, 212, 0.35)", text: "#67E8F9" },
-    stats: "98% Match Precision",
+    stats: "98.4% Match Accuracy",
     tag: "Top Rated",
   },
   {
     id: 3,
-    title: "AI Multi-Resume Management",
-    description: "Store multiple targeted PDF resumes on your candidate profile and set your primary default resume for 1-click applications.",
-    icon: FileText,
-    link: "/profile",
+    title: "AI Mock Technical Interview",
+    description:
+      "Practice coding, system design, and behavioral questions with an intelligent AI interviewer that gives actionable feedback on your answers.",
+    icon: Video,
+    link: "/career-hub/interview-coach",
     gradient: { from: "#EC4899", to: "#F43F5E", glow: "rgba(236, 72, 153, 0.35)", text: "#F472B6" },
-    stats: "Multi-Resume Sync",
+    stats: "Interactive Voice & Code",
     tag: "Candidate Favorite",
   },
   {
     id: 4,
-    title: "Real-Time Application Stepper",
-    description: "Track your application through all 8 recruitment pipeline stages (Applied, Reviewing, Shortlisted, Interviewing, Offered).",
+    title: "Live Application Stepper",
+    description:
+      "Track your application status in real-time across all 8 recruitment pipeline stages with direct messaging to hiring recruiters.",
     icon: Bot,
     link: "/my-jobs/applied",
     gradient: { from: "#10B981", to: "#14B8A6", glow: "rgba(16, 185, 129, 0.35)", text: "#6EE7B7" },
     stats: "8 Pipeline Stages",
-    tag: "Live Stepper",
+    tag: "Zero Ghosting",
   },
 ];
 
@@ -165,14 +180,14 @@ function AIToolCard({ tool }) {
 =========================== */
 export default function AIToolsShowcase() {
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-20 sm:py-24 lg:py-32 font-inter text-slate-200">
+    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200">
       {/* Background Mesh Glows */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute right-0 top-0 h-[550px] w-[550px] rounded-full bg-purple-600/10 blur-[200px]" />
         <div className="absolute left-0 bottom-0 h-[450px] w-[450px] rounded-full bg-indigo-600/10 blur-[180px]" />
       </div>
 
-      <div className="section-container relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="section-container relative z-10">
         {/* Section Header */}
         <SectionHeader
           badge="AI Career Intelligence"
