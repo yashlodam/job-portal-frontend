@@ -33,9 +33,16 @@ import {
   Megaphone,
   User,
   ShieldAlert,
+  ShieldCheck,
 } from "lucide-react";
 
 export const NOTIFICATION_CONFIG = {
+  // Verification Types
+  VERIFICATION_SUBMITTED: { icon: ShieldCheck, color: "text-amber-400 bg-amber-400/10 border-amber-400/20", label: "Verification Under Review", emoji: "⏳" },
+  RECRUITER_APPROVED: { icon: CheckCircle2, color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", label: "Recruiter Approved", emoji: "🎉" },
+  RECRUITER_REJECTED: { icon: XCircle, color: "text-rose-400 bg-rose-400/10 border-rose-400/20", label: "Verification Rejected", emoji: "⚠️" },
+  RECRUITER_SUSPENDED: { icon: ShieldAlert, color: "text-rose-500 bg-rose-500/10 border-rose-500/20", label: "Account Suspended", emoji: "🚫" },
+
   // Jobs
   FEATURED_JOB: { icon: Star, color: "text-amber-400 bg-amber-400/10 border-amber-400/20", label: "Featured Job", emoji: "⭐" },
   NEW_JOB: { icon: Briefcase, color: "text-blue-400 bg-blue-400/10 border-blue-400/20", label: "New Job", emoji: "💼" },

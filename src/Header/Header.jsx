@@ -305,7 +305,9 @@ function Header() {
     location.pathname.startsWith("/recruiter") ||
     location.pathname.startsWith("/dashboard");
 
-  if (isEmployer) {
+  const isAdminSection = location.pathname.startsWith("/admin");
+
+  if (isEmployer || isAdminSection) {
     return null;
   }
 

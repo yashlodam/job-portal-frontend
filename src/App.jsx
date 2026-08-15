@@ -18,6 +18,8 @@ import { getAllJobs, getCategories, getWorkModes } from './State/JobSlice';
 import { useAppSelector } from './State/Store';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
+import RecruiterVerificationGuard from './components/auth/RecruiterVerificationGuard';
+import AdminRoute from './components/auth/AdminRoute';
 import { ToastProvider } from './components/ui/ToastNotification';
 
 /* ──────────────────────────────────────────────
@@ -39,6 +41,7 @@ const SettingsPage = React.lazy(() => import('./Pages/SettingsPage'));
 
 // Recruiter Studio Pages
 const RecruiterDashboardPage = React.lazy(() => import('./Pages/recruiter/RecruiterDashboardPage'));
+const RecruiterVerificationPage = React.lazy(() => import('./Pages/recruiter/RecruiterVerificationPage'));
 const RecruiterJobsPage = React.lazy(() => import('./Pages/recruiter/RecruiterJobsPage'));
 const RecruiterApplicationsPage = React.lazy(() => import('./Pages/recruiter/RecruiterApplicationsPage'));
 const RecruiterCandidatesPage = React.lazy(() => import('./Pages/recruiter/RecruiterCandidatesPage'));
@@ -47,6 +50,14 @@ const RecruiterCompanyPage = React.lazy(() => import('./Pages/recruiter/Recruite
 const RecruiterAnalyticsPage = React.lazy(() => import('./Pages/recruiter/RecruiterAnalyticsPage'));
 const RecruiterSettingsPage = React.lazy(() => import('./Pages/recruiter/RecruiterSettingsPage'));
 const RecruiterMessagesPage = React.lazy(() => import('./Pages/recruiter/RecruiterMessagesPage'));
+
+// Admin Console Pages
+const AdminDashboardPage = React.lazy(() => import('./Pages/admin/AdminDashboardPage'));
+const AdminRecruitersPage = React.lazy(() => import('./Pages/admin/AdminRecruitersPage'));
+const AdminUsersPage = React.lazy(() => import('./Pages/admin/AdminUsersPage'));
+const AdminCompaniesPage = React.lazy(() => import('./Pages/admin/AdminCompaniesPage'));
+const AdminJobsPage = React.lazy(() => import('./Pages/admin/AdminJobsPage'));
+const AdminReportsPage = React.lazy(() => import('./Pages/admin/AdminReportsPage'));
 
 const NotFound  = React.lazy(() => import('./Pages/NotFound'));
 
@@ -64,22 +75,29 @@ class ErrorBoundary extends React.Component {
     return { hasError: true };
   }
 
+  componentDidCatch(error, errorInfo) {
+    console.error('[ErrorBoundary caught]:', error, errorInfo);
+  }
+
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-6 text-center">
-          <h1 className="font-satoshi text-3xl font-bold text-heading">
-            Something went wrong
-          </h1>
-          <p className="mt-4 text-body">
-            Please refresh the page or try again later.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="btn btn-primary mt-8"
-          >
-            Refresh Page
-          </button>
+        <div className="min-h-screen flex items-center justify-center bg-[#070b12] text-white p-6 font-inter">
+          <div className="text-center max-w-md space-y-4">
+            <div className="h-12 w-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400 text-xl font-bold">
+              !
+            </div>
+            <h2 className="text-xl font-black font-satoshi">Something went wrong</h2>
+            <p className="text-xs text-slate-400">
+              An unexpected error occurred. Please refresh the page to continue.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-indigo-500 transition"
+            >
+              Refresh Page
+            </button>
+          </div>
         </div>
       );
     }
@@ -88,55 +106,40 @@ class ErrorBoundary extends React.Component {
 }
 
 /* ──────────────────────────────────────────────
-   Suspense fallback — minimal loading state
+   Page Loading Placeholder
    ────────────────────────────────────────────── */
 
 function PageLoader() {
   return (
-    <div
-      className="flex min-h-[60dvh] flex-col items-center justify-center gap-4"
-      role="status"
-      aria-label="Loading page"
-    >
-      <div className="relative">
-        <div
-          className="h-12 w-12 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: 'rgba(99,102,241,0.20)', borderTopColor: '#6366F1' }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            className="h-2 w-2 rounded-full animate-pulse"
-            style={{ background: '#6366F1' }}
-          />
-        </div>
-      </div>
-      <p className="text-xs font-medium" style={{ color: 'var(--color-muted)' }}>
-        Loading…
-      </p>
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
     </div>
   );
 }
 
 /* ──────────────────────────────────────────────
-   Full-screen Auth Restore Loader
-   Shown while we check localStorage + call /profile on startup.
-   Prevents ANY flash of unauthenticated UI.
+   Startup Auth Restoration Loader
    ────────────────────────────────────────────── */
 
 function AuthRestoreLoader() {
   return (
     <div
-      className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-[#070b12]"
-      role="status"
-      aria-label="Restoring session"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: '#070b12',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 99999,
+        gap: '16px',
+      }}
     >
-      <div className="relative">
+      <div className="relative flex items-center justify-center">
         <div
-          className="h-14 w-14 animate-spin rounded-full border-2"
-          style={{
-            borderColor: 'rgba(99,102,241,0.15)',
-            borderTopColor: '#6366F1',
-          }}
+          className="h-10 w-10 rounded-full border-2 border-transparent animate-spin"
+          style={{ borderTopColor: '#6366F1', borderRightColor: '#818CF8' }}
         />
         <div className="absolute inset-0 flex items-center justify-center">
           <div
@@ -158,8 +161,6 @@ function AuthRestoreLoader() {
 
 function App() {
   const dispatch = useDispatch();
-  // isAuthRestored starts as false; becomes true once the startup check
-  // (restoreAuthState thunk) resolves — whether the user is logged in or not.
   const isAuthRestored = useSelector((state) => state.auth.isAuthRestored);
 
   useEffect(() => {
@@ -169,14 +170,9 @@ function App() {
   }, [dispatch]);
 
   useEffect(() => {
-    // Runs exactly once on mount. Reads the JWT from localStorage;
-    // if present, validates it by fetching /profile and populates Redux.
-    // On failure (no token / 401) it clears storage and sets isAuthRestored=true.
     dispatch(restoreAuthState());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Block ALL rendering until auth state is determined.
-  // This is the single source of truth that prevents Login-button flash.
   if (!isAuthRestored) {
     return <AuthRestoreLoader />;
   }
@@ -190,7 +186,6 @@ function App() {
               {/* ─────────────────────────────────────────────────────────────
                   PUBLIC AUTH ROUTES
                   Accessible ONLY when NOT logged in.
-                  If already logged in, redirects to / or /recruiter/dashboard.
                  ───────────────────────────────────────────────────────────── */}
               <Route element={<PublicRoute />}>
                 <Route path="/auth"          element={<SignUpPage defaultIsLogin={true} />} />
@@ -201,8 +196,20 @@ function App() {
               </Route>
 
               {/* ─────────────────────────────────────────────────────────────
+                  ADMIN SECURE CONSOLE ROUTES (Guarded by AdminRoute)
+                 ───────────────────────────────────────────────────────────── */}
+              <Route element={<AdminRoute />}>
+                <Route path="/admin"            element={<AdminDashboardPage />} />
+                <Route path="/admin/dashboard"  element={<AdminDashboardPage />} />
+                <Route path="/admin/recruiters" element={<AdminRecruitersPage />} />
+                <Route path="/admin/users"      element={<AdminUsersPage />} />
+                <Route path="/admin/companies"  element={<AdminCompaniesPage />} />
+                <Route path="/admin/jobs"       element={<AdminJobsPage />} />
+                <Route path="/admin/reports"    element={<AdminReportsPage />} />
+              </Route>
+
+              {/* ─────────────────────────────────────────────────────────────
                   PROTECTED APPLICATION ROUTES
-                  Guarded — redirects unauthenticated users to /login first.
                  ───────────────────────────────────────────────────────────── */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<Layout />}>
@@ -211,7 +218,6 @@ function App() {
                   <Route path="/find-jobs"     element={<FindJobs />} />
                   <Route path="/find-talent"   element={<FindTalent />} />
                   <Route path="/profiles"      element={<Profile />} />
-                  <Route path="/upload-job"    element={<UploadJob />} />
                   <Route path="/talent-profile" element={<TalentProfilePage />} />
                   <Route path="/talent-profile/:id" element={<TalentProfilePage />} />
                   <Route path="/about"         element={<About />} />
@@ -248,21 +254,27 @@ function App() {
                   <Route path="/messages"       element={<MessagesPage />} />
                   <Route path="/settings"       element={<SettingsPage />} />
 
-                  {/* Recruiter Studio Routes */}
+                  {/* Recruiter Studio Core (Available to all recruiters) */}
                   <Route path="/dashboard"                element={<RecruiterDashboardPage />} />
                   <Route path="/recruiter/dashboard"      element={<RecruiterDashboardPage />} />
-                  <Route path="/recruiter/jobs"           element={<RecruiterJobsPage />} />
-                  <Route path="/recruiter/jobs/manage"    element={<RecruiterJobsPage />} />
-                  <Route path="/recruiter/jobs/featured"  element={<RecruiterJobsPage />} />
-                  <Route path="/recruiter/jobs/archived"  element={<RecruiterJobsPage />} />
-                  <Route path="/recruiter/applications"   element={<RecruiterApplicationsPage />} />
-                  <Route path="/recruiter/candidates/applications" element={<RecruiterApplicationsPage />} />
-                  <Route path="/recruiter/candidates"     element={<RecruiterCandidatesPage />} />
-                  <Route path="/recruiter/interviews"     element={<RecruiterInterviewsPage />} />
+                  <Route path="/recruiter/verification"   element={<RecruiterVerificationPage />} />
                   <Route path="/recruiter/company"        element={<RecruiterCompanyPage />} />
-                  <Route path="/recruiter/analytics"      element={<RecruiterAnalyticsPage />} />
-                  <Route path="/recruiter/settings"      element={<RecruiterSettingsPage />} />
-                  <Route path="/recruiter/messages"      element={<RecruiterMessagesPage />} />
+                  <Route path="/recruiter/settings"       element={<RecruiterSettingsPage />} />
+
+                  {/* Recruiter Studio Full Privileges (Guarded by RecruiterVerificationGuard) */}
+                  <Route element={<RecruiterVerificationGuard />}>
+                    <Route path="/upload-job"               element={<UploadJob />} />
+                    <Route path="/recruiter/jobs"           element={<RecruiterJobsPage />} />
+                    <Route path="/recruiter/jobs/manage"    element={<RecruiterJobsPage />} />
+                    <Route path="/recruiter/jobs/featured"  element={<RecruiterJobsPage />} />
+                    <Route path="/recruiter/jobs/archived"  element={<RecruiterJobsPage />} />
+                    <Route path="/recruiter/applications"   element={<RecruiterApplicationsPage />} />
+                    <Route path="/recruiter/candidates/applications" element={<RecruiterApplicationsPage />} />
+                    <Route path="/recruiter/candidates"     element={<RecruiterCandidatesPage />} />
+                    <Route path="/recruiter/interviews"     element={<RecruiterInterviewsPage />} />
+                    <Route path="/recruiter/analytics"      element={<RecruiterAnalyticsPage />} />
+                    <Route path="/recruiter/messages"       element={<RecruiterMessagesPage />} />
+                  </Route>
 
                   <Route path="*" element={<NotFound />} />
                 </Route>

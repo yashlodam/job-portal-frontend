@@ -90,6 +90,11 @@ function Login({ setIsLogin }) {
         icon: <CheckCircle2 size={18} />,
       });
 
+      const isAdmin =
+        profile?.accountType === "ADMIN" ||
+        profile?.role === "ADMIN" ||
+        (Array.isArray(profile?.roles) && profile?.roles.includes("ADMIN"));
+
       const isEmployer =
         profile?.accountType === "EMPLOYER" ||
         profile?.role === "EMPLOYER" ||
@@ -98,7 +103,9 @@ function Login({ setIsLogin }) {
 
       const origin = location.state?.from?.pathname;
 
-      if (isEmployer) {
+      if (isAdmin) {
+        navigate(origin && origin.startsWith("/admin") ? origin : "/admin/dashboard", { replace: true });
+      } else if (isEmployer) {
         navigate(origin && origin.startsWith("/recruiter") ? origin : "/recruiter/dashboard", { replace: true });
       } else {
         navigate(origin && !origin.startsWith("/login") && !origin.startsWith("/signup") && !origin.startsWith("/auth") ? origin : "/", { replace: true });

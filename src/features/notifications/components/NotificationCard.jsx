@@ -81,12 +81,21 @@ export default function NotificationCard({
       markAsRead(id);
     }
 
-    if (actionUrl) {
+    let targetUrl = actionUrl;
+    if (!targetUrl) {
+      if (type === "VERIFICATION_SUBMITTED" || type === "RECRUITER_REJECTED" || type === "RECRUITER_SUSPENDED") {
+        targetUrl = "/recruiter/verification";
+      } else if (type === "RECRUITER_APPROVED") {
+        targetUrl = "/recruiter/dashboard";
+      }
+    }
+
+    if (targetUrl) {
       // Check if external or internal
-      if (actionUrl.startsWith("http://") || actionUrl.startsWith("https://")) {
-        window.open(actionUrl, "_blank", "noopener,noreferrer");
+      if (targetUrl.startsWith("http://") || targetUrl.startsWith("https://")) {
+        window.open(targetUrl, "_blank", "noopener,noreferrer");
       } else {
-        navigate(actionUrl);
+        navigate(targetUrl);
       }
     }
 

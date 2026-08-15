@@ -4,13 +4,24 @@ import { useAppSelector } from "../../State/Store";
 
 /**
  * PublicRoute — guards auth routes (/login, /signup, /auth, /register).
- * If user is already authenticated, redirects them directly to the app
- * (/recruiter/dashboard for recruiters, or / for candidates).
+ * If user is already authenticated, redirects them directly to the app:
+ * - /admin/dashboard for admins
+ * - /recruiter/dashboard for recruiters
+ * - / for candidates
  */
 export default function PublicRoute() {
   const user = useAppSelector((state) => state.auth.profile);
 
   if (user) {
+    const isAdmin =
+      user.accountType === "ADMIN" ||
+      user.role === "ADMIN" ||
+      (Array.isArray(user.roles) && user.roles.includes("ADMIN"));
+
+    if (isAdmin) {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+
     const isEmployer =
       user.accountType === "EMPLOYER" ||
       user.role === "EMPLOYER" ||
@@ -19,8 +30,6 @@ export default function PublicRoute() {
 
     return <Navigate to={isEmployer ? "/recruiter/dashboard" : "/"} replace />;
   }
-
-  //this is public route, so if the user is not authenticated, we allow them to access the route
 
   return <Outlet />;
 }

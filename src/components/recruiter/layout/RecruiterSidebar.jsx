@@ -5,10 +5,11 @@
  * - Expandable/Collapsible sidebar for desktop
  * - Mobile overlay drawer
  * - Active route highlighting
- * - Badge counts for pending applications & interviews
+ * - Verification status indicator (Pending, Approved, Rejected, Suspended)
+ * - Dynamic locking & guidance for unverified recruiter accounts
  */
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,21 +29,23 @@ import {
   X,
   LogOut,
   MessageSquare,
+  ShieldCheck,
+  Lock,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../../State/Store";
 import { logout } from "../../../State/AuthSlic";
 import { getUnreadCountApi } from "../../../api/chatApi";
-import { useState, useEffect } from "react";
 
-export const RECRUITER_NAV_ITEMS = [
+export const BASE_RECRUITER_NAV_ITEMS = [
   { name: "Dashboard", url: "/recruiter/dashboard", icon: LayoutDashboard },
-  { name: "Manage Jobs", url: "/recruiter/jobs", icon: Briefcase, badge: "Live" },
-  { name: "Applications", url: "/recruiter/applications", icon: Users },
-  { name: "Interviews", url: "/recruiter/interviews", icon: Calendar },
-  { name: "Candidates", url: "/recruiter/candidates", icon: UserCheck },
-  { name: "Messages", url: "/recruiter/messages", icon: MessageSquare, isMessages: true },
+  { name: "Verification", url: "/recruiter/verification", icon: ShieldCheck },
+  { name: "Manage Jobs", url: "/recruiter/jobs", icon: Briefcase, requiresApproval: true },
+  { name: "Applications", url: "/recruiter/applications", icon: Users, requiresApproval: true },
+  { name: "Interviews", url: "/recruiter/interviews", icon: Calendar, requiresApproval: true },
+  { name: "Candidates", url: "/recruiter/candidates", icon: UserCheck, requiresApproval: true },
+  { name: "Messages", url: "/recruiter/messages", icon: MessageSquare, isMessages: true, requiresApproval: true },
   { name: "Company", url: "/recruiter/company", icon: Building2 },
-  { name: "Analytics", url: "/recruiter/analytics", icon: BarChart3 },
+  { name: "Analytics", url: "/recruiter/analytics", icon: BarChart3, requiresApproval: true },
   { name: "Settings", url: "/recruiter/settings", icon: Settings },
 ];
 
@@ -51,15 +54,28 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.profile);
+  const { recruiterVerification } = useAppSelector((state) => state.verification);
   const [msgUnread, setMsgUnread] = useState(0);
 
+  const verificationStatus = (
+    recruiterVerification?.status ||
+    recruiterVerification?.data?.status ||
+    user?.verificationStatus ||
+    user?.status ||
+    "PENDING_VERIFICATION"
+  ).toUpperCase();
+
+  const isApproved = verificationStatus === "APPROVED" || verificationStatus === "VERIFIED";
+  const isRejected = verificationStatus === "REJECTED" || verificationStatus === "VERIFICATION_REJECTED";
+  const isSuspended = verificationStatus === "SUSPENDED";
+
   useEffect(() => {
-    if (!user) return;
+    if (!user || !isApproved) return;
     const fetch = () => getUnreadCountApi().then(setMsgUnread).catch(() => {});
     fetch();
     const id = setInterval(fetch, 30_000);
     return () => clearInterval(id);
-  }, [user]);
+  }, [user, isApproved]);
 
   const isLinkActive = (path) => {
     if (path === "/recruiter/dashboard") return location.pathname === path;
@@ -106,36 +122,51 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
         {!collapsed && (
           <div className="mt-4 px-1">
             <Link
-              to="/upload-job"
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] transition-all cursor-pointer"
+              to={isApproved ? "/upload-job" : "/recruiter/verification"}
+              className={`flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-xs font-bold text-white shadow-lg transition-all cursor-pointer ${
+                isApproved
+                  ? "bg-gradient-to-r from-indigo-600 to-violet-600 shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02]"
+                  : "bg-white/10 text-slate-300 hover:bg-white/15"
+              }`}
             >
-              <PlusCircle className="h-4 w-4" />
-              <span>Post New Job</span>
+              {isApproved ? <PlusCircle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4 text-amber-400" />}
+              <span>{isApproved ? "Post New Job" : "Verify Account to Post"}</span>
             </Link>
           </div>
         )}
 
         <nav className="mt-6 space-y-1">
-          {RECRUITER_NAV_ITEMS.map((item) => {
+          {BASE_RECRUITER_NAV_ITEMS.map((item) => {
             const active = isLinkActive(item.url);
             const Icon = item.icon;
             const badgeNum = item.isMessages ? msgUnread : 0;
+            const isLocked = item.requiresApproval && !isApproved;
 
             return (
               <Link
                 key={item.name}
-                to={item.url}
+                to={isLocked ? "/recruiter/verification" : item.url}
                 onClick={onCloseMobile}
                 title={collapsed ? item.name : undefined}
                 className={`group relative flex items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-semibold transition-all duration-200 cursor-pointer ${
                   active
                     ? "bg-indigo-500/15 text-white border border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.15)]"
+                    : isLocked
+                    ? "text-slate-400 hover:bg-white/5 hover:text-slate-300"
                     : "text-white/60 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <div className="relative shrink-0">
-                  <Icon className={`h-4 w-4 transition-colors ${active ? "text-indigo-400" : "text-white/50 group-hover:text-white"}`} />
-                  {badgeNum > 0 && (
+                  <Icon
+                    className={`h-4 w-4 transition-colors ${
+                      active
+                        ? "text-indigo-400"
+                        : isLocked
+                        ? "text-slate-500 group-hover:text-slate-400"
+                        : "text-white/50 group-hover:text-white"
+                    }`}
+                  />
+                  {badgeNum > 0 && isApproved && (
                     <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[8px] font-black text-white">
                       {badgeNum > 9 ? "9+" : badgeNum}
                     </span>
@@ -144,13 +175,26 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
 
                 {!collapsed && <span className="truncate">{item.name}</span>}
 
-                {!collapsed && item.badge && !item.isMessages && (
-                  <span className="ml-auto rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-extrabold text-emerald-400 border border-emerald-500/30">
-                    {item.badge}
+                {/* Badges / Locks */}
+                {!collapsed && isLocked && (
+                  <span className="ml-auto flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[9px] font-bold text-slate-400 border border-white/5">
+                    <Lock size={10} /> Limited
                   </span>
                 )}
 
-                {!collapsed && item.isMessages && badgeNum > 0 && (
+                {!collapsed && !isLocked && item.name === "Verification" && !isApproved && (
+                  <span className="ml-auto rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-extrabold text-amber-300 border border-amber-500/30">
+                    Review
+                  </span>
+                )}
+
+                {!collapsed && !isLocked && item.name === "Manage Jobs" && isApproved && (
+                  <span className="ml-auto rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-extrabold text-emerald-400 border border-emerald-500/30">
+                    Live
+                  </span>
+                )}
+
+                {!collapsed && item.isMessages && badgeNum > 0 && isApproved && (
                   <span className="ml-auto rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-extrabold text-rose-300 border border-rose-500/30">
                     {badgeNum}
                   </span>
@@ -169,7 +213,7 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
         </nav>
       </div>
 
-      {/* Recruiter Workspace & Logout Footer */}
+      {/* Recruiter Workspace & Verification Status Footer */}
       <div className="space-y-2 pt-2 border-t border-white/10">
         {!collapsed && (
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur-md">
@@ -181,9 +225,24 @@ export default function RecruiterSidebar({ collapsed, onToggleCollapse, mobileOp
                 <p className="truncate text-xs font-extrabold text-white font-satoshi">
                   {user?.companyName || user?.name || "Recruiter Studio"}
                 </p>
-                <p className="truncate text-[10px] text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Verified Recruiter
-                </p>
+
+                {isApproved ? (
+                  <p className="truncate text-[10px] text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Verified Recruiter
+                  </p>
+                ) : isRejected ? (
+                  <p className="truncate text-[10px] text-rose-400 font-semibold flex items-center gap-1 mt-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-400" /> Verification Rejected
+                  </p>
+                ) : isSuspended ? (
+                  <p className="truncate text-[10px] text-rose-400 font-semibold flex items-center gap-1 mt-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-400" /> Account Suspended
+                  </p>
+                ) : (
+                  <p className="truncate text-[10px] text-amber-300 font-semibold flex items-center gap-1 mt-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" /> Pending Verification
+                  </p>
+                )}
               </div>
             </div>
           </div>

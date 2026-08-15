@@ -99,18 +99,22 @@ function SignUp({ setIsLogin }) {
       const { confirmPassword: _, ...payload } = formData;
       await dispatch(signup(payload)).unwrap();
 
+      const isEmployer = formData.accountType === "EMPLOYER" || formData.accountType === "RECRUITER";
+
       notifications.show({
-        title: "Welcome to JobPortal AI! 🎉",
-        message: "Your account has been created successfully. Please sign in with your credentials.",
+        title: "Account created successfully.",
+        message: isEmployer
+          ? "Please verify your email address. Your recruiter account will be ready for verification review."
+          : "Please verify your email address. You can now sign in with your credentials.",
         color: "indigo",
         radius: "md",
-        autoClose: 3500,
+        autoClose: 4000,
         icon: <CheckCircle2 size={18} />,
       });
 
       setTimeout(() => {
         setIsLogin(true);
-      }, 1200);
+      }, 1400);
     } catch (error) {
       notifications.show({
         title: "Registration Failed",

@@ -1,29 +1,47 @@
 /**
  * src/Pages/recruiter/RecruiterDashboardPage.jsx
  *
- * Recruiter Dashboard Page featuring real-time KPIs, real jobs from Redux,
- * and clean empty states when no jobs or applications exist.
+ * Recruiter Dashboard Page:
+ * - If recruiter is APPROVED / VERIFIED: renders full real-time KPIs, active jobs, pipeline.
+ * - If recruiter is PENDING_VERIFICATION, REJECTED, or SUSPENDED: renders limited PendingRecruiterDashboard.
  */
 
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, ArrowRight, Briefcase, Sparkles, AlertCircle } from "lucide-react";
+import { Plus, ArrowRight, Briefcase, Sparkles, AlertCircle, ShieldAlert } from "lucide-react";
 import RecruiterLayout from "../../components/recruiter/layout/RecruiterLayout";
 import DashboardKpis from "../../components/recruiter/dashboard/DashboardKpis";
 import { RecentActivityWidget, HiringFunnelWidget } from "../../components/recruiter/dashboard/RecentActivityWidget";
+import PendingRecruiterDashboard from "../../components/recruiter/verification/PendingRecruiterDashboard";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { StatusChip } from "../../components/ui/Badge";
 import { useAppDispatch, useAppSelector } from "../../State/Store";
 import { getMyJobs } from "../../State/JobSlice";
+import { fetchVerificationStatus } from "../../State/verificationSlice";
 
 export default function RecruiterDashboardPage() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.profile);
+  const { recruiterVerification } = useAppSelector((state) => state.verification);
   const { myJobs = [], loading } = useAppSelector((state) => state.job);
 
+  const verificationStatus =
+    recruiterVerification?.status ||
+    recruiterVerification?.data?.status ||
+    user?.verificationStatus ||
+    user?.status ||
+    "PENDING_VERIFICATION";
+
+  const isApproved =
+    verificationStatus.toUpperCase() === "APPROVED" ||
+    verificationStatus.toUpperCase() === "VERIFIED";
+
   useEffect(() => {
-    dispatch(getMyJobs());
-  }, [dispatch]);
+    dispatch(fetchVerificationStatus());
+    if (isApproved) {
+      dispatch(getMyJobs());
+    }
+  }, [dispatch, isApproved]);
 
   const getApplicantsCount = (job) => {
     if (job.applicantsCount != null) return job.applicantsCount;
@@ -44,6 +62,28 @@ export default function RecruiterDashboardPage() {
     hired: 0,
   };
 
+  // If recruiter is NOT approved, render the limited Pending Dashboard
+  if (!isApproved) {
+    return (
+      <RecruiterLayout
+        title={`Welcome, ${user?.name?.split(" ")[0] ?? "Recruiter"}`}
+        subtitle="Manage your organization verification status and compliance profile."
+        action={
+          <Link
+            to="/recruiter/verification"
+            className="flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-indigo-500 transition cursor-pointer font-satoshi"
+          >
+            <Sparkles size={15} />
+            <span>Verification Center</span>
+          </Link>
+        }
+      >
+        <PendingRecruiterDashboard />
+      </RecruiterLayout>
+    );
+  }
+
+  // Full Normal Recruiter Dashboard for Approved Recruiters
   return (
     <RecruiterLayout
       title={`Welcome Back, ${user?.name?.split(" ")[0] ?? "Recruiter"}!`}

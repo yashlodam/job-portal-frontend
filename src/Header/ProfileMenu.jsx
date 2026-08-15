@@ -1,7 +1,7 @@
 /**
  * src/Header/ProfileMenu.jsx
  *
- * Ultra-Premium 3D Glassmorphic Profile Menu for Candidate / Recruiter User Dropdown.
+ * Ultra-Premium 3D Glassmorphic Profile Menu for Candidate / Recruiter / Admin User Dropdown.
  */
 
 import React, { useEffect, useState } from "react";
@@ -16,6 +16,8 @@ import {
   Compass,
   Settings,
   ShieldCheck,
+  LayoutDashboard,
+  ShieldAlert,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../State/Store";
@@ -49,7 +51,22 @@ function ProfileMenu({ user }) {
     : null;
 
   const displayName = user?.name || reduxProfile?.name || auth?.name || "User";
-  const displayRole = user?.role || reduxProfile?.role || auth?.role || "Candidate";
+  const displayRole = user?.role || user?.accountType || reduxProfile?.role || auth?.role || "Candidate";
+
+  const isAdmin =
+    user?.accountType === "ADMIN" ||
+    user?.role === "ADMIN" ||
+    auth?.accountType === "ADMIN" ||
+    auth?.role === "ADMIN" ||
+    (Array.isArray(user?.roles) && user.roles.includes("ADMIN"));
+
+  const isEmployer =
+    user?.accountType === "EMPLOYER" ||
+    user?.role === "EMPLOYER" ||
+    user?.accountType === "RECRUITER" ||
+    user?.role === "RECRUITER" ||
+    auth?.accountType === "EMPLOYER" ||
+    auth?.role === "EMPLOYER";
 
   return (
     <Menu
@@ -79,7 +96,7 @@ function ProfileMenu({ user }) {
               {displayName}
             </p>
             <p className="text-[10px] font-semibold text-slate-400 truncate uppercase tracking-wider">
-              {displayRole}
+              {isAdmin ? "Admin" : displayRole}
             </p>
           </div>
 
@@ -104,48 +121,108 @@ function ProfileMenu({ user }) {
               <h4 className="text-sm font-extrabold text-white font-satoshi truncate">{displayName}</h4>
               <ShieldCheck size={14} className="text-indigo-400 shrink-0" />
             </div>
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-500/15 border border-amber-400/30 px-2 py-0.5 rounded-md mt-1">
-              <Sparkles size={10} className="fill-amber-300/20 animate-pulse" /> AI Verified Pro
-            </span>
+            {isAdmin ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-300 bg-purple-500/15 border border-purple-400/30 px-2 py-0.5 rounded-md mt-1">
+                <ShieldAlert size={10} className="fill-purple-300/20" /> Platform Admin
+              </span>
+            ) : isEmployer ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-300 bg-indigo-500/15 border border-indigo-400/30 px-2 py-0.5 rounded-md mt-1">
+                <Sparkles size={10} className="fill-indigo-300/20" /> Recruiter Studio
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-500/15 border border-amber-400/30 px-2 py-0.5 rounded-md mt-1">
+                <Sparkles size={10} className="fill-amber-300/20 animate-pulse" /> Verified Candidate
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Links */}
-        <Link to="/profile" onClick={() => setOpened(false)}>
-          <Menu.Item
-            leftSection={<User size={16} className="text-indigo-400" />}
-            className="!rounded-xl !text-xs !font-bold !text-slate-200 hover:!bg-white/10 hover:!text-white transition"
-          >
-            My Profile
-          </Menu.Item>
-        </Link>
+        {/* Admin Specific Links */}
+        {isAdmin && (
+          <>
+            <Link to="/admin/dashboard" onClick={() => setOpened(false)}>
+              <Menu.Item
+                leftSection={<LayoutDashboard size={16} className="text-purple-400" />}
+                className="!rounded-xl !text-xs !font-bold !text-purple-300 hover:!bg-purple-500/15 transition"
+              >
+                Admin Control Dashboard
+              </Menu.Item>
+            </Link>
 
-        <Link to="/my-jobs/applied" onClick={() => setOpened(false)}>
-          <Menu.Item
-            leftSection={<Briefcase size={16} className="text-purple-400" />}
-            className="!rounded-xl !text-xs !font-bold !text-slate-200 hover:!bg-white/10 hover:!text-white transition"
-          >
-            Applied Jobs & Pipeline
-          </Menu.Item>
-        </Link>
+            <Link to="/admin/recruiters" onClick={() => setOpened(false)}>
+              <Menu.Item
+                leftSection={<ShieldCheck size={16} className="text-emerald-400" />}
+                className="!rounded-xl !text-xs !font-bold !text-emerald-300 hover:!bg-emerald-500/15 transition"
+              >
+                Recruiter Verifications Hub
+              </Menu.Item>
+            </Link>
+          </>
+        )}
 
-        <Link to="/my-jobs/saved" onClick={() => setOpened(false)}>
-          <Menu.Item
-            leftSection={<Bookmark size={16} className="text-pink-400" />}
-            className="!rounded-xl !text-xs !font-bold !text-slate-200 hover:!bg-white/10 hover:!text-white transition"
-          >
-            Saved Jobs
-          </Menu.Item>
-        </Link>
+        {/* Employer / Recruiter Links */}
+        {isEmployer && !isAdmin && (
+          <>
+            <Link to="/recruiter/dashboard" onClick={() => setOpened(false)}>
+              <Menu.Item
+                leftSection={<LayoutDashboard size={16} className="text-indigo-400" />}
+                className="!rounded-xl !text-xs !font-bold !text-slate-200 hover:!bg-white/10 hover:!text-white transition"
+              >
+                Recruiter Dashboard
+              </Menu.Item>
+            </Link>
 
-        <Link to="/career-hub" onClick={() => setOpened(false)}>
-          <Menu.Item
-            leftSection={<Compass size={16} className="text-cyan-400" />}
-            className="!rounded-xl !text-xs !font-bold !text-slate-200 hover:!bg-white/10 hover:!text-white transition"
-          >
-            Career Hub & AI Tools
-          </Menu.Item>
-        </Link>
+            <Link to="/recruiter/verification" onClick={() => setOpened(false)}>
+              <Menu.Item
+                leftSection={<ShieldCheck size={16} className="text-amber-400" />}
+                className="!rounded-xl !text-xs !font-bold !text-slate-200 hover:!bg-white/10 hover:!text-white transition"
+              >
+                Verification Status
+              </Menu.Item>
+            </Link>
+          </>
+        )}
+
+        {/* Candidate / Jobseeker Links */}
+        {!isAdmin && !isEmployer && (
+          <>
+            <Link to="/profile" onClick={() => setOpened(false)}>
+              <Menu.Item
+                leftSection={<User size={16} className="text-indigo-400" />}
+                className="!rounded-xl !text-xs !font-bold !text-slate-200 hover:!bg-white/10 hover:!text-white transition"
+              >
+                My Profile
+              </Menu.Item>
+            </Link>
+
+            <Link to="/my-jobs/applied" onClick={() => setOpened(false)}>
+              <Menu.Item
+                leftSection={<Briefcase size={16} className="text-purple-400" />}
+                className="!rounded-xl !text-xs !font-bold !text-slate-200 hover:!bg-white/10 hover:!text-white transition"
+              >
+                Applied Jobs & Pipeline
+              </Menu.Item>
+            </Link>
+
+            <Link to="/my-jobs/saved" onClick={() => setOpened(false)}>
+              <Menu.Item
+                leftSection={<Bookmark size={16} className="text-pink-400" />}
+                className="!rounded-xl !text-xs !font-bold !text-slate-200 hover:!bg-white/10 hover:!text-white transition"
+              >
+                Saved Jobs
+              </Menu.Item>
+            </Link>
+
+            <Link to="/career-hub" onClick={() => setOpened(false)}>
+              <Menu.Item
+                leftSection={<Compass size={16} className="text-cyan-400" />}
+                className="!rounded-xl !text-xs !font-bold !text-slate-200 hover:!bg-white/10 hover:!text-white transition"
+              >
+                Career Hub & AI Tools
+              </Menu.Item>
+            </Link>
+          </>
+        )}
 
         <Menu.Divider className="!border-white/10 !my-1.5" />
 

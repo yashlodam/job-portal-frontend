@@ -49,6 +49,15 @@ export function StatusChip({ status }) {
     HIRED: { label: "Hired", variant: "success", dot: "bg-emerald-400" },
     REJECTED: { label: "Not Selected", variant: "danger", dot: "bg-rose-400" },
     WITHDRAWN: { label: "Withdrawn", variant: "danger", dot: "bg-rose-400" },
+
+    // Recruiter Verification & Approval Statuses
+    PENDING_VERIFICATION: { label: "Pending Verification", variant: "warning", dot: "bg-amber-400" },
+    PENDING: { label: "Pending Verification", variant: "warning", dot: "bg-amber-400" },
+    UNDER_REVIEW: { label: "Pending Review", variant: "warning", dot: "bg-amber-400" },
+    APPROVED: { label: "Verified Recruiter", variant: "success", dot: "bg-emerald-400" },
+    VERIFIED: { label: "Verified Recruiter", variant: "success", dot: "bg-emerald-400" },
+    VERIFICATION_REJECTED: { label: "Verification Rejected", variant: "danger", dot: "bg-rose-400" },
+    SUSPENDED: { label: "Account Suspended", variant: "danger", dot: "bg-rose-400" },
   };
 
   const config = statusMap[status?.toUpperCase()] || {
