@@ -1,16 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { api } from "../config/Api";
 
-
 // ─── Register ────────────────────────────────────────────────────────────────
 export const signup = createAsyncThunk(
     "auth/signup",
     async (signupRequest, { rejectWithValue }) => {
         try {
             const response = await api.post("/auth/register", signupRequest);
-            
-            // Backend returns ApiResponse<UserResponse> — NO JWT on registration.
-            // User must login after registration.
             return response.data;
         } catch (error) {
             console.error("Signup failed:", error);
@@ -22,18 +18,13 @@ export const signup = createAsyncThunk(
 );
 
 // ─── Sign In ─────────────────────────────────────────────────────────────────
+// On success, the backend sets the HttpOnly access_token cookie automatically.
+// The JWT is never exposed to JavaScript.
 export const signin = createAsyncThunk(
     "auth/signin",
     async (loginRequest, { rejectWithValue }) => {
         try {
             const response = await api.post("/auth/login", loginRequest);
-
-            // Backend: ApiResponse<AuthResponse> → response.data.data.token
-            const token = response.data?.data?.token || response.data?.data?.jwt;
-            if (token) {
-                localStorage.setItem("jwt", token);
-            }
-
             return response.data;
         } catch (error) {
             console.error("Login failed:", error);
@@ -45,13 +36,12 @@ export const signin = createAsyncThunk(
 );
 
 // ─── Fetch Current User ───────────────────────────────────────────────────────
-// GET /api/users/me — returns ApiResponse<UserResponse>
+// GET /api/auth/me (or /api/users/me) — cookie-authenticated
 export const getUserProfile = createAsyncThunk(
     "auth/getUserProfile",
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get("/users/me");
-            // Unwrap ApiResponse wrapper — actual UserResponse is in .data
+            const response = await api.get("/auth/me");
             return response.data?.data ?? response.data;
         } catch (error) {
             return rejectWithValue(
@@ -62,30 +52,34 @@ export const getUserProfile = createAsyncThunk(
 );
 
 // ─── Restore Auth on Startup ─────────────────────────────────────────────────
-// Called once when the app mounts. Reads the JWT from localStorage; if
-// present, validates it by hitting /users/me. On success the user lands in
-// Redux and stays logged in. On any failure (401, network error,
-// no token) the token is removed and the user is treated as logged out.
+// Called once when the app mounts. Hits /api/auth/me with credentials.
+// If valid HttpOnly cookie is present, browser sends it automatically.
+// On success, sets the profile in Redux. On 401/error, user remains logged out.
 export const restoreAuthState = createAsyncThunk(
     "auth/restoreAuthState",
     async (_, { rejectWithValue }) => {
-        const token = localStorage.getItem("jwt");
-
-        if (!token) {
-            // No token — nothing to restore. Not an error.
-            return rejectWithValue({ noToken: true });
-        }
-
         try {
-            // GET /api/users/me — UserController, JWT-authenticated
-            const response = await api.get("/users/me");
-            // Unwrap ApiResponse<UserResponse>
+            const response = await api.get("/auth/me");
             return response.data?.data ?? response.data;
         } catch (error) {
-            console.warn("Token invalid or expired — clearing.");
-            localStorage.removeItem("jwt");
             return rejectWithValue(
-                error.response?.data || { message: "Session expired. Please log in again." }
+                error.response?.data || { message: "Not authenticated" }
+            );
+        }
+    }
+);
+
+// ─── Logout ──────────────────────────────────────────────────────────────────
+// Sends POST /api/auth/logout to clear the HttpOnly cookie on the server.
+export const logoutUser = createAsyncThunk(
+    "auth/logoutUser",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.post("/auth/logout");
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data || { message: "Logout failed" }
             );
         }
     }
@@ -112,7 +106,6 @@ export const verifyOtp = createAsyncThunk(
     async (request, { rejectWithValue }) => {
         try {
             const response = await api.post("/auth/verify-otp", request);
-            console.log("OTP verified:", response.data);
             return response.data;
         } catch (error) {
             return rejectWithValue(
@@ -128,7 +121,6 @@ export const resetPassword = createAsyncThunk(
     async (request, { rejectWithValue }) => {
         try {
             const response = await api.post("/auth/reset-password", request);
-            console.log("Password reset successfully:", response.data);
             return response.data;
         } catch (error) {
             return rejectWithValue(
@@ -138,7 +130,6 @@ export const resetPassword = createAsyncThunk(
     }
 );
 
-
 // ─── Initial State ───────────────────────────────────────────────────────────
 const initialState = {
     profile: null,
@@ -146,9 +137,7 @@ const initialState = {
     error: null,
     success: false,
     message: null,
-    // isAuthRestored: false means "we haven't checked localStorage yet".
-    // The Header uses this to avoid flashing the Login button while the
-    // startup profile fetch is in flight.
+    // isAuthRestored: false means "startup profile fetch is in flight".
     isAuthRestored: false,
 };
 
@@ -159,13 +148,13 @@ const authSlice = createSlice({
 
     reducers: {
         logout: (state) => {
-            localStorage.removeItem("jwt");
+            // Fire API call to clear HttpOnly cookie on backend
+            api.post("/auth/logout").catch(() => {});
             state.profile = null;
             state.loading = false;
             state.error = null;
             state.success = false;
             state.message = null;
-            // Mark as restored so the Header shows Login (not a spinner)
             state.isAuthRestored = true;
         },
 
@@ -189,17 +178,15 @@ const authSlice = createSlice({
             .addCase(restoreAuthState.pending, (state) => {
                 state.loading = true;
             })
-            // fulfilled: user fetched → user is logged in
             .addCase(restoreAuthState.fulfilled, (state, action) => {
                 state.loading = false;
                 state.profile = action.payload;
-                state.isAuthRestored = true;   // ← ungate the UI
+                state.isAuthRestored = true;
             })
-            // rejected: no token OR invalid token → stay logged out
             .addCase(restoreAuthState.rejected, (state) => {
                 state.loading = false;
                 state.profile = null;
-                state.isAuthRestored = true;   // ← ungate the UI
+                state.isAuthRestored = true;
             })
 
             // ═══════════════════════ SIGNUP ══════════════════════════════════
@@ -231,12 +218,14 @@ const authSlice = createSlice({
                 state.message = null;
                 state.success = false;
             })
-            .addCase(signin.fulfilled, (state) => {
+            .addCase(signin.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
                 state.message = "Login successful";
-                // NOTE: profile is set by the subsequent getUserProfile call
-                // dispatched from Login.jsx after a successful signin.
+                // If login returned safe user payload in data, populate profile immediately
+                if (action.payload?.data?.email) {
+                    state.profile = action.payload.data;
+                }
             })
             .addCase(signin.rejected, (state, action) => {
                 state.loading = false;
@@ -254,7 +243,6 @@ const authSlice = createSlice({
             })
             .addCase(getUserProfile.fulfilled, (state, action) => {
                 state.loading = false;
-                // action.payload is already the unwrapped UserResponse
                 state.profile = action.payload;
                 state.isAuthRestored = true;
             })
@@ -262,6 +250,16 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.error =
                     action.payload?.message || "Failed to fetch user";
+            })
+
+            // ═══════════════════════ LOGOUT ══════════════════════════════════
+            .addCase(logoutUser.fulfilled, (state) => {
+                state.profile = null;
+                state.loading = false;
+                state.error = null;
+                state.success = false;
+                state.message = null;
+                state.isAuthRestored = true;
             })
 
             // ═══════════════════════ SEND OTP ════════════════════════════════

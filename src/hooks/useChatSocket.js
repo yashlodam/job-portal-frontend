@@ -4,9 +4,14 @@
  * STOMP over SockJS WebSocket connector.
  * WS URL: http://localhost:8080/ws
  *
+ * Authentication:
+ *   Uses HttpOnly cookies sent automatically during the SockJS handshake.
+ *   The server's CookieHandshakeInterceptor extracts and validates the JWT,
+ *   setting the session principal without needing any client-side JavaScript token.
+ *
  * Usage:
  *   import { connectChat, disconnectChat } from './useChatSocket';
- *   connectChat(token, onConnected, onError);
+ *   connectChat(onConnected, onError);
  *   disconnectChat();
  */
 
@@ -18,14 +23,13 @@ const WS_URL = "http://localhost:8080/ws";
 let stompClient = null;
 
 /**
- * Connect to the chat WebSocket server.
+ * Connect to the chat WebSocket server using cookie authentication.
  *
- * @param {string}   token       JWT access token
  * @param {Function} onConnected Called with (stompClient) when STOMP CONNECT succeeds
  * @param {Function} onError     Called with (frame) on connection error
  * @returns {Client} The STOMP client instance
  */
-export function connectChat(token, onConnected, onError) {
+export function connectChat(onConnected, onError) {
   // Deactivate any existing connection before creating a new one
   if (stompClient && stompClient.active) {
     stompClient.deactivate();
@@ -34,11 +38,6 @@ export function connectChat(token, onConnected, onError) {
   stompClient = new Client({
     // SockJS factory — provides fallback for browsers without native WebSocket
     webSocketFactory: () => new SockJS(WS_URL),
-
-    // JWT sent in the STOMP CONNECT frame headers (backend reads this for auth)
-    connectHeaders: {
-      Authorization: `Bearer ${token}`,
-    },
 
     // Automatically reconnect every 5 seconds on unexpected disconnect
     reconnectDelay: 5000,

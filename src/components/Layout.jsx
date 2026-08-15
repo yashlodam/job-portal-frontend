@@ -4,16 +4,9 @@ import Header from "../Header/Header";
 import Footer from "../LandingPage/Footer";
 import ScrollToTop from "./ScrollToTop";
 import FloatingAIChatbot from "./FloatingAIChatbot";
-import { useAppSelector } from "../State/Store";
+
 function Layout() {
   const location = useLocation();
-  const user = useAppSelector((state) => state.auth.profile);
-
-  const isEmployer =
-    user?.accountType === "EMPLOYER" ||
-    user?.role === "EMPLOYER" ||
-    user?.accountType === "RECRUITER" ||
-    user?.role === "RECRUITER";
 
   const isRecruiterRoute =
     location.pathname.startsWith("/recruiter") ||
@@ -28,7 +21,8 @@ function Layout() {
     location.pathname === "/register" ||
     location.pathname === "/reset-password";
 
-  const hideUserHeaderFooter = isEmployer || isRecruiterRoute || isAuthRoute;
+  const hideUserHeaderFooter = isRecruiterRoute || isAuthRoute;
+
 
   return (
     <div className="min-h-screen w-full bg-background font-inter text-body">

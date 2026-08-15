@@ -13,10 +13,12 @@ export const notificationApi = createApi({
   reducerPath: "notificationApi",
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
+    credentials: "include",
     prepareHeaders: (headers) => {
-      const jwt = localStorage.getItem("jwt");
-      if (jwt) {
-        headers.set("Authorization", `Bearer ${jwt}`);
+      // Attach CSRF token if present in cookie
+      const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+      if (match) {
+        headers.set("X-XSRF-TOKEN", decodeURIComponent(match[1]));
       }
       return headers;
     },

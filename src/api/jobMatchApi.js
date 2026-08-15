@@ -3,7 +3,7 @@
  *
  * REST API client matching Spring Boot AI Job Match Score Integration:
  * Base URL: http://localhost:8080/api/recruiter
- * Global Header: Authorization: Bearer <jwt>
+ * Auth: HttpOnly Cookie (automatic)
  */
 
 import { api } from "../config/Api";

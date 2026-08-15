@@ -90,25 +90,34 @@ function Login({ setIsLogin }) {
         icon: <CheckCircle2 size={18} />,
       });
 
-      const isAdmin =
-        profile?.accountType === "ADMIN" ||
-        profile?.role === "ADMIN" ||
-        (Array.isArray(profile?.roles) && profile?.roles.includes("ADMIN"));
+      const accountType = (
+        profile?.accountType || profile?.role || ""
+      ).toUpperCase();
 
-      const isEmployer =
-        profile?.accountType === "EMPLOYER" ||
-        profile?.role === "EMPLOYER" ||
-        profile?.accountType === "RECRUITER" ||
-        profile?.role === "RECRUITER";
+      const isAdmin = accountType === "ADMIN";
+      const isEmployer = accountType === "EMPLOYER" || accountType === "RECRUITER";
 
       const origin = location.state?.from?.pathname;
 
       if (isAdmin) {
-        navigate(origin && origin.startsWith("/admin") ? origin : "/admin/dashboard", { replace: true });
+        // Admins only return to admin pages
+        navigate(
+          origin && origin.startsWith("/admin") ? origin : "/admin/dashboard",
+          { replace: true }
+        );
       } else if (isEmployer) {
-        navigate(origin && origin.startsWith("/recruiter") ? origin : "/recruiter/dashboard", { replace: true });
+        // Recruiters only return to recruiter pages
+        navigate(
+          origin && origin.startsWith("/recruiter") ? origin : "/recruiter/dashboard",
+          { replace: true }
+        );
       } else {
-        navigate(origin && !origin.startsWith("/login") && !origin.startsWith("/signup") && !origin.startsWith("/auth") ? origin : "/", { replace: true });
+        // Applicants: only return to general pages — never to /recruiter or /admin
+        const safePaths = ["/login", "/signup", "/auth", "/register", "/reset-password", "/recruiter", "/admin"];
+        const isSafeOrigin =
+          origin &&
+          !safePaths.some((p) => origin.startsWith(p));
+        navigate(isSafeOrigin ? origin : "/", { replace: true });
       }
     } catch (error) {
       notifications.show({

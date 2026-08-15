@@ -7,20 +7,21 @@
  */
 
 import { useEffect, useState } from "react";
-import { useAppDispatch } from "../../../State/Store";
+import { useAppDispatch, useAppSelector } from "../../../State/Store";
 import { useGetUnreadCountQuery } from "../api/notificationApi";
 import { setUnreadCount } from "../slices/notificationSlice";
 
 export function useUnreadCount(pollIntervalMs = 30000) {
   const dispatch = useAppDispatch();
+  const isAuthenticated = Boolean(useAppSelector((state) => state.auth.profile));
   const [isTabVisible, setIsTabVisible] = useState(
     typeof document !== "undefined" ? document.visibilityState === "visible" : true
   );
 
-  // Poll only when tab is visible
+  // Poll only when tab is visible and user is authenticated
   const { data, refetch, isError, isLoading } = useGetUnreadCountQuery(undefined, {
-    pollingInterval: isTabVisible ? pollIntervalMs : 0,
-    skip: !localStorage.getItem("jwt"), // Skip if not authenticated
+    pollingInterval: isTabVisible && isAuthenticated ? pollIntervalMs : 0,
+    skip: !isAuthenticated,
   });
 
   // Handle visibility change
@@ -28,7 +29,7 @@ export function useUnreadCount(pollIntervalMs = 30000) {
     const handleVisibility = () => {
       const visible = document.visibilityState === "visible";
       setIsTabVisible(visible);
-      if (visible && localStorage.getItem("jwt")) {
+      if (visible && isAuthenticated) {
         refetch();
       }
     };
@@ -40,7 +41,7 @@ export function useUnreadCount(pollIntervalMs = 30000) {
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("focus", handleVisibility);
     };
-  }, [refetch]);
+  }, [refetch, isAuthenticated]);
 
   // Sync count to Redux store
   useEffect(() => {

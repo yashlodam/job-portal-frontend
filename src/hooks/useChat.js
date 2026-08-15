@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
+import { useSelector } from "react-redux";
 import { connectChat, disconnectChat } from "./useChatSocket";
 import {
   getConversationsApi,
@@ -27,15 +28,19 @@ export function useChat() {
   const [connected, setConnected] = useState(false);
   const [wsError, setWsError] = useState(null);
 
-  // Read JWT from localStorage (mirrors the existing auth pattern in the app)
-  const token = localStorage.getItem("jwt");
+  // Authenticate based on Redux profile state.
+  // HttpOnly cookie is automatically included in the WebSocket handshake.
+  const user = useSelector((state) => state.auth.profile);
 
-  // ── Connect on mount ──────────────────────────────────────────────────────
+  // ── Connect on mount / when user is authenticated ──────────────────────────
   useEffect(() => {
-    if (!token) return;
+    if (!user) {
+      disconnectChat();
+      setConnected(false);
+      return;
+    }
 
     connectChat(
-      token,
       (stompClient) => {
         clientRef.current = stompClient;
         setConnected(true);
@@ -68,7 +73,7 @@ export function useChat() {
       disconnectChat();
       setConnected(false);
     };
-  }, [token]);
+  }, [user]);
 
   // ── Subscribe to a conversation ──────────────────────────────────────────
   /**

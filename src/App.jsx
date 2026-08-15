@@ -18,6 +18,7 @@ import { getAllJobs, getCategories, getWorkModes } from './State/JobSlice';
 import { useAppSelector } from './State/Store';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
+import RecruiterRoute from './components/auth/RecruiterRoute';
 import RecruiterVerificationGuard from './components/auth/RecruiterVerificationGuard';
 import AdminRoute from './components/auth/AdminRoute';
 import { ToastProvider } from './components/ui/ToastNotification';
@@ -209,7 +210,39 @@ function App() {
               </Route>
 
               {/* ─────────────────────────────────────────────────────────────
+                  RECRUITER STUDIO ROUTES
+                  Guarded by RecruiterRoute — ONLY EMPLOYER/RECRUITER accounts.
+                  Applicants and Admins are redirected away automatically.
+                 ───────────────────────────────────────────────────────────── */}
+              <Route element={<RecruiterRoute />}>
+                <Route element={<Layout />}>
+                  {/* Recruiter Core — accessible to all verified/pending recruiters */}
+                  <Route path="/dashboard"               element={<RecruiterDashboardPage />} />
+                  <Route path="/recruiter/dashboard"     element={<RecruiterDashboardPage />} />
+                  <Route path="/recruiter/verification"  element={<RecruiterVerificationPage />} />
+                  <Route path="/recruiter/company"       element={<RecruiterCompanyPage />} />
+                  <Route path="/recruiter/settings"      element={<RecruiterSettingsPage />} />
+
+                  {/* Recruiter Full Privileges — also requires APPROVED status */}
+                  <Route element={<RecruiterVerificationGuard />}>
+                    <Route path="/upload-job"                         element={<UploadJob />} />
+                    <Route path="/recruiter/jobs"                     element={<RecruiterJobsPage />} />
+                    <Route path="/recruiter/jobs/manage"              element={<RecruiterJobsPage />} />
+                    <Route path="/recruiter/jobs/featured"            element={<RecruiterJobsPage />} />
+                    <Route path="/recruiter/jobs/archived"            element={<RecruiterJobsPage />} />
+                    <Route path="/recruiter/applications"             element={<RecruiterApplicationsPage />} />
+                    <Route path="/recruiter/candidates/applications"  element={<RecruiterApplicationsPage />} />
+                    <Route path="/recruiter/candidates"               element={<RecruiterCandidatesPage />} />
+                    <Route path="/recruiter/interviews"               element={<RecruiterInterviewsPage />} />
+                    <Route path="/recruiter/analytics"                element={<RecruiterAnalyticsPage />} />
+                    <Route path="/recruiter/messages"                 element={<RecruiterMessagesPage />} />
+                  </Route>
+                </Route>
+              </Route>
+
+              {/* ─────────────────────────────────────────────────────────────
                   PROTECTED APPLICATION ROUTES
+                  Accessible to any authenticated user (all account types).
                  ───────────────────────────────────────────────────────────── */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<Layout />}>
@@ -253,28 +286,6 @@ function App() {
                   <Route path="/notifications"  element={<NotificationsPage />} />
                   <Route path="/messages"       element={<MessagesPage />} />
                   <Route path="/settings"       element={<SettingsPage />} />
-
-                  {/* Recruiter Studio Core (Available to all recruiters) */}
-                  <Route path="/dashboard"                element={<RecruiterDashboardPage />} />
-                  <Route path="/recruiter/dashboard"      element={<RecruiterDashboardPage />} />
-                  <Route path="/recruiter/verification"   element={<RecruiterVerificationPage />} />
-                  <Route path="/recruiter/company"        element={<RecruiterCompanyPage />} />
-                  <Route path="/recruiter/settings"       element={<RecruiterSettingsPage />} />
-
-                  {/* Recruiter Studio Full Privileges (Guarded by RecruiterVerificationGuard) */}
-                  <Route element={<RecruiterVerificationGuard />}>
-                    <Route path="/upload-job"               element={<UploadJob />} />
-                    <Route path="/recruiter/jobs"           element={<RecruiterJobsPage />} />
-                    <Route path="/recruiter/jobs/manage"    element={<RecruiterJobsPage />} />
-                    <Route path="/recruiter/jobs/featured"  element={<RecruiterJobsPage />} />
-                    <Route path="/recruiter/jobs/archived"  element={<RecruiterJobsPage />} />
-                    <Route path="/recruiter/applications"   element={<RecruiterApplicationsPage />} />
-                    <Route path="/recruiter/candidates/applications" element={<RecruiterApplicationsPage />} />
-                    <Route path="/recruiter/candidates"     element={<RecruiterCandidatesPage />} />
-                    <Route path="/recruiter/interviews"     element={<RecruiterInterviewsPage />} />
-                    <Route path="/recruiter/analytics"      element={<RecruiterAnalyticsPage />} />
-                    <Route path="/recruiter/messages"       element={<RecruiterMessagesPage />} />
-                  </Route>
 
                   <Route path="*" element={<NotFound />} />
                 </Route>
