@@ -28,6 +28,7 @@ import { notificationApi } from "../features/notifications/api/notificationApi";
 import analysisReducer from "../features/resume-analyzer/slices/analysisSlice";
 import interviewReducer from "../features/mock-interview/slices/interviewSlice";
 import resumeBuilderReducer from "../features/resume-builder/slices/resumeBuilderSlice";
+import verificationReducer from "./verificationSlice";
 
 // ─── Root Reducer ─────────────────────────────────────────────────────────────
 const rootReducer = combineReducers({
@@ -42,6 +43,7 @@ const rootReducer = combineReducers({
   analysis:    analysisReducer,
   interview:   interviewReducer,
   resumeBuilder: resumeBuilderReducer,
+  verification: verificationReducer,
   [notificationApi.reducerPath]: notificationApi.reducer,
 });
 
