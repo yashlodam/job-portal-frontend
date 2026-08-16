@@ -371,9 +371,12 @@ export const profile = {
     "Marathi",
   ],
 
+  email: "yashlodam03@gmail.com",
+
   socialLinks: {
     linkedin: "https://linkedin.com/in/yashlodam",
     github: "https://github.com/yashlodam",
     portfolio: "https://yashlodam.dev",
+    email: "mailto:yashlodam03@gmail.com",
   },
 };

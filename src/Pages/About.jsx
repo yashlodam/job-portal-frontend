@@ -1,27 +1,55 @@
+/**
+ * src/Pages/About.jsx
+ *
+ * Professional About Us & Founder Spotlight Page.
+ * Dedicated to Yash Lodam (Founder & Chief Architect) with verified credentials,
+ * architecture principles, and direct contact avenues.
+ */
+
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import {
   Sparkles,
-  Lightbulb,
   Shield,
   Award,
-  Users,
   Zap,
-  Heart,
   Target,
   ArrowRight,
   Briefcase,
   UserCheck,
   TrendingUp,
   Globe,
-  Rocket,
+  Code2,
+  Cpu,
+  Mail,
+  CheckCircle2,
+  ExternalLink,
+  Layers,
+  Terminal,
+  Database,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+
+function LinkedInIcon({ className = "" }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+  );
+}
+
+function GitHubIcon({ className = "" }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+    </svg>
+  );
+}
 
 /* ===========================
-    Animated Counter
+    Animated Counter Component
 =========================== */
-
-function AnimatedCounter({ end, suffix = "", duration = 2000 }) {
+function AnimatedCounter({ end, suffix = "", duration = 1800 }) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
@@ -50,565 +78,352 @@ function AnimatedCounter({ end, suffix = "", duration = 2000 }) {
   );
 }
 
-/* ===========================
-    Page Data
-=========================== */
-
-const stats = [
-  { icon: Briefcase, value: 50, suffix: "K+", label: "Jobs Posted" },
-  { icon: Globe,     value: 10, suffix: "K+", label: "Companies"  },
-  { icon: Users,     value: 100,suffix: "K+", label: "Job Seekers"},
-  { icon: TrendingUp,value: 95, suffix: "%",  label: "Success Rate"},
+const PLATFORM_STATS = [
+  { icon: Briefcase, value: 15, suffix: "K+", label: "Active Roles Curated" },
+  { icon: Globe, value: 3200, suffix: "+", label: "Verified Employers" },
+  { icon: Zap, value: 98, suffix: "%", label: "AI Match Precision" },
+  { icon: TrendingUp, value: 14, suffix: " Days", label: "Avg. Hiring Timeline" },
 ];
 
-const values = [
+const CORE_PILLARS = [
   {
-    icon: Lightbulb,
-    title: "Innovation",
+    icon: Cpu,
+    title: "Neural Skill Fit Scoring",
     description:
-      "We leverage cutting-edge AI to transform how people find careers and how companies find talent.",
+      "Unlike legacy keyword matchers, our semantic embedding algorithms evaluate project complexity, technical depth, and actual skill alignment.",
     from: "#6366F1",
     to: "#8B5CF6",
   },
   {
-    icon: Shield,
-    title: "Trust",
+    icon: Zap,
+    title: "Zero-Ghosting Transparency",
     description:
-      "Every interaction on our platform is secure, transparent, and built on a foundation of mutual respect.",
+      "Candidates track application status live through 8 structured pipeline stages with direct real-time messaging to hiring recruiters.",
     from: "#06B6D4",
-    to: "#22D3EE",
+    to: "#3B82F6",
+  },
+  {
+    icon: Shield,
+    title: "Verified Employer Trust",
+    description:
+      "Every employer and job posting undergoes verification to protect candidates from spam, ghost postings, and deceptive compensation bands.",
+    from: "#10B981",
+    to: "#14B8A6",
+  },
+  {
+    icon: Terminal,
+    title: "AI ATS Resume Engineering",
+    description:
+      "Interactive resume builder and score analyzer designed to pass modern enterprise ATS filters with tailored bullet point enhancements.",
+    from: "#EC4899",
+    to: "#F43F5E",
   },
   {
     icon: Award,
-    title: "Excellence",
+    title: "Realistic AI Mock Interviews",
     description:
-      "We set the highest standards for ourselves and empower our users to achieve theirs.",
-    from: "#8B5CF6",
-    to: "#EC4899",
-  },
-  {
-    icon: Heart,
-    title: "Inclusion",
-    description:
-      "Diversity isn't a checkbox — it's woven into every algorithm, every feature, every decision we make.",
-    from: "#F43F5E",
-    to: "#F97316",
-  },
-  {
-    icon: Zap,
-    title: "Speed",
-    description:
-      "Time-to-hire matters. Our platform accelerates every step from discovery to offer letter.",
+      "Practice coding, distributed system design, and behavioral questions with an AI coach that provides actionable scoring and feedback.",
     from: "#F59E0B",
     to: "#FBBF24",
   },
   {
-    icon: Target,
-    title: "Impact",
+    icon: Database,
+    title: "High-Performance Fullstack Architecture",
     description:
-      "Every placement changes a life. We measure success by the careers we help launch.",
-    from: "#10B981",
-    to: "#14B8A6",
+      "Built with high-throughput Spring Boot micro-services, reactive PostgreSQL storage, and a responsive React 19 interface.",
+    from: "#8B5CF6",
+    to: "#A855F7",
   },
 ];
 
-const team = [
-  { name: "Alex Rivera",    role: "CEO & Co-founder",    initials: "AR", from: "#6366F1", to: "#8B5CF6", bio: "Former VP of Product at LinkedIn."       },
-  { name: "Priya Patel",    role: "CTO",                 initials: "PP", from: "#06B6D4", to: "#6366F1", bio: "Ex-Google, ML infrastructure lead."       },
-  { name: "Marcus Chen",    role: "Head of Design",      initials: "MC", from: "#8B5CF6", to: "#EC4899", bio: "Previously at Stripe and Figma."          },
-  { name: "Sofia Nakamura", role: "VP of Engineering",   initials: "SN", from: "#10B981", to: "#06B6D4", bio: "Scaled systems at Netflix."               },
-  { name: "David Okafor",   role: "Head of AI",          initials: "DO", from: "#F59E0B", to: "#F97316", bio: "Former research scientist at OpenAI."     },
-  { name: "Emma Larsson",   role: "VP of People",        initials: "EL", from: "#F43F5E", to: "#8B5CF6", bio: "Built culture at Spotify."                },
-];
-
-/* ===========================
-    Animation Variants
-=========================== */
-
 const containerVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.09 } },
+  visible: { transition: { staggerChildren: 0.08 } },
 };
 
 const itemVariants = {
-  hidden:  { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.48, ease: [0.16, 1, 0.3, 1] } },
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
 };
 
-/* ===========================
-    Reusable PageBadge
-=========================== */
-
-function PageBadge({ children, icon: Icon, color = "primary" }) {
+export default function About() {
   return (
-    <div
-      className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5"
-      style={{
-        borderColor: "rgba(99,102,241,0.20)",
-        background: "rgba(99,102,241,0.10)",
-      }}
-    >
-      {Icon && <Icon size={14} className="text-[#818CF8]" />}
-      <span className="text-xs font-semibold uppercase tracking-wider text-[#818CF8]">
-        {children}
-      </span>
-    </div>
-  );
-}
-
-/* ===========================
-    Main Page
-=========================== */
-
-function About() {
-  return (
-    <main className="relative overflow-x-hidden" aria-label="About Velora">
-      {/* Global ambient glows — absolute, not fixed, so they don't bleed into other pages */}
+    <main className="relative min-h-screen bg-[#05070d] font-inter text-slate-200 overflow-x-hidden" aria-label="About JobPortal AI">
+      {/* Background Ambient Glows */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full"
-          style={{ background: "rgba(99,102,241,0.07)", filter: "blur(180px)" }} />
-        <div className="absolute right-0 top-1/3 h-[400px] w-[400px] rounded-full"
-          style={{ background: "rgba(6,182,212,0.05)", filter: "blur(160px)" }} />
-        <div className="absolute bottom-1/4 left-0 h-[350px] w-[350px] rounded-full"
-          style={{ background: "rgba(139,92,246,0.04)", filter: "blur(140px)" }} />
+        <div className="absolute left-1/4 top-0 h-[600px] w-[600px] rounded-full bg-indigo-600/10 blur-[200px]" />
+        <div className="absolute right-0 top-1/3 h-[500px] w-[500px] rounded-full bg-purple-600/10 blur-[180px]" />
+        <div className="absolute bottom-1/4 left-0 h-[450px] w-[450px] rounded-full bg-cyan-600/5 blur-[160px]" />
       </div>
 
-      {/* Dot grid */}
+      {/* Subtle Dot Grid Texture */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.025]"
         style={{
-          backgroundImage: "radial-gradient(circle, #94A3B8 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(circle, #A5B4FC 1px, transparent 1px)",
           backgroundSize: "32px 32px",
         }}
       />
 
-      {/* ══════════ HERO ══════════ */}
-      <section className="section-container section-padding">
-        <div className="mx-auto max-w-3xl text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex justify-center"
-          >
-            <PageBadge>About JobPortal AI</PageBadge>
-          </motion.div>
+      {/* ══════════ HERO SECTION ══════════ */}
+      <section className="section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:pt-28 sm:pb-20 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-xs font-extrabold text-indigo-300 mb-6 shadow-sm"
+        >
+          <Sparkles size={14} className="text-amber-300 fill-amber-300/20" />
+          <span>Our Mission & Architectural Vision</span>
+        </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-[3.5rem]"
-            style={{ fontFamily: "var(--font-satoshi)", color: "var(--color-heading)", letterSpacing: "-0.025em" }}
-          >
-            Building the future of{" "}
-            <span className="gradient-text">career intelligence</span>
-          </motion.h1>
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.1 }}
+          className="text-3xl sm:text-5xl lg:text-6xl font-black text-white font-satoshi tracking-tight leading-tight max-w-4xl mx-auto"
+        >
+          Engineering the Future of{" "}
+          <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            AI-Driven Recruitment
+          </span>
+        </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mx-auto mt-6 max-w-2xl text-base leading-8 md:text-lg"
-            style={{ color: "var(--color-body)" }}
-          >
-            We're on a mission to eliminate the friction between exceptional
-            talent and extraordinary opportunities. Powered by AI, designed
-            for humans.
-          </motion.p>
-        </div>
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-6 max-w-2xl mx-auto text-sm sm:text-base text-slate-300 leading-relaxed font-medium"
+        >
+          JobPortal AI was founded to fix the broken tech hiring pipeline. We combine deterministic skill evaluation, automated ATS scoring, and direct recruiter communication to help developers land life-changing roles.
+        </motion.p>
       </section>
 
       {/* ══════════ STATS ROW ══════════ */}
-      <section className="section-container pb-20 lg:pb-28" aria-label="Platform statistics">
+      <section className="section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6"
+          viewport={{ once: true }}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
         >
-          {stats.map((stat) => (
+          {PLATFORM_STATS.map((stat) => (
             <motion.div
               key={stat.label}
               variants={itemVariants}
-              className="group rounded-[20px] border p-5 text-center transition-all duration-300 sm:p-6"
-              style={{
-                borderColor: "rgba(148,163,184,0.08)",
-                background: "#0D1117",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(99,102,241,0.25)";
-                e.currentTarget.style.boxShadow   = "0 0 32px rgba(99,102,241,0.10)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(148,163,184,0.08)";
-                e.currentTarget.style.boxShadow   = "none";
-              }}
+              className="rounded-3xl border border-white/10 bg-[#090d16]/90 p-6 text-center backdrop-blur-xl transition hover:border-indigo-500/40 hover:bg-[#0c111f] shadow-lg"
             >
-              <stat.icon
-                size={24}
-                className="mx-auto transition-transform duration-300 group-hover:scale-110"
-                style={{ color: "#818CF8" }}
-              />
-              <p
-                className="mt-4 text-2xl font-extrabold sm:text-3xl"
-                style={{ fontFamily: "var(--font-satoshi)", color: "var(--color-heading)" }}
-              >
-                <AnimatedCounter
-                  end={stat.value}
-                  suffix={stat.suffix}
-                  aria-label={`${stat.value}${stat.suffix} ${stat.label}`}
-                />
-              </p>
-              <p className="mt-1 text-sm" style={{ color: "var(--color-muted)" }}>
-                {stat.label}
-              </p>
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 mb-4 shadow-sm">
+                <stat.icon size={22} />
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-white font-satoshi">
+                <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+              </div>
+              <p className="mt-1 text-xs font-semibold text-slate-400">{stat.label}</p>
             </motion.div>
           ))}
         </motion.div>
       </section>
 
-      {/* ══════════ MISSION SECTION ══════════ */}
-      <section
-        className="border-t"
-        style={{ borderColor: "rgba(148,163,184,0.08)", background: "rgba(13,17,23,0.40)" }}
-      >
-        <div className="section-container section-padding">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            {/* Text */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <div
-                className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5"
-                style={{
-                  borderColor: "rgba(6,182,212,0.20)",
-                  background: "rgba(6,182,212,0.10)",
-                }}
-              >
-                <Rocket size={14} className="text-[#22D3EE]" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#22D3EE]">
-                  Our Mission
-                </span>
-              </div>
+      {/* ══════════ FOUNDER SPOTLIGHT (YASH LODAM) ══════════ */}
+      <section className="section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 border-t border-white/10">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-1 text-xs font-extrabold text-indigo-300">
+              <UserCheck size={14} className="text-indigo-400" />
+              <span>Founder & Chief Architect</span>
+            </span>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-black text-white font-satoshi tracking-tight">
+              Meet the Creator Behind the Platform
+            </h2>
+          </div>
 
-              <h2
-                className="mt-6 text-2xl font-extrabold leading-tight sm:text-3xl md:text-4xl"
-                style={{ fontFamily: "var(--font-satoshi)", color: "var(--color-heading)" }}
-              >
-                Connecting talent with{" "}
-                <span className="gradient-text">opportunity</span>, at scale
-              </h2>
+          {/* Executive Founder Spotlight Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="rounded-3xl border border-indigo-500/40 bg-gradient-to-br from-[#0e1326] via-[#090d16] to-[#05070d] p-8 sm:p-12 shadow-2xl backdrop-blur-2xl relative overflow-hidden"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+              
+              {/* Left Column: Avatar & Quick Badges */}
+              <div className="md:col-span-4 text-center md:text-left flex flex-col items-center md:items-start">
+                <div className="relative">
+                  <div className="flex h-28 w-28 sm:h-32 sm:w-32 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 text-3xl sm:text-4xl font-black text-white font-satoshi shadow-[0_0_35px_rgba(99,102,241,0.4)] border-2 border-white/20">
+                    YL
+                  </div>
+                  <span className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-slate-950 font-bold border-2 border-[#090d16] shadow-lg">
+                    <CheckCircle2 size={18} className="text-white" />
+                  </span>
+                </div>
 
-              <p className="mt-6 leading-relaxed" style={{ color: "var(--color-body)" }}>
-                We believe everyone deserves a career that aligns with their
-                skills, passions, and values. Velora uses advanced AI to
-                understand not just what you've done, but where you're headed.
-              </p>
-              <p className="mt-4 leading-relaxed" style={{ color: "var(--color-body)" }}>
-                For companies, we go beyond keyword matching. Our intelligent
-                algorithms evaluate cultural fit, growth potential, and skill
-                trajectories to surface candidates who will thrive — not just
-                survive.
-              </p>
+                <h3 className="mt-5 text-2xl font-black text-white font-satoshi">
+                  Yash Lodam
+                </h3>
+                <p className="text-xs sm:text-sm font-bold text-indigo-400 mt-0.5">
+                  Founder & Fullstack AI Architect
+                </p>
 
-              <div className="mt-8 flex items-center gap-4">
-                <div
-                  className="h-px flex-1"
-                  style={{ background: "linear-gradient(90deg, rgba(99,102,241,0.40), transparent)" }}
-                />
-                <Sparkles size={18} style={{ color: "#818CF8" }} />
-                <div
-                  className="h-px flex-1"
-                  style={{ background: "linear-gradient(270deg, rgba(6,182,212,0.40), transparent)" }}
-                />
-              </div>
-            </motion.div>
-
-            {/* Visual */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.15 }}
-              className="relative"
-            >
-              <div
-                className="aspect-[4/3] overflow-hidden rounded-[20px] border"
-                style={{
-                  borderColor: "rgba(148,163,184,0.08)",
-                  background: "#0D1117",
-                }}
-              >
-                <div className="relative flex h-full items-center justify-center">
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, rgba(99,102,241,0.10), rgba(139,92,246,0.05), rgba(6,182,212,0.10))",
-                    }}
-                  />
-                  {/* Floating rings */}
-                  <div
-                    aria-hidden="true"
-                    className="absolute h-48 w-48 rounded-full border animate-float"
-                    style={{ borderColor: "rgba(99,102,241,0.20)" }}
-                  />
-                  <div
-                    aria-hidden="true"
-                    className="absolute h-64 w-64 rounded-full border animate-float-slow"
-                    style={{ borderColor: "rgba(139,92,246,0.12)" }}
-                  />
-                  <div
-                    aria-hidden="true"
-                    className="absolute h-32 w-32 rounded-full border animate-float"
-                    style={{ borderColor: "rgba(6,182,212,0.15)", animationDelay: "1s" }}
-                  />
-                  <div
-                    className="relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl shadow-lg"
-                    style={{
-                      background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-                      boxShadow: "0 0 40px rgba(99,102,241,0.30)",
-                    }}
+                {/* Social & Contact Pills */}
+                <div className="mt-5 flex flex-wrap gap-2 justify-center md:justify-start">
+                  <a
+                    href="mailto:yashlodam03@gmail.com"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 hover:border-indigo-500/40 transition"
                   >
-                    <Sparkles size={32} className="text-white" />
+                    <Mail size={13} className="text-indigo-400" />
+                    <span>Email</span>
+                  </a>
+                  <a
+                    href="https://github.com/yashlodam"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 hover:border-indigo-500/40 transition"
+                  >
+                    <GitHubIcon className="text-purple-400" />
+                    <span>GitHub</span>
+                  </a>
+                  <a
+                    href="https://linkedin.com/in/yashlodam"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 hover:border-indigo-500/40 transition"
+                  >
+                    <LinkedInIcon className="text-cyan-400" />
+                    <span>LinkedIn</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Right Column: Founder Narrative & Architecture Highlights */}
+              <div className="md:col-span-8 space-y-4">
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                  "I engineered JobPortal AI with a single mission: to eliminate the frustrating blackhole of online job applications. Traditional job boards rely on crude keyword filters that reject qualified developers, while leaving candidates stranded in months of recruiter silence."
+                </p>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                  "Every piece of this platform — from the neural match scoring and live 8-stage application stepper to the interactive AI technical interview coach — was built with enterprise craftsmanship to empower software engineers to showcase their real potential."
+                </p>
+
+                {/* Core Stack Highlights */}
+                <div className="pt-2 border-t border-white/10">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-satoshi block mb-2">
+                    Core Engineering Stack:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      "React 19 & Tailwind",
+                      "Java & Spring Boot",
+                      "PostgreSQL & Microservices",
+                      "Spring AI & Neural Embeddings",
+                      "Docker & Cloud CI/CD",
+                      "REST & WebSocket Messaging",
+                    ].map((tech) => (
+                      <span
+                        key={tech}
+                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 border border-indigo-500/25 px-2.5 py-1 text-[11px] font-bold text-indigo-300"
+                      >
+                        <Code2 size={11} className="text-indigo-400" />
+                        {tech}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
-              {/* Glow behind */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute -inset-4 -z-10 rounded-[28px]"
-                style={{ background: "rgba(99,102,241,0.04)", filter: "blur(24px)" }}
-              />
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════ VALUES GRID ══════════ */}
-      <section className="section-container section-padding" aria-label="Our values">
-        <div className="text-center">
-          <div className="flex justify-center">
-            <PageBadge>Our Values</PageBadge>
-          </div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mt-6 text-3xl font-extrabold sm:text-4xl md:text-5xl"
-            style={{ fontFamily: "var(--font-satoshi)", color: "var(--color-heading)" }}
-          >
-            What drives <span className="gradient-text">everything</span> we do
-          </motion.h2>
-        </div>
-
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
-          className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {values.map((value) => (
-            <motion.div
-              key={value.title}
-              variants={itemVariants}
-              className="group rounded-[20px] border p-5 transition-all duration-300 sm:p-6"
-              style={{ borderColor: "rgba(148,163,184,0.08)", background: "#0D1117" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = `${value.from}35`;
-                e.currentTarget.style.boxShadow   = `0 0 32px ${value.from}14`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(148,163,184,0.08)";
-                e.currentTarget.style.boxShadow   = "none";
-              }}
-            >
-              <div
-                className="flex h-12 w-12 items-center justify-center rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-110"
-                style={{
-                  background: `linear-gradient(135deg, ${value.from}, ${value.to})`,
-                  boxShadow: `0 4px 16px ${value.from}30`,
-                }}
-              >
-                <value.icon size={22} className="text-white" />
-              </div>
-              <h3
-                className="mt-5 text-lg font-bold"
-                style={{ fontFamily: "var(--font-satoshi)", color: "var(--color-heading)" }}
-              >
-                {value.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--color-body)" }}>
-                {value.description}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
-      </section>
-
-      {/* ══════════ TEAM SECTION ══════════ */}
-      <section
-        className="border-t"
-        style={{ borderColor: "rgba(148,163,184,0.08)", background: "rgba(13,17,23,0.40)" }}
-        aria-label="Our team"
-      >
-        <div className="section-container section-padding">
-          <div className="text-center">
-            <div className="flex justify-center">
-              <PageBadge>Our Team</PageBadge>
             </div>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="mt-6 text-3xl font-extrabold sm:text-4xl md:text-5xl"
-              style={{ fontFamily: "var(--font-satoshi)", color: "var(--color-heading)" }}
-            >
-              Meet the <span className="gradient-text">people</span> behind Velora
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="mx-auto mt-4 max-w-xl text-base leading-7"
-              style={{ color: "var(--color-body)" }}
-            >
-              A diverse team of builders, dreamers, and problem-solvers united
-              by a shared passion for transforming careers.
-            </motion.p>
-          </div>
-
-          {/* Team Grid */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-60px" }}
-            className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {team.map((member) => (
-              <motion.article
-                key={member.name}
-                variants={itemVariants}
-                whileHover={{ y: -5, scale: 1.01 }}
-                className="group rounded-[20px] border p-5 text-center transition-all duration-300 sm:p-6"
-                style={{ borderColor: "rgba(148,163,184,0.08)", background: "#0D1117" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(99,102,241,0.25)";
-                  e.currentTarget.style.boxShadow   = "0 0 32px rgba(99,102,241,0.10)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(148,163,184,0.08)";
-                  e.currentTarget.style.boxShadow   = "none";
-                }}
-              >
-                <div
-                  className="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-xl font-bold text-white shadow-lg transition-transform duration-300 group-hover:scale-105"
-                  style={{
-                    background: `linear-gradient(135deg, ${member.from}, ${member.to})`,
-                    boxShadow: `0 4px 20px ${member.from}35`,
-                  }}
-                >
-                  {member.initials}
-                </div>
-                <h3
-                  className="mt-5 text-lg font-bold"
-                  style={{ fontFamily: "var(--font-satoshi)", color: "var(--color-heading)" }}
-                >
-                  {member.name}
-                </h3>
-                <p className="mt-1 text-sm font-medium" style={{ color: "#818CF8" }}>
-                  {member.role}
-                </p>
-                <p className="mt-2 text-xs" style={{ color: "var(--color-muted)" }}>
-                  {member.bio}
-                </p>
-              </motion.article>
-            ))}
           </motion.div>
         </div>
       </section>
 
-      {/* ══════════ CTA SECTION ══════════ */}
-      <section className="section-container section-padding" aria-label="Join Velora team">
+      {/* ══════════ CORE ARCHITECTURAL PILLARS ══════════ */}
+      <section className="section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 border-t border-white/10">
+        <div className="text-center mb-12">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-extrabold text-emerald-300">
+            <Shield size={14} className="text-emerald-400" />
+            <span>Platform Principles</span>
+          </span>
+          <h2 className="mt-4 text-3xl sm:text-4xl font-black text-white font-satoshi tracking-tight">
+            How JobPortal AI Outperforms Traditional Job Boards
+          </h2>
+        </div>
+
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {CORE_PILLARS.map((pillar) => (
+            <motion.div
+              key={pillar.title}
+              variants={itemVariants}
+              className="rounded-3xl border border-white/10 bg-[#090d16]/90 p-7 backdrop-blur-xl transition duration-300 hover:border-indigo-500/40 hover:bg-[#0c111f] hover:shadow-xl flex flex-col justify-between"
+            >
+              <div>
+                <div
+                  className="flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg mb-6"
+                  style={{
+                    background: `linear-gradient(135deg, ${pillar.from}, ${pillar.to})`,
+                  }}
+                >
+                  <pillar.icon size={22} className="text-white" />
+                </div>
+                <h3 className="text-lg font-extrabold text-white font-satoshi">{pillar.title}</h3>
+                <p className="mt-2.5 text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
+                  {pillar.description}
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                <CheckCircle2 size={13} /> Active on Platform
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* ══════════ DIRECT CONTACT & PARTNERSHIP CTA ══════════ */}
+      <section className="section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 border-t border-white/10">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mx-auto max-w-3xl"
+          className="rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-[#120d24] via-[#090d16] to-[#05070d] p-8 sm:p-14 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden"
         >
-          <div
-            className="relative overflow-hidden rounded-[28px] border p-8 text-center sm:p-12"
-            style={{
-              borderColor: "rgba(99,102,241,0.20)",
-              background: "linear-gradient(135deg, rgba(99,102,241,0.07), rgba(139,92,246,0.04))",
-            }}
-          >
-            {/* Inner glows */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -top-16 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full"
-              style={{ background: "rgba(99,102,241,0.15)", filter: "blur(80px)" }}
-            />
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -bottom-8 right-1/4 h-32 w-32 rounded-full"
-              style={{ background: "rgba(6,182,212,0.10)", filter: "blur(60px)" }}
-            />
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl mb-6">
+            <Mail size={24} />
+          </div>
 
-            <div className="relative z-10">
-              <div
-                className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg"
-                style={{
-                  background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-                  boxShadow: "0 8px 32px rgba(99,102,241,0.30)",
-                }}
-              >
-                <UserCheck size={26} className="text-white" />
-              </div>
+          <h2 className="text-2xl sm:text-4xl font-black text-white font-satoshi tracking-tight">
+            Have Inquiries or Partnership Proposals?
+          </h2>
 
-              <h2
-                className="mt-6 text-2xl font-extrabold sm:text-3xl md:text-4xl"
-                style={{ fontFamily: "var(--font-satoshi)", color: "var(--color-heading)" }}
-              >
-                Join the Velora{" "}
-                <span className="gradient-text">team</span>
-              </h2>
+          <p className="mt-4 text-xs sm:text-sm text-slate-300 leading-relaxed font-medium max-w-xl mx-auto">
+            Directly connect with founder <strong>Yash Lodam</strong> for platform questions, enterprise recruiter onboarding, or technical collaborations.
+          </p>
 
-              <p className="mx-auto mt-4 max-w-lg" style={{ color: "var(--color-body)" }}>
-                We're always looking for talented individuals who are passionate
-                about building the future of work. See our open roles.
-              </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="mailto:yashlodam03@gmail.com"
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-7 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:scale-105 transition cursor-pointer font-satoshi"
+            >
+              <Mail size={15} />
+              <span>Contact Yash Lodam (yashlodam03@gmail.com)</span>
+              <ArrowRight size={15} />
+            </a>
 
-              <motion.button
-                whileHover={{ scale: 1.04, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                className="mt-8 inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold text-white"
-                style={{
-                  background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-                  boxShadow: "0 0 20px rgba(99,102,241,0.25)",
-                }}
-              >
-                View Open Positions
-                <ArrowRight size={16} />
-              </motion.button>
-            </div>
+            <Link
+              to="/find-jobs"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-6 py-3.5 text-xs sm:text-sm font-bold text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
+            >
+              Explore Live Jobs
+            </Link>
           </div>
         </motion.div>
       </section>
     </main>
   );
 }
-
-export default About;

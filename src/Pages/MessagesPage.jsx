@@ -198,9 +198,19 @@ export default function MessagesPage() {
   const [otherTyping, setOtherTyping] = useState(false);
   const [otherOnline, setOtherOnline] = useState(false);
 
+  const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const typingTimerRef = useRef(null);
   const prevConvIdRef = useRef(null);
+
+  const scrollToBottom = useCallback((smooth = false) => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: smooth ? "smooth" : "instant",
+      });
+    }
+  }, []);
 
   // ── Build known companies lookup map ──────────────────────────────────────
   const knownCompaniesMap = useMemo(() => {
@@ -306,7 +316,7 @@ export default function MessagesPage() {
       const items = [...content].reverse();
       if (pageNum === 0) {
         setMessages(items);
-        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+        setTimeout(() => scrollToBottom(false), 30);
       } else {
         setMessages((prev) => [...items, ...prev]);
       }
@@ -342,7 +352,7 @@ export default function MessagesPage() {
             if (prev.some((m) => m.id === msg.id)) return prev;
             return [...prev, msg];
           });
-          setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+          setTimeout(() => scrollToBottom(true), 30);
 
           if (msg.sender?.id !== currentUserId) {
             chat.markAsRead(convId);
@@ -403,7 +413,7 @@ export default function MessagesPage() {
       edited: false,
     };
     setMessages((prev) => [...prev, optimisticMsg]);
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 30);
+    setTimeout(() => scrollToBottom(true), 20);
 
     const sent = chat.sendMessage(activeConvId, text);
     if (!sent) {
@@ -807,7 +817,7 @@ export default function MessagesPage() {
                     </div>
                   )}
 
-                  <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+                  <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
                     {/* Clean Security / Verified Header */}
                     <div className="flex justify-center my-1">
                       <div className="inline-flex items-center gap-1.5 rounded-xl bg-white/[0.03] border border-white/10 px-3.5 py-1.5 text-[11px] text-slate-400 text-center font-medium max-w-md">
