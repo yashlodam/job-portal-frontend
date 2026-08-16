@@ -265,6 +265,8 @@ function App() {
                   <Route path="/my-jobs/recommended"     element={<MyJobsPage />} />
                   <Route path="/my-jobs/saved"           element={<MyJobsPage />} />
                   <Route path="/my-jobs/interviews"      element={<MyJobsPage />} />
+                  <Route path="/my-jobs/offers"          element={<MyJobsPage />} />
+                  <Route path="/my-jobs/:tab"            element={<MyJobsPage />} />
 
                   {/* Career Hub & AI Suite */}
                   <Route path="/career-hub"                 element={<CareerHubPage />} />

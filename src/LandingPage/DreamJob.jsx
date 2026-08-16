@@ -305,9 +305,9 @@ const DreamJob = memo(() => {
                   {/* Search Action Button */}
                   <button
                     type="submit"
-                    className="inline-flex h-12 w-full md:w-auto items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-6 sm:px-7 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shrink-0 font-satoshi"
+                    className="inline-flex h-12 w-full md:w-auto items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 px-6 sm:px-7 text-xs sm:text-sm font-extrabold text-white shadow-[0_10px_28px_rgba(236,72,153,0.35)] hover:shadow-[0_12px_36px_rgba(236,72,153,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shrink-0 font-satoshi"
                   >
-                    <Sparkles size={15} className="text-amber-300 fill-amber-300/20" />
+                    <Sparkles size={15} className="text-amber-300 fill-amber-300/30" />
                     <span>Search Jobs</span>
                   </button>
                 </div>

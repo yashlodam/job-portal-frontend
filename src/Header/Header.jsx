@@ -528,11 +528,16 @@ function Header() {
                             {item.children.map((child) => {
                               const childActive = location.pathname === child.url;
                               const Icon = child.icon;
+                              const offersCount = (myApplications || []).filter(
+                                (a) => a?.status === "OFFERED" || a?.status === "ACCEPTED"
+                              ).length;
                               const badgeText =
                                 child.url === "/my-jobs/saved"
                                   ? (savedJobs?.length > 0 ? String(savedJobs.length) : null)
                                   : child.url === "/my-jobs/applied"
                                   ? (myApplications?.length > 0 ? String(myApplications.length) : null)
+                                  : child.url === "/my-jobs/offers"
+                                  ? (offersCount > 0 ? String(offersCount) : null)
                                   : child.badge;
                               return (
                                 <Link
@@ -861,11 +866,16 @@ function Header() {
                                 {item.children.map((child) => {
                                   const childActive = location.pathname === child.url;
                                   const Icon = child.icon;
+                                  const offersCount = (myApplications || []).filter(
+                                    (a) => a?.status === "OFFERED" || a?.status === "ACCEPTED"
+                                  ).length;
                                   const badgeText =
                                     child.url === "/my-jobs/saved"
                                       ? (savedJobs?.length > 0 ? String(savedJobs.length) : null)
                                       : child.url === "/my-jobs/applied"
                                       ? (myApplications?.length > 0 ? String(myApplications.length) : null)
+                                      : child.url === "/my-jobs/offers"
+                                      ? (offersCount > 0 ? String(offersCount) : null)
                                       : child.badge;
                                   return (
                                     <Link

@@ -9,7 +9,7 @@
  * - Professional Confirmation Modal for Application Withdrawals
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -34,7 +34,12 @@ import {
   AlertTriangle,
   Loader2,
   X,
+  Video,
+  Phone,
+  RefreshCw,
+  UserCheck,
 } from "lucide-react";
+import { getCandidateInterviewsApi } from "../api/recruiterInterviewApi";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { fetchMyApplicationsThunk, withdrawApplicationThunk } from "../State/applicationThunk";
 import { fetchMySavedJobsThunk, unsaveJobThunk } from "../State/savedJobThunk";
@@ -46,11 +51,35 @@ import { EmptyState } from "../components/ui/LoadingSkeleton";
 import { useToast } from "../components/ui/ToastNotification";
 import RecommendedJobsSection from "../components/recommendation/RecommendedJobsSection";
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return "Recently";
+const parseDateRobust = (dateVal) => {
+  if (!dateVal) return null;
+  if (Array.isArray(dateVal)) {
+    const [year, month, day, hour = 0, minute = 0] = dateVal;
+    const d = new Date(year, month - 1, day, hour, minute);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  if (typeof dateVal === "object") {
+    if (dateVal.year) {
+      const d = new Date(
+        dateVal.year,
+        (dateVal.monthValue || 1) - 1,
+        dateVal.dayOfMonth || 1,
+        dateVal.hour || 0,
+        dateVal.minute || 0
+      );
+      return isNaN(d.getTime()) ? null : d;
+    }
+    return null;
+  }
+  const d = new Date(dateVal);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+const formatDate = (dateVal) => {
+  if (!dateVal) return "Recently";
   try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
+    const d = parseDateRobust(dateVal);
+    if (!d) return typeof dateVal === "string" ? dateVal : "Recently";
     return d.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -59,7 +88,7 @@ const formatDate = (dateStr) => {
       minute: "2-digit",
     });
   } catch (e) {
-    return dateStr;
+    return typeof dateVal === "string" ? dateVal : "Recently";
   }
 };
 
@@ -87,14 +116,40 @@ export default function MyJobsPage() {
   const [withdrawTarget, setWithdrawTarget] = useState(null);
   const [withdrawing, setWithdrawing] = useState(false);
 
+  // ── Interview State ────────────────────────────────────────────────────────
+  const [interviewList, setInterviewList] = useState([]);
+  const [interviewsLoading, setInterviewsLoading] = useState(false);
+  const [interviewsError, setInterviewsError] = useState(null);
+
   useEffect(() => {
     setActiveTab(getTabFromPath(location.pathname));
   }, [location.pathname]);
 
+  const loadInterviews = useCallback(async (showLoadingSpinner = true) => {
+    if (showLoadingSpinner) setInterviewsLoading(true);
+    setInterviewsError(null);
+    try {
+      const { data } = await getCandidateInterviewsApi();
+      setInterviewList(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setInterviewsError(err?.userMessage ?? err?.response?.data?.message ?? "Failed to load interviews.");
+      setInterviewList([]);
+    } finally {
+      if (showLoadingSpinner) setInterviewsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     dispatch(fetchMyApplicationsThunk());
     dispatch(fetchMySavedJobsThunk());
-  }, [dispatch]);
+    loadInterviews(false);
+  }, [dispatch, loadInterviews]);
+
+  useEffect(() => {
+    if (activeTab === "interviews") {
+      loadInterviews(true);
+    }
+  }, [activeTab, loadInterviews]);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -131,37 +186,18 @@ export default function MyJobsPage() {
 
   const savedJobs = liveSavedJobs || [];
 
-  // Interviews Mock
-  const interviewList = [
-    {
-      id: 301,
-      title: "Senior React Engineer",
-      company: "TechNova Solutions",
-      interviewer: "Sarah Connor (Lead Recruiter)",
-      date: "Aug 6, 2026",
-      time: "2:00 PM - 3:00 PM EST",
-      mode: "Google Meet",
-      link: "https://meet.google.com/abc-defg-hij",
-    },
-  ];
+  // Offers — real data: applications with status OFFERED or ACCEPTED
+  const offerList = (myApplications || []).filter((app) => {
+    if (!app) return false;
+    const s = typeof app.status === "string" ? app.status.toUpperCase() : (app.status?.name || "");
+    return s === "OFFERED" || s === "ACCEPTED" || s === "OFFER";
+  });
 
-  // Offers Mock
-  const offerList = [
-    {
-      id: 401,
-      title: "Lead Frontend Architect",
-      company: "Vercel",
-      compensation: "$175,000 + Stock Options",
-      startDate: "Sept 1, 2026",
-      status: "OFFER",
-      validUntil: "Aug 15, 2026",
-    },
-  ];
-
-  const filteredApplications = myApplications.filter((app) => {
-    const title = app.jobTitle || app.job?.title || "";
-    const company = app.companyName || app.company || "";
-    const status = app.status || "";
+  const filteredApplications = (myApplications || []).filter((app) => {
+    if (!app) return false;
+    const title = typeof app.jobTitle === "string" ? app.jobTitle : app.job?.title || "";
+    const company = typeof app.companyName === "string" ? app.companyName : (typeof app.company === "string" ? app.company : "");
+    const status = typeof app.status === "string" ? app.status : (app.status?.name || "");
     const query = searchQuery.toLowerCase();
     return (
       title.toLowerCase().includes(query) ||
@@ -177,6 +213,51 @@ export default function MyJobsPage() {
     { id: "interviews", label: "Interviews", count: interviewList?.length || 0 },
     { id: "offers", label: "Offers Received", count: offerList?.length || 0 },
   ];
+
+  // ── Interview helpers ──────────────────────────────────────────────────────
+  const formatInterviewDate = (dateVal) => {
+    const d = parseDateRobust(dateVal);
+    if (!d) return typeof dateVal === "string" ? dateVal : "—";
+    try {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+      const iDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      if (iDay.getTime() === today.getTime()) return `Today, ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+      if (iDay.getTime() === tomorrow.getTime()) return `Tomorrow, ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+      return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+    } catch {
+      return typeof dateVal === "string" ? dateVal : "—";
+    }
+  };
+
+  const formatInterviewTime = (start, end) => {
+    const dStart = parseDateRobust(start);
+    const dEnd = parseDateRobust(end);
+    if (!dStart) return typeof start === "string" ? start : "—";
+    const fmt = (d) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    return dEnd ? `${fmt(dStart)} – ${fmt(dEnd)}` : fmt(dStart);
+  };
+
+  const INTERVIEW_STATUS_STYLES = {
+    SCHEDULED:   { bg: "bg-indigo-500/15", text: "text-indigo-400",  border: "border-indigo-500/25",  label: "Scheduled" },
+    RESCHEDULED: { bg: "bg-amber-500/15",  text: "text-amber-400",   border: "border-amber-500/25",   label: "Rescheduled" },
+    IN_PROGRESS: { bg: "bg-cyan-500/15",   text: "text-cyan-400",    border: "border-cyan-500/25",    label: "In Progress" },
+    COMPLETED:   { bg: "bg-emerald-500/15",text: "text-emerald-400", border: "border-emerald-500/25", label: "Completed" },
+    CANCELLED:   { bg: "bg-rose-500/15",   text: "text-rose-400",    border: "border-rose-500/25",    label: "Cancelled" },
+    NO_SHOW:     { bg: "bg-slate-500/15",  text: "text-slate-400",   border: "border-slate-500/25",   label: "No Show" },
+  };
+
+  const ROUND_LABELS = {
+    SCREENING: "Screening", TECHNICAL: "Technical", HR: "HR",
+    SYSTEM_DESIGN: "System Design", FINAL: "Final Round", REFERENCE_CHECK: "Reference Check",
+  };
+
+  const getModeIcon = (mode) => {
+    if (mode === "PHONE") return <Phone className="h-3.5 w-3.5" />;
+    if (mode === "IN_PERSON") return <MapPin className="h-3.5 w-3.5" />;
+    return <Video className="h-3.5 w-3.5" />;
+  };
 
   return (
     <div className="min-h-screen bg-[#070b12] text-slate-200 font-inter py-10 px-4 sm:px-6 lg:px-8">
@@ -415,71 +496,391 @@ export default function MyJobsPage() {
           </div>
         )}
 
-        {/* Tab 3: INTERVIEWS */}
+        {/* Tab 3: INTERVIEWS — Real-time from /api/candidate/interviews */}
         {activeTab === "interviews" && (
-          <div className="space-y-6">
-            {interviewList.map((interview) => (
-              <Card key={interview.id} className="p-6 bg-[#0c1222]/90 border border-teal-500/30">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="space-y-2">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/15 border border-teal-500/30 px-3 py-1 text-xs font-bold text-teal-300">
-                      <Calendar className="h-3.5 w-3.5" /> Scheduled Video Interview
-                    </div>
-                    <h3 className="text-xl font-bold text-white font-satoshi">{interview.title}</h3>
-                    <p className="text-xs text-indigo-400 font-semibold">{interview.company} • Interviewer: {interview.interviewer}</p>
-                    <p className="text-xs text-slate-400 flex items-center gap-2 pt-1">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
-                      <span>{interview.date} at {interview.time}</span>
-                    </p>
-                  </div>
+          <div className="space-y-4">
+            {/* Header row */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-400">
+                {interviewsLoading ? "Loading interviews…" : `${interviewList.length} interview${interviewList.length !== 1 ? "s" : ""} scheduled`}
+              </p>
+              <button
+                onClick={loadInterviews}
+                disabled={interviewsLoading}
+                className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/10 transition"
+              >
+                <RefreshCw className={`h-3 w-3 ${interviewsLoading ? "animate-spin text-indigo-400" : ""}`} />
+                Refresh
+              </button>
+            </div>
 
-                  <div className="flex items-center gap-3">
-                    <a
-                      href={interview.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 transition"
-                    >
-                      <span>Join Interview Call</span>
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  </div>
+            {/* Loading skeleton */}
+            {interviewsLoading && (
+              <div className="space-y-4">
+                {[1, 2].map((n) => (
+                  <div key={n} className="rounded-2xl border border-white/10 bg-[#090d16] p-6 animate-pulse h-36" />
+                ))}
+              </div>
+            )}
+
+            {/* Error state */}
+            {!interviewsLoading && interviewsError && (
+              <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-6 flex items-center gap-4">
+                <AlertCircle className="h-8 w-8 text-rose-400 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-white">Failed to load interviews</p>
+                  <p className="text-xs text-slate-400 mt-1">{interviewsError}</p>
+                  <button onClick={loadInterviews} className="mt-2 text-xs font-bold text-indigo-400 hover:text-indigo-300">Try again →</button>
                 </div>
-              </Card>
-            ))}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!interviewsLoading && !interviewsError && interviewList.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+                <div className="h-16 w-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+                  <Calendar className="h-8 w-8 text-teal-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white font-satoshi">No interviews scheduled yet</h3>
+                <p className="text-sm text-slate-400 max-w-xs">
+                  Once a recruiter schedules an interview for your application, it will appear here with all details and a meeting link.
+                </p>
+                <Link to="/find-jobs" className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-500 transition shadow">
+                  <Search className="h-4 w-4" /> Browse Jobs
+                </Link>
+              </div>
+            )}
+
+            {/* Interview cards */}
+            {!interviewsLoading && !interviewsError && interviewList.map((iv, idx) => {
+              const sc = INTERVIEW_STATUS_STYLES[iv.status] || INTERVIEW_STATUS_STYLES.SCHEDULED;
+              const isActive = ["SCHEDULED", "RESCHEDULED", "IN_PROGRESS"].includes(iv.status);
+              const upcomingActive = isActive && new Date(iv.scheduledAt) > new Date();
+
+              return (
+                <motion.div
+                  key={iv.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className={`rounded-2xl border bg-[#090d16] p-5 sm:p-6 transition-all ${
+                    upcomingActive ? "border-teal-500/30 shadow-[0_0_30px_-8px_rgba(20,184,166,0.15)]" : "border-white/10"
+                  }`}
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    {/* Left: info */}
+                    <div className="space-y-3 flex-1 min-w-0">
+                      {/* Top badges */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Round badge */}
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/15 border border-teal-500/25 px-3 py-0.5 text-[11px] font-bold text-teal-300">
+                          <Calendar className="h-3 w-3" />
+                          {ROUND_LABELS[iv.interviewRound] || "Interview"}
+                        </span>
+                        {/* Status badge */}
+                        <span className={`inline-flex items-center rounded-full border px-3 py-0.5 text-[11px] font-bold ${sc.bg} ${sc.text} ${sc.border}`}>
+                          {iv.statusLabel || sc.label}
+                        </span>
+                        {/* Joinable badge */}
+                        {iv.joinable && iv.meetingLink && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/25 px-3 py-0.5 text-[11px] font-bold text-emerald-400 animate-pulse">
+                            ● Live Now
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Job title + company */}
+                      <div>
+                        <h3 className="text-lg font-extrabold text-white font-satoshi truncate">
+                          {iv.jobTitle || "Position"}
+                        </h3>
+                        <p className="text-xs text-indigo-400 font-semibold mt-0.5">
+                          {iv.companyName || iv.recruiterName || "Company"}
+                        </p>
+                      </div>
+
+                      {/* Details row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
+                        <div className="flex items-center gap-2 text-slate-300">
+                          <Calendar className="h-3.5 w-3.5 text-teal-400 shrink-0" />
+                          <span className="font-semibold">{formatInterviewDate(iv.scheduledAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <Clock className="h-3.5 w-3.5 text-white/30 shrink-0" />
+                          <span>{formatInterviewTime(iv.scheduledAt, iv.endsAt)}
+                            {iv.durationMinutes && <span className="text-white/30 ml-1">· {iv.durationMinutes} min</span>}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <span className="text-white/30">{getModeIcon(iv.interviewMode)}</span>
+                          <span>{iv.meetingPlatform || "Video Call"}</span>
+                        </div>
+                        {iv.interviewerName && (
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <UserCheck className="h-3.5 w-3.5 text-white/30 shrink-0" />
+                            <span>{iv.interviewerName}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Completed feedback */}
+                      {iv.status === "COMPLETED" && iv.feedback && (
+                        <div className="mt-2 rounded-xl border border-white/5 bg-white/[0.03] p-3">
+                          <p className="text-[11px] font-bold text-slate-400 mb-1">Interview Feedback</p>
+                          <p className="text-xs text-slate-300 leading-relaxed">{iv.feedback}</p>
+                          {iv.candidateRating > 0 && (
+                            <div className="flex items-center gap-1 mt-2">
+                              {[1,2,3,4,5].map((n) => (
+                                <Star key={n} className={`h-3.5 w-3.5 fill-current ${
+                                  n <= iv.candidateRating ? "text-amber-400" : "text-white/10"
+                                }`} />
+                              ))}
+                              <span className="text-[11px] text-slate-500 ml-1">{iv.candidateRating}/5</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right: CTA */}
+                    <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+                      {/* Join meeting button */}
+                      {iv.meetingLink && isActive ? (
+                        <a
+                          href={iv.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 transition ${
+                            iv.joinable
+                              ? "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-500/20"
+                              : "bg-gradient-to-r from-teal-700 to-teal-600"
+                          }`}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          {iv.joinable ? "Join Now" : "Meeting Link"}
+                        </a>
+                      ) : iv.status === "COMPLETED" ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-400">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Completed
+                        </span>
+                      ) : iv.status === "CANCELLED" ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-2 text-xs font-bold text-rose-400">
+                          <XCircle className="h-3.5 w-3.5" /> Cancelled
+                        </span>
+                      ) : null}
+
+                      {/* Application link */}
+                      {iv.applicationId && (
+                        <Link
+                          to={`/my-jobs/applied`}
+                          className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition"
+                        >
+                          View Application →
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
 
-        {/* Tab 4: OFFERS */}
+        {/* Tab 4: OFFERS — Real data from myApplications (OFFERED / ACCEPTED) */}
         {activeTab === "offers" && (
-          <div className="space-y-6">
-            {offerList.map((offer) => (
-              <Card key={offer.id} className="p-6 bg-[#0c1222]/90 border border-amber-500/30">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="space-y-2">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-bold text-amber-300">
-                      <Award className="h-3.5 w-3.5" /> Official Offer Extended
-                    </div>
-                    <h3 className="text-xl font-bold text-white font-satoshi">{offer.title}</h3>
-                    <p className="text-xs text-indigo-400 font-semibold">{offer.company} • Compensation: {offer.compensation}</p>
-                    <p className="text-xs text-slate-400 flex items-center gap-2 pt-1">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
-                      <span>Expected Start Date: {offer.startDate} (Valid until {offer.validUntil})</span>
-                    </p>
-                  </div>
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-400">
+                {offerList.length === 0
+                  ? "No offers yet"
+                  : `${offerList.length} offer${offerList.length !== 1 ? "s" : ""} received`}
+              </p>
+              {offerList.length > 0 && (
+                <span className="text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-0.5">
+                  🎉 Congratulations!
+                </span>
+              )}
+            </div>
 
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => toast.success("Offer accepted! Our onboarding team will connect with you.")}
-                      className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 transition cursor-pointer"
-                    >
-                      <CheckCircle2 className="h-4 w-4" />
-                      <span>Accept Offer</span>
-                    </button>
-                  </div>
+            {/* Empty state */}
+            {offerList.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+                <div className="h-16 w-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                  <Award className="h-8 w-8 text-amber-400" />
                 </div>
-              </Card>
-            ))}
+                <h3 className="text-lg font-bold text-white font-satoshi">No offers yet</h3>
+                <p className="text-sm text-slate-400 max-w-xs">
+                  Offers from recruiters will appear here once your application moves to the Offered stage. Keep applying!
+                </p>
+                <Link
+                  to="/find-jobs"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-amber-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-amber-500 transition shadow"
+                >
+                  <Search className="h-4 w-4" /> Browse More Jobs
+                </Link>
+              </div>
+            )}
+
+            {/* Offer cards */}
+            {offerList.map((offer, idx) => {
+              const offerStatus = typeof offer.status === "string" ? offer.status.toUpperCase() : (offer.status?.name || "");
+              const isAccepted = offerStatus === "ACCEPTED";
+
+              const jobTitleText = typeof offer.jobTitle === "string" && offer.jobTitle.trim()
+                ? offer.jobTitle
+                : typeof offer.job?.jobTitle === "string"
+                ? offer.job.jobTitle
+                : typeof offer.job?.title === "string"
+                ? offer.job.title
+                : "Job Position";
+
+              const companyNameText = typeof offer.companyName === "string" && offer.companyName.trim()
+                ? offer.companyName
+                : typeof offer.company === "string"
+                ? offer.company
+                : typeof offer.job?.companyName === "string"
+                ? offer.job.companyName
+                : typeof offer.job?.company?.companyName === "string"
+                ? offer.job.company.companyName
+                : "Company";
+
+              const locationText = typeof offer.jobLocation === "string" && offer.jobLocation.trim()
+                ? offer.jobLocation
+                : [offer.job?.city, offer.job?.state, offer.job?.country].filter(Boolean).join(", ") || (typeof offer.job?.location === "string" ? offer.job.location : null);
+
+              const workModeText = typeof offer.workMode === "string" && offer.workMode.trim()
+                ? offer.workMode.replace(/_/g, " ")
+                : typeof offer.job?.workMode === "string"
+                ? offer.job.workMode.replace(/_/g, " ")
+                : typeof offer.job?.workingMode === "string"
+                ? offer.job.workingMode.replace(/_/g, " ")
+                : null;
+
+              const salaryText = (() => {
+                const min = offer.minimumSalary || offer.job?.minimumSalary;
+                const max = offer.maximumSalary || offer.job?.maximumSalary;
+                if (!min && !max) {
+                  if (typeof offer.salary === "string") return offer.salary;
+                  if (typeof offer.job?.salary === "string") return offer.job.salary;
+                  return null;
+                }
+                const numMin = Number(min);
+                const numMax = Number(max);
+                if (isNaN(numMin) && isNaN(numMax)) return null;
+                const fmt = (n) => n >= 100000
+                  ? `₹${(n / 100000).toFixed(1)}L`
+                  : n >= 1000
+                  ? `₹${(n / 1000).toFixed(0)}K`
+                  : `₹${n}`;
+                if (!isNaN(numMin) && !isNaN(numMax) && numMin > 0 && numMax > 0) return `${fmt(numMin)} – ${fmt(numMax)} / yr`;
+                if (!isNaN(numMin) && numMin > 0) return `from ${fmt(numMin)} / yr`;
+                if (!isNaN(numMax) && numMax > 0) return `up to ${fmt(numMax)} / yr`;
+                return null;
+              })();
+
+              return (
+                <motion.div
+                  key={offer.id || offer.applicationId || idx}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.06 }}
+                  className={`rounded-2xl border p-5 sm:p-6 transition-all ${
+                    isAccepted
+                      ? "border-emerald-500/30 bg-[#071412] shadow-[0_0_40px_-10px_rgba(16,185,129,0.12)]"
+                      : "border-amber-500/30 bg-[#0e0b04] shadow-[0_0_40px_-10px_rgba(245,158,11,0.10)]"
+                  }`}
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    {/* Left info */}
+                    <div className="space-y-3 flex-1 min-w-0">
+                      {/* Status badge */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-[11px] font-bold ${
+                          isAccepted
+                            ? "bg-emerald-500/15 border-emerald-500/25 text-emerald-400"
+                            : "bg-amber-500/15 border-amber-500/25 text-amber-400"
+                        }`}>
+                          <Award className="h-3 w-3" />
+                          {isAccepted ? "Offer Accepted ✓" : "Offer Extended"}
+                        </span>
+                        {workModeText && (
+                          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] font-semibold text-slate-400">
+                            {workModeText}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Role + company */}
+                      <div>
+                        <h3 className="text-lg font-extrabold text-white font-satoshi truncate">
+                          {jobTitleText}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                          <p className="text-xs font-semibold text-indigo-400">
+                            {companyNameText}
+                          </p>
+                          {locationText && (
+                            <span className="flex items-center gap-1 text-xs text-slate-400">
+                              <MapPin className="h-3 w-3 text-slate-500" />
+                              {locationText}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Salary + timeline */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
+                        {salaryText && (
+                          <div className="flex items-center gap-2">
+                            <span className={`text-base font-black font-satoshi ${
+                              isAccepted ? "text-emerald-400" : "text-amber-400"
+                            }`}>{salaryText}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <Clock className="h-3.5 w-3.5 text-white/30 shrink-0" />
+                          <span>Applied {formatDate(offer.appliedAt || offer.appliedDate || offer.createdAt)}</span>
+                        </div>
+                        {(offer.updatedAt || offer.offerDate) && (
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-amber-400/60 shrink-0" />
+                            <span>Offer received {formatDate(offer.updatedAt || offer.offerDate)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right CTA */}
+                    <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+                      {isAccepted ? (
+                        <span className="inline-flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-2.5 text-xs font-bold text-emerald-400">
+                          <CheckCircle2 className="h-4 w-4" /> Offer Accepted
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            toast.success(
+                              "✅ Offer accepted! Our onboarding team will be in touch within 24 hours."
+                            )
+                          }
+                          className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-amber-500/20 hover:scale-105 hover:shadow-amber-500/30 transition cursor-pointer"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                          Accept Offer
+                        </button>
+                      )}
+                      <Link
+                        to="/my-jobs/applied"
+                        className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition"
+                      >
+                        View Application →
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -512,7 +913,13 @@ export default function MyJobsPage() {
                 </span>{" "}
                 at{" "}
                 <span className="font-bold text-indigo-300">
-                  {withdrawTarget.companyName || withdrawTarget.company || withdrawTarget.job?.company || "the company"}
+                  {typeof withdrawTarget.companyName === 'string'
+                    ? withdrawTarget.companyName
+                    : typeof withdrawTarget.company === 'string'
+                    ? withdrawTarget.company
+                    : (typeof withdrawTarget.job?.company === 'string'
+                    ? withdrawTarget.job.company
+                    : (withdrawTarget.job?.company?.companyName || withdrawTarget.job?.companyName || "the company"))}
                 </span>?
               </p>
             </div>

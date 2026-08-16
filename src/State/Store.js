@@ -30,6 +30,7 @@ import interviewReducer from "../features/mock-interview/slices/interviewSlice";
 import resumeBuilderReducer from "../features/resume-builder/slices/resumeBuilderSlice";
 import verificationReducer from "./verificationSlice";
 import recommendationReducer from "./recommendationSlice";
+import recruiterInterviewReducer from "./recruiterInterviewSlice";
 
 // ─── Root Reducer ─────────────────────────────────────────────────────────────
 const rootReducer = combineReducers({
@@ -46,6 +47,7 @@ const rootReducer = combineReducers({
   resumeBuilder: resumeBuilderReducer,
   verification: verificationReducer,
   recommendations: recommendationReducer,
+  recruiterInterview: recruiterInterviewReducer,
   [notificationApi.reducerPath]: notificationApi.reducer,
 });
 
