@@ -81,7 +81,7 @@ export const testimonials = [
     role: "Hiring Manager at Spotify",
     avatar: "/avatars/alex.jpg",
     quote:
-      "We've hired three senior developers through Velora. The quality of candidates is consistently excellent.",
+      "We've hired three senior developers through JobPortal. The quality of candidates is consistently excellent.",
     rating: 5,
   },
   {
@@ -117,7 +117,7 @@ export const testimonials = [
     role: "Engineering Lead at Netflix",
     avatar: "/avatars/james.jpg",
     quote:
-      "From the AI interview prep to the smart job matching, everything about Velora feels thoughtfully designed for modern professionals.",
+      "From the AI interview prep to the smart job matching, everything about JobPortal feels thoughtfully designed for modern professionals.",
     rating: 5,
   },
 ];

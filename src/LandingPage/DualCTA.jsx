@@ -22,7 +22,7 @@ import { Link } from "react-router-dom";
 
 export default function DualCTA() {
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200" aria-label="Join Velora">
+    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200" aria-label="Join JobPortal">
       {/* Background Lighting */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/4 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-indigo-600/10 blur-[180px]" />

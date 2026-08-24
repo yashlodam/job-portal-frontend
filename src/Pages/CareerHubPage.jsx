@@ -102,7 +102,7 @@ export default function CareerHubPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/10">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 text-xs font-black text-indigo-400 uppercase tracking-widest font-satoshi shadow-sm">
-              <Cpu className="h-4 w-4 text-indigo-400 animate-pulse" /> Velora Neural AI Engine v4.8 Active
+              <Cpu className="h-4 w-4 text-indigo-400 animate-pulse" /> JobPortal Neural AI Engine v4.8 Active
             </div>
             <h1 className="text-3xl sm:text-5xl font-black font-satoshi tracking-tight leading-tight">
               AI Career <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Command Center</span>
