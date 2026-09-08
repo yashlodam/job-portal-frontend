@@ -27,6 +27,7 @@ import { useAppDispatch, useAppSelector } from "../../../State/Store";
 import { logout } from "../../../State/AuthSlic";
 import ProfileMenu from "../../../Header/ProfileMenu";
 import { Breadcrumb } from "../../ui/Breadcrumb";
+import { useTheme } from "../../../context/ThemeContext";
 
 const ADMIN_SIDEBAR_LINKS = [
   { name: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
@@ -44,6 +45,8 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.profile);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   const isLinkActive = (path) => {
     if (path === "/admin/dashboard") return location.pathname === path;
@@ -54,17 +57,19 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
     <div className="flex h-full flex-col justify-between p-4">
       <div>
         {/* Logo & Brand */}
-        <div className="flex items-center justify-between pb-6 border-b border-white/10 px-2">
+        <div className={`flex items-center justify-between pb-6 border-b px-2 ${
+          isLight ? "border-slate-200" : "border-white/10"
+        }`}>
           <Link to="/admin/dashboard" className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-pink-600 shadow-lg shadow-purple-500/30">
               <ShieldCheck className="h-5 w-5 text-white" />
             </div>
             {!collapsed && (
               <div className="flex flex-col">
-                <span className="text-lg font-black text-white font-satoshi tracking-tight">
-                  JobPortal <span className="text-purple-400">Admin</span>
+                <span className={`text-lg font-black font-satoshi tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                  JobPortal <span className="text-purple-600 dark:text-purple-400">Admin</span>
                 </span>
-                <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">
+                <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">
                   Control Console
                 </span>
               </div>
@@ -74,7 +79,11 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
           {/* Desktop Collapse Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden md:flex h-7 w-7 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition cursor-pointer"
+            className={`hidden md:flex h-7 w-7 items-center justify-center rounded-xl border transition cursor-pointer ${
+              isLight
+                ? "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
@@ -82,7 +91,9 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
           {/* Mobile Close Button */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="flex md:hidden h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-white/60 hover:text-white"
+            className={`flex md:hidden h-8 w-8 items-center justify-center rounded-xl transition ${
+              isLight ? "bg-slate-100 text-slate-600 hover:text-slate-900" : "bg-white/5 text-white/60 hover:text-white"
+            }`}
           >
             <X className="h-5 w-5" />
           </button>
@@ -102,15 +113,31 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
                 title={collapsed ? item.name : undefined}
                 className={`group relative flex items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-semibold transition-all duration-200 cursor-pointer ${
                   active
-                    ? "bg-purple-500/15 text-white border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+                    ? isLight
+                      ? "bg-purple-50 text-purple-700 border border-purple-200 font-bold"
+                      : "bg-purple-500/15 text-white border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.15)] font-bold"
+                    : isLight
+                    ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                     : "text-white/60 hover:bg-white/5 hover:text-white"
                 }`}
               >
-                <Icon className={`h-4 w-4 transition-colors ${active ? "text-purple-400" : "text-white/50 group-hover:text-white"}`} />
+                <Icon className={`h-4 w-4 transition-colors ${
+                  active
+                    ? isLight
+                      ? "text-purple-600"
+                      : "text-purple-400"
+                    : isLight
+                    ? "text-slate-500 group-hover:text-slate-900"
+                    : "text-white/50 group-hover:text-white"
+                }`} />
                 {!collapsed && <span className="truncate">{item.name}</span>}
 
                 {!collapsed && item.badge && (
-                  <span className="ml-auto rounded-full bg-purple-500/20 px-2 py-0.5 text-[10px] font-extrabold text-purple-300 border border-purple-500/30">
+                  <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-extrabold border ${
+                    isLight
+                      ? "bg-purple-100 text-purple-700 border-purple-200"
+                      : "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                  }`}>
                     {item.badge}
                   </span>
                 )}
@@ -118,7 +145,7 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
                 {active && (
                   <motion.div
                     layoutId="adminSidebarActiveIndicator"
-                    className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-purple-500"
+                    className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-purple-600 dark:bg-purple-500"
                     transition={{ duration: 0.2 }}
                   />
                 )}
@@ -129,18 +156,20 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
       </div>
 
       {/* Admin Identity & Logout */}
-      <div className="space-y-2 pt-2 border-t border-white/10">
+      <div className={`space-y-2 pt-2 border-t ${isLight ? "border-slate-200" : "border-white/10"}`}>
         {!collapsed && (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur-md">
+          <div className={`rounded-2xl border p-3 backdrop-blur-md ${
+            isLight ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/[0.03]"
+          }`}>
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold text-xs shadow">
                 A
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-extrabold text-white font-satoshi">
+                <p className={`truncate text-xs font-extrabold font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}>
                   {user?.name || "System Admin"}
                 </p>
-                <p className="truncate text-[10px] text-purple-400 font-semibold">
+                <p className="truncate text-[10px] text-purple-600 dark:text-purple-400 font-semibold">
                   Administrator
                 </p>
               </div>
@@ -154,7 +183,7 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
             navigate("/login");
           }}
           title={collapsed ? "Logout" : undefined}
-          className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold text-rose-400 border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/15 transition cursor-pointer ${
+          className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/5 hover:bg-rose-100 dark:hover:bg-rose-500/15 transition cursor-pointer ${
             collapsed ? "justify-center" : ""
           }`}
         >
@@ -166,12 +195,12 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
   );
 
   return (
-    <div className="min-h-screen bg-[#070b12] font-inter text-slate-200 flex">
+    <div className="min-h-screen bg-background font-inter text-body flex">
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col border-r border-white/10 bg-[#070b12]/95 backdrop-blur-2xl transition-all duration-300 z-40 fixed top-0 left-0 h-screen ${
-          collapsed ? "w-20" : "w-64"
-        }`}
+        className={`hidden md:flex flex-col border-r backdrop-blur-2xl transition-all duration-300 z-40 fixed top-0 left-0 h-screen ${
+          isLight ? "border-slate-200 bg-white/95" : "border-white/10 bg-[#070b12]/95"
+        } ${collapsed ? "w-20" : "w-64"}`}
       >
         {SidebarContent}
       </aside>
@@ -192,7 +221,9 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-72 h-full border-r border-white/10 bg-[#070b12] z-10"
+              className={`relative w-72 h-full border-r z-10 ${
+                isLight ? "border-slate-200 bg-white" : "border-white/10 bg-[#070b12]"
+              }`}
             >
               {SidebarContent}
             </motion.aside>
@@ -203,15 +234,23 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
       {/* Main Container */}
       <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${collapsed ? "md:ml-20" : "md:ml-64"}`}>
         {/* Admin Top Navbar */}
-        <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#070b12]/80 px-4 sm:px-6 backdrop-blur-2xl">
+        <header className={`sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b px-4 sm:px-6 backdrop-blur-2xl ${
+          isLight ? "bg-white/95 border-slate-200" : "bg-[#070b12]/80 border-white/10"
+        }`}>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className="flex md:hidden h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition cursor-pointer"
+              className={`flex md:hidden h-10 w-10 items-center justify-center rounded-xl border transition cursor-pointer ${
+                isLight
+                  ? "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                  : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+              }`}
             >
               <Menu className="h-5 w-5" />
             </button>
-            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 px-3 py-1 text-xs font-bold text-purple-300">
+            <span className={`hidden sm:inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border ${
+              isLight ? "bg-purple-50 text-purple-700 border-purple-200" : "bg-purple-500/10 border-purple-500/20 text-purple-300"
+            }`}>
               <ShieldAlert className="h-3.5 w-3.5" /> Platform Admin Portal
             </span>
           </div>
@@ -219,7 +258,7 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className="text-xs font-semibold text-slate-400 hover:text-white transition"
+              className="text-xs font-semibold text-muted hover:text-heading transition"
             >
               View Main Platform →
             </Link>
@@ -232,10 +271,10 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
           {breadcrumbs.length > 0 && <Breadcrumb items={breadcrumbs} />}
 
           {(title || action) && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-border">
               <div>
-                {title && <h1 className="text-2xl sm:text-3xl font-black text-white font-satoshi tracking-tight">{title}</h1>}
-                {subtitle && <p className="text-xs sm:text-sm text-slate-400 mt-1">{subtitle}</p>}
+                {title && <h1 className="text-2xl sm:text-3xl font-black text-heading font-satoshi tracking-tight">{title}</h1>}
+                {subtitle && <p className="text-xs sm:text-sm text-muted mt-1">{subtitle}</p>}
               </div>
               {action && <div className="shrink-0">{action}</div>}
             </div>

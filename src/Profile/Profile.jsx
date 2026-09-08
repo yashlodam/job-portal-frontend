@@ -38,6 +38,7 @@ import React, {
 } from "react";
 
 import { useAppDispatch, useAppSelector } from "../State/Store";
+import { getAssetUrl } from "../utils/assetUtils";
 
 // ── Thunks ────────────────────────────────────────────────────────────────────
 import {
@@ -1204,11 +1205,11 @@ function Profile() {
   const availBadge = AVAILABILITY_OPTIONS.find((o) => o.value === data?.availability) ?? AVAILABILITY_OPTIONS[0];
 
   const bannerSrc = data?.bannerImage
-    ? data.bannerImage.startsWith("blob:") ? data.bannerImage : `http://localhost:8080/uploads/${data.bannerImage}`
+    ? data.bannerImage.startsWith("blob:") ? data.bannerImage : getAssetUrl(`uploads/${data.bannerImage}`)
     : null;
 
   const avatarSrc = data?.profileImage
-    ? data.profileImage.startsWith("blob:") ? data.profileImage : `http://localhost:8080/uploads/${data.profileImage}`
+    ? data.profileImage.startsWith("blob:") ? data.profileImage : getAssetUrl(`uploads/${data.profileImage}`)
     : null;
 
   /* ── Certificate preview ── */
@@ -1869,7 +1870,7 @@ function Profile() {
                       <div className="mt-2">
                         <p className={labelCls}>Certificate Image Preview</p>
                         <CertificateImageCard
-                          src={cert.imageUrl.startsWith("blob:") ? cert.imageUrl : `http://localhost:8080/uploads/certificates/${cert.imageUrl}`}
+                          src={cert.imageUrl.startsWith("blob:") ? cert.imageUrl : getAssetUrl(`uploads/certificates/${cert.imageUrl}`)}
                           alt={cert.title || "Certificate"}
                           onOpenPreview={openCertPreview}
                         />
@@ -1903,7 +1904,7 @@ function Profile() {
                     {cert.imageUrl && (
                       <div className="mt-4">
                         <CertificateImageCard
-                          src={cert.imageUrl.startsWith("blob:") ? cert.imageUrl : `http://localhost:8080/uploads/certificates/${cert.imageUrl}`}
+                          src={cert.imageUrl.startsWith("blob:") ? cert.imageUrl : getAssetUrl(`uploads/certificates/${cert.imageUrl}`)}
                           alt={cert.title || "Certificate image"}
                           onOpenPreview={openCertPreview}
                         />
@@ -2015,7 +2016,7 @@ function Profile() {
           res.resumeUrl && (res.resumeUrl.startsWith("blob:") || res.resumeUrl.startsWith("http"))
             ? res.resumeUrl
             : res.resumeUrl
-            ? `http://localhost:8080/uploads/${res.resumeUrl}`
+            ? getAssetUrl(`uploads/${res.resumeUrl}`)
             : null;
 
         return (

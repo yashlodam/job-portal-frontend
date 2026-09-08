@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export function Tabs({ tabs = [], activeTab, onChange, className = "" }) {
   return (
-    <div className={`flex items-center gap-1 border-b border-white/10 overflow-x-auto ${className}`}>
+    <div className={`flex items-center gap-1 border-b border-border overflow-x-auto ${className}`}>
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -14,14 +14,14 @@ export function Tabs({ tabs = [], activeTab, onChange, className = "" }) {
             key={tab.id}
             onClick={() => onChange(tab.id)}
             className={`relative flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-semibold transition-colors cursor-pointer whitespace-nowrap ${
-              isActive ? "text-white" : "text-white/50 hover:text-white/80"
+              isActive ? "text-heading font-bold" : "text-muted hover:text-body"
             }`}
           >
             {tab.icon && <tab.icon className="h-4 w-4" />}
             <span>{tab.label}</span>
             {tab.count !== undefined && (
               <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                isActive ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30" : "bg-white/5 text-white/40"
+                isActive ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30" : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40"
               }`}>
                 {tab.count}
               </span>

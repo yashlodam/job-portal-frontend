@@ -47,7 +47,7 @@ export default function MockInterviewLandingPage({ onStartClick, onTrackSelect }
   ];
 
   return (
-    <div className="space-y-12 font-satoshi text-white py-4">
+    <div className="space-y-12 font-satoshi text-body py-4">
       {/* 1. Hero Section */}
       <InterviewHero
         onStartClick={onStartClick}
@@ -60,12 +60,12 @@ export default function MockInterviewLandingPage({ onStartClick, onTrackSelect }
       {/* 2. Introduction & Platform Features Grid */}
       <div className="space-y-6">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
-          <span className="text-xs font-black text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+          <span className="text-xs font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
             Why AI Mock Interviews?
           </span>
-          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-black text-heading tracking-tight">
             Practice Without Anxiety. <br />
-            <span className="bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-indigo-500 to-pink-500 dark:from-indigo-400 dark:to-pink-400 bg-clip-text text-transparent">
               Perform with Complete Confidence.
             </span>
           </h2>
@@ -80,14 +80,14 @@ export default function MockInterviewLandingPage({ onStartClick, onTrackSelect }
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-6 rounded-3xl bg-[#090d16]/95 border border-white/10 hover:border-indigo-500/40 backdrop-blur-2xl shadow-xl space-y-3 font-satoshi flex flex-col justify-between"
+                className="p-6 rounded-3xl bg-surface border border-border hover:border-indigo-500/40 backdrop-blur-2xl shadow-xl space-y-3 font-satoshi flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 flex items-center justify-center">
                     <Icon size={24} />
                   </div>
-                  <h4 className="text-base font-black text-white">{feat.title}</h4>
-                  <p className="text-xs text-slate-300 font-medium leading-relaxed">{feat.description}</p>
+                  <h4 className="text-base font-black text-heading">{feat.title}</h4>
+                  <p className="text-xs text-muted font-medium leading-relaxed">{feat.description}</p>
                 </div>
               </motion.div>
             );
@@ -97,15 +97,15 @@ export default function MockInterviewLandingPage({ onStartClick, onTrackSelect }
 
       {/* 3. Available Interview Tracks */}
       <div id="available-tracks-section" className="space-y-6 pt-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-white/10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-border">
           <div>
-            <h3 className="text-xl sm:text-2xl font-black text-white">Available Interview Tracks</h3>
-            <p className="text-xs text-slate-400 font-medium">Select a track to launch a customized AI technical interview</p>
+            <h3 className="text-xl sm:text-2xl font-black text-heading">Available Interview Tracks</h3>
+            <p className="text-xs text-muted font-medium">Select a track to launch a customized AI technical interview</p>
           </div>
 
           <button
             onClick={onStartClick}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-lg"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-lg shadow-indigo-500/20"
           >
             <span>Custom Setup</span>
             <ArrowRight size={14} />
@@ -119,19 +119,19 @@ export default function MockInterviewLandingPage({ onStartClick, onTrackSelect }
       </div>
 
       {/* 4. Bottom CTA Section */}
-      <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-indigo-900/40 via-purple-900/40 to-pink-900/40 border border-indigo-500/30 text-center space-y-4 backdrop-blur-2xl shadow-2xl">
-        <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 border border-amber-500/20 px-3.5 py-1 text-xs font-black text-amber-400 uppercase tracking-widest">
+      <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-indigo-950/20 via-purple-950/20 to-pink-950/20 dark:from-indigo-900/40 dark:via-purple-900/40 dark:to-pink-900/40 border border-indigo-500/30 text-center space-y-4 backdrop-blur-2xl shadow-2xl">
+        <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 border border-amber-500/20 px-3.5 py-1 text-xs font-black text-amber-500 dark:text-amber-400 uppercase tracking-widest">
           <Sparkles size={14} /> Ready to Ace Your Next Interview?
         </div>
-        <h3 className="text-2xl sm:text-3xl font-black text-white">Start Your Free AI Practice Session Today</h3>
-        <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto font-medium">
+        <h3 className="text-2xl sm:text-3xl font-black text-heading">Start Your Free AI Practice Session Today</h3>
+        <p className="text-xs sm:text-sm text-muted max-w-xl mx-auto font-medium">
           Get real-time feedback, detailed score breakdowns, and personalized learning paths.
         </p>
 
         <div className="pt-2">
           <button
             onClick={onStartClick}
-            className="px-8 py-4 rounded-2xl bg-white text-indigo-950 font-black text-xs uppercase tracking-wider shadow-2xl hover:scale-105 transition cursor-pointer inline-flex items-center gap-2"
+            className="px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider shadow-2xl shadow-indigo-500/30 hover:scale-105 transition cursor-pointer inline-flex items-center gap-2"
           >
             <Bot size={18} /> Configure & Start Interview <ArrowRight size={16} />
           </button>

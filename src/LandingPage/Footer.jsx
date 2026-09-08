@@ -1,14 +1,7 @@
-/**
- * src/LandingPage/Footer.jsx
- *
- * Executive 3D Glassmorphic Footer Component.
- * Features Satoshi typography, newsletter capture, live system operational indicator,
- * official founder contact (Yash Lodam - yashlodam03@gmail.com), and categorized link columns.
- */
-
 import React, { useState } from "react";
 import { Sparkles, ArrowRight, Send, CheckCircle2, ShieldCheck, Mail, Heart, Code2, ExternalLink } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 function TwitterIcon() {
   return (
@@ -81,6 +74,8 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const location = useLocation();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   if (location.pathname === "/signup" || location.pathname === "/login") {
     return null;
@@ -95,10 +90,11 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative bg-[#05070d] border-t border-white/10 font-satoshi text-slate-300 overflow-hidden" role="contentinfo">
+    <footer className={`relative border-t font-satoshi overflow-hidden transition-colors duration-300 ${
+      isLight ? "bg-white border-slate-200 text-slate-700" : "bg-[#05070d] border-white/10 text-slate-300"
+    }`} role="contentinfo">
       {/* Top Gradient Glow Accent */}
-      <div className="pointer-events-none absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
-      <div className="pointer-events-none absolute top-0 left-1/2 h-48 w-[700px] -translate-x-1/2 rounded-full bg-indigo-600/10 blur-[140px]" />
+      <div className="pointer-events-none absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
 
       <div className="section-container py-16 sm:py-20 relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -111,34 +107,40 @@ export default function Footer() {
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 shadow-[0_0_20px_rgba(99,102,241,0.4)] group-hover:scale-105 transition-transform">
                 <Sparkles size={20} className="text-white fill-white/20" />
               </div>
-              <span className="text-2xl font-black text-white font-satoshi tracking-tight">
-                JobPortal <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">AI</span>
+              <span className={`text-2xl font-black font-satoshi tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                JobPortal <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">AI</span>
               </span>
             </Link>
 
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium">
-              Next-generation AI recruitment engine engineered by <strong>Yash Lodam</strong>. Connecting verified engineering talent with top tech companies through deterministic skill scoring.
+            <p className={`text-xs sm:text-sm leading-relaxed font-medium ${isLight ? "text-slate-600" : "text-slate-400"}`}>
+              Next-generation AI recruitment engine engineered by <strong className={isLight ? "text-slate-900" : "text-white"}>Yash Lodam</strong>. Connecting verified engineering talent with top tech companies through deterministic skill scoring.
             </p>
 
             {/* Direct Official Contact Pill */}
             <div className="pt-1">
               <a
                 href="mailto:yashlodam03@gmail.com"
-                className="inline-flex items-center gap-2 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-2.5 text-xs font-extrabold text-indigo-300 hover:text-white hover:bg-indigo-500/20 hover:border-indigo-500/50 transition shadow-sm"
+                className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-extrabold transition shadow-sm ${
+                  isLight
+                    ? "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                    : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:text-white hover:bg-indigo-500/20"
+                }`}
               >
-                <Mail size={15} className="text-indigo-400" />
+                <Mail size={15} className={isLight ? "text-indigo-600" : "text-indigo-400"} />
                 <span>yashlodam03@gmail.com</span>
               </a>
             </div>
 
             {/* Newsletter Subscription */}
             <div className="pt-2">
-              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-200 font-satoshi mb-2.5">
+              <p className={`text-xs font-extrabold uppercase tracking-wider font-satoshi mb-2.5 ${isLight ? "text-slate-700" : "text-slate-200"}`}>
                 Join 15,000+ Engineers on AI Insights
               </p>
               {subscribed ? (
-                <div className="inline-flex items-center gap-2 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 px-4 py-2.5 text-xs font-extrabold text-emerald-300">
-                  <CheckCircle2 size={16} className="text-emerald-400" />
+                <div className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-extrabold ${
+                  isLight ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
+                }`}>
+                  <CheckCircle2 size={16} className="text-emerald-500" />
                   Subscribed to AI Career Updates!
                 </div>
               ) : (
@@ -149,14 +151,18 @@ export default function Footer() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter email address..."
                     required
-                    className="flex-1 rounded-2xl border border-white/15 bg-[#090d16]/90 px-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500/80 transition font-medium"
+                    className={`flex-1 rounded-2xl border px-4 py-2.5 text-xs outline-none transition font-medium ${
+                      isLight
+                        ? "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500"
+                        : "border-white/15 bg-[#090d16]/90 text-white placeholder-slate-500 focus:border-indigo-500/80"
+                    }`}
                   />
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-2.5 text-xs font-black text-white shadow-lg hover:scale-105 transition cursor-pointer shrink-0"
+                    className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-2.5 text-xs font-black !text-white shadow-lg hover:scale-105 transition cursor-pointer shrink-0"
                   >
-                    <Send size={13} />
-                    <span>Join</span>
+                    <Send size={13} className="!text-white" />
+                    <span className="!text-white">Join</span>
                   </button>
                 </form>
               )}
@@ -169,7 +175,11 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Yash Lodam GitHub"
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-400 hover:border-indigo-500/50 hover:bg-white/10 hover:text-white transition"
+                className={`flex h-10 w-10 items-center justify-center rounded-2xl border transition ${
+                  isLight
+                    ? "border-slate-200 bg-slate-50 text-slate-600 hover:border-indigo-300 hover:bg-slate-100 hover:text-slate-900"
+                    : "border-white/10 bg-white/5 text-slate-400 hover:border-indigo-500/50 hover:bg-white/10 hover:text-white"
+                }`}
               >
                 <GitHubIcon />
               </a>
@@ -178,14 +188,22 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Yash Lodam LinkedIn"
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-400 hover:border-indigo-500/50 hover:bg-white/10 hover:text-white transition"
+                className={`flex h-10 w-10 items-center justify-center rounded-2xl border transition ${
+                  isLight
+                    ? "border-slate-200 bg-slate-50 text-slate-600 hover:border-indigo-300 hover:bg-slate-100 hover:text-slate-900"
+                    : "border-white/10 bg-white/5 text-slate-400 hover:border-indigo-500/50 hover:bg-white/10 hover:text-white"
+                }`}
               >
                 <LinkedInIcon />
               </a>
               <a
                 href="mailto:yashlodam03@gmail.com"
                 aria-label="Email Yash Lodam"
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-400 hover:border-indigo-500/50 hover:bg-white/10 hover:text-white transition"
+                className={`flex h-10 w-10 items-center justify-center rounded-2xl border transition ${
+                  isLight
+                    ? "border-slate-200 bg-slate-50 text-slate-600 hover:border-indigo-300 hover:bg-slate-100 hover:text-slate-900"
+                    : "border-white/10 bg-white/5 text-slate-400 hover:border-indigo-500/50 hover:bg-white/10 hover:text-white"
+                }`}
               >
                 <Mail size={16} />
               </a>
@@ -195,7 +213,9 @@ export default function Footer() {
           {/* 4 Categorized Link Columns */}
           {FOOTER_SECTIONS.map((section) => (
             <div key={section.title} className="space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-widest text-white font-satoshi">
+              <h4 className={`text-xs font-black uppercase tracking-widest font-satoshi ${
+                isLight ? "text-slate-900" : "text-white"
+              }`}>
                 {section.title}
               </h4>
               <ul className="space-y-2.5">
@@ -209,15 +229,19 @@ export default function Footer() {
                     <li key={link.label}>
                       <LinkComponent
                         {...linkProps}
-                        className="group inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+                        className={`group inline-flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+                          isLight ? "text-slate-600 hover:text-indigo-600" : "text-slate-400 hover:text-white"
+                        }`}
                       >
                         <ArrowRight
                           size={12}
-                          className="mr-0.5 -translate-x-1.5 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100 text-indigo-400 shrink-0"
+                          className="mr-0.5 -translate-x-1.5 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100 text-indigo-500 shrink-0"
                         />
                         <span>{link.label}</span>
                         {link.badge && (
-                          <span className="rounded-md bg-indigo-500/20 border border-indigo-500/40 px-1.5 py-0.2 text-[9px] font-black text-indigo-300">
+                          <span className={`rounded-md border px-1.5 py-0.2 text-[9px] font-black ${
+                            isLight ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "bg-indigo-500/20 border-indigo-500/40 text-indigo-300"
+                          }`}>
                             {link.badge}
                           </span>
                         )}
@@ -231,21 +255,27 @@ export default function Footer() {
         </div>
 
         {/* Bottom Copyright & Live Status Row */}
-        <div className="mt-14 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 font-satoshi">
-          <p className="text-xs text-slate-400 font-medium flex flex-wrap items-center gap-1">
+        <div className={`mt-14 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 font-satoshi ${
+          isLight ? "border-slate-200" : "border-white/10"
+        }`}>
+          <p className={`text-xs font-medium flex flex-wrap items-center gap-1 ${
+            isLight ? "text-slate-600" : "text-slate-400"
+          }`}>
             <span>© {new Date().getFullYear()} JobPortal AI Platform.</span>
             <span>Founded & Architected by</span>
-            <strong className="text-white font-bold">Yash Lodam</strong>
+            <strong className={isLight ? "text-slate-900 font-bold" : "text-white font-bold"}>Yash Lodam</strong>
             <span>(</span>
-            <a href="mailto:yashlodam03@gmail.com" className="text-indigo-400 font-bold hover:underline">
+            <a href="mailto:yashlodam03@gmail.com" className="text-indigo-600 font-bold hover:underline">
               yashlodam03@gmail.com
             </a>
             <span>)</span>
           </p>
 
-          <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 shadow-sm">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[11px] font-bold text-emerald-300 font-satoshi">
+          <div className={`flex items-center gap-2 rounded-full border px-3.5 py-1 shadow-sm ${
+            isLight ? "border-emerald-200 bg-emerald-50" : "border-emerald-500/30 bg-emerald-500/10"
+          }`}>
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className={`text-[11px] font-bold font-satoshi ${isLight ? "text-emerald-700" : "text-emerald-300"}`}>
               All REST APIs & AI Match Engines 100% Operational
             </span>
           </div>

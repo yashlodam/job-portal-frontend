@@ -241,23 +241,30 @@ function App() {
               </Route>
 
               {/* ─────────────────────────────────────────────────────────────
+                  PUBLIC DISCOVERY & INFORMATIONAL ROUTES
+                  Accessible to everyone (Guests, Candidates, Recruiters).
+                 ───────────────────────────────────────────────────────────── */}
+              <Route element={<Layout />}>
+                <Route path="/"            element={<Home />} />
+                <Route path="/find-jobs"   element={<FindJobs />} />
+                <Route path="/jobs/:id"    element={<JobDetail />} />
+                <Route path="/about"       element={<About />} />
+                <Route path="/company/:id" element={<CompanyPage />} />
+              </Route>
+
+              {/* ─────────────────────────────────────────────────────────────
                   PROTECTED APPLICATION ROUTES
-                  Accessible to any authenticated user (all account types).
+                  Accessible ONLY to authenticated users (Candidates/Applicants).
                  ───────────────────────────────────────────────────────────── */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<Layout />}>
                   {/* Candidate / Job Seeker Pages */}
-                  <Route path="/"              element={<Home />} />
-                  <Route path="/find-jobs"     element={<FindJobs />} />
-                  <Route path="/find-talent"   element={<FindTalent />} />
-                  <Route path="/profiles"      element={<Profile />} />
-                  <Route path="/talent-profile" element={<TalentProfilePage />} />
+                  <Route path="/find-talent"        element={<FindTalent />} />
+                  <Route path="/profiles"           element={<Profile />} />
+                  <Route path="/talent-profile"     element={<TalentProfilePage />} />
                   <Route path="/talent-profile/:id" element={<TalentProfilePage />} />
-                  <Route path="/about"         element={<About />} />
-                  <Route path="/jobs/:id"      element={<JobDetail />} />
-                  <Route path="/apply-jobs"    element={<ApplyJobPage />} />
-                  <Route path="/company/:id"   element={<CompanyPage />} />
-                  <Route path="/posted-job"    element={<PostedJobPage />} />
+                  <Route path="/apply-jobs"         element={<ApplyJobPage />} />
+                  <Route path="/posted-job"         element={<PostedJobPage />} />
 
                   {/* My Jobs Section */}
                   <Route path="/my-jobs"                 element={<MyJobsPage />} />

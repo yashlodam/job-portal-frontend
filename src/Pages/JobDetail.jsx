@@ -33,6 +33,7 @@ import { getJobById, getSimilarJobs } from "../State/JobSlice";
 import { saveJobThunk, unsaveJobThunk, checkIsJobSavedThunk } from "../State/savedJobThunk";
 import { useToast } from "../components/ui/ToastNotification";
 import CandidateJobMatchWidget from "../components/recommendation/CandidateJobMatchWidget";
+import { getAssetUrl } from "../utils/assetUtils";
 
 /* ===========================
     Animation Variants
@@ -280,7 +281,7 @@ function SimilarJobCard({ job }) {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-elevated p-1.5">
             {logo && !logoError ? (
               <img
-                src={logo}
+                src={getAssetUrl(logo)}
                 alt={`${company} logo`}
                 width={40}
                 height={40}
@@ -550,7 +551,7 @@ function JobDetail() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-surface-elevated p-2 shrink-0">
                   {companyLogo ? (
                     <img
-                      src={companyLogo}
+                      src={getAssetUrl(companyLogo)}
                       alt={`${companyName} logo`}
                       width={40}
                       height={40}

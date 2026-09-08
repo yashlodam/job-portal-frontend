@@ -159,7 +159,7 @@ function Profile(profile) {
         {/* Role + Company */}
         <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-body sm:text-base font-satoshi">
           <IconBriefcase size={18} className="shrink-0 text-muted" />
-          <span className="font-bold text-white">{profile.role}</span>
+          <span className="font-bold text-heading">{profile.role}</span>
           <span className="text-muted">•</span>
           <span className="font-semibold text-primary-light">{profile.company}</span>
         </div>
@@ -167,25 +167,25 @@ function Profile(profile) {
         {/* Location & Availability Badges */}
         <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs sm:text-sm">
           <div className="flex items-center gap-1.5 text-muted font-medium">
-            <IconMapPin size={16} className="shrink-0 text-indigo-400" />
+            <IconMapPin size={16} className="shrink-0 text-indigo-500 dark:text-indigo-400" />
             <span>{profile.location}</span>
           </div>
 
           {profile.availability && (
-            <span className="inline-flex items-center rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400">
+            <span className="inline-flex items-center rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
               {profile.availability}
             </span>
           )}
 
           {profile.experienceLevel && (
-            <span className="inline-flex items-center rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-300">
+            <span className="inline-flex items-center rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-600 dark:text-indigo-300">
               {profile.experienceLevel}
             </span>
           )}
         </div>
       </div>
 
-      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
+      <Divider size="xs" my="xl" color="var(--color-border, rgba(148, 163, 184, 0.15))" />
 
       {/* About Section */}
       <section>
@@ -197,11 +197,11 @@ function Profile(profile) {
             {profile.about}
           </p>
         ) : (
-          <p className="mt-3 text-xs text-slate-400 italic">No summary description provided yet.</p>
+          <p className="mt-3 text-xs text-muted italic">No summary description provided yet.</p>
         )}
       </section>
 
-      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
+      <Divider size="xs" my="xl" color="var(--color-border, rgba(148, 163, 184, 0.15))" />
 
       {/* Skills Section */}
       <section>
@@ -232,11 +232,11 @@ function Profile(profile) {
             ))}
           </div>
         ) : (
-          <p className="mt-3 text-xs text-slate-400 italic">No skills added yet.</p>
+          <p className="mt-3 text-xs text-muted italic">No skills added yet.</p>
         )}
       </section>
 
-      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
+      <Divider size="xs" my="xl" color="var(--color-border, rgba(148, 163, 184, 0.15))" />
 
       {/* Experience Section */}
       <section>
@@ -246,9 +246,9 @@ function Profile(profile) {
         {experiences.length > 0 ? (
           <div className="space-y-6">
             {experiences.map((item, index) => (
-              <div key={item.id || index} className="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-surface p-2">
-                  <IconBriefcase size={20} className="text-indigo-400" />
+              <div key={item.id || index} className="flex gap-4 p-4 rounded-xl border border-border bg-surface">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-elevated p-2">
+                  <IconBriefcase size={20} className="text-indigo-500 dark:text-indigo-400" />
                 </div>
                 <div className="flex-1">
                   <div className="flex flex-wrap items-start justify-between gap-2">
@@ -277,11 +277,11 @@ function Profile(profile) {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-slate-400 italic">No work experience listed yet.</p>
+          <p className="text-xs text-muted italic">No work experience listed yet.</p>
         )}
       </section>
 
-      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
+      <Divider size="xs" my="xl" color="var(--color-border, rgba(148, 163, 184, 0.15))" />
 
       {/* Education Section */}
       <section>
@@ -291,7 +291,7 @@ function Profile(profile) {
         {educations.length > 0 ? (
           <div className="space-y-6">
             {educations.map((item, index) => (
-              <div key={item.id || index} className="flex items-start gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+              <div key={item.id || index} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-surface">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary-light">
                   <IconSchool size={22} />
                 </div>
@@ -320,11 +320,11 @@ function Profile(profile) {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-slate-400 italic">No education listed yet.</p>
+          <p className="text-xs text-muted italic">No education listed yet.</p>
         )}
       </section>
 
-      <Divider size="xs" my="xl" color="rgba(148, 163, 184, 0.08)" />
+      <Divider size="xs" my="xl" color="var(--color-border, rgba(148, 163, 184, 0.15))" />
 
       {/* Certifications Section */}
       <section>
@@ -334,7 +334,7 @@ function Profile(profile) {
         {certifications.length > 0 ? (
           <div className="space-y-4">
             {certifications.map((cert, index) => (
-              <div key={cert.id || index} className="flex items-start gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+              <div key={cert.id || index} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-surface">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary-light">
                   <IconCertificate size={22} />
                 </div>
@@ -357,7 +357,7 @@ function Profile(profile) {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-slate-400 italic">No certifications listed yet.</p>
+          <p className="text-xs text-muted italic">No certifications listed yet.</p>
         )}
       </section>
 

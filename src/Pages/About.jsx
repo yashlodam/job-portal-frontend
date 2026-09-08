@@ -29,6 +29,7 @@ import {
   Database,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 function LinkedInIcon({ className = "" }) {
   return (
@@ -98,33 +99,33 @@ const CORE_PILLARS = [
     icon: Zap,
     title: "Zero-Ghosting Transparency",
     description:
-      "Candidates track application status live through 8 structured pipeline stages with direct real-time messaging to hiring recruiters.",
+      "Every applicant can track their progress across 8 real-time recruitment stages with guaranteed feedback and direct messaging to recruiters.",
     from: "#06B6D4",
     to: "#3B82F6",
   },
   {
     icon: Shield,
-    title: "Verified Employer Trust",
+    title: "Verified Compensation Brackets",
     description:
-      "Every employer and job posting undergoes verification to protect candidates from spam, ghost postings, and deceptive compensation bands.",
+      "No hidden salary bands or misleading ranges. All job postings show transparent compensation models with verified market equity rates.",
     from: "#10B981",
     to: "#14B8A6",
   },
   {
-    icon: Terminal,
-    title: "AI ATS Resume Engineering",
+    icon: UserCheck,
+    title: "AI Technical Interview Coach",
     description:
-      "Interactive resume builder and score analyzer designed to pass modern enterprise ATS filters with tailored bullet point enhancements.",
+      "Empower candidates to practice coding and behavioral questions with realistic AI interview simulations before real recruiter screens.",
     from: "#EC4899",
     to: "#F43F5E",
   },
   {
-    icon: Award,
-    title: "Realistic AI Mock Interviews",
+    icon: Sparkles,
+    title: "ATS-Optimized Resume Engine",
     description:
-      "Practice coding, distributed system design, and behavioral questions with an AI coach that provides actionable scoring and feedback.",
+      "Automated document formatting and keyword analysis ensure resumes pass through ATS filters (Greenhouse, Lever, Workday) with top scores.",
     from: "#F59E0B",
-    to: "#FBBF24",
+    to: "#EF4444",
   },
   {
     icon: Database,
@@ -147,24 +148,17 @@ const itemVariants = {
 };
 
 export default function About() {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+
   return (
-    <main className="relative min-h-screen bg-[#05070d] font-inter text-slate-200 overflow-x-hidden" aria-label="About JobPortal AI">
+    <main className={`relative min-h-screen font-inter overflow-x-hidden transition-colors duration-300 ${
+      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    }`} aria-label="About JobPortal AI">
       {/* Background Ambient Glows */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute left-1/4 top-0 h-[600px] w-[600px] rounded-full bg-indigo-600/10 blur-[200px]" />
-        <div className="absolute right-0 top-1/3 h-[500px] w-[500px] rounded-full bg-purple-600/10 blur-[180px]" />
-        <div className="absolute bottom-1/4 left-0 h-[450px] w-[450px] rounded-full bg-cyan-600/5 blur-[160px]" />
+        <div className="absolute left-1/4 top-0 h-[600px] w-[600px] rounded-full bg-indigo-600/5 blur-[200px]" />
       </div>
-
-      {/* Subtle Dot Grid Texture */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage: "radial-gradient(circle, #A5B4FC 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-        }}
-      />
 
       {/* ══════════ HERO SECTION ══════════ */}
       <section className="section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:pt-28 sm:pb-20 text-center">
@@ -172,9 +166,11 @@ export default function About() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-xs font-extrabold text-indigo-300 mb-6 shadow-sm"
+          className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-extrabold mb-6 shadow-sm ${
+            isLight ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300"
+          }`}
         >
-          <Sparkles size={14} className="text-amber-300 fill-amber-300/20" />
+          <Sparkles size={14} className={isLight ? "text-amber-500" : "text-amber-300 fill-amber-300/20"} />
           <span>Our Mission & Architectural Vision</span>
         </motion.div>
 
@@ -182,10 +178,12 @@ export default function About() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.1 }}
-          className="text-3xl sm:text-5xl lg:text-6xl font-black text-white font-satoshi tracking-tight leading-tight max-w-4xl mx-auto"
+          className={`text-3xl sm:text-5xl lg:text-6xl font-black font-satoshi tracking-tight leading-tight max-w-4xl mx-auto ${
+            isLight ? "text-slate-900" : "text-white"
+          }`}
         >
           Engineering the Future of{" "}
-          <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
             AI-Driven Recruitment
           </span>
         </motion.h1>
@@ -194,7 +192,9 @@ export default function About() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-6 max-w-2xl mx-auto text-sm sm:text-base text-slate-300 leading-relaxed font-medium"
+          className={`mt-6 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-medium ${
+            isLight ? "text-slate-600" : "text-slate-300"
+          }`}
         >
           JobPortal AI was founded to fix the broken tech hiring pipeline. We combine deterministic skill evaluation, automated ATS scoring, and direct recruiter communication to help developers land life-changing roles.
         </motion.p>
@@ -213,29 +213,41 @@ export default function About() {
             <motion.div
               key={stat.label}
               variants={itemVariants}
-              className="rounded-3xl border border-white/10 bg-[#090d16]/90 p-6 text-center backdrop-blur-xl transition hover:border-indigo-500/40 hover:bg-[#0c111f] shadow-lg"
+              className={`rounded-3xl border p-6 text-center backdrop-blur-xl transition shadow-sm hover:scale-105 ${
+                isLight
+                  ? "border-slate-200 bg-white text-slate-800 hover:border-indigo-300 hover:shadow-xl"
+                  : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/40 hover:bg-[#0c111f]"
+              }`}
             >
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 mb-4 shadow-sm">
+              <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border mb-4 shadow-sm ${
+                isLight ? "border-indigo-200 bg-indigo-50 text-indigo-600" : "bg-indigo-500/15 border-indigo-500/30 text-indigo-400"
+              }`}>
                 <stat.icon size={22} />
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-white font-satoshi">
+              <div className={`text-2xl sm:text-3xl font-black font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}>
                 <AnimatedCounter end={stat.value} suffix={stat.suffix} />
               </div>
-              <p className="mt-1 text-xs font-semibold text-slate-400">{stat.label}</p>
+              <p className={`mt-1 text-xs font-semibold ${isLight ? "text-slate-500" : "text-slate-400"}`}>{stat.label}</p>
             </motion.div>
           ))}
         </motion.div>
       </section>
 
       {/* ══════════ FOUNDER SPOTLIGHT (YASH LODAM) ══════════ */}
-      <section className="section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 border-t border-white/10">
+      <section className={`section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 border-t ${
+        isLight ? "border-slate-200" : "border-white/10"
+      }`}>
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-1 text-xs font-extrabold text-indigo-300">
-              <UserCheck size={14} className="text-indigo-400" />
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-extrabold ${
+              isLight ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300"
+            }`}>
+              <UserCheck size={14} className={isLight ? "text-indigo-600" : "text-indigo-400"} />
               <span>Founder & Chief Architect</span>
             </span>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black text-white font-satoshi tracking-tight">
+            <h2 className={`mt-4 text-3xl sm:text-4xl font-black font-satoshi tracking-tight ${
+              isLight ? "text-slate-900" : "text-white"
+            }`}>
               Meet the Creator Behind the Platform
             </h2>
           </div>
@@ -246,7 +258,11 @@ export default function About() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="rounded-3xl border border-indigo-500/40 bg-gradient-to-br from-[#0e1326] via-[#090d16] to-[#05070d] p-8 sm:p-12 shadow-2xl backdrop-blur-2xl relative overflow-hidden"
+            className={`rounded-3xl border p-8 sm:p-12 shadow-2xl backdrop-blur-2xl relative overflow-hidden ${
+              isLight
+                ? "border-indigo-200 bg-white shadow-xl"
+                : "border-indigo-500/40 bg-gradient-to-br from-[#0e1326] via-[#090d16] to-[#05070d]"
+            }`}
           >
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
               
@@ -272,27 +288,39 @@ export default function About() {
                 <div className="mt-5 flex flex-wrap gap-2 justify-center md:justify-start">
                   <a
                     href="mailto:yashlodam03@gmail.com"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 hover:border-indigo-500/40 transition"
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition ${
+                      isLight
+                        ? "border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-300 hover:bg-slate-100"
+                        : "border-white/15 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 hover:border-indigo-500/40"
+                    }`}
                   >
-                    <Mail size={13} className="text-indigo-400" />
+                    <Mail size={13} className="text-indigo-500" />
                     <span>Email</span>
                   </a>
                   <a
                     href="https://github.com/yashlodam"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 hover:border-indigo-500/40 transition"
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition ${
+                      isLight
+                        ? "border-slate-200 bg-slate-50 text-slate-700 hover:border-purple-300 hover:bg-slate-100"
+                        : "border-white/15 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 hover:border-indigo-500/40"
+                    }`}
                   >
-                    <GitHubIcon className="text-purple-400" />
+                    <GitHubIcon className="text-purple-500" />
                     <span>GitHub</span>
                   </a>
                   <a
                     href="https://linkedin.com/in/yashlodam"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 hover:border-indigo-500/40 transition"
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition ${
+                      isLight
+                        ? "border-slate-200 bg-slate-50 text-slate-700 hover:border-cyan-300 hover:bg-slate-100"
+                        : "border-white/15 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 hover:border-indigo-500/40"
+                    }`}
                   >
-                    <LinkedInIcon className="text-cyan-400" />
+                    <LinkedInIcon className="text-cyan-500" />
                     <span>LinkedIn</span>
                   </a>
                 </div>
@@ -300,16 +328,22 @@ export default function About() {
 
               {/* Right Column: Founder Narrative & Architecture Highlights */}
               <div className="md:col-span-8 space-y-4">
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                <p className={`text-xs sm:text-sm leading-relaxed font-medium ${
+                  isLight ? "text-slate-700" : "text-slate-300"
+                }`}>
                   "I engineered JobPortal AI with a single mission: to eliminate the frustrating blackhole of online job applications. Traditional job boards rely on crude keyword filters that reject qualified developers, while leaving candidates stranded in months of recruiter silence."
                 </p>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+                <p className={`text-xs sm:text-sm leading-relaxed font-medium ${
+                  isLight ? "text-slate-700" : "text-slate-300"
+                }`}>
                   "Every piece of this platform — from the neural match scoring and live 8-stage application stepper to the interactive AI technical interview coach — was built with enterprise craftsmanship to empower software engineers to showcase their real potential."
                 </p>
 
                 {/* Core Stack Highlights */}
-                <div className="pt-2 border-t border-white/10">
-                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-satoshi block mb-2">
+                <div className={`pt-2 border-t ${isLight ? "border-slate-200" : "border-white/10"}`}>
+                  <span className={`text-[11px] font-extrabold uppercase tracking-wider font-satoshi block mb-2 ${
+                    isLight ? "text-slate-500" : "text-slate-400"
+                  }`}>
                     Core Engineering Stack:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
@@ -323,9 +357,13 @@ export default function About() {
                     ].map((tech) => (
                       <span
                         key={tech}
-                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 border border-indigo-500/25 px-2.5 py-1 text-[11px] font-bold text-indigo-300"
+                        className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-bold ${
+                          isLight
+                            ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+                            : "bg-indigo-500/10 border-indigo-500/25 text-indigo-300"
+                        }`}
                       >
-                        <Code2 size={11} className="text-indigo-400" />
+                        <Code2 size={11} className="text-indigo-500" />
                         {tech}
                       </span>
                     ))}
@@ -338,13 +376,19 @@ export default function About() {
       </section>
 
       {/* ══════════ CORE ARCHITECTURAL PILLARS ══════════ */}
-      <section className="section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 border-t border-white/10">
+      <section className={`section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 border-t ${
+        isLight ? "border-slate-200" : "border-white/10"
+      }`}>
         <div className="text-center mb-12">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-extrabold text-emerald-300">
-            <Shield size={14} className="text-emerald-400" />
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-extrabold ${
+            isLight ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+          }`}>
+            <Shield size={14} className="text-emerald-500" />
             <span>Platform Principles</span>
           </span>
-          <h2 className="mt-4 text-3xl sm:text-4xl font-black text-white font-satoshi tracking-tight">
+          <h2 className={`mt-4 text-3xl sm:text-4xl font-black font-satoshi tracking-tight ${
+            isLight ? "text-slate-900" : "text-white"
+          }`}>
             How JobPortal AI Outperforms Traditional Job Boards
           </h2>
         </div>
@@ -360,7 +404,11 @@ export default function About() {
             <motion.div
               key={pillar.title}
               variants={itemVariants}
-              className="rounded-3xl border border-white/10 bg-[#090d16]/90 p-7 backdrop-blur-xl transition duration-300 hover:border-indigo-500/40 hover:bg-[#0c111f] hover:shadow-xl flex flex-col justify-between"
+              className={`rounded-3xl border p-7 backdrop-blur-xl transition duration-300 hover:shadow-xl flex flex-col justify-between ${
+                isLight
+                  ? "border-slate-200 bg-white hover:border-indigo-300 shadow-sm"
+                  : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/40 hover:bg-[#0c111f]"
+              }`}
             >
               <div>
                 <div
@@ -371,12 +419,16 @@ export default function About() {
                 >
                   <pillar.icon size={22} className="text-white" />
                 </div>
-                <h3 className="text-lg font-extrabold text-white font-satoshi">{pillar.title}</h3>
-                <p className="mt-2.5 text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
+                <h3 className={`text-lg font-extrabold font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}>{pillar.title}</h3>
+                <p className={`mt-2.5 text-xs sm:text-sm font-medium leading-relaxed ${
+                  isLight ? "text-slate-600" : "text-slate-400"
+                }`}>
                   {pillar.description}
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+              <div className={`mt-6 pt-4 border-t flex items-center gap-1.5 text-xs font-bold text-emerald-500 ${
+                isLight ? "border-slate-100" : "border-white/10"
+              }`}>
                 <CheckCircle2 size={13} /> Active on Platform
               </div>
             </motion.div>
@@ -385,39 +437,53 @@ export default function About() {
       </section>
 
       {/* ══════════ DIRECT CONTACT & PARTNERSHIP CTA ══════════ */}
-      <section className="section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 border-t border-white/10">
+      <section className={`section-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 border-t ${
+        isLight ? "border-slate-200" : "border-white/10"
+      }`}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-[#120d24] via-[#090d16] to-[#05070d] p-8 sm:p-14 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden"
+          className={`rounded-3xl border p-8 sm:p-14 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden ${
+            isLight
+              ? "border-indigo-200 bg-white shadow-xl"
+              : "border-indigo-500/30 bg-gradient-to-br from-[#120d24] via-[#090d16] to-[#05070d]"
+          }`}
         >
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl mb-6">
             <Mail size={24} />
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-black text-white font-satoshi tracking-tight">
+          <h2 className={`text-2xl sm:text-4xl font-black font-satoshi tracking-tight ${
+            isLight ? "text-slate-900" : "text-white"
+          }`}>
             Have Inquiries or Partnership Proposals?
           </h2>
 
-          <p className="mt-4 text-xs sm:text-sm text-slate-300 leading-relaxed font-medium max-w-xl mx-auto">
-            Directly connect with founder <strong>Yash Lodam</strong> for platform questions, enterprise recruiter onboarding, or technical collaborations.
+          <p className={`mt-4 text-xs sm:text-sm leading-relaxed font-medium max-w-xl mx-auto ${
+            isLight ? "text-slate-600" : "text-slate-300"
+          }`}>
+            Directly connect with founder <strong className={isLight ? "text-slate-900 font-bold" : "text-white font-bold"}>Yash Lodam</strong> for platform questions, enterprise recruiter onboarding, or technical collaborations.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <a
               href="mailto:yashlodam03@gmail.com"
-              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-7 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:scale-105 transition cursor-pointer font-satoshi"
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-7 py-3.5 text-xs sm:text-sm font-extrabold !text-white shadow-lg shadow-indigo-600/30 hover:scale-105 transition cursor-pointer font-satoshi"
             >
-              <Mail size={15} />
-              <span>Contact Yash Lodam (yashlodam03@gmail.com)</span>
-              <ArrowRight size={15} />
+              <Mail size={15} className="!text-white" />
+              <span className="!text-white">Contact Yash Lodam (yashlodam03@gmail.com)</span>
+              <ArrowRight size={15} className="!text-white" />
             </a>
 
             <Link
               to="/find-jobs"
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-6 py-3.5 text-xs sm:text-sm font-bold text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              className={`inline-flex items-center gap-2 rounded-2xl border px-6 py-3.5 text-xs sm:text-sm font-bold transition cursor-pointer ${
+                isLight
+                  ? "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                  : "border-white/15 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10"
+              }`}
             >
               Explore Live Jobs
             </Link>

@@ -260,19 +260,19 @@ export default function MyJobsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070b12] text-slate-200 font-inter py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background text-body font-inter py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Title Banner */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/10 pb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border pb-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-400 mb-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-500 dark:text-indigo-400 mb-2">
               <Briefcase className="h-3.5 w-3.5" />
               <span>Career Pipeline Workspace</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white font-satoshi tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-heading font-satoshi tracking-tight">
               My Job Applications
             </h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-muted">
               Track status, scheduled interviews, and active job opportunities.
             </p>
           </div>
@@ -290,41 +290,41 @@ export default function MyJobsPage() {
 
         {/* Global Pipeline Statistics */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card className="p-4 bg-gradient-to-br from-indigo-950/40 to-slate-900/60 border border-indigo-500/20">
+          <Card className="p-4 bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-500/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400">Total Applied</span>
-              <Briefcase className="h-4 w-4 text-indigo-400" />
+              <span className="text-xs font-semibold text-muted">Total Applied</span>
+              <Briefcase className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-white font-satoshi">{myApplications.length}</p>
+            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">{myApplications.length}</p>
           </Card>
 
-          <Card className="p-4 bg-gradient-to-br from-purple-950/40 to-slate-900/60 border border-purple-500/20">
+          <Card className="p-4 bg-purple-50/50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-500/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400">Saved Jobs</span>
-              <Bookmark className="h-4 w-4 text-purple-400" />
+              <span className="text-xs font-semibold text-muted">Saved Jobs</span>
+              <Bookmark className="h-4 w-4 text-purple-500 dark:text-purple-400" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-white font-satoshi">{savedJobs.length}</p>
+            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">{savedJobs.length}</p>
           </Card>
 
-          <Card className="p-4 bg-gradient-to-br from-teal-950/40 to-slate-900/60 border border-teal-500/20">
+          <Card className="p-4 bg-teal-50/50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-500/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400">Interviews</span>
-              <Calendar className="h-4 w-4 text-teal-400" />
+              <span className="text-xs font-semibold text-muted">Interviews</span>
+              <Calendar className="h-4 w-4 text-teal-500 dark:text-teal-400" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-white font-satoshi">{interviewList.length}</p>
+            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">{interviewList.length}</p>
           </Card>
 
-          <Card className="p-4 bg-gradient-to-br from-amber-950/40 to-slate-900/60 border border-amber-500/20">
+          <Card className="p-4 bg-amber-50/50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-500/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400">Offers</span>
-              <Award className="h-4 w-4 text-amber-400" />
+              <span className="text-xs font-semibold text-muted">Offers</span>
+              <Award className="h-4 w-4 text-amber-500 dark:text-amber-400" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-white font-satoshi">{offerList.length}</p>
+            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">{offerList.length}</p>
           </Card>
         </div>
 
         {/* Tab Selection & Search Filters */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-border pb-4">
           <Tabs
             tabs={TABS_CONFIG}
             activeTab={activeTab}
@@ -332,13 +332,13 @@ export default function MyJobsPage() {
           />
 
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by role, company, status…"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition"
+              className="w-full rounded-2xl border border-border bg-surface-hover pl-10 pr-4 py-2 text-xs text-heading placeholder:text-muted focus:outline-none focus:border-indigo-500 transition"
             />
           </div>
         </div>
@@ -366,44 +366,44 @@ export default function MyJobsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredApplications.map((app) => (
-                  <Card key={app.id || app.applicationId} className="p-5 flex flex-col justify-between hover:border-indigo-500/40 transition-all group">
+                  <Card key={app.id || app.applicationId} className="p-5 flex flex-col justify-between hover:border-indigo-500/40 transition-all group bg-surface border-border">
                     <div>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-black text-lg">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 font-black text-lg">
                             {(app.jobTitle || app.companyName || "J").charAt(0)}
                           </div>
                           <div>
-                            <h3 className="font-bold text-white font-satoshi text-base">{app.jobTitle || "Job Position"}</h3>
-                            <p className="text-xs text-slate-400">{app.companyName || "Company"}</p>
+                            <h3 className="font-bold text-heading font-satoshi text-base">{app.jobTitle || "Job Position"}</h3>
+                            <p className="text-xs text-muted">{app.companyName || "Company"}</p>
                           </div>
                         </div>
                         <StatusChip status={app.status || "APPLIED"} />
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-white/5 space-y-2 text-xs text-slate-400">
+                      <div className="mt-4 pt-3 border-t border-border space-y-2 text-xs text-muted">
                         <div className="flex items-center justify-between">
                           <span>Applied Date:</span>
-                          <span className="font-medium text-white">{formatDate(app.appliedAt || app.appliedDate || app.createdAt)}</span>
+                          <span className="font-medium text-heading">{formatDate(app.appliedAt || app.appliedDate || app.createdAt)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span>Application ID:</span>
-                          <span className="font-mono text-indigo-300">#{app.id || app.applicationId}</span>
+                          <span className="font-mono text-indigo-600 dark:text-indigo-300">#{app.id || app.applicationId}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between">
+                    <div className="mt-5 pt-3 border-t border-border flex items-center justify-between">
                       <button
                         onClick={() => setSelectedApp(app)}
-                        className="flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
+                        className="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition cursor-pointer"
                       >
                         <Eye className="h-3.5 w-3.5" /> Details
                       </button>
 
                       <button
                         onClick={() => setWithdrawTarget(app)}
-                        className="flex items-center gap-1 text-xs font-semibold text-rose-400 hover:text-rose-300 transition cursor-pointer"
+                        className="flex items-center gap-1 text-xs font-semibold text-rose-500 dark:text-rose-400 hover:text-rose-600 transition cursor-pointer"
                       >
                         <Trash2 className="h-3.5 w-3.5" /> Withdraw
                       </button>
@@ -447,35 +447,35 @@ export default function MyJobsPage() {
                   const salary = job.minimumSalary ? `₹${job.minimumSalary.toLocaleString()} - ₹${job.maximumSalary.toLocaleString()}` : job.salary || "";
 
                   return (
-                    <Card key={jobId} className="p-5 flex flex-col justify-between">
+                    <Card key={jobId} className="p-5 flex flex-col justify-between bg-surface border-border">
                       <div>
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <h3 className="font-bold text-white font-satoshi text-lg">{title}</h3>
-                            <p className="text-xs text-indigo-400 font-semibold mt-0.5">{company}</p>
+                            <h3 className="font-bold text-heading font-satoshi text-lg">{title}</h3>
+                            <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mt-0.5">{company}</p>
                           </div>
                           <button
                             onClick={() => handleUnsaveJob(jobId)}
-                            className="flex items-center gap-1 rounded-full bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 text-[11px] font-bold text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"
+                            className="flex items-center gap-1 rounded-full bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 text-[11px] font-bold text-rose-500 dark:text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"
                           >
                             <Trash2 className="h-3 w-3" /> Unsave
                           </button>
                         </div>
 
-                        <div className="mt-4 pt-3 border-t border-white/5 space-y-2 text-xs text-slate-400">
+                        <div className="mt-4 pt-3 border-t border-border space-y-2 text-xs text-muted">
                           <div className="flex items-center gap-2">
-                            <MapPin className="h-3.5 w-3.5 text-slate-500" /> {location}
+                            <MapPin className="h-3.5 w-3.5 text-muted" /> {location}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Briefcase className="h-3.5 w-3.5 text-slate-500" /> {job.jobType || "Full Time"} {salary && `· ${salary}`}
+                            <Briefcase className="h-3.5 w-3.5 text-muted" /> {job.jobType || "Full Time"} {salary && `· ${salary}`}
                           </div>
                         </div>
                       </div>
 
-                      <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between">
+                      <div className="mt-5 pt-3 border-t border-border flex items-center justify-between">
                         <Link
                           to={`/jobs/${jobId}`}
-                          className="text-xs font-semibold text-slate-400 hover:text-white transition"
+                          className="text-xs font-semibold text-muted hover:text-heading transition"
                         >
                           View Job Details →
                         </Link>
@@ -501,15 +501,15 @@ export default function MyJobsPage() {
           <div className="space-y-4">
             {/* Header row */}
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted">
                 {interviewsLoading ? "Loading interviews…" : `${interviewList.length} interview${interviewList.length !== 1 ? "s" : ""} scheduled`}
               </p>
               <button
                 onClick={loadInterviews}
                 disabled={interviewsLoading}
-                className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/10 transition"
+                className="flex items-center gap-1.5 rounded-xl border border-border bg-surface-hover px-3 py-1.5 text-xs font-semibold text-body hover:bg-surface transition"
               >
-                <RefreshCw className={`h-3 w-3 ${interviewsLoading ? "animate-spin text-indigo-400" : ""}`} />
+                <RefreshCw className={`h-3 w-3 ${interviewsLoading ? "animate-spin text-indigo-500" : ""}`} />
                 Refresh
               </button>
             </div>
@@ -518,7 +518,7 @@ export default function MyJobsPage() {
             {interviewsLoading && (
               <div className="space-y-4">
                 {[1, 2].map((n) => (
-                  <div key={n} className="rounded-2xl border border-white/10 bg-[#090d16] p-6 animate-pulse h-36" />
+                  <div key={n} className="rounded-2xl border border-border bg-surface p-6 animate-pulse h-36" />
                 ))}
               </div>
             )}
@@ -526,11 +526,11 @@ export default function MyJobsPage() {
             {/* Error state */}
             {!interviewsLoading && interviewsError && (
               <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-6 flex items-center gap-4">
-                <AlertCircle className="h-8 w-8 text-rose-400 shrink-0" />
+                <AlertCircle className="h-8 w-8 text-rose-500 shrink-0" />
                 <div>
-                  <p className="text-sm font-bold text-white">Failed to load interviews</p>
-                  <p className="text-xs text-slate-400 mt-1">{interviewsError}</p>
-                  <button onClick={loadInterviews} className="mt-2 text-xs font-bold text-indigo-400 hover:text-indigo-300">Try again →</button>
+                  <p className="text-sm font-bold text-heading">Failed to load interviews</p>
+                  <p className="text-xs text-muted mt-1">{interviewsError}</p>
+                  <button onClick={loadInterviews} className="mt-2 text-xs font-bold text-indigo-500 hover:underline">Try again →</button>
                 </div>
               </div>
             )}
@@ -539,10 +539,10 @@ export default function MyJobsPage() {
             {!interviewsLoading && !interviewsError && interviewList.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
                 <div className="h-16 w-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
-                  <Calendar className="h-8 w-8 text-teal-400" />
+                  <Calendar className="h-8 w-8 text-teal-500" />
                 </div>
-                <h3 className="text-lg font-bold text-white font-satoshi">No interviews scheduled yet</h3>
-                <p className="text-sm text-slate-400 max-w-xs">
+                <h3 className="text-lg font-bold text-heading font-satoshi">No interviews scheduled yet</h3>
+                <p className="text-sm text-muted max-w-xs">
                   Once a recruiter schedules an interview for your application, it will appear here with all details and a meeting link.
                 </p>
                 <Link to="/find-jobs" className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-500 transition shadow">
@@ -563,8 +563,8 @@ export default function MyJobsPage() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className={`rounded-2xl border bg-[#090d16] p-5 sm:p-6 transition-all ${
-                    upcomingActive ? "border-teal-500/30 shadow-[0_0_30px_-8px_rgba(20,184,166,0.15)]" : "border-white/10"
+                  className={`rounded-2xl border bg-surface p-5 sm:p-6 transition-all ${
+                    upcomingActive ? "border-teal-500/40 shadow-md shadow-teal-500/10" : "border-border"
                   }`}
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -573,7 +573,7 @@ export default function MyJobsPage() {
                       {/* Top badges */}
                       <div className="flex flex-wrap items-center gap-2">
                         {/* Round badge */}
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/15 border border-teal-500/25 px-3 py-0.5 text-[11px] font-bold text-teal-300">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/15 border border-teal-500/25 px-3 py-0.5 text-[11px] font-bold text-teal-600 dark:text-teal-300">
                           <Calendar className="h-3 w-3" />
                           {ROUND_LABELS[iv.interviewRound] || "Interview"}
                         </span>
@@ -583,7 +583,7 @@ export default function MyJobsPage() {
                         </span>
                         {/* Joinable badge */}
                         {iv.joinable && iv.meetingLink && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/25 px-3 py-0.5 text-[11px] font-bold text-emerald-400 animate-pulse">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/25 px-3 py-0.5 text-[11px] font-bold text-emerald-500 dark:text-emerald-400 animate-pulse">
                             ● Live Now
                           </span>
                         )}
@@ -591,33 +591,33 @@ export default function MyJobsPage() {
 
                       {/* Job title + company */}
                       <div>
-                        <h3 className="text-lg font-extrabold text-white font-satoshi truncate">
+                        <h3 className="text-lg font-extrabold text-heading font-satoshi truncate">
                           {iv.jobTitle || "Position"}
                         </h3>
-                        <p className="text-xs text-indigo-400 font-semibold mt-0.5">
+                        <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mt-0.5">
                           {iv.companyName || iv.recruiterName || "Company"}
                         </p>
                       </div>
 
                       {/* Details row */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
-                        <div className="flex items-center gap-2 text-slate-300">
-                          <Calendar className="h-3.5 w-3.5 text-teal-400 shrink-0" />
+                        <div className="flex items-center gap-2 text-body">
+                          <Calendar className="h-3.5 w-3.5 text-teal-500 shrink-0" />
                           <span className="font-semibold">{formatInterviewDate(iv.scheduledAt)}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <Clock className="h-3.5 w-3.5 text-white/30 shrink-0" />
+                        <div className="flex items-center gap-2 text-muted">
+                          <Clock className="h-3.5 w-3.5 text-muted shrink-0" />
                           <span>{formatInterviewTime(iv.scheduledAt, iv.endsAt)}
-                            {iv.durationMinutes && <span className="text-white/30 ml-1">· {iv.durationMinutes} min</span>}
+                            {iv.durationMinutes && <span className="text-muted ml-1">· {iv.durationMinutes} min</span>}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <span className="text-white/30">{getModeIcon(iv.interviewMode)}</span>
+                        <div className="flex items-center gap-2 text-muted">
+                          <span className="text-muted">{getModeIcon(iv.interviewMode)}</span>
                           <span>{iv.meetingPlatform || "Video Call"}</span>
                         </div>
                         {iv.interviewerName && (
-                          <div className="flex items-center gap-2 text-slate-400">
-                            <UserCheck className="h-3.5 w-3.5 text-white/30 shrink-0" />
+                          <div className="flex items-center gap-2 text-muted">
+                            <UserCheck className="h-3.5 w-3.5 text-muted shrink-0" />
                             <span>{iv.interviewerName}</span>
                           </div>
                         )}
@@ -625,17 +625,17 @@ export default function MyJobsPage() {
 
                       {/* Completed feedback */}
                       {iv.status === "COMPLETED" && iv.feedback && (
-                        <div className="mt-2 rounded-xl border border-white/5 bg-white/[0.03] p-3">
-                          <p className="text-[11px] font-bold text-slate-400 mb-1">Interview Feedback</p>
-                          <p className="text-xs text-slate-300 leading-relaxed">{iv.feedback}</p>
+                        <div className="mt-2 rounded-xl border border-border bg-surface-hover p-3">
+                          <p className="text-[11px] font-bold text-muted mb-1">Interview Feedback</p>
+                          <p className="text-xs text-body leading-relaxed">{iv.feedback}</p>
                           {iv.candidateRating > 0 && (
                             <div className="flex items-center gap-1 mt-2">
                               {[1,2,3,4,5].map((n) => (
                                 <Star key={n} className={`h-3.5 w-3.5 fill-current ${
-                                  n <= iv.candidateRating ? "text-amber-400" : "text-white/10"
+                                  n <= iv.candidateRating ? "text-amber-400" : "text-border"
                                 }`} />
                               ))}
-                              <span className="text-[11px] text-slate-500 ml-1">{iv.candidateRating}/5</span>
+                              <span className="text-[11px] text-muted ml-1">{iv.candidateRating}/5</span>
                             </div>
                           )}
                         </div>
@@ -660,11 +660,11 @@ export default function MyJobsPage() {
                           {iv.joinable ? "Join Now" : "Meeting Link"}
                         </a>
                       ) : iv.status === "COMPLETED" ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-400">
+                        <span className="inline-flex items-center gap-1.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-500 dark:text-emerald-400">
                           <CheckCircle2 className="h-3.5 w-3.5" /> Completed
                         </span>
                       ) : iv.status === "CANCELLED" ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-2 text-xs font-bold text-rose-400">
+                        <span className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-2 text-xs font-bold text-rose-500 dark:text-rose-400">
                           <XCircle className="h-3.5 w-3.5" /> Cancelled
                         </span>
                       ) : null}
@@ -673,7 +673,7 @@ export default function MyJobsPage() {
                       {iv.applicationId && (
                         <Link
                           to={`/my-jobs/applied`}
-                          className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition"
+                          className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline transition"
                         >
                           View Application →
                         </Link>
@@ -691,13 +691,13 @@ export default function MyJobsPage() {
           <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted">
                 {offerList.length === 0
                   ? "No offers yet"
                   : `${offerList.length} offer${offerList.length !== 1 ? "s" : ""} received`}
               </p>
               {offerList.length > 0 && (
-                <span className="text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-0.5">
+                <span className="text-[11px] font-semibold text-amber-500 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-0.5">
                   🎉 Congratulations!
                 </span>
               )}
@@ -707,10 +707,10 @@ export default function MyJobsPage() {
             {offerList.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
                 <div className="h-16 w-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                  <Award className="h-8 w-8 text-amber-400" />
+                  <Award className="h-8 w-8 text-amber-500" />
                 </div>
-                <h3 className="text-lg font-bold text-white font-satoshi">No offers yet</h3>
-                <p className="text-sm text-slate-400 max-w-xs">
+                <h3 className="text-lg font-bold text-heading font-satoshi">No offers yet</h3>
+                <p className="text-sm text-muted max-w-xs">
                   Offers from recruiters will appear here once your application moves to the Offered stage. Keep applying!
                 </p>
                 <Link
@@ -787,8 +787,8 @@ export default function MyJobsPage() {
                   transition={{ delay: idx * 0.06 }}
                   className={`rounded-2xl border p-5 sm:p-6 transition-all ${
                     isAccepted
-                      ? "border-emerald-500/30 bg-[#071412] shadow-[0_0_40px_-10px_rgba(16,185,129,0.12)]"
-                      : "border-amber-500/30 bg-[#0e0b04] shadow-[0_0_40px_-10px_rgba(245,158,11,0.10)]"
+                      ? "border-emerald-500/40 bg-surface shadow-md shadow-emerald-500/10"
+                      : "border-amber-500/40 bg-surface shadow-md shadow-amber-500/10"
                   }`}
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -798,14 +798,14 @@ export default function MyJobsPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-[11px] font-bold ${
                           isAccepted
-                            ? "bg-emerald-500/15 border-emerald-500/25 text-emerald-400"
-                            : "bg-amber-500/15 border-amber-500/25 text-amber-400"
+                            ? "bg-emerald-500/15 border-emerald-500/25 text-emerald-600 dark:text-emerald-400"
+                            : "bg-amber-500/15 border-amber-500/25 text-amber-600 dark:text-amber-400"
                         }`}>
                           <Award className="h-3 w-3" />
                           {isAccepted ? "Offer Accepted ✓" : "Offer Extended"}
                         </span>
                         {workModeText && (
-                          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] font-semibold text-slate-400">
+                          <span className="inline-flex items-center rounded-full border border-border bg-surface-hover px-2.5 py-0.5 text-[11px] font-semibold text-muted">
                             {workModeText}
                           </span>
                         )}
@@ -813,16 +813,16 @@ export default function MyJobsPage() {
 
                       {/* Role + company */}
                       <div>
-                        <h3 className="text-lg font-extrabold text-white font-satoshi truncate">
+                        <h3 className="text-lg font-extrabold text-heading font-satoshi truncate">
                           {jobTitleText}
                         </h3>
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                          <p className="text-xs font-semibold text-indigo-400">
+                          <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
                             {companyNameText}
                           </p>
                           {locationText && (
-                            <span className="flex items-center gap-1 text-xs text-slate-400">
-                              <MapPin className="h-3 w-3 text-slate-500" />
+                            <span className="flex items-center gap-1 text-xs text-muted">
+                              <MapPin className="h-3 w-3 text-muted" />
                               {locationText}
                             </span>
                           )}
@@ -834,17 +834,17 @@ export default function MyJobsPage() {
                         {salaryText && (
                           <div className="flex items-center gap-2">
                             <span className={`text-base font-black font-satoshi ${
-                              isAccepted ? "text-emerald-400" : "text-amber-400"
+                              isAccepted ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
                             }`}>{salaryText}</span>
                           </div>
                         )}
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <Clock className="h-3.5 w-3.5 text-white/30 shrink-0" />
+                        <div className="flex items-center gap-2 text-muted">
+                          <Clock className="h-3.5 w-3.5 text-muted shrink-0" />
                           <span>Applied {formatDate(offer.appliedAt || offer.appliedDate || offer.createdAt)}</span>
                         </div>
                         {(offer.updatedAt || offer.offerDate) && (
-                          <div className="flex items-center gap-2 text-slate-400">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-amber-400/60 shrink-0" />
+                          <div className="flex items-center gap-2 text-muted">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-amber-500 shrink-0" />
                             <span>Offer received {formatDate(offer.updatedAt || offer.offerDate)}</span>
                           </div>
                         )}
@@ -854,7 +854,7 @@ export default function MyJobsPage() {
                     {/* Right CTA */}
                     <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
                       {isAccepted ? (
-                        <span className="inline-flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-2.5 text-xs font-bold text-emerald-400">
+                        <span className="inline-flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                           <CheckCircle2 className="h-4 w-4" /> Offer Accepted
                         </span>
                       ) : (
@@ -872,7 +872,7 @@ export default function MyJobsPage() {
                       )}
                       <Link
                         to="/my-jobs/applied"
-                        className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition"
+                        className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline transition"
                       >
                         View Application →
                       </Link>
@@ -897,22 +897,22 @@ export default function MyJobsPage() {
         {withdrawTarget && (
           <div className="p-6 text-center space-y-5">
             {/* Warning Icon Badge */}
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 shadow-xl shadow-rose-500/20">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-500 dark:text-rose-400 shadow-xl shadow-rose-500/20">
               <AlertTriangle size={28} />
             </div>
 
             {/* Title & Description */}
             <div className="space-y-2">
-              <h3 className="text-xl font-black text-white font-satoshi">
+              <h3 className="text-xl font-black text-heading font-satoshi">
                 Withdraw Job Application?
               </h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm mx-auto">
+              <p className="text-xs sm:text-sm text-body leading-relaxed max-w-sm mx-auto">
                 Are you sure you want to withdraw your application for{" "}
-                <span className="font-bold text-white">
+                <span className="font-bold text-heading">
                   {withdrawTarget.jobTitle || withdrawTarget.job?.title || "this position"}
                 </span>{" "}
                 at{" "}
-                <span className="font-bold text-indigo-300">
+                <span className="font-bold text-indigo-600 dark:text-indigo-300">
                   {typeof withdrawTarget.companyName === 'string'
                     ? withdrawTarget.companyName
                     : typeof withdrawTarget.company === 'string'
@@ -925,24 +925,24 @@ export default function MyJobsPage() {
             </div>
 
             {/* Alert Callout Note */}
-            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3.5 text-left text-xs text-rose-200/90 leading-relaxed flex items-start gap-2.5">
-              <AlertCircle size={16} className="text-rose-400 shrink-0 mt-0.5" />
+            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3.5 text-left text-xs text-rose-600 dark:text-rose-200 leading-relaxed flex items-start gap-2.5">
+              <AlertCircle size={16} className="text-rose-500 shrink-0 mt-0.5" />
               <span>
                 <strong>Please Note:</strong> This action cannot be undone. The hiring recruiter will be notified of your withdrawal, and you will need to submit a new application if you change your mind.
               </span>
             </div>
 
             {/* Application Metadata Preview */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 text-xs text-slate-400 text-left space-y-2">
+            <div className="rounded-2xl border border-border bg-surface-hover p-3.5 text-xs text-muted text-left space-y-2">
               <div className="flex justify-between">
                 <span>Application ID:</span>
-                <span className="font-mono text-indigo-300 font-bold">
+                <span className="font-mono text-indigo-600 dark:text-indigo-300 font-bold">
                   #{withdrawTarget.id || withdrawTarget.applicationId}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Applied On:</span>
-                <span className="text-white font-semibold">
+                <span className="text-heading font-semibold">
                   {formatDate(withdrawTarget.appliedAt || withdrawTarget.appliedDate || withdrawTarget.createdAt)}
                 </span>
               </div>
@@ -954,7 +954,7 @@ export default function MyJobsPage() {
                 type="button"
                 disabled={withdrawing}
                 onClick={() => setWithdrawTarget(null)}
-                className="h-11 rounded-xl border border-white/10 bg-white/5 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer disabled:opacity-50"
+                className="h-11 rounded-xl border border-border bg-surface-hover text-xs font-bold text-body hover:bg-surface transition cursor-pointer disabled:opacity-50"
               >
                 Keep Application
               </button>
@@ -994,12 +994,12 @@ export default function MyJobsPage() {
         {selectedApp && (
           <div className="p-6 space-y-6">
             {/* Header with Title & Company */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-white/10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
               <div className="space-y-1">
-                <h3 className="text-xl font-bold text-white font-satoshi">
+                <h3 className="text-xl font-bold text-heading font-satoshi">
                   {selectedApp.jobTitle || "Job Position"}
                 </h3>
-                <p className="text-xs font-semibold text-indigo-400 flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
                   <Building2 className="h-3.5 w-3.5" />
                   <span>{selectedApp.companyName || "Company Name"}</span>
                 </p>
@@ -1051,12 +1051,12 @@ export default function MyJobsPage() {
 
               if (isRejected || isWithdrawn) {
                 return (
-                  <div className={`p-4 rounded-2xl border ${isRejected ? "border-rose-500/30 bg-rose-500/10 text-rose-300" : "border-amber-500/30 bg-amber-500/10 text-amber-300"} space-y-1.5`}>
+                  <div className={`p-4 rounded-2xl border ${isRejected ? "border-rose-500/30 bg-rose-500/10 text-rose-500 dark:text-rose-300" : "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-300"} space-y-1.5`}>
                     <div className="flex items-center gap-2 font-bold text-sm">
                       <AlertCircle className="h-4 w-4 shrink-0" />
                       <span>{isRejected ? "Application Status: Not Selected" : "Application Status: Withdrawn"}</span>
                     </div>
-                    <p className="text-xs text-slate-300 leading-relaxed">
+                    <p className="text-xs text-body leading-relaxed">
                       {isRejected
                         ? "Thank you for taking the time to apply. The hiring team decided to proceed with other candidates whose experience aligns more closely with this specific role."
                         : "You withdrew your application for this position. If you have questions, contact candidate support."}
@@ -1066,12 +1066,12 @@ export default function MyJobsPage() {
               }
 
               return (
-                <div className="space-y-3 rounded-2xl border border-white/10 bg-[#090d16] p-4 sm:p-5">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <span className="text-xs font-bold text-white font-satoshi uppercase tracking-wider">
+                <div className="space-y-3 rounded-2xl border border-border bg-surface p-4 sm:p-5">
+                  <div className="flex items-center justify-between border-b border-border pb-3">
+                    <span className="text-xs font-bold text-heading font-satoshi uppercase tracking-wider">
                       Application Progress Pipeline
                     </span>
-                    <span className="text-[11px] font-bold text-indigo-400">
+                    <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
                       Stage {Math.max(1, activeIndex + 1)} of {STAGES.length}
                     </span>
                   </div>
@@ -1088,7 +1088,7 @@ export default function MyJobsPage() {
                           {idx < STAGES.length - 1 && (
                             <div
                               className={`absolute left-4 top-8 bottom-0 w-0.5 -mb-4 transition-colors ${
-                                isCompleted ? "bg-emerald-500" : "bg-white/10"
+                                isCompleted ? "bg-emerald-500" : "bg-border"
                               }`}
                             />
                           )}
@@ -1099,8 +1099,8 @@ export default function MyJobsPage() {
                               isCompleted
                                 ? "border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
                                 : isCurrent
-                                ? "border-amber-400 bg-amber-500/20 text-amber-300 ring-4 ring-amber-500/10 shadow-md shadow-amber-500/20"
-                                : "border-white/10 bg-white/5 text-slate-500"
+                                ? "border-amber-400 bg-amber-500/20 text-amber-500 dark:text-amber-300 ring-4 ring-amber-500/10 shadow-md shadow-amber-500/20"
+                                : "border-border bg-surface-hover text-muted"
                             }`}
                           >
                             <IconComp className="h-4 w-4" />
@@ -1112,21 +1112,21 @@ export default function MyJobsPage() {
                               <h5
                                 className={`text-xs font-bold ${
                                   isCompleted
-                                    ? "text-emerald-400"
+                                    ? "text-emerald-600 dark:text-emerald-400"
                                     : isCurrent
-                                    ? "text-amber-300"
-                                    : "text-slate-400"
+                                    ? "text-amber-600 dark:text-amber-300"
+                                    : "text-muted"
                                 }`}
                               >
                                 {stage.label}
                               </h5>
                               {isCurrent && (
-                                <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[9px] font-extrabold text-amber-300 animate-pulse">
+                                <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[9px] font-extrabold text-amber-600 dark:text-amber-300 animate-pulse">
                                   Current Stage
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{stage.desc}</p>
+                            <p className="text-[11px] text-muted mt-0.5 leading-relaxed">{stage.desc}</p>
                           </div>
                         </div>
                       );
@@ -1137,20 +1137,20 @@ export default function MyJobsPage() {
             })()}
 
             {/* Details Grid */}
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-              <h5 className="font-bold text-white text-xs font-satoshi uppercase tracking-wider">
+            <div className="rounded-2xl border border-border bg-surface-hover p-4 space-y-3">
+              <h5 className="font-bold text-heading text-xs font-satoshi uppercase tracking-wider">
                 Application Metadata
               </h5>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="flex justify-between p-2.5 rounded-xl bg-white/5 border border-white/5">
-                  <span className="text-slate-400">Application ID:</span>
-                  <span className="font-mono text-indigo-300 font-bold">#{selectedApp.id || selectedApp.applicationId || "101"}</span>
+                <div className="flex justify-between p-2.5 rounded-xl bg-surface border border-border">
+                  <span className="text-muted">Application ID:</span>
+                  <span className="font-mono text-indigo-600 dark:text-indigo-300 font-bold">#{selectedApp.id || selectedApp.applicationId || "101"}</span>
                 </div>
 
-                <div className="flex justify-between p-2.5 rounded-xl bg-white/5 border border-white/5">
-                  <span className="text-slate-400">Applied On:</span>
-                  <span className="text-white font-semibold">
+                <div className="flex justify-between p-2.5 rounded-xl bg-surface border border-border">
+                  <span className="text-muted">Applied On:</span>
+                  <span className="text-heading font-semibold">
                     {formatDate(selectedApp.appliedAt || selectedApp.appliedDate || selectedApp.createdAt)}
                   </span>
                 </div>
@@ -1159,8 +1159,8 @@ export default function MyJobsPage() {
               {/* Cover letter section */}
               {selectedApp.coverLetter && (
                 <div className="pt-2">
-                  <span className="text-xs font-bold text-slate-300 block mb-1.5">Submitted Cover Letter:</span>
-                  <div className="p-3.5 rounded-xl bg-[#080c16] border border-white/10 text-slate-300 leading-relaxed max-h-36 overflow-y-auto font-mono text-[11px]">
+                  <span className="text-xs font-bold text-body block mb-1.5">Submitted Cover Letter:</span>
+                  <div className="p-3.5 rounded-xl bg-surface border border-border text-body leading-relaxed max-h-36 overflow-y-auto font-mono text-[11px]">
                     {selectedApp.coverLetter}
                   </div>
                 </div>
@@ -1171,7 +1171,7 @@ export default function MyJobsPage() {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setSelectedApp(null)}
-                className="rounded-xl border border-white/10 bg-white/5 px-5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                className="rounded-xl border border-border bg-surface-hover px-5 py-2 text-xs font-bold text-body hover:bg-surface transition cursor-pointer"
               >
                 Close Window
               </button>

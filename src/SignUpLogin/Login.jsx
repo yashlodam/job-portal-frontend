@@ -7,25 +7,25 @@ import { useAppDispatch } from "../State/Store";
 import { getUserProfile, signin } from "../State/AuthSlic";
 
 const fieldStyles = {
-  label: { color: "#F1F5F9", fontSize: 13, fontWeight: 600, marginBottom: 6 },
+  label: { color: "var(--color-heading, #F1F5F9)", fontSize: 13, fontWeight: 600, marginBottom: 6 },
   input: {
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderColor: "rgba(255,255,255,0.15)",
-    color: "#FFFFFF",
+    backgroundColor: "var(--color-surface-hover, rgba(255,255,255,0.06))",
+    borderColor: "var(--color-border, rgba(255,255,255,0.15))",
+    color: "var(--color-heading, #FFFFFF)",
     borderRadius: 12,
     "&:focus, &:focusWithin": {
       borderColor: "#6366F1 !important",
-      backgroundColor: "rgba(255,255,255,0.08)",
+      backgroundColor: "var(--color-surface, rgba(255,255,255,0.08))",
     },
     "&::placeholder": {
-      color: "#94A3B8 !important",
+      color: "var(--color-muted, #94A3B8) !important",
       opacity: "1 !important",
     },
   },
   innerInput: {
-    color: "#FFFFFF",
+    color: "var(--color-heading, #FFFFFF)",
     "&::placeholder": {
-      color: "#94A3B8 !important",
+      color: "var(--color-muted, #94A3B8) !important",
       opacity: "1 !important",
     },
   },
@@ -143,10 +143,10 @@ function Login({ setIsLogin }) {
         <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-[11px] font-bold text-indigo-400 mb-3">
           <Sparkles className="h-3 w-3" /> JobPortal AI Account Sign In
         </div>
-        <h1 className="font-satoshi text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        <h1 className="font-satoshi text-2xl sm:text-3xl font-extrabold text-heading tracking-tight">
           Welcome back
         </h1>
-        <p className="mt-1.5 text-xs sm:text-sm text-slate-400">
+        <p className="mt-1.5 text-xs sm:text-sm text-muted">
           Sign in to access your jobs, applications, and AI career tools.
         </p>
       </div>
@@ -160,7 +160,7 @@ function Login({ setIsLogin }) {
           value={formData.email}
           onChange={(e) => handleChange("email", e.target.value)}
           error={errors.email}
-          leftSection={<Mail size={16} className="text-slate-400" />}
+          leftSection={<Mail size={16} className="text-muted" />}
           styles={fieldStyles}
           required
         />
@@ -171,7 +171,7 @@ function Login({ setIsLogin }) {
           value={formData.password}
           onChange={(e) => handleChange("password", e.target.value)}
           error={errors.password}
-          leftSection={<Lock size={16} className="text-slate-400" />}
+          leftSection={<Lock size={16} className="text-muted" />}
           styles={fieldStyles}
           required
         />
@@ -180,7 +180,7 @@ function Login({ setIsLogin }) {
           <button
             type="button"
             onClick={() => navigate("/reset-password")}
-            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
+            className="text-xs font-semibold text-indigo-500 hover:text-indigo-400 dark:text-indigo-400 dark:hover:text-indigo-300 transition cursor-pointer"
           >
             Forgot password?
           </button>
@@ -202,12 +202,12 @@ function Login({ setIsLogin }) {
       </form>
 
       {/* Footer Switcher */}
-      <p className="mt-6 text-center text-xs text-slate-400">
+      <p className="mt-6 text-center text-xs text-muted">
         Don't have an account?{" "}
         <button
           type="button"
           onClick={() => setIsLogin(false)}
-          className="font-bold text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+          className="font-bold text-indigo-500 hover:text-indigo-400 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors cursor-pointer"
         >
           Create account
         </button>

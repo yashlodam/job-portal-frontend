@@ -1,6 +1,7 @@
 import { Badge, Tabs } from '@mantine/core'
-import React from 'react'
-import JobDetail from '../Pages/JobDetail'
+import React, { Suspense } from 'react'
+
+const JobDetail = React.lazy(() => import('../Pages/JobDetail'))
 
 function PostedJobDesc() {
   return (
@@ -25,8 +26,9 @@ function PostedJobDesc() {
                   </Tabs.List>
             
                   <Tabs.Panel value="overview">
-                    <JobDetail/>
-                    
+                    <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading job overview...</div>}>
+                      <JobDetail/>
+                    </Suspense>
                   </Tabs.Panel>
             
                   <Tabs.Panel value="applicants">

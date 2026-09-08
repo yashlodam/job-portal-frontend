@@ -38,15 +38,16 @@ import { useChat } from "../hooks/useChat";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { getOtherParticipant } from "../api/chatApi";
 import { fetchMyApplicationsThunk } from "../State/applicationThunk";
+import { getAssetUrl } from "../utils/assetUtils";
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
 const CANDIDATE_QUICK_REPLIES = [
   "I'm very interested in this role!",
-  "Could you share more details about the team?",
-  "I'm available for an interview this week.",
-  "Here is my updated portfolio link.",
-  "What is the expected timeline for the hiring process?",
+  "Thank you for reaching out!",
+  "I've submitted my resume for review.",
+  "When is a good time to connect?",
+  "Looking forward to the interview.",
 ];
 
 function formatMsgTime(iso) {
@@ -70,7 +71,7 @@ function getProfileImageUrl(path) {
   if (!path) return null;
   if (path.startsWith("http")) return path;
   const clean = path.startsWith("/") ? path.slice(1) : path;
-  return `http://localhost:8080/${clean}`;
+  return getAssetUrl(clean);
 }
 
 function getInitial(name) {

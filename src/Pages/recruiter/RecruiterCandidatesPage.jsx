@@ -35,6 +35,7 @@ import MatchScoreBadge from "../../components/recruiter/MatchScoreBadge";
 import MatchAnalysisModal from "../../components/recruiter/MatchAnalysisModal";
 import { createOrGetConversationApi, resolveCandidateUserId } from "../../api/chatApi";
 import { useToast } from "../../components/ui/ToastNotification";
+import { getAssetUrl } from "../../utils/assetUtils";
 
 const getFullResumeUrl = (rawPath) => {
   if (!rawPath) return "";
@@ -48,9 +49,9 @@ const getFullResumeUrl = (rawPath) => {
   }
   const cleanPath = rawPath.startsWith("/") ? rawPath.slice(1) : rawPath;
   if (cleanPath.startsWith("uploads/")) {
-    return `http://localhost:8080/${cleanPath}`;
+    return getAssetUrl(cleanPath);
   }
-  return `http://localhost:8080/uploads/${cleanPath}`;
+  return getAssetUrl(`uploads/${cleanPath}`);
 };
 
 const getDirectResumeFallbackUrl = (rawPath) => {
@@ -67,8 +68,8 @@ const getFullProfileImageUrl = (rawPath) => {
   if (!rawPath) return null;
   if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) return rawPath;
   const cleanPath = rawPath.startsWith("/") ? rawPath.slice(1) : rawPath;
-  if (cleanPath.startsWith("uploads/")) return `http://localhost:8080/${cleanPath}`;
-  return `http://localhost:8080/uploads/${cleanPath}`;
+  if (cleanPath.startsWith("uploads/")) return getAssetUrl(cleanPath);
+  return getAssetUrl(`uploads/${cleanPath}`);
 };
 
 export default function RecruiterCandidatesPage() {

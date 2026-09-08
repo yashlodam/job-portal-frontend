@@ -38,6 +38,7 @@ import { Tabs } from "../../components/ui/Tabs";
 import { useAppDispatch, useAppSelector } from "../../State/Store";
 import { getMyJobs } from "../../State/JobSlice";
 import { fetchJobApplicationsThunk, updateApplicationStatusThunk } from "../../State/applicationThunk";
+import { getAssetUrl } from "../../utils/assetUtils";
 import { getCandidatesWithMatchApi } from "../../api/jobMatchApi";
 import MatchScoreBadge from "../../components/recruiter/MatchScoreBadge";
 import MatchAnalysisModal from "../../components/recruiter/MatchAnalysisModal";
@@ -58,9 +59,9 @@ const getFullResumeUrl = (rawPath) => {
   const cleanPath = rawPath.startsWith("/") ? rawPath.slice(1) : rawPath;
 
   if (cleanPath.startsWith("uploads/")) {
-    return `http://localhost:8080/${cleanPath}`;
+    return getAssetUrl(cleanPath);
   }
-  return `http://localhost:8080/uploads/${cleanPath}`;
+  return getAssetUrl(`uploads/${cleanPath}`);
 };
 
 const getDirectResumeFallbackUrl = (rawPath) => {
@@ -321,19 +322,19 @@ export default function RecruiterApplicationsPage() {
       )}
 
       {/* Top Filter & Sorting Toolbar */}
-      <Card className="p-4 sm:p-5 border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-xl font-satoshi space-y-4">
+      <Card className="p-4 sm:p-5 border-border bg-surface backdrop-blur-xl shadow-xl font-satoshi space-y-4">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           {/* Active Job Selector Dropdown */}
           <div className="flex flex-wrap items-center gap-3 text-xs">
-            <span className="font-extrabold text-white">Active Job Position:</span>
+            <span className="font-extrabold text-heading">Active Job Position:</span>
             <select
               value={selectedJobId || ""}
               onChange={(e) => setSelectedJobId(Number(e.target.value))}
-              className="rounded-xl border border-white/10 bg-[#070b12] px-4 py-2 text-white font-bold outline-none focus:border-indigo-500/60 transition cursor-pointer"
-              style={{ colorScheme: 'dark' }}
+              className="rounded-xl border border-border bg-surface-elevated px-4 py-2 text-heading font-bold outline-none focus:border-indigo-500/60 transition cursor-pointer"
+              style={{ colorScheme: 'auto' }}
             >
               {myJobs.map((j) => (
-                <option key={j.id} value={j.id}>
+                <option key={j.id} value={j.id} className="bg-surface text-heading">
                   {j.title || j.jobTitle} (#{j.id})
                 </option>
               ))}
@@ -342,37 +343,37 @@ export default function RecruiterApplicationsPage() {
 
           {/* Sorting Dropdown (Highest Match, Lowest Match, Newest Applied) */}
           <div className="flex items-center gap-3 justify-end text-xs">
-            <label className="font-bold text-slate-400 flex items-center gap-1.5 shrink-0">
-              <ArrowUpDown size={14} className="text-indigo-400" /> Sort Candidates:
+            <label className="font-bold text-muted flex items-center gap-1.5 shrink-0">
+              <ArrowUpDown size={14} className="text-indigo-500 dark:text-indigo-400" /> Sort Candidates:
             </label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="rounded-xl border border-indigo-500/30 bg-[#070b12] px-3.5 py-2 text-xs font-extrabold text-indigo-300 outline-none focus:border-indigo-500 transition cursor-pointer shadow-md"
-              style={{ colorScheme: 'dark' }}
+              className="rounded-xl border border-indigo-500/30 bg-surface-elevated px-3.5 py-2 text-xs font-extrabold text-indigo-600 dark:text-indigo-300 outline-none focus:border-indigo-500 transition cursor-pointer shadow-md"
+              style={{ colorScheme: 'auto' }}
             >
-              <option value="ma.matchPercentage,desc">🎯 Highest Match Score</option>
-              <option value="ma.matchPercentage,asc">📉 Lowest Match Score</option>
-              <option value="app.createdAt,desc">🕒 Newest Applied</option>
+              <option value="ma.matchPercentage,desc" className="bg-surface text-heading">🎯 Highest Match Score</option>
+              <option value="ma.matchPercentage,asc" className="bg-surface text-heading">📉 Lowest Match Score</option>
+              <option value="app.createdAt,desc" className="bg-surface text-heading">🕒 Newest Applied</option>
             </select>
           </div>
         </div>
 
         {/* Search Bar */}
         <div className="relative w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search candidate name, email, or verified skill..."
-            className="w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-9 py-2 text-xs text-white placeholder-slate-400 focus:border-indigo-500/60 outline-none font-medium"
+            className="w-full rounded-xl border border-border bg-surface-elevated pl-10 pr-9 py-2 text-xs text-heading placeholder:text-muted focus:border-indigo-500/60 outline-none font-medium"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-heading"
             >
               <X size={14} />
             </button>
@@ -384,10 +385,10 @@ export default function RecruiterApplicationsPage() {
 
       {/* Candidate Application Cards Grid */}
       {filtered.length === 0 ? (
-        <Card className="p-12 text-center space-y-3 font-satoshi border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-2xl">
-          <AlertCircle className="h-12 w-12 text-indigo-400 mx-auto opacity-60" />
-          <h3 className="text-lg font-black text-white">No Candidate Applications Found</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto font-medium">
+        <Card className="p-12 text-center space-y-3 font-satoshi border-border bg-surface backdrop-blur-xl shadow-2xl">
+          <AlertCircle className="h-12 w-12 text-indigo-500 dark:text-indigo-400 mx-auto opacity-60" />
+          <h3 className="text-lg font-black text-heading">No Candidate Applications Found</h3>
+          <p className="text-xs text-muted max-w-sm mx-auto font-medium">
             There are currently no candidate applications submitted for this role under the selected stage filter.
           </p>
         </Card>
@@ -405,7 +406,7 @@ export default function RecruiterApplicationsPage() {
             return (
               <Card
                 key={targetAppId}
-                className="flex flex-col justify-between p-5 border-white/10 bg-[#090d16]/95 backdrop-blur-xl hover:border-indigo-500/40 transition-all duration-300 shadow-xl space-y-4"
+                className="flex flex-col justify-between p-5 border-border bg-surface backdrop-blur-xl hover:border-indigo-500/40 transition-all duration-300 shadow-xl space-y-4"
               >
                 <div>
                   {/* Candidate Header */}
@@ -413,23 +414,23 @@ export default function RecruiterApplicationsPage() {
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar name={name} size="md" />
                       <div className="min-w-0">
-                        <h3 className="font-extrabold text-white text-base leading-tight truncate">{name}</h3>
-                        <p className="text-xs text-slate-400 truncate mt-0.5">{email}</p>
+                        <h3 className="font-extrabold text-heading text-base leading-tight truncate">{name}</h3>
+                        <p className="text-xs text-muted truncate mt-0.5">{email}</p>
                       </div>
                     </div>
                     <StatusChip status={app.status || "APPLIED"} />
                   </div>
 
                   {/* Position & Match Score Badge */}
-                  <div className="mt-4 pt-3 border-t border-white/5 space-y-2.5">
+                  <div className="mt-4 pt-3 border-t border-border space-y-2.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400 font-medium">Applied Position:</span>
-                      <span className="font-extrabold text-white truncate max-w-[150px]">{jobTitle}</span>
+                      <span className="text-muted font-medium">Applied Position:</span>
+                      <span className="font-extrabold text-heading truncate max-w-[150px]">{jobTitle}</span>
                     </div>
 
                     {/* Interactive Match Score Badge */}
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400 font-medium">AI Match Score:</span>
+                      <span className="text-muted font-medium">AI Match Score:</span>
                       <MatchScoreBadge
                         score={matchScore}
                         status={matchStatus}
@@ -444,13 +445,13 @@ export default function RecruiterApplicationsPage() {
                     {skills.slice(0, 4).map((skill, i) => (
                       <span
                         key={i}
-                        className="rounded-lg bg-indigo-500/10 px-2 py-0.5 text-[10px] font-bold text-indigo-300 border border-indigo-500/20"
+                        className="rounded-lg bg-indigo-500/10 px-2 py-0.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-300 border border-indigo-500/20"
                       >
                         {typeof skill === "string" ? skill : skill.name}
                       </span>
                     ))}
                     {skills.length > 4 && (
-                      <span className="rounded-lg bg-white/5 px-1.5 py-0.5 text-[10px] font-bold text-slate-400">
+                      <span className="rounded-lg bg-surface-elevated px-1.5 py-0.5 text-[10px] font-bold text-muted border border-border">
                         +{skills.length - 4}
                       </span>
                     )}
@@ -458,7 +459,7 @@ export default function RecruiterApplicationsPage() {
                 </div>
 
                 {/* Card Footer Actions */}
-                <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-2.5">
+                <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2">
                     {/* View Resume Button */}
                     <button
@@ -467,18 +468,18 @@ export default function RecruiterApplicationsPage() {
                         setSelectedCandidate(app);
                         setShowResumeModal(true);
                       }}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 text-xs font-bold text-slate-200 transition cursor-pointer shrink-0"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-surface-elevated hover:bg-surface-hover border border-border px-3 py-1.5 text-xs font-bold text-body transition cursor-pointer shrink-0"
                     >
-                      <FileText size={13} className="text-indigo-400" /> Resume
+                      <FileText size={13} className="text-indigo-500 dark:text-indigo-400" /> Resume
                     </button>
 
                     {/* View AI Match Breakdown Button */}
                     <button
                       type="button"
                       onClick={() => handleOpenMatchModal(targetAppId)}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 px-3 py-1.5 text-xs font-extrabold text-indigo-300 transition cursor-pointer shrink-0"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 px-3 py-1.5 text-xs font-extrabold text-indigo-600 dark:text-indigo-300 transition cursor-pointer shrink-0"
                     >
-                      <Sparkles size={12} className="text-amber-400" /> AI Breakdown
+                      <Sparkles size={12} className="text-amber-500 dark:text-amber-400" /> AI Breakdown
                     </button>
 
                     {/* Message Candidate Button */}
@@ -486,7 +487,7 @@ export default function RecruiterApplicationsPage() {
                       type="button"
                       onClick={() => handleMessageCandidate(app)}
                       disabled={messagingAppId === targetAppId}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 px-3 py-1.5 text-xs font-extrabold text-teal-300 transition cursor-pointer shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 px-3 py-1.5 text-xs font-extrabold text-teal-600 dark:text-teal-300 transition cursor-pointer shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
                       title="Send a message to this candidate"
                     >
                       {messagingAppId === targetAppId
@@ -501,16 +502,16 @@ export default function RecruiterApplicationsPage() {
                   <select
                     value={app.status || "APPLIED"}
                     onChange={(e) => handleUpdateStatus(targetAppId, e.target.value)}
-                    className="rounded-xl border border-white/15 bg-[#070b12] px-2.5 py-1.5 text-xs font-extrabold text-slate-200 outline-none focus:border-indigo-500 transition cursor-pointer shadow-md"
-                    style={{ colorScheme: 'dark' }}
+                    className="rounded-xl border border-border bg-surface-elevated px-2.5 py-1.5 text-xs font-extrabold text-body outline-none focus:border-indigo-500 transition cursor-pointer shadow-md"
+                    style={{ colorScheme: 'auto' }}
                   >
-                    <option value="APPLIED">📍 Applied</option>
-                    <option value="REVIEWING">🔍 Reviewing</option>
-                    <option value="SHORTLISTED">⭐ Shortlisted</option>
-                    <option value="INTERVIEWING">🎯 Interviewing</option>
-                    <option value="OFFERED">🎉 Extend Offer</option>
-                    <option value="ACCEPTED">✅ Accept Offer</option>
-                    <option value="REJECTED">❌ Reject</option>
+                    <option value="APPLIED" className="bg-surface text-heading">📍 Applied</option>
+                    <option value="REVIEWING" className="bg-surface text-heading">🔍 Reviewing</option>
+                    <option value="SHORTLISTED" className="bg-surface text-heading">⭐ Shortlisted</option>
+                    <option value="INTERVIEWING" className="bg-surface text-heading">🎯 Interviewing</option>
+                    <option value="OFFERED" className="bg-surface text-heading">🎉 Extend Offer</option>
+                    <option value="ACCEPTED" className="bg-surface text-heading">✅ Accept Offer</option>
+                    <option value="REJECTED" className="bg-surface text-heading">❌ Reject</option>
                   </select>
                 </div>
               </Card>

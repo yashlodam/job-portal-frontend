@@ -21,10 +21,10 @@ function SignUpPage({ defaultIsLogin = true }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#070b12] font-inter">
+    <div className="min-h-screen bg-background font-inter">
       <div className="flex min-h-screen">
         {/* LEFT — Brand Hero Panel */}
-        <div className="relative hidden lg:flex w-[48%] flex-col justify-between overflow-hidden bg-gradient-to-br from-[#070b12] via-[#0b0f19] to-[#0f172a] border-r border-white/10 p-14">
+        <div className="relative hidden lg:flex w-[48%] flex-col justify-between overflow-hidden bg-slate-900 dark:bg-gradient-to-br dark:from-[#070b12] dark:via-[#0b0f19] dark:to-[#0f172a] border-r border-border p-14 text-white">
           {/* Ambient Glow Orbs */}
           <div aria-hidden="true" className="pointer-events-none absolute -top-40 -left-24 h-[500px] w-[500px] rounded-full bg-indigo-600/10 blur-[150px]" />
           <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-violet-600/10 blur-[140px]" />
@@ -49,7 +49,7 @@ function SignUpPage({ defaultIsLogin = true }) {
               Accelerate your career with AI matching and instant recruiter connect.
             </h1>
 
-            <p className="text-sm leading-relaxed text-slate-400">
+            <p className="text-sm leading-relaxed text-slate-300">
               Join 50,000+ candidates and top hiring teams on JobPortal AI. Build an ATS-optimized profile, get matched by skills, and track your applications seamlessly.
             </p>
 
@@ -85,11 +85,11 @@ function SignUpPage({ defaultIsLogin = true }) {
         </div>
 
         {/* RIGHT — Form Container */}
-        <div className="relative flex w-full lg:w-[52%] items-center justify-center bg-[#070b12] p-6 sm:p-12">
+        <div className="relative flex w-full lg:w-[52%] items-center justify-center bg-background p-6 sm:p-12">
           {/* Switch Tab Button in top right */}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="absolute top-6 right-6 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-slate-300 backdrop-blur-md transition-all hover:bg-white/10 hover:text-white cursor-pointer"
+            className="absolute top-6 right-6 flex items-center gap-2 rounded-xl border border-border bg-surface px-3.5 py-2 text-xs font-semibold text-muted backdrop-blur-md transition-all hover:bg-surface-hover hover:text-heading cursor-pointer shadow-sm"
           >
             {isLogin ? (
               <>
@@ -109,12 +109,12 @@ function SignUpPage({ defaultIsLogin = true }) {
               <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
-              <span className="text-xl font-bold text-white font-satoshi">
-                JobPortal <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">AI</span>
+              <span className="text-xl font-bold text-heading font-satoshi">
+                JobPortal <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">AI</span>
               </span>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-[#0b0f19]/90 p-7 sm:p-9 shadow-2xl backdrop-blur-xl">
+            <div className="rounded-3xl border border-border bg-surface p-7 sm:p-9 shadow-2xl backdrop-blur-xl">
               {isLogin ? <Login setIsLogin={setIsLogin} /> : <SignUp setIsLogin={setIsLogin} />}
             </div>
           </div>

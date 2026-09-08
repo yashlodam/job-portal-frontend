@@ -31,12 +31,12 @@ export default function InterviewReportPage({ reportData, onStartNewSession }) {
 
   if (!rawData) {
     return (
-      <div className="py-16 text-center space-y-4 font-satoshi text-white">
-        <h3 className="text-xl font-black">No Report Selected</h3>
-        <p className="text-xs text-slate-400">Please select an interview session from history to view its detailed report.</p>
+      <div className="py-16 text-center space-y-4 font-satoshi text-body">
+        <h3 className="text-xl font-black text-heading">No Report Selected</h3>
+        <p className="text-xs text-muted">Please select an interview session from history to view its detailed report.</p>
         <button
           onClick={onStartNewSession}
-          className="mt-4 px-6 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer"
+          className="mt-4 px-6 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-lg shadow-indigo-500/20"
         >
           Start New Practice Session
         </button>
@@ -105,26 +105,26 @@ export default function InterviewReportPage({ reportData, onStartNewSession }) {
   const difficulty = data.difficulty || currentInterview?.difficulty || "INTERMEDIATE";
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 font-satoshi py-4 text-white">
+    <div className="max-w-4xl mx-auto space-y-8 font-satoshi py-4 text-body">
       {/* Header Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-[#090d16]/95 border border-white/10 backdrop-blur-2xl shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 text-xs font-black text-indigo-400 uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 text-xs font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">
             <BarChart2 size={14} /> Comprehensive Analytical Report
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
-            Performance Report for <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{candidateName}</span>
+          <h1 className="text-2xl sm:text-4xl font-black text-heading tracking-tight">
+            Performance Report for <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">{candidateName}</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300 font-medium flex items-center gap-3">
-            <span>Track: <strong className="text-white">{trackTitle}</strong></span>
+          <p className="text-xs sm:text-sm text-muted font-medium flex items-center gap-3">
+            <span>Track: <strong className="text-heading">{trackTitle}</strong></span>
             <span>•</span>
-            <span>Difficulty: <strong className="text-indigo-400 uppercase">{difficulty}</strong></span>
+            <span>Difficulty: <strong className="text-indigo-500 dark:text-indigo-400 uppercase">{difficulty}</strong></span>
           </p>
         </div>
 
         <button
           onClick={onStartNewSession}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-lg shrink-0"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-lg shadow-indigo-500/20 shrink-0"
         >
           <RotateCcw size={14} /> New Practice Session
         </button>
@@ -184,12 +184,12 @@ export default function InterviewReportPage({ reportData, onStartNewSession }) {
 
       {/* Recommended Next Learning Path */}
       {learningPath.length > 0 && (
-        <div className="p-6 sm:p-8 rounded-3xl bg-[#090d16]/95 border border-indigo-500/30 backdrop-blur-2xl shadow-xl space-y-6">
-          <div className="flex items-center justify-between pb-3 border-b border-white/10">
-            <h3 className="text-lg font-black text-white flex items-center gap-2">
-              <Target size={20} className="text-indigo-400" /> Recommended AI Learning Curriculum
+        <div className="p-6 sm:p-8 rounded-3xl bg-surface border border-indigo-500/30 backdrop-blur-2xl shadow-xl space-y-6">
+          <div className="flex items-center justify-between pb-3 border-b border-border">
+            <h3 className="text-lg font-black text-heading flex items-center gap-2">
+              <Target size={20} className="text-indigo-500 dark:text-indigo-400" /> Recommended AI Learning Curriculum
             </h3>
-            <span className="text-xs font-black text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+            <span className="text-xs font-black text-indigo-500 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
               Personalized
             </span>
           </div>
@@ -201,16 +201,16 @@ export default function InterviewReportPage({ reportData, onStartNewSession }) {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex items-start gap-4"
+                className="p-4 rounded-2xl bg-surface-hover border border-border flex items-start gap-4"
               >
-                <span className="h-8 w-8 rounded-xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                <span className="h-8 w-8 rounded-xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/20">
                   {idx + 1}
                 </span>
                 <div className="space-y-1">
-                  <h4 className="text-sm font-extrabold text-white">
+                  <h4 className="text-sm font-extrabold text-heading">
                     {typeof path === "string" ? path : path.title || path.name}
                   </h4>
-                  <p className="text-xs text-slate-400 font-medium">
+                  <p className="text-xs text-muted font-medium">
                     {typeof path === "object" && path.description
                       ? path.description
                       : "Targeted learning curriculum generated by Spring Boot AI engine."}
@@ -225,11 +225,11 @@ export default function InterviewReportPage({ reportData, onStartNewSession }) {
       {/* Question-wise AI Grading & Solutions */}
       {evaluationsList.length > 0 && (
         <div className="space-y-6 pt-4">
-          <div className="flex items-center justify-between pb-2 border-b border-white/10">
-            <h3 className="text-lg font-black text-white flex items-center gap-2">
-              <HelpCircle size={20} className="text-indigo-400" /> Question-wise AI Evaluations
+          <div className="flex items-center justify-between pb-2 border-b border-border">
+            <h3 className="text-lg font-black text-heading flex items-center gap-2">
+              <HelpCircle size={20} className="text-indigo-500 dark:text-indigo-400" /> Question-wise AI Evaluations
             </h3>
-            <span className="text-xs font-black text-slate-400">{evaluationsList.length} Questions Evaluated</span>
+            <span className="text-xs font-black text-muted">{evaluationsList.length} Questions Evaluated</span>
           </div>
 
           <div className="space-y-6">
@@ -247,40 +247,40 @@ export default function InterviewReportPage({ reportData, onStartNewSession }) {
               const followUps = Array.isArray(evalItem.followUpQuestions) ? evalItem.followUpQuestions : [];
 
               return (
-                <div key={idx} className="p-6 rounded-3xl bg-[#090d16]/95 border border-white/10 backdrop-blur-2xl shadow-xl space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
-                    <h4 className="text-base font-black text-white">
+                <div key={idx} className="p-6 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border">
+                    <h4 className="text-base font-black text-heading">
                       Q{idx + 1}. {qText}
                     </h4>
-                    <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                       Score: {qScore}/100
                     </span>
                   </div>
 
                   {userAnswer && (
-                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
-                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Your Response:</span>
-                      <p className="text-xs sm:text-sm text-slate-200 font-mono leading-relaxed whitespace-pre-wrap">{userAnswer}</p>
+                    <div className="p-4 rounded-2xl bg-surface-hover border border-border space-y-1">
+                      <span className="text-[11px] font-bold text-muted uppercase tracking-wider block">Your Response:</span>
+                      <p className="text-xs sm:text-sm text-heading font-mono leading-relaxed whitespace-pre-wrap">{userAnswer}</p>
                     </div>
                   )}
 
                   {aiFeedback && (
                     <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-1">
-                      <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider block">AI Evaluator Feedback:</span>
-                      <p className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed">"{aiFeedback}"</p>
+                      <span className="text-[11px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider block">AI Evaluator Feedback:</span>
+                      <p className="text-xs sm:text-sm text-heading font-medium leading-relaxed">"{aiFeedback}"</p>
                     </div>
                   )}
 
                   {idealAnswer && (
                     <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 space-y-1">
-                      <span className="text-[11px] font-bold text-purple-300 uppercase tracking-wider block">Benchmark Solution:</span>
-                      <p className="text-xs sm:text-sm text-purple-200 font-mono leading-relaxed whitespace-pre-wrap">{idealAnswer}</p>
+                      <span className="text-[11px] font-bold text-purple-600 dark:text-purple-300 uppercase tracking-wider block">Benchmark Solution:</span>
+                      <p className="text-xs sm:text-sm text-purple-900 dark:text-purple-200 font-mono leading-relaxed whitespace-pre-wrap">{idealAnswer}</p>
                     </div>
                   )}
 
                   {followUps.length > 0 && (
-                    <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2 text-xs text-amber-200">
-                      <h5 className="font-black text-amber-300 uppercase tracking-wider">Recommended Follow-up Questions:</h5>
+                    <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2 text-xs text-amber-900 dark:text-amber-200">
+                      <h5 className="font-black text-amber-600 dark:text-amber-300 uppercase tracking-wider">Recommended Follow-up Questions:</h5>
                       <ul className="list-disc list-inside space-y-1 font-medium">
                         {followUps.map((fQ, fIdx) => (
                           <li key={fIdx}>{fQ}</li>

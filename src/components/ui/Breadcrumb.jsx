@@ -7,8 +7,8 @@ import { ChevronRight, Home } from "lucide-react";
 
 export function Breadcrumb({ items = [] }) {
   return (
-    <nav className="flex items-center gap-2 text-xs text-white/50 mb-4 overflow-x-auto py-1">
-      <Link to="/recruiter/dashboard" className="flex items-center gap-1 hover:text-white transition-colors shrink-0">
+    <nav className="flex items-center gap-2 text-xs text-muted mb-4 overflow-x-auto py-1">
+      <Link to="/recruiter/dashboard" className="flex items-center gap-1 hover:text-body transition-colors shrink-0">
         <Home className="h-3.5 w-3.5" />
         <span>Dashboard</span>
       </Link>
@@ -17,11 +17,11 @@ export function Breadcrumb({ items = [] }) {
         const isLast = idx === items.length - 1;
         return (
           <React.Fragment key={idx}>
-            <ChevronRight className="h-3.5 w-3.5 text-white/30 shrink-0" />
+            <ChevronRight className="h-3.5 w-3.5 text-muted/50 shrink-0" />
             {isLast || !item.url ? (
-              <span className="font-semibold text-white shrink-0">{item.label}</span>
+              <span className="font-semibold text-heading shrink-0">{item.label}</span>
             ) : (
-              <Link to={item.url} className="hover:text-white transition-colors shrink-0">
+              <Link to={item.url} className="hover:text-body transition-colors shrink-0">
                 {item.label}
               </Link>
             )}

@@ -57,36 +57,36 @@ export default function ResumeEditorPage() {
   };
 
   return (
-    <div className="space-y-6 font-satoshi text-white pb-12">
+    <div className="space-y-6 font-satoshi text-body pb-12">
       {/* Top Controls & Cloud Auto-Save Header */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-[#090d16]/95 border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xl backdrop-blur-2xl">
+      <div className="p-4 sm:p-5 rounded-3xl bg-surface border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl backdrop-blur-2xl">
         <div className="flex items-center gap-4">
           <button
             onClick={() => setViewMode("dashboard")}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-300 transition cursor-pointer border border-white/10"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-surface-hover hover:bg-surface-elevated text-xs font-bold text-body hover:text-heading transition cursor-pointer border border-border"
           >
             <ArrowLeft size={15} /> Dashboard
           </button>
 
           <div className="space-y-0.5">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-0.5 text-[11px] font-black text-indigo-400 uppercase tracking-widest">
-              <Sparkles size={12} className="text-amber-300 animate-pulse" /> Live A4 Sync Active
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-0.5 text-[11px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">
+              <Sparkles size={12} className="text-amber-500 dark:text-amber-300 animate-pulse" /> Live A4 Sync Active
             </div>
-            <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-              <FileText size={18} className="text-indigo-400" />
+            <h2 className="text-base sm:text-lg font-black text-heading flex items-center gap-2">
+              <FileText size={18} className="text-indigo-500 dark:text-indigo-400" />
               {currentResume?.title || "Untitled Resume"}
             </h2>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+          <div className="flex items-center gap-2 text-xs font-bold text-muted">
             {saveStatus === "saving" ? (
-              <span className="flex items-center gap-1.5 text-amber-400">
+              <span className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400">
                 <Loader2 size={14} className="animate-spin" /> Saving...
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 text-emerald-400">
+              <span className="flex items-center gap-1.5 text-emerald-500 dark:text-emerald-400">
                 <CheckCircle2 size={14} /> Saved to Cloud
               </span>
             )}
@@ -94,7 +94,7 @@ export default function ResumeEditorPage() {
 
           <button
             onClick={handleManualSave}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-xl hover:scale-105"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-xl shadow-indigo-500/20 hover:scale-105"
           >
             <Save size={15} /> Save Draft
           </button>
@@ -106,7 +106,7 @@ export default function ResumeEditorPage() {
         {/* Left Column: Section Selector Nav & Dynamic Form Editor (5 cols on Desktop) */}
         <div className="lg:col-span-5 space-y-6">
           {/* Compact Section Navigation Bar */}
-          <div className="p-4 rounded-3xl bg-[#090d16]/95 border border-white/10 backdrop-blur-2xl shadow-xl">
+          <div className="p-4 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl">
             <SectionNav
               activeSection={activeSection}
               onSelectSection={setActiveSection}
@@ -115,7 +115,7 @@ export default function ResumeEditorPage() {
           </div>
 
           {/* Form Editor Card */}
-          <div className="p-6 rounded-3xl bg-[#090d16]/95 border border-white/10 backdrop-blur-2xl shadow-xl min-h-[550px]">
+          <div className="p-6 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl min-h-[550px]">
             {activeSection === "personalInfo" && (
               <PersonalInfoForm
                 info={currentResume?.personalInfo}

@@ -59,7 +59,7 @@ export default function ResumeDashboard() {
     setCurrentResume(resume);
     setViewMode("preview");
 
-    // Wait 100ms for Preview DOM sheet to mount, then trigger instant PDF download
+    // Wait 150ms for Preview DOM sheet to mount, then trigger instant PDF download
     setTimeout(async () => {
       const sourceElement = document.getElementById("printable-resume-sheet");
       if (sourceElement) {
@@ -95,24 +95,24 @@ export default function ResumeDashboard() {
   };
 
   return (
-    <div className="space-y-8 font-satoshi py-4 text-white">
+    <div className="space-y-8 font-satoshi py-4 text-body">
       {/* Top Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-[#090d16]/95 border border-white/10 backdrop-blur-2xl shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 text-xs font-black text-indigo-400 uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest font-satoshi">
             <Sparkles size={14} /> AI Resume Builder Studio
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
-            Create & Optimize <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">ATS Resumes</span>
+          <h1 className="text-2xl sm:text-4xl font-black text-heading tracking-tight font-satoshi">
+            Create & Optimize <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">ATS Resumes</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300 font-medium max-w-xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-muted font-medium max-w-xl leading-relaxed">
             Build high-impact, ATS-optimized technical resumes with real-time A4 preview, AI summary generation, bullet point rewrites, and enterprise templates.
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-xl hover:scale-105 shrink-0"
+          className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-xl hover:scale-105 shrink-0 font-satoshi"
         >
           <Plus size={16} /> Create New Resume
         </button>
@@ -120,30 +120,30 @@ export default function ResumeDashboard() {
 
       {/* Resumes Grid / Loading / Empty State */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between pb-2 border-b border-white/10">
-          <h3 className="text-lg font-black text-white flex items-center gap-2">
-            <FolderKanban size={20} className="text-indigo-400" /> My Resumes ({resumes.length})
+        <div className="flex items-center justify-between pb-2 border-b border-border">
+          <h3 className="text-lg font-black text-heading font-satoshi flex items-center gap-2">
+            <FolderKanban size={20} className="text-indigo-600 dark:text-indigo-400" /> My Resumes ({resumes.length})
           </h3>
         </div>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-64 rounded-3xl bg-white/[0.03] border border-white/5 p-6 space-y-4" />
+              <div key={i} className="h-64 rounded-3xl bg-surface border border-border p-6 space-y-4" />
             ))}
           </div>
         ) : !resumes || resumes.length === 0 ? (
-          <div className="p-12 rounded-3xl bg-[#090d16]/95 border border-white/10 text-center space-y-4">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="p-12 rounded-3xl bg-surface border border-border text-center space-y-4 shadow-sm">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
               <FileText size={32} />
             </div>
-            <h4 className="text-xl font-black text-white">No Resumes Found</h4>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto font-medium">
+            <h4 className="text-xl font-black text-heading font-satoshi">No Resumes Found</h4>
+            <p className="text-xs sm:text-sm text-muted max-w-md mx-auto font-medium">
               You haven't created any resume drafts yet. Click below to start building your first high-scoring ATS resume.
             </p>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-lg"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-lg font-satoshi"
             >
               <Plus size={14} /> Create First Resume
             </button>

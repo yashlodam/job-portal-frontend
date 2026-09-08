@@ -31,7 +31,6 @@ export const getCompanyById = createAsyncThunk(
   async (companyId, { rejectWithValue }) => {
     try {
       const { data } = await api.get(`/companies/${companyId}`);
-      console.log("Company Data:", data); // Log the data to see what is returned  
       return data;
     } catch (error) {
       return rejectWithValue(

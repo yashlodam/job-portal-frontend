@@ -48,7 +48,7 @@ export default function SectionNav({ activeSection, onSelectSection, resume }) {
 
   return (
     <div className="space-y-1.5 font-satoshi">
-      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-3 mb-2">
+      <span className="text-[10px] font-black uppercase tracking-wider text-muted block px-3 mb-2">
         Resume Sections
       </span>
 
@@ -63,22 +63,22 @@ export default function SectionNav({ activeSection, onSelectSection, resume }) {
             onClick={() => onSelectSection(sec.id)}
             className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition cursor-pointer ${
               isActive
-                ? "bg-indigo-600 text-white shadow-md ring-1 ring-indigo-400"
-                : "bg-white/[0.02] border border-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20 ring-1 ring-indigo-400"
+                : "bg-surface-hover border border-border text-body hover:bg-surface-elevated hover:text-heading"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Icon size={16} className={isActive ? "text-white" : "text-indigo-400"} />
+              <Icon size={16} className={isActive ? "text-white" : "text-indigo-500 dark:text-indigo-400"} />
               <span className="line-clamp-1">{sec.label}</span>
             </div>
 
             <span
               className={`h-2 w-2 rounded-full shrink-0 ${
                 isComplete
-                  ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+                  ? "bg-emerald-500 dark:bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
                   : sec.required
-                  ? "bg-amber-400"
-                  : "bg-slate-600"
+                  ? "bg-amber-500 dark:bg-amber-400"
+                  : "bg-muted/40"
               }`}
               title={isComplete ? "Completed" : sec.required ? "Required Field" : "Optional Section"}
             />

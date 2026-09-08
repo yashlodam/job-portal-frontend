@@ -31,61 +31,61 @@ export default function ResumeCard({ resume, onEdit, onPreview, onDuplicate, onA
   const atsScore = resume.atsScore || 82;
 
   return (
-    <div className="p-6 rounded-3xl bg-[#090d16]/95 border border-white/10 hover:border-indigo-500/40 backdrop-blur-2xl shadow-xl transition-all font-satoshi flex flex-col justify-between space-y-5 text-white relative group">
+    <div className="p-6 rounded-3xl bg-surface border border-border hover:border-indigo-500/40 backdrop-blur-2xl shadow-xl transition-all font-satoshi flex flex-col justify-between space-y-5 text-body relative group">
       {/* Header Info */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-black text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 uppercase tracking-wider">
+          <span className="text-[10px] font-black text-indigo-500 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 uppercase tracking-wider">
             {templateName} Template
           </span>
 
           <div className="relative">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition cursor-pointer"
+              className="p-1.5 rounded-xl bg-surface-hover hover:bg-surface-elevated text-muted hover:text-heading transition cursor-pointer border border-border"
             >
               <MoreVertical size={16} />
             </button>
 
             {menuOpen && (
               <div
-                className="absolute right-0 top-8 z-30 w-44 rounded-2xl bg-[#0d121f] border border-white/10 shadow-2xl p-1.5 space-y-1 font-satoshi text-xs font-bold"
+                className="absolute right-0 top-8 z-30 w-44 rounded-2xl bg-surface-elevated border border-border shadow-2xl p-1.5 space-y-1 font-satoshi text-xs font-bold"
                 onMouseLeave={() => setMenuOpen(false)}
               >
                 <button
                   onClick={() => { setMenuOpen(false); onEdit(resume); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-body hover:text-heading hover:bg-surface-hover transition cursor-pointer"
                 >
-                  <Edit3 size={14} className="text-indigo-400" /> Edit Resume
+                  <Edit3 size={14} className="text-indigo-500 dark:text-indigo-400" /> Edit Resume
                 </button>
                 <button
                   onClick={() => { setMenuOpen(false); onPreview(resume); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-body hover:text-heading hover:bg-surface-hover transition cursor-pointer"
                 >
-                  <Eye size={14} className="text-purple-400" /> Live Preview
+                  <Eye size={14} className="text-purple-500 dark:text-purple-400" /> Live Preview
                 </button>
                 <button
                   onClick={() => { setMenuOpen(false); onDuplicate(resume); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-body hover:text-heading hover:bg-surface-hover transition cursor-pointer"
                 >
-                  <Copy size={14} className="text-amber-400" /> Duplicate
+                  <Copy size={14} className="text-amber-500 dark:text-amber-400" /> Duplicate
                 </button>
                 <button
                   onClick={() => { setMenuOpen(false); onAnalyze(resume); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-body hover:text-heading hover:bg-surface-hover transition cursor-pointer"
                 >
-                  <BarChart2 size={14} className="text-cyan-400" /> ATS Audit
+                  <BarChart2 size={14} className="text-cyan-500 dark:text-cyan-400" /> ATS Audit
                 </button>
                 <button
                   onClick={() => { setMenuOpen(false); onDownload(resume); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-body hover:text-heading hover:bg-surface-hover transition cursor-pointer"
                 >
-                  <Download size={14} className="text-emerald-400" /> Download PDF
+                  <Download size={14} className="text-emerald-500 dark:text-emerald-400" /> Download PDF
                 </button>
-                <div className="h-px bg-white/10 my-1" />
+                <div className="h-px bg-border my-1" />
                 <button
                   onClick={() => { setMenuOpen(false); onDelete(resume.id); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-500 dark:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
                 >
                   <Trash2 size={14} /> Delete
                 </button>
@@ -94,25 +94,25 @@ export default function ResumeCard({ resume, onEdit, onPreview, onDuplicate, onA
           </div>
         </div>
 
-        <h3 className="text-xl font-black text-white line-clamp-1 group-hover:text-indigo-400 transition">{title}</h3>
-        <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-          <Calendar size={13} className="text-indigo-400" /> Updated {updatedDate}
+        <h3 className="text-xl font-black text-heading line-clamp-1 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition">{title}</h3>
+        <p className="text-xs text-muted font-medium flex items-center gap-1.5">
+          <Calendar size={13} className="text-indigo-500 dark:text-indigo-400" /> Updated {updatedDate}
         </p>
       </div>
 
       {/* Strength & ATS Badges */}
-      <div className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5 text-xs font-bold">
+      <div className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-surface-hover border border-border text-xs font-bold">
         <div>
-          <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider block">Strength</span>
-          <div className="flex items-center gap-1.5 mt-0.5 text-indigo-400">
+          <span className="text-[10px] text-muted font-black uppercase tracking-wider block">Strength</span>
+          <div className="flex items-center gap-1.5 mt-0.5 text-indigo-500 dark:text-indigo-400">
             <Sparkles size={14} />
             <span>{completion}%</span>
           </div>
         </div>
 
         <div>
-          <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider block">ATS Score</span>
-          <div className="flex items-center gap-1.5 mt-0.5 text-emerald-400">
+          <span className="text-[10px] text-muted font-black uppercase tracking-wider block">ATS Score</span>
+          <div className="flex items-center gap-1.5 mt-0.5 text-emerald-500 dark:text-emerald-400">
             <Award size={14} />
             <span>{atsScore}/100</span>
           </div>
@@ -123,13 +123,13 @@ export default function ResumeCard({ resume, onEdit, onPreview, onDuplicate, onA
       <div className="pt-2 flex items-center justify-between gap-3">
         <button
           onClick={() => onEdit(resume)}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-lg"
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-lg shadow-indigo-500/20"
         >
           <Edit3 size={14} /> Edit Resume
         </button>
         <button
           onClick={() => onPreview(resume)}
-          className="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition cursor-pointer"
+          className="p-2.5 rounded-2xl bg-surface-hover hover:bg-surface-elevated border border-border text-body hover:text-heading transition cursor-pointer"
           title="Preview Resume"
         >
           <Eye size={16} />

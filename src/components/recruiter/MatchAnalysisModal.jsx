@@ -171,18 +171,18 @@ export default function MatchAnalysisModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md font-satoshi text-white">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md font-satoshi text-body">
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 15 }}
           transition={{ duration: 0.2 }}
-          className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl bg-[#090d16] border border-indigo-500/30 p-6 sm:p-8 space-y-6 shadow-2xl relative custom-scrollbar"
+          className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl bg-surface border border-border p-6 sm:p-8 space-y-6 shadow-2xl relative custom-scrollbar"
         >
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition cursor-pointer"
+            className="absolute top-6 right-6 p-2 rounded-xl bg-surface-elevated hover:bg-surface-hover text-muted hover:text-heading transition cursor-pointer border border-border"
             title="Close"
           >
             <X size={18} />
@@ -190,44 +190,44 @@ export default function MatchAnalysisModal({
 
           {/* Header */}
           <div className="space-y-2 pr-10">
-            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 text-xs font-black text-indigo-400 uppercase tracking-widest">
-              <Sparkles size={14} className="text-amber-400 animate-pulse" /> AI Candidate-Job Compatibility Analysis
+            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+              <Sparkles size={14} className="text-amber-500 dark:text-amber-400 animate-pulse" /> AI Candidate-Job Compatibility Analysis
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-              Match Analysis — <span className="text-indigo-300">{candidateName}</span>
+            <h2 className="text-xl sm:text-2xl font-black text-heading tracking-tight">
+              Match Analysis — <span className="text-indigo-600 dark:text-indigo-300">{candidateName}</span>
             </h2>
-            <p className="text-xs text-slate-400 font-medium">
-              Target Role: <span className="text-slate-200 font-bold">{jobTitle}</span>
+            <p className="text-xs text-muted font-medium">
+              Target Role: <span className="text-heading font-bold">{jobTitle}</span>
               {matchData?.processedAt && ` • Analyzed on ${new Date(matchData.processedAt).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}`}
             </p>
           </div>
 
           {loading ? (
             <div className="py-16 text-center space-y-4">
-              <Loader2 className="h-10 w-10 animate-spin text-indigo-400 mx-auto" />
-              <p className="text-xs text-slate-400 font-bold">Fetching deep candidate compatibility breakdown...</p>
+              <Loader2 className="h-10 w-10 animate-spin text-indigo-500 mx-auto" />
+              <p className="text-xs text-muted font-bold">Fetching deep candidate compatibility breakdown...</p>
             </div>
           ) : (
             <div className="space-y-6">
               {/* Overall Match Score Banner */}
-              <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-950/60 via-[#0f172a] to-purple-950/60 border border-indigo-500/30 shadow-xl space-y-3">
+              <div className="p-6 rounded-3xl bg-surface-elevated border border-border shadow-xl space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300">OVERALL COMPATIBILITY MATCH</span>
-                    <h3 className="text-3xl sm:text-4xl font-black text-white flex items-center gap-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">OVERALL COMPATIBILITY MATCH</span>
+                    <h3 className="text-3xl sm:text-4xl font-black text-heading flex items-center gap-3">
                       <span>{overallMatch}%</span>
                       <span className={`text-xs font-extrabold px-3 py-1 rounded-full border ${getBadgeColor(overallMatch)}`}>
                         {overallMatch >= 80 ? "Strong Match" : overallMatch >= 60 ? "Moderate Match" : "Low Match"}
                       </span>
                     </h3>
                   </div>
-                  <div className="h-16 w-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                  <div className="h-16 w-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 flex items-center justify-center shrink-0">
                     <Award size={32} />
                   </div>
                 </div>
 
                 {/* Overall Gauge Bar */}
-                <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
+                <div className="h-3 w-full bg-surface rounded-full overflow-hidden p-0.5 border border-border">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min(Math.max(overallMatch, 0), 100)}%` }}
@@ -235,27 +235,27 @@ export default function MatchAnalysisModal({
                     className={`h-full rounded-full bg-gradient-to-r ${getScoreColor(overallMatch)} shadow-glow`}
                   />
                 </div>
-                <p className="text-[11px] text-slate-400 font-medium">
+                <p className="text-[11px] text-muted font-medium">
                   Synthesized from 60% deterministic rule matching (Skills, Experience, Education) + 40% AI semantic depth.
                 </p>
               </div>
 
               {/* Category Breakdown Bars Grid */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                  <Layers size={14} className="text-indigo-400" /> Category Breakdown
+                <h4 className="text-xs font-black uppercase tracking-wider text-heading flex items-center gap-2">
+                  <Layers size={14} className="text-indigo-500 dark:text-indigo-400" /> Category Breakdown
                 </h4>
 
-                <div className="p-5 rounded-3xl bg-white/[0.02] border border-white/10 space-y-4">
+                <div className="p-5 rounded-3xl bg-surface-elevated border border-border space-y-4">
                   {/* Required Skills Match */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-slate-300 flex items-center gap-1.5">
-                        <Cpu size={13} className="text-indigo-400" /> Required Skills Match (40% Weight)
+                      <span className="text-body flex items-center gap-1.5">
+                        <Cpu size={13} className="text-indigo-500 dark:text-indigo-400" /> Required Skills Match (40% Weight)
                       </span>
-                      <span className="text-indigo-300 font-mono font-black">{skillsMatch}%</span>
+                      <span className="text-indigo-600 dark:text-indigo-300 font-mono font-black">{skillsMatch}%</span>
                     </div>
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-surface rounded-full overflow-hidden border border-border">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${skillsMatch}%` }}
@@ -268,12 +268,12 @@ export default function MatchAnalysisModal({
                   {/* Experience Fit */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-slate-300 flex items-center gap-1.5">
-                        <Briefcase size={13} className="text-purple-400" /> Experience & Seniority Fit (10% Weight)
+                      <span className="text-body flex items-center gap-1.5">
+                        <Briefcase size={13} className="text-purple-500 dark:text-purple-400" /> Experience & Seniority Fit (10% Weight)
                       </span>
-                      <span className="text-purple-300 font-mono font-black">{experienceMatch}%</span>
+                      <span className="text-purple-600 dark:text-purple-300 font-mono font-black">{experienceMatch}%</span>
                     </div>
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-surface rounded-full overflow-hidden border border-border">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${experienceMatch}%` }}
@@ -286,12 +286,12 @@ export default function MatchAnalysisModal({
                   {/* Role & Semantic Fit */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-slate-300 flex items-center gap-1.5">
-                        <Sparkles size={13} className="text-amber-400" /> Role Alignment & Semantic Depth (40% Weight)
+                      <span className="text-body flex items-center gap-1.5">
+                        <Sparkles size={13} className="text-amber-500 dark:text-amber-400" /> Role Alignment & Semantic Depth (40% Weight)
                       </span>
-                      <span className="text-amber-300 font-mono font-black">{roleMatch}%</span>
+                      <span className="text-amber-600 dark:text-amber-300 font-mono font-black">{roleMatch}%</span>
                     </div>
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-surface rounded-full overflow-hidden border border-border">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${roleMatch}%` }}
@@ -304,12 +304,12 @@ export default function MatchAnalysisModal({
                   {/* Education Relevance */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-slate-300 flex items-center gap-1.5">
-                        <GraduationCap size={13} className="text-emerald-400" /> Education Relevance (10% Weight)
+                      <span className="text-body flex items-center gap-1.5">
+                        <GraduationCap size={13} className="text-emerald-500 dark:text-emerald-400" /> Education Relevance (10% Weight)
                       </span>
-                      <span className="text-emerald-300 font-mono font-black">{educationMatch}%</span>
+                      <span className="text-emerald-600 dark:text-emerald-300 font-mono font-black">{educationMatch}%</span>
                     </div>
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-surface rounded-full overflow-hidden border border-border">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${educationMatch}%` }}
@@ -322,12 +322,12 @@ export default function MatchAnalysisModal({
                   {/* Preferred Skills */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-slate-300 flex items-center gap-1.5">
-                        <Award size={13} className="text-pink-400" /> Preferred / Nice-to-Have Skills
+                      <span className="text-body flex items-center gap-1.5">
+                        <Award size={13} className="text-pink-500 dark:text-pink-400" /> Preferred / Nice-to-Have Skills
                       </span>
-                      <span className="text-pink-300 font-mono font-black">{preferredMatch}%</span>
+                      <span className="text-pink-600 dark:text-pink-300 font-mono font-black">{preferredMatch}%</span>
                     </div>
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-surface rounded-full overflow-hidden border border-border">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${preferredMatch}%` }}
@@ -344,20 +344,20 @@ export default function MatchAnalysisModal({
                 {/* Matched Required Skills */}
                 <div className="p-4 rounded-3xl bg-emerald-500/5 border border-emerald-500/20 space-y-2.5">
                   <div className="flex items-center justify-between pb-1 border-b border-emerald-500/20">
-                    <span className="text-xs font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                    <span className="text-xs font-black uppercase text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                       <CheckCircle2 size={14} /> Matched Skills ({matchedSkills.length})
                     </span>
                   </div>
                   {matchedSkills.length === 0 ? (
-                    <p className="text-[11px] text-slate-400 font-medium">No direct skill matches detected.</p>
+                    <p className="text-[11px] text-muted font-medium">No direct skill matches detected.</p>
                   ) : (
                     <div className="flex flex-wrap gap-1.5">
                       {matchedSkills.map((sk, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-xs font-bold text-emerald-300"
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-300"
                         >
-                          <Check size={12} className="text-emerald-400" /> {sk}
+                          <Check size={12} className="text-emerald-500" /> {sk}
                         </span>
                       ))}
                     </div>
@@ -367,18 +367,18 @@ export default function MatchAnalysisModal({
                 {/* Missing Required Skills */}
                 <div className="p-4 rounded-3xl bg-rose-500/5 border border-rose-500/20 space-y-2.5">
                   <div className="flex items-center justify-between pb-1 border-b border-rose-500/20">
-                    <span className="text-xs font-black uppercase text-rose-400 flex items-center gap-1.5">
+                    <span className="text-xs font-black uppercase text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
                       <AlertCircle size={14} /> Missing Required Skills ({missingSkills.length})
                     </span>
                   </div>
                   {missingSkills.length === 0 ? (
-                    <p className="text-[11px] text-emerald-400 font-bold">✓ All required skills matched!</p>
+                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">✓ All required skills matched!</p>
                   ) : (
                     <div className="flex flex-wrap gap-1.5">
                       {missingSkills.map((sk, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center gap-1 rounded-lg bg-rose-500/15 border border-rose-500/30 px-2.5 py-1 text-xs font-bold text-rose-300"
+                          className="inline-flex items-center gap-1 rounded-lg bg-rose-500/15 border border-rose-500/30 px-2.5 py-1 text-xs font-bold text-rose-600 dark:text-rose-300"
                         >
                           • {sk}
                         </span>
@@ -393,12 +393,12 @@ export default function MatchAnalysisModal({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {matchedPreferred.length > 0 && (
                     <div className="p-3.5 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 space-y-1.5">
-                      <span className="text-[11px] font-black uppercase text-indigo-400 flex items-center gap-1">
+                      <span className="text-[11px] font-black uppercase text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
                         <Sparkles size={12} /> Matched Preferred Skills
                       </span>
                       <div className="flex flex-wrap gap-1">
                         {matchedPreferred.map((sk, i) => (
-                          <span key={i} className="rounded-md bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 text-[11px] font-semibold text-indigo-300">
+                          <span key={i} className="rounded-md bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 dark:text-indigo-300">
                             ✓ {sk}
                           </span>
                         ))}
@@ -408,12 +408,12 @@ export default function MatchAnalysisModal({
 
                   {missingPreferred.length > 0 && (
                     <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-1.5">
-                      <span className="text-[11px] font-black uppercase text-amber-400 flex items-center gap-1">
+                      <span className="text-[11px] font-black uppercase text-amber-600 dark:text-amber-400 flex items-center gap-1">
                         <AlertCircle size={12} /> Missing Preferred Skills
                       </span>
                       <div className="flex flex-wrap gap-1">
                         {missingPreferred.map((sk, i) => (
-                          <span key={i} className="rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[11px] font-semibold text-amber-300">
+                          <span key={i} className="rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-300">
                             • {sk}
                           </span>
                         ))}
@@ -425,10 +425,10 @@ export default function MatchAnalysisModal({
 
               {/* AI Recruiter Summary Card */}
               <div className="p-5 rounded-3xl bg-indigo-500/10 border border-indigo-500/30 space-y-2 shadow-inner">
-                <span className="text-xs font-black uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
-                  <Sparkles size={14} className="text-amber-400" /> AI Recruiter Summary & Evaluation
+                <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-300 flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-amber-500 dark:text-amber-400" /> AI Recruiter Summary & Evaluation
                 </span>
-                <p className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed italic">
+                <p className="text-xs sm:text-sm text-heading font-medium leading-relaxed italic">
                   "{analysisSummary}"
                 </p>
               </div>
@@ -436,11 +436,11 @@ export default function MatchAnalysisModal({
           )}
 
           {/* Modal Footer Actions */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white/10">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border">
             <button
               onClick={handleRecalculate}
               disabled={recalculating || loading}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-black text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 !text-white font-black text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition cursor-pointer disabled:opacity-50"
             >
               {recalculating ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -452,7 +452,7 @@ export default function MatchAnalysisModal({
 
             <button
               onClick={onClose}
-              className="px-6 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer"
+              className="px-6 py-2.5 rounded-2xl bg-surface-elevated hover:bg-surface-hover border border-border text-xs font-bold text-heading transition cursor-pointer"
             >
               Close
             </button>

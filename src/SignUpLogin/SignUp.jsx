@@ -6,25 +6,25 @@ import { useAppDispatch } from "../State/Store";
 import { signup } from "../State/AuthSlic";
 
 const fieldStyles = {
-  label: { color: "#F1F5F9", fontSize: 13, fontWeight: 600, marginBottom: 6 },
+  label: { color: "var(--color-heading, #F1F5F9)", fontSize: 13, fontWeight: 600, marginBottom: 6 },
   input: {
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderColor: "rgba(255,255,255,0.15)",
-    color: "#FFFFFF",
+    backgroundColor: "var(--color-surface-hover, rgba(255,255,255,0.06))",
+    borderColor: "var(--color-border, rgba(255,255,255,0.15))",
+    color: "var(--color-heading, #FFFFFF)",
     borderRadius: 12,
     "&:focus, &:focusWithin": {
       borderColor: "#6366F1 !important",
-      backgroundColor: "rgba(255,255,255,0.08)",
+      backgroundColor: "var(--color-surface, rgba(255,255,255,0.08))",
     },
     "&::placeholder": {
-      color: "#94A3B8 !important",
+      color: "var(--color-muted, #94A3B8) !important",
       opacity: "1 !important",
     },
   },
   innerInput: {
-    color: "#FFFFFF",
+    color: "var(--color-heading, #FFFFFF)",
     "&::placeholder": {
-      color: "#94A3B8 !important",
+      color: "var(--color-muted, #94A3B8) !important",
       opacity: "1 !important",
     },
   },
@@ -136,28 +136,28 @@ function SignUp({ setIsLogin }) {
         <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-[11px] font-bold text-indigo-400 mb-3">
           <Sparkles className="h-3 w-3" /> Create Your JobPortal AI Account
         </div>
-        <h1 className="font-satoshi text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        <h1 className="font-satoshi text-2xl sm:text-3xl font-extrabold text-heading tracking-tight">
           Join JobPortal AI Today
         </h1>
-        <p className="mt-1.5 text-xs sm:text-sm text-slate-400">
+        <p className="mt-1.5 text-xs sm:text-sm text-muted">
           Discover opportunities or hire top talent using AI matching.
         </p>
       </div>
 
       {/* Account Type Selector Cards */}
       <div className="mt-5 space-y-1.5">
-        <label className="block text-xs font-semibold text-slate-200">I am joining as a:</label>
+        <label className="block text-xs font-semibold text-heading">I am joining as a:</label>
         <div className="grid grid-cols-2 gap-2.5">
           <button
             type="button"
             onClick={() => handleChange("accountType", "APPLICANT")}
             className={`flex items-center justify-center gap-2 rounded-xl py-3 px-3 text-xs font-bold transition-all cursor-pointer border ${
               formData.accountType === "APPLICANT"
-                ? "border-indigo-500/60 bg-gradient-to-r from-indigo-600/30 to-violet-600/30 text-white shadow-lg shadow-indigo-500/20 ring-2 ring-indigo-500/50"
-                : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white hover:bg-white/[0.08]"
+                ? "border-indigo-500 bg-indigo-500/15 text-indigo-600 dark:text-white shadow-md shadow-indigo-500/20 ring-2 ring-indigo-500/50"
+                : "border-border bg-surface-hover text-muted hover:border-slate-400 dark:hover:border-white/20 hover:text-heading"
             }`}
           >
-            <UserCheck className={`h-4 w-4 shrink-0 ${formData.accountType === "APPLICANT" ? "text-indigo-400" : ""}`} />
+            <UserCheck className={`h-4 w-4 shrink-0 ${formData.accountType === "APPLICANT" ? "text-indigo-500 dark:text-indigo-400" : ""}`} />
             <span className="truncate">Job Seeker</span>
           </button>
 
@@ -166,11 +166,11 @@ function SignUp({ setIsLogin }) {
             onClick={() => handleChange("accountType", "EMPLOYER")}
             className={`flex items-center justify-center gap-2 rounded-xl py-3 px-3 text-xs font-bold transition-all cursor-pointer border ${
               formData.accountType === "EMPLOYER"
-                ? "border-indigo-500/60 bg-gradient-to-r from-indigo-600/30 to-violet-600/30 text-white shadow-lg shadow-indigo-500/20 ring-2 ring-indigo-500/50"
-                : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white hover:bg-white/[0.08]"
+                ? "border-indigo-500 bg-indigo-500/15 text-indigo-600 dark:text-white shadow-md shadow-indigo-500/20 ring-2 ring-indigo-500/50"
+                : "border-border bg-surface-hover text-muted hover:border-slate-400 dark:hover:border-white/20 hover:text-heading"
             }`}
           >
-            <Building2 className={`h-4 w-4 shrink-0 ${formData.accountType === "EMPLOYER" ? "text-indigo-400" : ""}`} />
+            <Building2 className={`h-4 w-4 shrink-0 ${formData.accountType === "EMPLOYER" ? "text-indigo-500 dark:text-indigo-400" : ""}`} />
             <span className="truncate">Employer</span>
           </button>
         </div>
@@ -183,7 +183,7 @@ function SignUp({ setIsLogin }) {
           value={formData.name}
           onChange={(e) => handleChange("name", e.target.value)}
           placeholder="e.g. Alex Rivera"
-          leftSection={<User size={16} className="text-slate-400" />}
+          leftSection={<User size={16} className="text-muted" />}
           size="md"
           styles={fieldStyles}
           error={errors.name}
@@ -194,7 +194,7 @@ function SignUp({ setIsLogin }) {
           value={formData.email}
           onChange={(e) => handleChange("email", e.target.value)}
           placeholder="name@company.com"
-          leftSection={<Mail size={16} className="text-slate-400" />}
+          leftSection={<Mail size={16} className="text-muted" />}
           size="md"
           styles={fieldStyles}
           error={errors.email}
@@ -206,7 +206,7 @@ function SignUp({ setIsLogin }) {
             value={formData.password}
             onChange={(e) => handleChange("password", e.target.value)}
             placeholder="Min 6 characters"
-            leftSection={<Lock size={16} className="text-slate-400" />}
+            leftSection={<Lock size={16} className="text-muted" />}
             size="md"
             styles={fieldStyles}
             error={errors.password}
@@ -217,7 +217,7 @@ function SignUp({ setIsLogin }) {
             value={formData.confirmPassword}
             onChange={(e) => handleChange("confirmPassword", e.target.value)}
             placeholder="Re-enter password"
-            leftSection={<Lock size={16} className="text-slate-400" />}
+            leftSection={<Lock size={16} className="text-muted" />}
             size="md"
             styles={fieldStyles}
             error={errors.confirmPassword}
@@ -231,13 +231,13 @@ function SignUp({ setIsLogin }) {
             checked={accepted}
             onChange={(e) => setAccepted(e.currentTarget.checked)}
             label={
-              <span className="text-xs text-slate-400">
-                I agree to the <span className="text-indigo-400 font-semibold">Terms of Service</span> and{" "}
-                <span className="text-indigo-400 font-semibold">Privacy Policy</span>
+              <span className="text-xs text-muted">
+                I agree to the <span className="text-indigo-500 dark:text-indigo-400 font-semibold">Terms of Service</span> and{" "}
+                <span className="text-indigo-500 dark:text-indigo-400 font-semibold">Privacy Policy</span>
               </span>
             }
           />
-          {errors.terms && <p className="text-xs text-rose-400 mt-1 font-semibold">{errors.terms}</p>}
+          {errors.terms && <p className="text-xs text-rose-500 dark:text-rose-400 mt-1 font-semibold">{errors.terms}</p>}
         </div>
 
         <Button
@@ -256,12 +256,12 @@ function SignUp({ setIsLogin }) {
       </form>
 
       {/* Footer Switcher */}
-      <p className="mt-5 text-center text-xs text-slate-400">
+      <p className="mt-5 text-center text-xs text-muted">
         Already have an account?{" "}
         <button
           type="button"
           onClick={() => setIsLogin(true)}
-          className="font-bold text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+          className="font-bold text-indigo-500 hover:text-indigo-400 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors cursor-pointer"
         >
           Sign in
         </button>

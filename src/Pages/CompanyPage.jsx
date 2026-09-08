@@ -282,11 +282,8 @@ export default function CompanyPage() {
   const { id } = useParams();
 
   const { selectedCompany: company, loading } = useAppSelector((state) => state.company);
-  const { companyJobs,  loading: jobsLoading } = useAppSelector((state) => state.company);
+  const { companyJobs, loading: jobsLoading } = useAppSelector((state) => state.company);
   const dispatch = useAppDispatch();
-
-  console.log("Company Jobs:", companyJobs);
-  console.log("Company Data:", company); // Debugging log
 
   useEffect(() => {
     if (id) {

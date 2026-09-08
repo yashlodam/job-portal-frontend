@@ -13,7 +13,6 @@ import { api } from "../config/Api";
  */
 export const startInterviewApi = async (requestData) => {
   const res = await api.post("/interviews/start", requestData);
-  console.log("startInterviewApi response:", res.data);
   return res.data;
 };
 
@@ -23,7 +22,6 @@ export const startInterviewApi = async (requestData) => {
  */
 export const getNextQuestionApi = async (sessionId) => {
   const res = await api.post(`/interviews/${sessionId}/next-question`);
-  console.log("getNextQuestionApi response:", res.data);
   return res.data;
 };
 
@@ -33,7 +31,6 @@ export const getNextQuestionApi = async (sessionId) => {
  */
 export const submitAnswerApi = async (sessionId, requestData) => {
   const res = await api.post(`/interviews/${sessionId}/submit`, requestData);
-  console.log("submitAnswerApi response:", res.data);
   return res.data;
 };
 
@@ -43,7 +40,6 @@ export const submitAnswerApi = async (sessionId, requestData) => {
  */
 export const getSessionDetailsApi = async (sessionId) => {
   const res = await api.get(`/interviews/${sessionId}`);
-  console.log("getSessionDetailsApi response:", res.data);
   return res.data;
 };
 
@@ -53,7 +49,6 @@ export const getSessionDetailsApi = async (sessionId) => {
  */
 export const getUserHistoryApi = async (page = 0, size = 10) => {
   const res = await api.get(`/interviews/history?page=${page}&size=${size}`);
-  console.log("getUserHistoryApi response:", res.data);
   return res.data;
 };
 
@@ -63,7 +58,6 @@ export const getUserHistoryApi = async (page = 0, size = 10) => {
  */
 export const getInterviewReportApi = async (sessionId) => {
   const res = await api.get(`/interviews/${sessionId}/report`);
-  console.log("getInterviewReportApi response:", res.data);
   return res.data;
 };
 
@@ -73,6 +67,5 @@ export const getInterviewReportApi = async (sessionId) => {
  */
 export const deleteSessionApi = async (sessionId) => {
   const res = await api.delete(`/interviews/${sessionId}`);
-  console.log("deleteSessionApi response:", res.data);
   return res.data;
 };

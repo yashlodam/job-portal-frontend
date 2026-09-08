@@ -17,15 +17,15 @@ export default function ScoreCard({ title, score, icon: Icon = Award, category =
   };
 
   return (
-    <div className="p-6 rounded-3xl bg-[#090d16]/95 border border-white/10 backdrop-blur-2xl shadow-xl space-y-4 font-satoshi flex flex-col justify-between">
+    <div className="p-6 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl space-y-4 font-satoshi flex flex-col justify-between">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 flex items-center justify-center">
             <Icon size={20} />
           </div>
           <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{category}</span>
-            <h4 className="text-sm font-black text-white">{title}</h4>
+            <span className="text-[10px] font-black uppercase tracking-wider text-muted">{category}</span>
+            <h4 className="text-sm font-black text-heading">{title}</h4>
           </div>
         </div>
 
@@ -36,7 +36,7 @@ export default function ScoreCard({ title, score, icon: Icon = Award, category =
 
       {/* Progress Line */}
       <div className="space-y-1">
-        <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+        <div className="h-2 w-full bg-surface-hover rounded-full overflow-hidden border border-border/50">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${Math.min(Math.max(numericScore, 0), 100)}%` }}
@@ -44,7 +44,7 @@ export default function ScoreCard({ title, score, icon: Icon = Award, category =
             className={`h-full rounded-full bg-gradient-to-r ${getGradient(numericScore)}`}
           />
         </div>
-        {description && <p className="text-[11px] text-slate-400 font-medium">{description}</p>}
+        {description && <p className="text-[11px] text-muted font-medium">{description}</p>}
       </div>
     </div>
   );

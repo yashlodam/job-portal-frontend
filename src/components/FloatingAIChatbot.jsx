@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { sendCopilotMessageApi } from "../api/copilotApi";
+import { toast } from "./ui/ToastNotification";
 
 /* ── 3D Futuristic AI Robot Avatar Logo ── */
 function BotAvatarIcon({ className = "w-6 h-6" }) {
@@ -237,7 +238,7 @@ export default function FloatingAIChatbot() {
 
   const toggleVoiceDictation = () => {
     if (!recognitionRef.current) {
-      alert("Voice speech recognition is not supported in this browser. Please use Chrome/Edge.");
+      toast.warning("Voice speech recognition is not supported in this browser. Please use Chrome or Edge.");
       return;
     }
     if (isListening) {

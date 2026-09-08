@@ -46,21 +46,22 @@ export default function ResumePreviewContainer({ resume }) {
   };
 
   return (
-    <div className="space-y-4 font-satoshi text-white">
+    <div className="space-y-4 font-satoshi text-body">
       {/* Premium Controls Bar */}
-      <div className="p-3.5 rounded-3xl bg-[#090d16]/95 border border-white/10 backdrop-blur-2xl shadow-2xl flex flex-wrap items-center justify-between gap-3">
+      <div className="p-3.5 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl flex flex-wrap items-center justify-between gap-3">
         {/* Template Selector Pill */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
-            <Layout size={14} className="text-indigo-400" /> Template:
+          <span className="text-xs font-black text-muted uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+            <Layout size={14} className="text-indigo-500 dark:text-indigo-400" /> Template:
           </span>
           <select
             value={resume?.templateId || "professional"}
             onChange={(e) => setSelectedTemplate(e.target.value)}
-            className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-xs font-extrabold text-white focus:outline-none focus:border-indigo-500 cursor-pointer shadow-inner"
+            style={{ colorScheme: "auto" }}
+            className="px-3.5 py-1.5 rounded-xl bg-surface-hover border border-border text-xs font-extrabold text-heading focus:outline-none focus:border-indigo-500 cursor-pointer shadow-inner"
           >
             {RESUME_TEMPLATES.map((tpl) => (
-              <option key={tpl.id} value={tpl.id} className="bg-[#090d16] text-white font-medium">
+              <option key={tpl.id} value={tpl.id} className="bg-surface text-heading font-medium">
                 {tpl.name}
               </option>
             ))}
@@ -70,24 +71,24 @@ export default function ResumePreviewContainer({ resume }) {
         {/* Zoom & Direct PDF Download Actions */}
         <div className="flex items-center gap-2.5">
           {/* Zoom Control Group */}
-          <div className="flex items-center gap-1 bg-white/[0.04] border border-white/10 px-2.5 py-1 rounded-xl text-xs">
+          <div className="flex items-center gap-1 bg-surface-hover border border-border px-2.5 py-1 rounded-xl text-xs">
             <button
               onClick={() => setZoom((z) => Math.max(60, z - 10))}
-              className="p-1 text-slate-400 hover:text-white transition cursor-pointer"
+              className="p-1 text-muted hover:text-heading transition cursor-pointer"
               title="Zoom Out"
             >
               <ZoomOut size={14} />
             </button>
             <button
               onClick={handleZoomReset}
-              className="text-[11px] font-mono font-black text-indigo-300 w-12 text-center hover:text-white transition cursor-pointer"
+              className="text-[11px] font-mono font-black text-indigo-500 dark:text-indigo-300 w-12 text-center hover:text-heading transition cursor-pointer"
               title="Reset Zoom to 100%"
             >
               {zoom}%
             </button>
             <button
               onClick={() => setZoom((z) => Math.min(130, z + 10))}
-              className="p-1 text-slate-400 hover:text-white transition cursor-pointer"
+              className="p-1 text-muted hover:text-heading transition cursor-pointer"
               title="Zoom In"
             >
               <ZoomIn size={14} />
@@ -98,7 +99,7 @@ export default function ResumePreviewContainer({ resume }) {
           <button
             onClick={handleDownloadPDF}
             disabled={isDownloading}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-xl hover:scale-105 disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-xl shadow-indigo-500/20 hover:scale-105 disabled:opacity-50"
             title="Download 1-Page ATS PDF Resume"
           >
             {isDownloading ? (
@@ -117,7 +118,7 @@ export default function ResumePreviewContainer({ resume }) {
       </div>
 
       {/* A4 Paper Scalable Canvas */}
-      <div className="overflow-auto max-h-[820px] p-6 sm:p-8 bg-[#030712]/90 rounded-3xl border border-white/10 flex justify-center shadow-inner relative">
+      <div className="overflow-auto max-h-[820px] p-6 sm:p-8 bg-surface-hover/80 rounded-3xl border border-border flex justify-center shadow-inner relative">
         <div
           id="printable-resume-sheet"
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}

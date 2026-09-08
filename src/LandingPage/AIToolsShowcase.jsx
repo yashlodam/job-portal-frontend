@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import SectionHeader from "../components/SectionHeader";
+import { useTheme } from "../context/ThemeContext";
 
 const AI_TOOLS_DATA = [
   {
@@ -59,9 +60,9 @@ const AI_TOOLS_DATA = [
   },
   {
     id: 4,
-    title: "Live Application Stepper",
+    title: "AI Real-Time Application Tracker",
     description:
-      "Track your application status in real-time across all 8 recruitment pipeline stages with direct messaging to hiring recruiters.",
+      "Track your applications with complete visibility across all 8 pipeline stages, get direct recruiter chat access, and receive zero ghosting updates.",
     icon: Bot,
     link: "/my-jobs/applied",
     gradient: { from: "#10B981", to: "#14B8A6", glow: "rgba(16, 185, 129, 0.35)", text: "#6EE7B7" },
@@ -98,13 +99,19 @@ function AIToolCard({ tool }) {
   const navigate = useNavigate();
   const IconComponent = tool.icon;
   const gradient = tool.gradient;
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   return (
     <motion.div
       variants={cardVariants}
       whileHover={{ y: -6, scale: 1.01 }}
       onClick={() => navigate(tool.link)}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-[#090d16]/90 p-6 sm:p-8 backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)] cursor-pointer"
+      className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-6 sm:p-8 backdrop-blur-xl transition-all duration-300 cursor-pointer ${
+        isLight
+          ? "border-slate-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-xl"
+          : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
+      }`}
     >
       {/* Glow Wash */}
       <div
@@ -122,16 +129,16 @@ function AIToolCard({ tool }) {
             className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-extrabold shadow-sm"
             style={{
               borderColor: `${gradient.from}40`,
-              backgroundColor: `${gradient.from}18`,
-              color: gradient.text,
+              backgroundColor: isLight ? `${gradient.from}15` : `${gradient.from}18`,
+              color: isLight ? gradient.from : gradient.text,
             }}
           >
-            <Sparkles size={12} className="text-amber-300 fill-amber-300/20 animate-pulse" />
+            <Sparkles size={12} className={isLight ? "text-amber-500 fill-amber-500/20" : "text-amber-300 fill-amber-300/20 animate-pulse"} />
             {tool.tag}
           </span>
 
-          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400">
-            <BarChart3 size={13} className="text-indigo-400" />
+          <div className={`flex items-center gap-1 text-[11px] font-bold ${isLight ? "text-slate-500" : "text-slate-400"}`}>
+            <BarChart3 size={13} className={isLight ? "text-indigo-600" : "text-indigo-400"} />
             <span>{tool.stats}</span>
           </div>
         </div>
@@ -148,27 +155,35 @@ function AIToolCard({ tool }) {
         </div>
 
         {/* Title */}
-        <h3 className="relative z-10 mt-6 text-xl font-extrabold text-white font-satoshi group-hover:text-indigo-300 transition-colors leading-tight">
+        <h3 className={`relative z-10 mt-6 text-xl font-extrabold font-satoshi transition-colors leading-tight ${
+          isLight ? "text-slate-900 group-hover:text-indigo-600" : "text-white group-hover:text-indigo-300"
+        }`}>
           {tool.title}
         </h3>
 
         {/* Description */}
-        <p className="relative z-10 mt-2.5 text-xs sm:text-sm leading-relaxed text-slate-400 font-medium">
+        <p className={`relative z-10 mt-2.5 text-xs sm:text-sm leading-relaxed font-medium ${
+          isLight ? "text-slate-600" : "text-slate-400"
+        }`}>
           {tool.description}
         </p>
       </div>
 
       {/* Action Footer */}
-      <div className="relative z-10 mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-        <span className="text-xs font-bold text-slate-300 group-hover:text-white transition flex items-center gap-1">
-          <CheckCircle2 size={13} className="text-emerald-400" /> AI Intelligence Enabled
+      <div className={`relative z-10 mt-6 pt-4 border-t flex items-center justify-between ${
+        isLight ? "border-slate-100" : "border-white/10"
+      }`}>
+        <span className={`text-xs font-bold transition flex items-center gap-1 ${
+          isLight ? "text-slate-600 group-hover:text-slate-900" : "text-slate-300 group-hover:text-white"
+        }`}>
+          <CheckCircle2 size={13} className="text-emerald-500" /> AI Intelligence Enabled
         </span>
 
         <span
           className="inline-flex items-center gap-1.5 text-xs font-extrabold transition-all group-hover:translate-x-1"
-          style={{ color: gradient.text }}
+          style={{ color: isLight ? gradient.from : gradient.text }}
         >
-          Try Feature <ArrowRight size={14} />
+          Launch Tool <ArrowRight size={14} />
         </span>
       </div>
     </motion.div>
@@ -176,36 +191,42 @@ function AIToolCard({ tool }) {
 }
 
 /* ===========================
-    AIToolsShowcase Section
+    Main Component
 =========================== */
 export default function AIToolsShowcase() {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200">
-      {/* Background Mesh Glows */}
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
+      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    }`} aria-label="AI tools showcase">
+      {/* Background Lighting Mesh */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute right-0 top-0 h-[550px] w-[550px] rounded-full bg-purple-600/10 blur-[200px]" />
-        <div className="absolute left-0 bottom-0 h-[450px] w-[450px] rounded-full bg-indigo-600/10 blur-[180px]" />
+        <div className="absolute right-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-purple-600/5 blur-[200px]" />
       </div>
 
       <div className="section-container relative z-10">
-        {/* Section Header */}
         <SectionHeader
-          badge="AI Career Intelligence"
+          badge="Proprietary AI Suite"
           title={
             <>
-              Supercharge your <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Career Journey</span>
+              Supercharge Your Career with{" "}
+              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+                JobPortal AI
+              </span>
             </>
           }
-          subtitle="Leverage cutting-edge AI tools built directly into our platform to give your job applications an immediate competitive advantage."
+          subtitle="Everything you need to optimize your resume, practice technical interviews, and match with the top 1% tech opportunities."
         />
 
-        {/* Bento Grid — 2 columns */}
+        {/* 4 Cards Bento Grid */}
         <motion.div
-          className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:grid-cols-2 lg:grid-cols-2"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-40px" }}
+          className="mt-12 sm:mt-16 grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {AI_TOOLS_DATA.map((tool) => (
             <AIToolCard key={tool.id} tool={tool} />

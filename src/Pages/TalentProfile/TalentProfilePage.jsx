@@ -5,6 +5,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import Profile from "./Profile";
 import RecommendTalent from "./RecommendTalent";
 import { getTalentById, getMyTalentProfile } from "../../api/talentApi";
+import { getAssetUrl } from "../../utils/assetUtils";
 
 const getFullImageUrl = (rawPath, fallback) => {
   if (!rawPath) return fallback;
@@ -13,9 +14,9 @@ const getFullImageUrl = (rawPath, fallback) => {
   }
   const cleanPath = rawPath.startsWith("/") ? rawPath.slice(1) : rawPath;
   if (cleanPath.startsWith("uploads/")) {
-    return `http://localhost:8080/${cleanPath}`;
+    return getAssetUrl(cleanPath);
   }
-  return `http://localhost:8080/uploads/${cleanPath}`;
+  return getAssetUrl(`uploads/${cleanPath}`);
 };
 
 const mapBackendToProfile = (raw) => {

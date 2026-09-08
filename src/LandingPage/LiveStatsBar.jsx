@@ -22,50 +22,50 @@ import { useAppSelector } from "../State/Store";
 const STATS_DATA = [
   {
     id: "jobs",
-    badge: "Live Roles",
+    badge: "Live Openings",
     badgeColor: "bg-indigo-500/15 text-indigo-300 border-indigo-500/30",
     label: "Active Tech Roles",
-    value: "15,420+",
-    subtext: "140+ new roles added today",
+    value: "Explore All",
+    subtext: "Verified openings across tech stacks",
     icon: Briefcase,
     gradient: "from-indigo-500 to-purple-600",
     glow: "rgba(99, 102, 241, 0.22)",
     link: "/find-jobs",
   },
   {
-    id: "companies",
-    badge: "Enterprise",
-    badgeColor: "bg-purple-500/15 text-purple-300 border-purple-500/30",
-    label: "Verified Employers",
-    value: "3,280+",
-    subtext: "Google, Microsoft, Stripe & more",
-    icon: Building2,
-    gradient: "from-purple-500 to-pink-600",
-    glow: "rgba(168, 85, 247, 0.22)",
-    link: "/find-jobs",
-  },
-  {
     id: "precision",
-    badge: "Neural AI",
+    badge: "ATS AI Engine",
     badgeColor: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
     label: "AI Match Precision",
-    value: "98.4%",
-    subtext: "Semantic skill & ATS scoring",
+    value: "98% Fit",
+    subtext: "Semantic skill & keyword alignment",
     icon: Zap,
     gradient: "from-cyan-500 to-blue-600",
     glow: "rgba(6, 182, 212, 0.22)",
-    link: "/find-jobs",
+    link: "/career-hub/resume-analyzer",
   },
   {
-    id: "salary",
-    badge: "CTC Benchmark",
+    id: "interview",
+    badge: "Voice & Text",
+    badgeColor: "bg-purple-500/15 text-purple-300 border-purple-500/30",
+    label: "AI Mock Coach",
+    value: "Real-Time",
+    subtext: "Role-specific dynamic interview drills",
+    icon: Sparkles,
+    gradient: "from-purple-500 to-pink-600",
+    glow: "rgba(168, 85, 247, 0.22)",
+    link: "/mock-interview",
+  },
+  {
+    id: "pipeline",
+    badge: "Direct Connect",
     badgeColor: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
-    label: "Avg. Tech Package",
-    value: "₹18.5 LPA",
-    subtext: "+24% YoY salary growth",
+    label: "Direct Pipeline",
+    value: "< 48h",
+    subtext: "Fast feedback from verified recruiters",
     icon: TrendingUp,
     gradient: "from-emerald-500 to-teal-600",
-    glow: "rgba(16, 185, 129, 0.22)",
+    glow: "rgba(168, 85, 247, 0.22)",
     link: "/find-jobs",
   },
 ];
@@ -97,8 +97,8 @@ export default function LiveStatsBar() {
   const allJobs = useAppSelector((state) => state.job.allJobs);
   const liveJobCount =
     Array.isArray(allJobs) && allJobs.length > 0
-      ? `${allJobs.length.toLocaleString()}+`
-      : "15,420+";
+      ? `${allJobs.length.toLocaleString()} Openings`
+      : "Live Openings";
 
   return (
     <section className="relative z-20 py-6 sm:py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 font-inter">

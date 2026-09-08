@@ -28,29 +28,29 @@ export default function AchievementsForm({ achievements = [], onChange }) {
   };
 
   return (
-    <div className="space-y-6 font-satoshi text-white">
-      <div className="flex items-center justify-between pb-3 border-b border-white/10">
+    <div className="space-y-6 font-satoshi text-body">
+      <div className="flex items-center justify-between pb-3 border-b border-border">
         <div>
-          <h3 className="text-lg font-black text-white flex items-center gap-2">
-            <Trophy size={20} className="text-indigo-400" /> Honors & Achievements
+          <h3 className="text-lg font-black text-heading flex items-center gap-2">
+            <Trophy size={20} className="text-indigo-500 dark:text-indigo-400" /> Honors & Achievements
           </h3>
-          <p className="text-xs text-slate-400 font-medium">Hackathon wins, publications, patents, or company performance awards.</p>
+          <p className="text-xs text-muted font-medium">Hackathon wins, publications, patents, or company performance awards.</p>
         </div>
 
         <button
           onClick={handleAdd}
-          className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-md"
+          className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-md shadow-indigo-500/20"
         >
           <Plus size={14} /> Add Achievement
         </button>
       </div>
 
       {achievements.length === 0 ? (
-        <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/10 text-center space-y-3">
-          <p className="text-xs text-slate-400 font-medium">No achievements added yet.</p>
+        <div className="p-8 rounded-2xl bg-surface-hover border border-border text-center space-y-3">
+          <p className="text-xs text-muted font-medium">No achievements added yet.</p>
           <button
             onClick={handleAdd}
-            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-indigo-400 transition cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-surface-elevated hover:bg-surface-hover border border-border text-xs font-bold text-indigo-500 dark:text-indigo-400 transition cursor-pointer"
           >
             + Add Achievement
           </button>
@@ -58,15 +58,15 @@ export default function AchievementsForm({ achievements = [], onChange }) {
       ) : (
         <div className="space-y-4">
           {achievements.map((item, idx) => (
-            <div key={item.id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 space-y-3 relative">
+            <div key={item.id} className="p-4 rounded-2xl bg-surface-hover border border-border space-y-3 relative">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-indigo-400 uppercase tracking-wider">
+                <span className="text-xs font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-wider">
                   Achievement #{idx + 1}
                 </span>
 
                 <button
                   onClick={() => handleRemove(item.id)}
-                  className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition cursor-pointer"
+                  className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 transition cursor-pointer"
                   title="Remove Entry"
                 >
                   <Trash2 size={14} />
@@ -79,14 +79,14 @@ export default function AchievementsForm({ achievements = [], onChange }) {
                   value={item.title || ""}
                   onChange={(e) => handleUpdate(item.id, "title", e.target.value)}
                   placeholder="Achievement Title (e.g. Winner - National Hackathon 2024)"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition"
+                  className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-heading placeholder:text-muted/60 focus:outline-none focus:border-indigo-500 font-medium transition"
                 />
                 <input
                   type="text"
                   value={item.date || ""}
                   onChange={(e) => handleUpdate(item.id, "date", e.target.value)}
                   placeholder="Date (e.g. Feb 2024)"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition"
+                  className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-heading placeholder:text-muted/60 focus:outline-none focus:border-indigo-500 font-medium transition"
                 />
               </div>
 
@@ -95,7 +95,7 @@ export default function AchievementsForm({ achievements = [], onChange }) {
                 value={item.description || ""}
                 onChange={(e) => handleUpdate(item.id, "description", e.target.value)}
                 placeholder="Brief description of the honor or award..."
-                className="w-full p-3 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 font-medium transition"
+                className="w-full p-3 rounded-xl bg-surface border border-border text-xs text-heading placeholder:text-muted/60 focus:outline-none focus:border-indigo-500 font-medium transition"
               />
             </div>
           ))}

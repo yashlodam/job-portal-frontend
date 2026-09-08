@@ -13,21 +13,21 @@ export function RecentActivityWidget() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-satoshi text-base font-black text-white">
-          <Clock className="h-4 w-4 text-indigo-400" />
+        <CardTitle className="flex items-center gap-2 font-satoshi text-base font-black text-heading">
+          <Clock className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
           Recent Candidate Activity
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 pt-3">
         {totalApps === 0 ? (
           <div className="p-6 text-center space-y-2">
-            <Info size={28} className="text-slate-500 mx-auto" />
-            <p className="text-xs font-bold text-slate-300 font-satoshi">No Recent Candidate Activity</p>
-            <p className="text-[11px] text-slate-400">Candidate application events will appear here in real-time as users apply.</p>
+            <Info size={28} className="text-muted mx-auto" />
+            <p className="text-xs font-bold text-heading font-satoshi">No Recent Candidate Activity</p>
+            <p className="text-[11px] text-muted">Candidate application events will appear here in real-time as users apply.</p>
           </div>
         ) : (
-          <div className="p-4 rounded-2xl border border-white/5 bg-white/[0.02] text-xs text-slate-300 font-satoshi">
-            <span className="font-extrabold text-indigo-400">{totalApps} Candidate Applications</span> received across your posted positions.
+          <div className="p-4 rounded-2xl border border-border bg-surface-elevated text-xs text-body font-satoshi">
+            <span className="font-extrabold text-indigo-600 dark:text-indigo-400">{totalApps} Candidate Applications</span> received across your posted positions.
           </div>
         )}
       </CardContent>
@@ -50,16 +50,16 @@ export function HiringFunnelWidget() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-satoshi text-base font-black text-white">Hiring Funnel Overview</CardTitle>
+        <CardTitle className="font-satoshi text-base font-black text-heading">Hiring Funnel Overview</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 pt-3 font-satoshi">
         {funnel.map((item) => (
           <div key={item.stage} className="space-y-1">
             <div className="flex items-center justify-between text-xs font-semibold">
-              <span className="text-slate-300">{item.stage}</span>
-              <span className="text-white font-extrabold">{item.count} candidates</span>
+              <span className="text-muted">{item.stage}</span>
+              <span className="text-heading font-extrabold">{item.count} candidates</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden">
+            <div className="h-2 w-full rounded-full bg-surface-elevated overflow-hidden border border-border">
               <div className={`h-full rounded-full bg-gradient-to-r ${item.color}`} style={{ width: `${item.pct}%` }} />
             </div>
           </div>

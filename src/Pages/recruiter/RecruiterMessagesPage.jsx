@@ -39,6 +39,7 @@ import RecruiterLayout from "../../components/recruiter/layout/RecruiterLayout";
 import { useToast } from "../../components/ui/ToastNotification";
 import { useChat } from "../../hooks/useChat";
 import { useAppSelector } from "../../State/Store";
+import { getAssetUrl } from "../../utils/assetUtils";
 import { getOtherParticipant } from "../../api/chatApi";
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
@@ -72,7 +73,7 @@ function getProfileImageUrl(path) {
   if (!path) return null;
   if (path.startsWith("http")) return path;
   const clean = path.startsWith("/") ? path.slice(1) : path;
-  return `http://localhost:8080/${clean}`;
+  return getAssetUrl(clean);
 }
 
 function getInitial(name) {

@@ -28,9 +28,11 @@ export default function ResumeAnalyzerMain() {
   useEffect(() => {
     if (!initialFetchDone.current && !analysis && status === "idle") {
       initialFetchDone.current = true;
-      dispatch(fetchLatestAnalysisThunk(1));
+      if (currentResume?.id) {
+        dispatch(fetchLatestAnalysisThunk(currentResume.id));
+      }
     }
-  }, [dispatch, analysis, status]);
+  }, [dispatch, analysis, status, currentResume]);
 
   // Sync viewMode whenever analysis is successfully loaded on mount/analyze
   useEffect(() => {

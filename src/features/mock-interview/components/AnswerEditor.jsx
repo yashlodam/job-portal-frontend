@@ -25,14 +25,14 @@ export default function AnswerEditor({ value = "", onChange, placeholder = "Type
   };
 
   return (
-    <div className="rounded-3xl bg-[#090d16]/95 border border-white/10 overflow-hidden shadow-2xl backdrop-blur-2xl font-satoshi flex flex-col">
+    <div className="rounded-3xl bg-surface border border-border overflow-hidden shadow-xl backdrop-blur-2xl font-satoshi flex flex-col">
       {/* Formatting Toolbar */}
-      <div className="p-3 bg-white/[0.03] border-b border-white/10 flex items-center justify-between gap-4">
+      <div className="p-3 bg-surface-hover border-b border-border flex items-center justify-between gap-4">
         <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => insertFormatting("**", "**")}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-black transition cursor-pointer flex items-center gap-1"
+            className="p-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border text-body hover:text-heading text-xs font-black transition cursor-pointer flex items-center gap-1"
             title="Bold"
           >
             <Bold size={14} /> Bold
@@ -40,7 +40,7 @@ export default function AnswerEditor({ value = "", onChange, placeholder = "Type
           <button
             type="button"
             onClick={() => insertFormatting("\n```java\n", "\n```\n")}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-indigo-400 text-xs font-black transition cursor-pointer flex items-center gap-1"
+            className="p-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border text-indigo-500 dark:text-indigo-400 text-xs font-black transition cursor-pointer flex items-center gap-1"
             title="Code Block"
           >
             <Code size={14} /> Code Block
@@ -48,15 +48,15 @@ export default function AnswerEditor({ value = "", onChange, placeholder = "Type
           <button
             type="button"
             onClick={() => insertFormatting("\n- ")}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-black transition cursor-pointer flex items-center gap-1"
+            className="p-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border text-body hover:text-heading text-xs font-black transition cursor-pointer flex items-center gap-1"
             title="Bullet Point"
           >
             <List size={14} /> Bullet
           </button>
         </div>
 
-        <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
-          <span className="flex items-center gap-1 text-emerald-400">
+        <div className="flex items-center gap-3 text-xs text-muted font-medium">
+          <span className="flex items-center gap-1 text-emerald-500 dark:text-emerald-400">
             <CheckCircle2 size={12} /> Auto-Saved
           </span>
           <span>•</span>
@@ -71,13 +71,13 @@ export default function AnswerEditor({ value = "", onChange, placeholder = "Type
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={10}
-        className="w-full p-5 bg-transparent text-white text-sm sm:text-base font-mono leading-relaxed focus:outline-none resize-y placeholder:text-slate-600"
+        className="w-full p-5 bg-transparent text-heading text-sm sm:text-base font-mono leading-relaxed focus:outline-none resize-y placeholder:text-muted/60"
       />
 
       {/* Editor Footer */}
-      <div className="p-3 bg-white/[0.02] border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 font-medium px-5">
+      <div className="p-3 bg-surface-hover border-t border-border flex items-center justify-between text-[11px] text-muted font-medium px-5">
         <span className="flex items-center gap-1">
-          <FileText size={12} className="text-indigo-400" /> Structure: Technical Explanation + Code / Tradeoffs
+          <FileText size={12} className="text-indigo-500 dark:text-indigo-400" /> Structure: Technical Explanation + Code / Tradeoffs
         </span>
         <span>{charCount} Characters</span>
       </div>

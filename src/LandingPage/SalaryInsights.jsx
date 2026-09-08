@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import SectionHeader from "../components/SectionHeader";
+import { useTheme } from "../context/ThemeContext";
 
 const ROLES_DATA = [
   {
@@ -36,7 +37,7 @@ const ROLES_DATA = [
       { level: "Lead / Staff (8+ yrs)", salary: "₹40L – ₹65L" },
     ],
     topCities: ["Bengaluru", "Pune", "Hyderabad", "Remote"],
-    activeJobs: "3,420+ Openings",
+    activeJobs: "High Demand",
   },
   {
     id: "ai_ml",
@@ -52,7 +53,7 @@ const ROLES_DATA = [
       { level: "Lead / Staff (8+ yrs)", salary: "₹55L – ₹90L" },
     ],
     topCities: ["Bengaluru", "Hyderabad", "Mumbai", "Remote"],
-    activeJobs: "1,890+ Openings",
+    activeJobs: "Surging Demand",
   },
   {
     id: "frontend",
@@ -68,67 +69,54 @@ const ROLES_DATA = [
       { level: "Lead / Staff (8+ yrs)", salary: "₹35L – ₹50L" },
     ],
     topCities: ["Bengaluru", "Pune", "Noida", "Remote"],
-    activeJobs: "2,650+ Openings",
-  },
-  {
-    id: "backend",
-    role: "Backend / Java Engineer",
-    avgSalary: "₹19.4 LPA",
-    range: "₹11L – ₹35L",
-    growth: "+24% YoY",
-    description: "Enterprise demand for distributed systems, Spring Boot microservices, Kafka streaming, and Kubernetes.",
-    levels: [
-      { level: "Entry (0–2 yrs)", salary: "₹7L – ₹13L" },
-      { level: "Mid (2–5 yrs)", salary: "₹14L – ₹22L" },
-      { level: "Senior (5–8 yrs)", salary: "₹23L – ₹36L" },
-      { level: "Lead / Staff (8+ yrs)", salary: "₹38L – ₹58L" },
-    ],
-    topCities: ["Bengaluru", "Hyderabad", "Pune", "Chennai"],
-    activeJobs: "3,110+ Openings",
+    activeJobs: "High Demand",
   },
   {
     id: "devops",
     role: "DevOps & Cloud Architect",
-    avgSalary: "₹23.5 LPA",
-    range: "₹14L – ₹44L",
-    growth: "+26% YoY",
-    description: "Specialists in AWS, Azure, Terraform, CI/CD automation, site reliability engineering, and zero-trust security.",
+    avgSalary: "₹24.2 LPA",
+    range: "₹14L – ₹45L",
+    growth: "+32% YoY",
+    description: "Critical demand for Kubernetes, Terraform, AWS/GCP architecture, and CI/CD automated pipeline architects.",
     levels: [
-      { level: "Entry (0–2 yrs)", salary: "₹8L – ₹14L" },
-      { level: "Mid (2–5 yrs)", salary: "₹16L – ₹26L" },
-      { level: "Senior (5–8 yrs)", salary: "₹28L – ₹45L" },
-      { level: "Lead / Staff (8+ yrs)", salary: "₹46L – ₹70L" },
+      { level: "Entry (0–2 yrs)", salary: "₹10L – ₹15L" },
+      { level: "Mid (2–5 yrs)", salary: "₹18L – ₹28L" },
+      { level: "Senior (5–8 yrs)", salary: "₹30L – ₹45L" },
+      { level: "Lead / Staff (8+ yrs)", salary: "₹48L – ₹75L" },
     ],
-    topCities: ["Bengaluru", "Pune", "Mumbai", "Remote"],
-    activeJobs: "1,450+ Openings",
+    topCities: ["Bengaluru", "Hyderabad", "Pune", "Remote"],
+    activeJobs: "Critical Demand",
   },
   {
-    id: "design",
-    role: "Product UI/UX Designer",
-    avgSalary: "₹16.0 LPA",
-    range: "₹8L – ₹28L",
-    growth: "+19% YoY",
-    description: "Demand for design system architects, Figma component libraries, user research, and AI-first product interactions.",
+    id: "product_design",
+    role: "Product Designer (UI/UX)",
+    avgSalary: "₹18.0 LPA",
+    range: "₹10L – ₹34L",
+    growth: "+25% YoY",
+    description: "High demand for Figma design system architects, user research leads, and interaction designers.",
     levels: [
-      { level: "Entry (0–2 yrs)", salary: "₹6L – ₹10L" },
-      { level: "Mid (2–5 yrs)", salary: "₹11L – ₹18L" },
-      { level: "Senior (5–8 yrs)", salary: "₹19L – ₹30L" },
-      { level: "Lead / Staff (8+ yrs)", salary: "₹32L – ₹48L" },
+      { level: "Entry (0–2 yrs)", salary: "₹7L – ₹12L" },
+      { level: "Mid (2–5 yrs)", salary: "₹14L – ₹22L" },
+      { level: "Senior (5–8 yrs)", salary: "₹24L – ₹35L" },
+      { level: "Lead / Staff (8+ yrs)", salary: "₹38L – ₹55L" },
     ],
     topCities: ["Bengaluru", "Mumbai", "Delhi NCR", "Remote"],
-    activeJobs: "980+ Openings",
+    activeJobs: "Steady Growth",
   },
 ];
 
 export default function SalaryInsights() {
   const [selectedRole, setSelectedRole] = useState(ROLES_DATA[0]);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200" aria-label="Salary Insights">
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
+      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    }`} aria-label="Salary Insights">
       {/* Background Lighting */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute right-1/3 top-10 h-[500px] w-[500px] rounded-full bg-emerald-600/5 blur-[180px]" />
-        <div className="absolute left-10 bottom-10 h-[400px] w-[400px] rounded-full bg-indigo-600/10 blur-[160px]" />
       </div>
 
       <div className="section-container relative z-10">
@@ -137,7 +125,7 @@ export default function SalaryInsights() {
           title={
             <>
               Tech Salary &{" "}
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
                 Compensation Benchmarks
               </span>
             </>
@@ -157,11 +145,13 @@ export default function SalaryInsights() {
                 onClick={() => setSelectedRole(r)}
                 className={`relative px-4.5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 cursor-pointer ${
                   isSelected
-                    ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] scale-105"
-                    : "border border-white/10 bg-[#090d16]/90 text-slate-400 hover:text-white hover:border-white/20 hover:bg-[#0c111f]"
+                    ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 !text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] scale-105"
+                    : isLight
+                      ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-xs"
+                      : "border border-white/10 bg-[#090d16]/90 text-slate-400 hover:text-white hover:border-white/20 hover:bg-[#0c111f]"
                 }`}
               >
-                {r.role}
+                <span className={isSelected ? "!text-white" : ""}>{r.role}</span>
               </button>
             );
           })}
@@ -175,57 +165,75 @@ export default function SalaryInsights() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.4 }}
-            className="mt-8 rounded-3xl border border-white/10 bg-[#090d16]/95 p-6 sm:p-10 shadow-2xl backdrop-blur-2xl"
+            className={`mt-8 rounded-3xl border p-6 sm:p-10 shadow-2xl backdrop-blur-2xl ${
+              isLight
+                ? "border-slate-200 bg-white shadow-xl"
+                : "border-white/10 bg-[#090d16]/95"
+            }`}
           >
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Left Column: Top Metric Summary */}
               <div className="lg:col-span-5 space-y-6">
                 <div>
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-extrabold text-emerald-300">
-                    <TrendingUp size={13} className="text-emerald-400" />
+                  <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-extrabold ${
+                    isLight ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                  }`}>
+                    <TrendingUp size={13} className="text-emerald-500" />
                     <span>{selectedRole.growth} Demand Growth</span>
                   </div>
 
-                  <h3 className="mt-3 text-2xl sm:text-3xl font-black text-white font-satoshi">
+                  <h3 className={`mt-3 text-2xl sm:text-3xl font-black font-satoshi ${
+                    isLight ? "text-slate-900" : "text-white"
+                  }`}>
                     {selectedRole.role}
                   </h3>
 
-                  <p className="mt-2 text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
+                  <p className={`mt-2 text-xs sm:text-sm font-medium leading-relaxed ${
+                    isLight ? "text-slate-600" : "text-slate-400"
+                  }`}>
                     {selectedRole.description}
                   </p>
                 </div>
 
                 {/* Salary KPI Box */}
-                <div className="rounded-2xl border border-white/10 bg-[#070b14] p-5 space-y-3">
+                <div className={`rounded-2xl border p-5 space-y-3 ${
+                  isLight ? "border-slate-200 bg-slate-50" : "border-white/10 bg-[#070b14]"
+                }`}>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <span className={`text-xs font-bold uppercase tracking-wider ${isLight ? "text-slate-500" : "text-slate-400"}`}>
                       Average Market Package
                     </span>
-                    <span className="text-xs font-extrabold text-indigo-400">{selectedRole.activeJobs}</span>
+                    <span className={`text-xs font-extrabold ${isLight ? "text-indigo-600" : "text-indigo-400"}`}>{selectedRole.activeJobs}</span>
                   </div>
 
-                  <div className="text-3xl sm:text-4xl font-black text-white font-satoshi text-emerald-400 tracking-tight">
+                  <div className="text-3xl sm:text-4xl font-black font-satoshi text-emerald-600 dark:text-emerald-400 tracking-tight">
                     {selectedRole.avgSalary}
                   </div>
 
-                  <div className="text-xs text-slate-400 flex items-center justify-between border-t border-white/10 pt-2.5">
+                  <div className={`text-xs flex items-center justify-between border-t pt-2.5 ${
+                    isLight ? "border-slate-200 text-slate-600" : "border-white/10 text-slate-400"
+                  }`}>
                     <span>Typical Range:</span>
-                    <span className="font-bold text-white">{selectedRole.range}</span>
+                    <span className={`font-bold ${isLight ? "text-slate-900" : "text-white"}`}>{selectedRole.range}</span>
                   </div>
                 </div>
 
                 {/* Top Hiring Hubs */}
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                  <span className={`text-xs font-bold uppercase tracking-wider block ${isLight ? "text-slate-500" : "text-slate-400"}`}>
                     Top Hiring Hubs
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {selectedRole.topCities.map((city) => (
                       <span
                         key={city}
-                        className="inline-flex items-center gap-1 rounded-xl bg-white/5 border border-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300"
+                        className={`inline-flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-semibold ${
+                          isLight
+                            ? "border-slate-200 bg-slate-100 text-slate-700"
+                            : "bg-white/5 border-white/5 text-slate-300"
+                        }`}
                       >
-                        <MapPin size={12} className="text-indigo-400" />
+                        <MapPin size={12} className={isLight ? "text-indigo-600" : "text-indigo-400"} />
                         {city}
                       </span>
                     ))}
@@ -234,42 +242,50 @@ export default function SalaryInsights() {
 
                 <Link
                   to={`/find-jobs?keyword=${encodeURIComponent(selectedRole.role)}`}
-                  className="inline-flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 py-3.5 text-xs font-extrabold text-white shadow-lg hover:scale-105 transition cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 py-3.5 text-xs font-extrabold !text-white shadow-lg hover:scale-105 transition cursor-pointer"
                 >
-                  <span>Explore {selectedRole.role} Jobs</span>
-                  <ArrowRight size={15} />
+                  <span className="!text-white">Explore {selectedRole.role} Jobs</span>
+                  <ArrowRight size={15} className="!text-white" />
                 </Link>
               </div>
 
               {/* Right Column: Experience Level Breakdown */}
               <div className="lg:col-span-7 space-y-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block font-satoshi">
+                <span className={`text-xs font-bold uppercase tracking-wider block font-satoshi ${
+                  isLight ? "text-slate-500" : "text-slate-400"
+                }`}>
                   Experience Level Breakdown (Annual CTC)
                 </span>
 
                 <div className="space-y-3">
-                  {selectedRole.levels.map((lvl, idx) => (
+                  {selectedRole.levels.map((lvl, index) => (
                     <div
                       key={lvl.level}
-                      className="rounded-2xl border border-white/10 bg-[#070b14]/90 p-4.5 sm:p-5 flex items-center justify-between transition hover:border-indigo-500/40 hover:bg-[#0c1122]"
+                      className={`flex items-center justify-between rounded-2xl border p-4 transition-colors ${
+                        isLight
+                          ? "border-slate-200 bg-slate-50 hover:bg-indigo-50/40 hover:border-indigo-200"
+                          : "border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10"
+                      }`}
                     >
-                      <div className="flex items-center gap-3.5">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-300 font-extrabold text-xs font-mono">
-                          0{idx + 1}
-                        </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`flex h-8 w-8 items-center justify-center rounded-xl border text-xs font-black ${
+                          isLight ? "border-slate-200 bg-white text-indigo-600" : "border-white/10 bg-white/5 text-indigo-400"
+                        }`}>
+                          L{index + 1}
+                        </span>
                         <div>
-                          <h5 className="text-xs sm:text-sm font-bold text-white font-satoshi">
+                          <h5 className={`text-xs sm:text-sm font-bold font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}>
                             {lvl.level}
                           </h5>
-                          <span className="text-[10px] text-slate-500 font-semibold">Verified Market Baseline</span>
+                          <span className={`text-[10px] font-semibold ${isLight ? "text-slate-400" : "text-slate-500"}`}>Verified Market Baseline</span>
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <span className="text-sm sm:text-base font-black text-emerald-400 font-satoshi">
+                        <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 font-satoshi">
                           {lvl.salary}
                         </span>
-                        <span className="block text-[10px] font-bold text-slate-400">Fixed + Bonus</span>
+                        <span className={`block text-[10px] font-bold ${isLight ? "text-slate-400" : "text-slate-400"}`}>Fixed + Bonus</span>
                       </div>
                     </div>
                   ))}

@@ -24,7 +24,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ACCENT_GRADIENT = "linear-gradient(135deg, #38BDF8 0%, #3B82F6 55%, #1D4ED8 100%)";
 
 const INPUT_CLASSES =
-    "w-full rounded-xl border border-white/10 bg-white/5 py-4 text-white placeholder:text-slate-500 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-400/20 disabled:opacity-60";
+    "w-full rounded-xl border border-border bg-surface text-heading placeholder:text-muted py-4 px-4 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 disabled:opacity-60";
 
 function ResetPassword() {
     const navigate = useNavigate();
@@ -185,20 +185,19 @@ function ResetPassword() {
     };
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-[#0B1220] flex items-center justify-center px-6 py-10 font-[Inter,sans-serif]">
+        <div className="relative min-h-screen overflow-hidden bg-background flex items-center justify-center px-6 py-10 font-[Inter,sans-serif]">
 
-            {/* Ambient glow — light blue top-left fading into a deeper navy-blue
-                bottom-right, so the backdrop itself carries the light→dark blue story. */}
+            {/* Ambient glow */}
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -top-32 -left-20 h-96 w-96 rounded-full bg-sky-400/40 blur-[120px]"
+                className="pointer-events-none absolute -top-32 -left-20 h-96 w-96 rounded-full bg-sky-500/15 blur-[120px]"
             />
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-blue-900/50 blur-[120px]"
+                className="pointer-events-none absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-blue-600/15 blur-[120px]"
             />
 
-            <div className="relative w-full max-w-lg rounded-3xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-2xl shadow-[0_25px_80px_rgba(0,0,0,0.45)] overflow-hidden">
+            <div className="relative w-full max-w-lg rounded-3xl border border-border bg-surface backdrop-blur-2xl shadow-[0_25px_80px_rgba(0,0,0,0.25)] overflow-hidden">
 
                 {/* Top accent */}
                 <div className="h-1.5" style={{ background: ACCENT_GRADIENT }} />
@@ -211,16 +210,16 @@ function ResetPassword() {
                             className="flex h-16 w-16 items-center justify-center rounded-full shadow-lg shadow-blue-500/20"
                             style={{ background: ACCENT_GRADIENT }}
                         >
-                            <ShieldCheck size={30} className="text-[#0B1220]" />
+                            <ShieldCheck size={30} className="text-white" />
                         </div>
                     </div>
 
                     {/* Heading */}
-                    <h1 className="mt-6 text-center font-serif text-3xl text-white">
+                    <h1 className="mt-6 text-center font-satoshi font-extrabold text-3xl text-heading">
                         Reset your password
                     </h1>
 
-                    <p className="mt-2 text-center text-sm text-slate-400">
+                    <p className="mt-2 text-center text-sm text-muted">
                         Securely recover access to your JobPortal AI account.
                     </p>
 
@@ -229,14 +228,14 @@ function ResetPassword() {
                         {/* Email */}
                         <div>
                             <div className="mb-2 flex items-center justify-between">
-                                <label htmlFor="email" className="text-sm text-slate-300">
+                                <label htmlFor="email" className="text-sm font-semibold text-heading">
                                     Email address
                                 </label>
                                 {otpSent && (
                                     <button
                                         type="button"
                                         onClick={handleChangeEmail}
-                                        className="flex items-center gap-1 text-xs font-medium text-sky-400 hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 rounded"
+                                        className="flex items-center gap-1 text-xs font-medium text-sky-500 hover:text-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 rounded"
                                     >
                                         <Pencil size={12} />
                                         Change
@@ -245,7 +244,7 @@ function ResetPassword() {
                             </div>
 
                             <div className="relative">
-                                <Mail size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                                <Mail size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                                 <input
                                     id="email"
                                     type="email"
@@ -274,7 +273,7 @@ function ResetPassword() {
                             <>
                                 {/* OTP */}
                                 <div>
-                                    <label htmlFor="otp" className="mb-2 block text-sm text-slate-300">
+                                    <label htmlFor="otp" className="mb-2 block text-sm font-semibold text-heading">
                                         Verification code
                                     </label>
 
@@ -289,7 +288,7 @@ function ResetPassword() {
                                         onChange={handleOtpChange}
                                         placeholder="123456"
                                         maxLength={6}
-                                        className={`${INPUT_CLASSES} text-center text-2xl tracking-[10px] placeholder:text-slate-600`}
+                                        className={`${INPUT_CLASSES} text-center text-2xl tracking-[10px] placeholder:text-muted`}
                                     />
 
                                     <div className="mt-2 text-center">
@@ -297,7 +296,7 @@ function ResetPassword() {
                                             type="button"
                                             onClick={handleSendOtp}
                                             disabled={resendCooldown > 0 || loading}
-                                            className="text-xs font-medium text-slate-400 transition hover:text-sky-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="text-xs font-medium text-muted transition hover:text-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             {resendCooldown > 0
                                                 ? `Resend code in ${resendCooldown}s`
@@ -308,12 +307,12 @@ function ResetPassword() {
 
                                 {/* New password */}
                                 <div>
-                                    <label htmlFor="newPassword" className="mb-2 block text-sm text-slate-300">
+                                    <label htmlFor="newPassword" className="mb-2 block text-sm font-semibold text-heading">
                                         New password
                                     </label>
 
                                     <div className="relative">
-                                        <Lock size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                                        <Lock size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                                         <input
                                             id="newPassword"
                                             type={showPassword ? "text" : "password"}
@@ -328,24 +327,24 @@ function ResetPassword() {
                                             type="button"
                                             onClick={() => setShowPassword((v) => !v)}
                                             aria-label={showPassword ? "Hide password" : "Show password"}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 rounded"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 rounded"
                                         >
                                             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                         </button>
                                     </div>
-                                    <p className="mt-1.5 text-xs text-slate-500">
+                                    <p className="mt-1.5 text-xs text-muted">
                                         At least {MIN_PASSWORD_LENGTH} characters.
                                     </p>
                                 </div>
 
                                 {/* Confirm password */}
                                 <div>
-                                    <label htmlFor="confirmPassword" className="mb-2 block text-sm text-slate-300">
+                                    <label htmlFor="confirmPassword" className="mb-2 block text-sm font-semibold text-heading">
                                         Confirm password
                                     </label>
 
                                     <div className="relative">
-                                        <Lock size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                                        <Lock size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                                         <input
                                             id="confirmPassword"
                                             type={showConfirm ? "text" : "password"}
@@ -360,7 +359,7 @@ function ResetPassword() {
                                             type="button"
                                             onClick={() => setShowConfirm((v) => !v)}
                                             aria-label={showConfirm ? "Hide password" : "Show password"}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 rounded"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 rounded"
                                         >
                                             {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
                                         </button>
@@ -388,7 +387,7 @@ function ResetPassword() {
                     <div className="mt-8 flex justify-center">
                         <Link
                             to="/auth"
-                            className="flex items-center gap-2 text-sm text-slate-400 transition hover:text-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60 rounded"
+                            className="flex items-center gap-2 text-sm text-muted transition hover:text-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 rounded"
                         >
                             <ArrowLeft size={16} />
                             Back to login

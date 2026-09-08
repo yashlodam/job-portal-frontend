@@ -76,12 +76,16 @@ const cardVariants = {
   exit: { opacity: 0, scale: 0.96, transition: { duration: 0.2 } },
 };
 
+import { useTheme } from "../context/ThemeContext";
+
 /* ===========================
    Card Component
 =========================== */
 function CategoryCard({ item, activeParam, variants }) {
   const Icon = item.icon || Code2;
   const gradient = item.gradient || GRADIENTS[0];
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   return (
     <MotionLink
@@ -89,7 +93,11 @@ function CategoryCard({ item, activeParam, variants }) {
       variants={variants}
       whileHover={{ y: -6, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="group relative flex min-h-[170px] flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-[#090d16]/90 p-6 backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)] cursor-pointer"
+      className={`group relative flex min-h-[170px] flex-col justify-between overflow-hidden rounded-3xl border p-6 backdrop-blur-xl transition-all duration-300 cursor-pointer ${
+        isLight
+          ? "border-slate-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-xl"
+          : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
+      }`}
     >
       {/* Glow Wash effect on hover */}
       <div
@@ -103,7 +111,9 @@ function CategoryCard({ item, activeParam, variants }) {
       <div className="relative z-10 flex items-start justify-between gap-3">
         {/* Icon Badge Container */}
         <div
-          className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl border border-white/10 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:border-white/20"
+          className={`flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl border shadow-md transition-all duration-300 group-hover:scale-110 ${
+            isLight ? "border-slate-200/80" : "border-white/10 group-hover:border-white/20"
+          }`}
           style={{
             background: `linear-gradient(135deg, ${gradient.from}25, ${gradient.to}15)`,
           }}
@@ -116,7 +126,11 @@ function CategoryCard({ item, activeParam, variants }) {
 
         {/* Arrow Badge */}
         <span
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 transition-all duration-300 group-hover:border-indigo-500/40 group-hover:bg-indigo-500/20 group-hover:text-white group-hover:translate-x-0.5"
+          className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-300 group-hover:translate-x-0.5 ${
+            isLight
+              ? "border-slate-200 bg-slate-100 text-slate-600 group-hover:border-indigo-300 group-hover:bg-indigo-50 group-hover:text-indigo-600"
+              : "border-white/10 bg-white/5 text-slate-400 group-hover:border-indigo-500/40 group-hover:bg-indigo-500/20 group-hover:text-white"
+          }`}
         >
           <ArrowRight size={16} />
         </span>
@@ -124,7 +138,9 @@ function CategoryCard({ item, activeParam, variants }) {
 
       {/* Title & Job Count */}
       <div className="relative z-10 mt-6">
-        <h3 className="text-base font-extrabold text-white font-satoshi group-hover:text-indigo-300 transition-colors leading-tight">
+        <h3 className={`text-base font-extrabold font-satoshi transition-colors leading-tight ${
+          isLight ? "text-slate-900 group-hover:text-indigo-600" : "text-white group-hover:text-indigo-300"
+        }`}>
           {item.title}
         </h3>
         <div className="mt-2 flex items-center justify-between">
@@ -132,13 +148,13 @@ function CategoryCard({ item, activeParam, variants }) {
             className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-extrabold border"
             style={{
               borderColor: `${gradient.from}40`,
-              backgroundColor: gradient.badgeBg,
-              color: gradient.text,
+              backgroundColor: isLight ? `${gradient.from}15` : gradient.badgeBg,
+              color: isLight ? gradient.from : gradient.text,
             }}
           >
             {item.jobs}
           </span>
-          <span className="text-[11px] text-slate-500 font-medium group-hover:text-slate-400 transition">
+          <span className={`text-[11px] font-medium transition ${isLight ? "text-slate-500 group-hover:text-indigo-600" : "text-slate-500 group-hover:text-slate-400"}`}>
             Explore →
           </span>
         </div>
@@ -154,6 +170,8 @@ export default function JobCategory() {
   const [activeTab, setActiveTab] = useState("category");
   const prefersReducedMotion = useReducedMotion();
   const tabPanelId = useId();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   const categoriesState = useAppSelector((state) => state.job.categories);
   const workModesState = useAppSelector((state) => state.job.workModes);
@@ -194,27 +212,21 @@ export default function JobCategory() {
   const activeTabMeta = TABS.find((tab) => tab.key === activeTab) ?? TABS[0];
 
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200">
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
+      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    }`}>
       {/* ── Background Ambient Lighting & Mesh Orbs ── */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-10 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-indigo-600/10 blur-[180px]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute right-0 top-1/3 h-[400px] w-[400px] rounded-full bg-purple-600/10 blur-[160px]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute left-0 bottom-10 h-[350px] w-[350px] rounded-full bg-pink-600/5 blur-[150px]"
+        className="pointer-events-none absolute left-1/2 top-10 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-indigo-600/5 blur-[180px]"
       />
 
       {/* Dot Grid Backdrop */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        className={`pointer-events-none absolute inset-0 ${isLight ? "opacity-[0.03]" : "opacity-[0.025]"}`}
         style={{
-          backgroundImage: "radial-gradient(circle, #A5B4FC 1px, transparent 1px)",
+          backgroundImage: isLight ? "radial-gradient(circle, #6366F1 1px, transparent 1px)" : "radial-gradient(circle, #A5B4FC 1px, transparent 1px)",
           backgroundSize: "32px 32px",
         }}
       />
@@ -224,7 +236,7 @@ export default function JobCategory() {
           badge="Career Discovery"
           title={
             <>
-              Browse <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Job Categories</span>
+              Browse <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">Job Categories</span>
             </>
           }
           subtitle="Discover high-demand opportunities across top industries, flexible work arrangements, and specialized engineering domains."
@@ -241,7 +253,9 @@ export default function JobCategory() {
           <div
             role="tablist"
             aria-label="Browse categories or work modes"
-            className="flex w-full max-w-[360px] items-center gap-2 rounded-2xl border border-white/10 bg-[#090d16]/90 p-1.5 backdrop-blur-xl shadow-2xl"
+            className={`flex w-full max-w-[360px] items-center gap-2 rounded-2xl border p-1.5 backdrop-blur-xl ${
+              isLight ? "border-slate-200 bg-white shadow-md" : "border-white/10 bg-[#090d16]/90 shadow-2xl"
+            }`}
           >
             {TABS.map((tab) => {
               const isActive = activeTab === tab.key;
@@ -255,7 +269,11 @@ export default function JobCategory() {
                   aria-controls={`${tabPanelId}-panel`}
                   onClick={() => setActiveTab(tab.key)}
                   className={`relative flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-xl px-4 text-xs font-extrabold transition-all duration-300 cursor-pointer ${
-                    isActive ? "text-white shadow-lg" : "text-slate-400 hover:text-white"
+                    isActive
+                      ? "!text-white shadow-lg"
+                      : isLight
+                        ? "text-slate-600 hover:text-slate-900"
+                        : "text-slate-400 hover:text-white"
                   }`}
                 >
                   {isActive && (
@@ -266,7 +284,7 @@ export default function JobCategory() {
                     />
                   )}
                   <span className="relative z-10 flex items-center gap-1.5">
-                    {tab.key === "category" && <Sparkles size={14} className={isActive ? "text-amber-300 animate-pulse" : ""} />}
+                    {tab.key === "category" && <Sparkles size={14} className={isActive ? "!text-white" : "text-amber-500"} />}
                     {tab.label}
                   </span>
                 </button>

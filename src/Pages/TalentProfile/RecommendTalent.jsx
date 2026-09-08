@@ -20,7 +20,7 @@ function RecommendTalent({ currentId }) {
       } catch (err) {
         console.error("Error loading candidate recommendations:", err);
         if (isMounted) setRecommended([]);
-      } fontFinally: {
+      } finally {
         if (isMounted) setLoading(false);
       }
     };
@@ -31,10 +31,10 @@ function RecommendTalent({ currentId }) {
   if (loading) {
     return (
       <div className="w-full">
-        <h3 className="text-[15px] font-black font-satoshi text-white mb-4">
+        <h3 className="text-[15px] font-black font-satoshi text-heading mb-4">
           Recommended Talent
         </h3>
-        <div className="p-4 text-xs text-slate-400 font-satoshi border border-white/5 rounded-xl bg-white/[0.02]">
+        <div className="p-4 text-xs text-muted font-satoshi border border-border rounded-xl bg-surface">
           Loading candidate suggestions…
         </div>
       </div>
@@ -47,7 +47,7 @@ function RecommendTalent({ currentId }) {
 
   return (
     <div className="w-full">
-      <h3 className="text-[15px] font-black font-satoshi text-white mb-4">
+      <h3 className="text-[15px] font-black font-satoshi text-heading mb-4">
         Recommended Talent
       </h3>
       <div className="flex flex-col gap-4">

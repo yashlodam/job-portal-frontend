@@ -34,6 +34,7 @@ import { applyToJobThunk } from "../State/applicationThunk";
 import { getJobById } from "../State/JobSlice";
 import { fetchProfileByEmailThunk } from "../State/profileThunk";
 import { fetchMyResumesThunk, uploadResumeThunk } from "../State/resumeThunk";
+import { getAssetUrl } from "../utils/assetUtils";
 
 /* ─── Helpers ─── */
 function humanise(str) {
@@ -299,9 +300,9 @@ export default function ApplyJobComp() {
   }
 
   const logoSrc = activeJob?.companyLogo
-    ? activeJob.companyLogo.startsWith("http")
-      ? activeJob.companyLogo
-      : `http://localhost:8080/uploads/company/${activeJob.companyLogo}`
+    ? getAssetUrl(activeJob.companyLogo.startsWith("http")
+        ? activeJob.companyLogo
+        : `/uploads/company/${activeJob.companyLogo}`)
     : null;
 
   return (

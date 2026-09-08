@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import SectionHeader from "../components/SectionHeader";
+import { useTheme } from "../context/ThemeContext";
 
 const STEPS = [
   {
@@ -33,18 +34,18 @@ const STEPS = [
     icon: FileText,
     gradient: "from-indigo-500 to-purple-600",
     badge: "ATS Indexed",
-    badgeColor: "text-indigo-400 border-indigo-500/30 bg-indigo-500/10",
+    badgeColor: "text-indigo-600 border-indigo-200 bg-indigo-50 dark:text-indigo-400 dark:border-indigo-500/30 dark:bg-indigo-500/10",
     metrics: "Parses 40+ Tech Formats",
   },
   {
     step: "02",
     title: "Neural AI Match & Fit Analysis",
     description:
-      "Our matching algorithm compares your profile against 15,000+ live jobs, calculating real-time 0–100% Match Scores and highlighting missing high-value skills.",
+      "Our matching algorithm compares your profile against live verified job postings, calculating real-time 0–100% Match Scores and highlighting missing high-value skills.",
     icon: Zap,
     gradient: "from-cyan-500 to-blue-600",
     badge: "98% Accuracy",
-    badgeColor: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
+    badgeColor: "text-cyan-600 border-cyan-200 bg-cyan-50 dark:text-cyan-400 dark:border-cyan-500/30 dark:bg-cyan-500/10",
     metrics: "Instant Skill Gap Report",
   },
   {
@@ -55,7 +56,7 @@ const STEPS = [
     icon: CheckCircle2,
     gradient: "from-emerald-500 to-teal-600",
     badge: "Zero Ghosting",
-    badgeColor: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
+    badgeColor: "text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-500/30 dark:bg-emerald-500/10",
     metrics: "Direct Recruiter Chat",
   },
 ];
@@ -80,13 +81,16 @@ const cardVariants = {
 
 export default function HowItWorks() {
   const [activePreview, setActivePreview] = useState(1);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200" aria-label="How it works">
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
+      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    }`} aria-label="How it works">
       {/* Ambient background orbs */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/3 top-1/4 h-[550px] w-[550px] -translate-x-1/2 rounded-full bg-indigo-600/10 blur-[200px]" />
-        <div className="absolute right-10 bottom-10 h-[450px] w-[450px] rounded-full bg-purple-600/10 blur-[180px]" />
+        <div className="absolute left-1/3 top-1/4 h-[550px] w-[550px] -translate-x-1/2 rounded-full bg-indigo-600/5 blur-[200px]" />
       </div>
 
       <div className="section-container relative z-10">
@@ -95,7 +99,7 @@ export default function HowItWorks() {
           title={
             <>
               How Our AI Matches You to{" "}
-              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
                 Dream Roles
               </span>
             </>
@@ -119,10 +123,16 @@ export default function HowItWorks() {
                 key={stepItem.step}
                 variants={cardVariants}
                 whileHover={{ y: -6, scale: 1.01 }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-[#090d16]/90 p-7 sm:p-8 backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-7 sm:p-8 backdrop-blur-xl transition-all duration-300 cursor-pointer ${
+                  isLight
+                    ? "border-slate-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-xl"
+                    : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
+                }`}
               >
                 {/* Step Number Watermark */}
-                <span className="absolute top-4 right-6 text-5xl font-black text-white/5 font-satoshi select-none pointer-events-none group-hover:text-indigo-500/10 transition-colors">
+                <span className={`absolute top-4 right-6 text-5xl font-black font-satoshi select-none pointer-events-none transition-colors ${
+                  isLight ? "text-slate-100 group-hover:text-indigo-50" : "text-white/5 group-hover:text-indigo-500/10"
+                }`}>
                   {stepItem.step}
                 </span>
 
@@ -144,22 +154,28 @@ export default function HowItWorks() {
                   </div>
 
                   {/* Title & Description */}
-                  <h3 className="mt-6 text-lg sm:text-xl font-extrabold text-white font-satoshi group-hover:text-indigo-300 transition-colors leading-snug">
+                  <h3 className={`mt-6 text-lg sm:text-xl font-extrabold font-satoshi transition-colors leading-snug ${
+                    isLight ? "text-slate-900 group-hover:text-indigo-600" : "text-white group-hover:text-indigo-300"
+                  }`}>
                     {stepItem.title}
                   </h3>
 
-                  <p className="mt-3 text-xs sm:text-sm leading-relaxed text-slate-400 font-medium">
+                  <p className={`mt-3 text-xs sm:text-sm leading-relaxed font-medium ${
+                    isLight ? "text-slate-600" : "text-slate-400"
+                  }`}>
                     {stepItem.description}
                   </p>
                 </div>
 
                 {/* Footer Metric */}
-                <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-300 flex items-center gap-1.5">
-                    <CheckCircle2 size={14} className="text-emerald-400" />
+                <div className={`mt-6 pt-4 border-t flex items-center justify-between text-xs ${
+                  isLight ? "border-slate-100" : "border-white/10"
+                }`}>
+                  <span className={`font-bold flex items-center gap-1.5 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
+                    <CheckCircle2 size={14} className="text-emerald-500" />
                     {stepItem.metrics}
                   </span>
-                  <span className="text-slate-500 font-extrabold font-mono text-[11px]">
+                  <span className={`font-extrabold font-mono text-[11px] ${isLight ? "text-slate-400" : "text-slate-500"}`}>
                     STEP {stepItem.step}
                   </span>
                 </div>
@@ -174,27 +190,31 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-12 sm:mt-16 rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-[#0c1122] via-[#090d16] to-[#05070d] p-6 sm:p-10 shadow-2xl backdrop-blur-2xl relative overflow-hidden"
+          className={`mt-12 sm:mt-16 rounded-3xl border p-6 sm:p-10 shadow-2xl backdrop-blur-2xl relative overflow-hidden ${
+            isLight
+              ? "border-indigo-100 bg-white shadow-xl"
+              : "border-indigo-500/30 bg-gradient-to-br from-[#0c1122] via-[#090d16] to-[#05070d]"
+          }`}
         >
-          {/* Subtle Ambient Radial Wash */}
-          <div
-            className="pointer-events-none absolute -top-24 right-0 h-80 w-80 rounded-full"
-            style={{ background: "rgba(99,102,241,0.15)", filter: "blur(90px)" }}
-          />
-
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
             {/* Left: Explanatory Copy */}
             <div className="lg:col-span-6 space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-extrabold text-emerald-300">
-                <Cpu size={14} className="text-emerald-400" />
+              <div className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1 text-xs font-extrabold ${
+                isLight ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+              }`}>
+                <Cpu size={14} className="text-emerald-500" />
                 <span>Live AI Match Engine Demo</span>
               </div>
 
-              <h4 className="text-2xl sm:text-3xl font-black text-white font-satoshi tracking-tight leading-tight">
+              <h4 className={`text-2xl sm:text-3xl font-black font-satoshi tracking-tight leading-tight ${
+                isLight ? "text-slate-900" : "text-white"
+              }`}>
                 See How Your Resume Scores in Real Time
               </h4>
 
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+              <p className={`text-xs sm:text-sm leading-relaxed font-medium ${
+                isLight ? "text-slate-600" : "text-slate-300"
+              }`}>
                 Our embedding engine evaluates semantic fit across tech competencies, required years of experience, and project complexity — giving you clarity before you apply.
               </p>
 

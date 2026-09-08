@@ -33,7 +33,7 @@ function SectionHeader({ badge, title, subtitle, className = "" }) {
           font-extrabold
           leading-[1.15]
           tracking-[-0.025em]
-          text-[#F1F5F9]
+          text-heading
           sm:text-4xl
           md:text-5xl
         "
@@ -63,7 +63,7 @@ function SectionHeader({ badge, title, subtitle, className = "" }) {
             text-center
             text-sm
             leading-6
-            text-[#94A3B8]
+            text-body
             sm:mt-5
             sm:text-base
             sm:leading-7

@@ -8,13 +8,15 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, MapPin, Bookmark, BookmarkCheck, Sparkles, Briefcase, Clock, ShieldCheck } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, MapPin, Bookmark, BookmarkCheck, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { featuredJobs as fallbackJobs } from "../Data/Data";
 import SectionHeader from "../components/SectionHeader";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { getAllJobs } from "../State/JobSlice";
 import { saveJobThunk, unsaveJobThunk } from "../State/savedJobThunk";
+import { useTheme } from "../context/ThemeContext";
+import { getAssetUrl } from "../utils/assetUtils";
 
 /* ===========================
    Animation Variants
@@ -41,9 +43,9 @@ const cardVariants = {
    Working Mode Badges
 =========================== */
 const modeBadge = {
-  REMOTE: { bg: "rgba(6, 182, 212, 0.15)", text: "#22D3EE", border: "rgba(6, 182, 212, 0.30)", label: "Remote" },
-  HYBRID: { bg: "rgba(139, 92, 246, 0.15)", text: "#A78BFA", border: "rgba(139, 92, 246, 0.30)", label: "Hybrid" },
-  ON_SITE: { bg: "rgba(245, 158, 11, 0.15)", text: "#FBBF24", border: "rgba(245, 158, 11, 0.30)", label: "On Site" },
+  REMOTE: { bg: "rgba(6, 182, 212, 0.15)", text: "#22D3EE", lightText: "#0891B2", lightBg: "rgba(6, 182, 212, 0.10)", border: "rgba(6, 182, 212, 0.30)", label: "Remote" },
+  HYBRID: { bg: "rgba(139, 92, 246, 0.15)", text: "#A78BFA", lightText: "#7C3AED", lightBg: "rgba(139, 92, 246, 0.10)", border: "rgba(139, 92, 246, 0.30)", label: "Hybrid" },
+  ON_SITE: { bg: "rgba(245, 158, 11, 0.15)", text: "#FBBF24", lightText: "#D97706", lightBg: "rgba(245, 158, 11, 0.10)", border: "rgba(245, 158, 11, 0.30)", label: "On Site" },
 };
 
 /* ===========================
@@ -53,6 +55,8 @@ function JobCard({ job }) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [logoError, setLogoError] = useState(false);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   const { savedJobIds } = useAppSelector((state) => state.savedJob);
   const isSaved = savedJobIds.includes(Number(job.id));
@@ -91,7 +95,11 @@ function JobCard({ job }) {
       variants={cardVariants}
       whileHover={{ y: -6, scale: 1.01 }}
       onClick={() => navigate(`/jobs/${job.id}`)}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-[#090d16]/90 p-6 backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)] cursor-pointer"
+      className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-6 backdrop-blur-xl transition-all duration-300 cursor-pointer ${
+        isLight
+          ? "border-slate-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-xl"
+          : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
+      }`}
     >
       {/* Featured Badge Pill */}
       {job.featured && (
@@ -103,23 +111,17 @@ function JobCard({ job }) {
         </div>
       )}
 
-      {/* Glow Wash */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 rounded-3xl"
-        style={{
-          background: "radial-gradient(400px circle at top left, rgba(99,102,241,0.12), transparent 70%)",
-        }}
-      />
-
       <div className={`flex flex-1 flex-col ${job.featured ? "pt-5" : ""}`}>
         {/* Header: Logo, Company & Save Action */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-indigo-600/15 text-indigo-400 font-extrabold text-base font-satoshi shadow-md">
+            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border font-extrabold text-base font-satoshi shadow-md ${
+              isLight ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-white/10 bg-indigo-600/15 text-indigo-400"
+            }`}>
               {job.companyLogo && !logoError ? (
                 <img
-                  src={job.companyLogo}
-                  alt={job.companyName}
+                  src={getAssetUrl(job.companyLogo)}
+                  alt={job.companyName || "Company logo"}
                   loading="lazy"
                   onError={() => setLogoError(true)}
                   className="h-full w-full rounded-xl object-contain"
@@ -130,10 +132,14 @@ function JobCard({ job }) {
             </div>
 
             <div className="min-w-0">
-              <p className="text-xs font-extrabold uppercase tracking-wider text-indigo-400 font-satoshi truncate">
+              <p className={`text-xs font-extrabold uppercase tracking-wider font-satoshi truncate ${
+                isLight ? "text-indigo-600" : "text-indigo-400"
+              }`}>
                 {job.companyName || job.company || "Tech Enterprise"}
               </p>
-              <h3 className="mt-0.5 text-base font-extrabold text-white font-satoshi group-hover:text-indigo-300 transition-colors truncate">
+              <h3 className={`mt-0.5 text-base font-extrabold font-satoshi transition-colors truncate ${
+                isLight ? "text-slate-900 group-hover:text-indigo-600" : "text-white group-hover:text-indigo-300"
+              }`}>
                 {job.jobTitle || job.title}
               </h3>
             </div>
@@ -142,11 +148,15 @@ function JobCard({ job }) {
           <button
             type="button"
             onClick={handleToggleBookmark}
-            className="rounded-full p-2 border border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer shrink-0"
+            className={`rounded-full p-2 border transition cursor-pointer shrink-0 ${
+              isLight
+                ? "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                : "border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10"
+            }`}
             title={isSaved ? "Remove from Saved Jobs" : "Save Job"}
           >
             {isSaved ? (
-              <BookmarkCheck size={18} className="text-indigo-400 fill-indigo-400/20" />
+              <BookmarkCheck size={18} className="text-indigo-600 fill-indigo-600/20" />
             ) : (
               <Bookmark size={18} />
             )}
@@ -154,17 +164,17 @@ function JobCard({ job }) {
         </div>
 
         {/* Location & Mode */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+        <div className={`mt-4 flex flex-wrap items-center gap-2 text-xs ${isLight ? "text-slate-500" : "text-slate-400"}`}>
           <span className="inline-flex items-center gap-1 font-medium">
-            <MapPin size={13} className="text-indigo-400 shrink-0" />
+            <MapPin size={13} className={isLight ? "text-indigo-600 shrink-0" : "text-indigo-400 shrink-0"} />
             {[job.city, job.state].filter(Boolean).join(", ") || job.location || "Remote"}
           </span>
-
+          <span className={isLight ? "text-slate-300" : "text-slate-600"}>•</span>
           <span
-            className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold"
+            className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold border"
             style={{
-              backgroundColor: badge.bg,
-              color: badge.text,
+              backgroundColor: isLight ? badge.lightBg : badge.bg,
+              color: isLight ? badge.lightText : badge.text,
               borderColor: badge.border,
             }}
           >
@@ -172,117 +182,132 @@ function JobCard({ job }) {
           </span>
         </div>
 
-        {/* Skills Chips */}
-        <div className="mt-3.5 flex flex-wrap gap-1.5">
-          {(job.skillsRequired || ["React", "TypeScript", "Node.js"]).slice(0, 3).map((skill) => (
-            <span
-              key={skill}
-              className="rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-300 border border-white/5"
-            >
-              {typeof skill === "object" ? skill.name || skill.skillName : skill}
-            </span>
-          ))}
-        </div>
-
-        <div className="flex-1 min-h-[16px]" />
-
-        {/* Salary & Apply Button */}
-        <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
-          <div>
-            <h4 className="text-sm font-black text-emerald-400 font-satoshi">
-              {formatSalary(job.minimumSalary, job.maximumSalary)}
-            </h4>
-            <p className="text-[11px] font-semibold text-slate-400 mt-0.5">
-              Full Time • High Priority
-            </p>
+        {/* Skills Pills */}
+        {Array.isArray(job.skills) && job.skills.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-1.5">
+            {job.skills.slice(0, 3).map((skill, index) => (
+              <span
+                key={index}
+                className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold border ${
+                  isLight
+                    ? "border-slate-200 bg-slate-50 text-slate-700"
+                    : "border-white/5 bg-white/5 text-slate-300"
+                }`}
+              >
+                {skill}
+              </span>
+            ))}
+            {job.skills.length > 3 && (
+              <span className={`rounded-lg px-2 py-1 text-[11px] font-semibold ${isLight ? "text-slate-400" : "text-slate-500"}`}>
+                +{job.skills.length - 3} more
+              </span>
+            )}
           </div>
+        )}
+      </div>
 
-          <Link
-            to={`/jobs/${job.id}`}
-            className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-2 text-xs font-bold text-white shadow-lg hover:scale-105 transition cursor-pointer"
-          >
-            Apply <ArrowRight size={14} />
-          </Link>
+      {/* Footer: Salary & View Action */}
+      <div className={`mt-6 pt-4 border-t flex items-center justify-between gap-2 ${
+        isLight ? "border-slate-100" : "border-white/10"
+      }`}>
+        <div>
+          <span className={`text-[10px] font-bold uppercase tracking-wider block ${isLight ? "text-slate-400" : "text-slate-500"}`}>
+            Est. CTC
+          </span>
+          <span className={`text-sm font-extrabold font-satoshi ${isLight ? "text-slate-900" : "text-slate-100"}`}>
+            {formatSalary(job.packageOffered || job.salaryMin, job.salaryMax)}
+          </span>
         </div>
+
+        <span className={`inline-flex items-center gap-1 text-xs font-extrabold transition group-hover:translate-x-0.5 ${
+          isLight ? "text-indigo-600 group-hover:text-indigo-700" : "text-indigo-400 group-hover:text-indigo-300"
+        }`}>
+          Apply Now <ArrowRight size={14} />
+        </span>
       </div>
     </motion.article>
   );
 }
 
 /* ===========================
-   FeaturedJobs Section
-========================== */
+   Main FeaturedJobs Component
+=========================== */
 export default function FeaturedJobs() {
   const dispatch = useAppDispatch();
-  const { jobs } = useAppSelector((state) => state.job);
+  const navigate = useNavigate();
+  const { allJobs } = useAppSelector((state) => state.job);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   useEffect(() => {
     dispatch(getAllJobs());
   }, [dispatch]);
 
-  // Ensure 6 cards are always displayed
-  const displayList = useMemo(() => {
-    if (Array.isArray(jobs) && jobs.length > 0) {
-      const featuredOnly = jobs.filter((j) => j.featured);
-      if (featuredOnly.length > 0) {
-        return featuredOnly.slice(0, 6);
-      }
-      return jobs.slice(0, 6);
+  const displayJobs = useMemo(() => {
+    if (allJobs && Array.isArray(allJobs) && allJobs.length >= 6) {
+      return allJobs.slice(0, 6);
+    }
+    if (allJobs && Array.isArray(allJobs) && allJobs.length > 0) {
+      const needed = 6 - allJobs.length;
+      return [...allJobs, ...fallbackJobs.slice(0, needed)];
     }
     return fallbackJobs.slice(0, 6);
-  }, [jobs]);
+  }, [allJobs]);
 
   return (
-    <section className="relative overflow-hidden bg-[#05070d] py-16 sm:py-20 lg:py-24 font-inter text-slate-200">
-      {/* Background Mesh Glows */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute right-1/4 top-20 h-[500px] w-[500px] rounded-full bg-indigo-600/10 blur-[180px]" />
-        <div className="absolute left-1/4 bottom-10 h-[400px] w-[400px] rounded-full bg-purple-600/10 blur-[160px]" />
-      </div>
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
+      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    }`}>
+      {/* ── Ambient Background Lighting ── */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/5 blur-[200px]"
+      />
 
       <div className="section-container relative z-10">
-        {/* Section Header */}
         <SectionHeader
-          badge="Featured Opportunities"
+          badge="Verified Openings"
           title={
             <>
-              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Featured</span> Job Openings
+              Explore <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">Featured Positions</span>
             </>
           }
-          subtitle="Explore high-impact positions from verified engineering and technology teams."
+          subtitle="Directly apply to high-growth tech startups and market leaders with real-time application tracking and guaranteed salary ranges."
         />
 
-        {/* Job Cards Grid */}
+        {/* ── Jobs Grid ── */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-          className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:grid-cols-2 lg:grid-cols-3"
+          viewport={{ once: true, margin: "-60px" }}
+          className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {displayList.map((job, idx) => (
-            <JobCard key={job.id || idx} job={job} />
+          {displayJobs.map((job) => (
+            <JobCard key={job.id} job={job} />
           ))}
         </motion.div>
 
-        {/* View All Jobs CTA */}
+        {/* ── View All CTA ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-12 text-center"
+          className="mt-12 flex justify-center"
         >
-          <Link
-            to="/find-jobs"
-            className="group inline-flex items-center gap-2 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 px-8 py-3.5 text-xs font-extrabold text-indigo-300 hover:bg-indigo-500/20 hover:text-white hover:border-indigo-400 hover:shadow-[0_0_25px_rgba(99,102,241,0.3)] hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm"
+          <button
+            type="button"
+            onClick={() => navigate("/find-jobs")}
+            className={`inline-flex items-center gap-2 rounded-2xl border px-8 py-3.5 text-sm font-extrabold shadow-md transition-all duration-300 hover:scale-105 cursor-pointer font-satoshi ${
+              isLight
+                ? "border-slate-200 bg-white text-slate-900 hover:border-indigo-300 hover:bg-slate-50 hover:shadow-lg"
+                : "border-white/10 bg-[#090d16]/90 text-white hover:border-indigo-500/40 hover:bg-[#0c111f]"
+            }`}
           >
-            Explore All 1,000+ Jobs
-            <ArrowRight
-              size={15}
-              className="transition-transform duration-300 group-hover:translate-x-1"
-            />
-          </Link>
+            <span>Explore All 15,000+ Verified Jobs</span>
+            <ArrowRight size={16} className="text-indigo-500 transition-transform group-hover:translate-x-1" />
+          </button>
         </motion.div>
       </div>
     </section>

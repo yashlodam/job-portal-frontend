@@ -27,9 +27,9 @@ export default function DashboardKpis({ stats }) {
               </div>
             </div>
             <div className="mt-3">
-              <span className="text-2xl font-black text-white font-satoshi">{kpi.value}</span>
-              <p className="text-xs font-bold text-slate-300 mt-0.5 truncate">{kpi.label}</p>
-              <p className="text-[10px] font-semibold text-emerald-400 mt-1 flex items-center gap-1">
+              <span className="text-2xl font-black text-heading font-satoshi">{kpi.value}</span>
+              <p className="text-xs font-bold text-muted mt-0.5 truncate">{kpi.label}</p>
+              <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
                 <TrendingUp className="h-2.5 w-2.5" />
                 {kpi.change}
               </p>

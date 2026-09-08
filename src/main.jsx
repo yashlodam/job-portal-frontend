@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import { MantineProvider, createTheme } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { store } from "./State/Store.js";
+import { ThemeProvider, useTheme } from "./context/ThemeContext.jsx";
 
 import "./index.css";
 import "@mantine/core/styles.css";
@@ -32,13 +33,23 @@ const mantineTheme = createTheme({
   },
 });
 
+function ThemedMantineRoot() {
+  const { theme } = useTheme();
+
+  return (
+    <MantineProvider theme={mantineTheme} forceColorScheme={theme}>
+      <Notifications position="top-right" />
+      <App />
+    </MantineProvider>
+  );
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
-      <MantineProvider theme={mantineTheme} forceColorScheme="dark">
-        <Notifications position="top-right" />
-        <App />
-      </MantineProvider>
+      <ThemeProvider>
+        <ThemedMantineRoot />
+      </ThemeProvider>
     </Provider>
   </StrictMode>
 );

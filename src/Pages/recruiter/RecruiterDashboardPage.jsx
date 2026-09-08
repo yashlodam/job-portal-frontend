@@ -109,11 +109,11 @@ export default function RecruiterDashboardPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between w-full">
-                <CardTitle className="flex items-center gap-2 font-satoshi text-base font-black text-white">
-                  <Briefcase size={18} className="text-indigo-400" />
+                <CardTitle className="flex items-center gap-2 font-satoshi text-base font-black text-heading">
+                  <Briefcase size={18} className="text-indigo-500 dark:text-indigo-400" />
                   Active Job Postings ({myJobs.length})
                 </CardTitle>
-                <Link to="/recruiter/jobs" className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-satoshi">
+                <Link to="/recruiter/jobs" className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 flex items-center gap-1 font-satoshi">
                   View all postings <ArrowRight size={14} />
                 </Link>
               </div>
@@ -121,9 +121,9 @@ export default function RecruiterDashboardPage() {
             <CardContent className="space-y-3 pt-3">
               {myJobs.length === 0 ? (
                 <div className="p-8 text-center space-y-3">
-                  <AlertCircle size={36} className="text-indigo-400 opacity-60 mx-auto" />
-                  <h4 className="text-sm font-extrabold text-white font-satoshi">No Active Jobs Posted Yet</h4>
-                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  <AlertCircle size={36} className="text-indigo-500 dark:text-indigo-400 opacity-60 mx-auto" />
+                  <h4 className="text-sm font-extrabold text-heading font-satoshi">No Active Jobs Posted Yet</h4>
+                  <p className="text-xs text-muted max-w-sm mx-auto">
                     You haven't posted any jobs yet. Create your first job listing to start receiving candidate applications.
                   </p>
                   <Link
@@ -135,19 +135,19 @@ export default function RecruiterDashboardPage() {
                 </div>
               ) : (
                 myJobs.slice(0, 4).map((job) => (
-                  <div key={job.id} className="flex items-center justify-between p-4 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition">
+                  <div key={job.id} className="flex items-center justify-between p-4 rounded-2xl border border-border bg-surface-elevated hover:bg-surface-hover transition">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-extrabold text-white font-satoshi">{job.title || job.jobTitle}</h4>
+                        <h4 className="text-sm font-extrabold text-heading font-satoshi">{job.title || job.jobTitle}</h4>
                         <StatusChip status={job.jobStatus || job.status || "ACTIVE"} />
                       </div>
-                      <p className="text-xs font-medium text-slate-400 mt-0.5">{job.category || job.department || "Engineering"} · Posted {job.postedAt || "Recently"}</p>
+                      <p className="text-xs font-medium text-muted mt-0.5">{job.category || job.department || "Engineering"} · Posted {job.postedAt || "Recently"}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-xs font-extrabold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full font-satoshi">
+                      <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full font-satoshi">
                         {getApplicantsCount(job)} Applicants
                       </span>
-                      <Link to="/recruiter/jobs" className="text-xs font-bold text-slate-300 hover:text-white transition">
+                      <Link to="/recruiter/jobs" className="text-xs font-bold text-muted hover:text-heading transition">
                         Manage →
                       </Link>
                     </div>

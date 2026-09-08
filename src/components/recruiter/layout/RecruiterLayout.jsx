@@ -59,7 +59,7 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
     "Company information could not be verified.";
 
   return (
-    <div className="min-h-screen bg-[#070b12] font-inter text-slate-200 flex">
+    <div className="min-h-screen bg-background font-inter text-body flex">
       {/* Sidebar */}
       <RecruiterSidebar
         collapsed={sidebarCollapsed}
@@ -77,9 +77,9 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
           {/* ── LIFECYCLE RESTRICTION BANNERS ── */}
           {isPending && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-amber-500/5 backdrop-blur-xl">
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-600 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-amber-500/5 backdrop-blur-xl">
               <div className="flex items-center gap-2.5">
-                <Clock className="h-4 w-4 text-amber-400 shrink-0 animate-pulse" />
+                <Clock className="h-4 w-4 text-amber-500 shrink-0 animate-pulse" />
                 <span>
                   <strong>Pending Verification:</strong> Your recruiter account is pending administrator verification. Job posting, talent search, and initiating new candidate chats are temporarily restricted.
                 </span>
@@ -88,9 +88,9 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
           )}
 
           {isRejected && (
-            <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-rose-500/5 backdrop-blur-xl">
+            <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-600 dark:text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-rose-500/5 backdrop-blur-xl">
               <div className="flex items-start sm:items-center gap-2.5">
-                <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5 sm:mt-0" />
+                <AlertTriangle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5 sm:mt-0" />
                 <div>
                   <strong>Verification Not Approved:</strong> {rejectionReason}
                 </div>
@@ -108,8 +108,8 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
           )}
 
           {isSuspended && (
-            <div className="rounded-2xl border border-rose-600/40 bg-rose-950/40 p-4 text-xs text-rose-200 flex items-center gap-3 shadow-xl shadow-rose-600/10 backdrop-blur-xl">
-              <AlertOctagon className="h-5 w-5 text-rose-400 shrink-0" />
+            <div className="rounded-2xl border border-rose-600/40 bg-rose-500/10 dark:bg-rose-950/40 p-4 text-xs text-rose-600 dark:text-rose-200 flex items-center gap-3 shadow-xl shadow-rose-600/10 backdrop-blur-xl">
+              <AlertOctagon className="h-5 w-5 text-rose-500 shrink-0" />
               <span>
                 <strong>Account Suspended:</strong> Your recruiter account has been suspended. Recruiter functionality is currently unavailable. Please contact platform support.
               </span>
@@ -121,10 +121,10 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
 
           {/* Page Header */}
           {(title || action) && (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
               <div>
-                {title && <h1 className="text-2xl sm:text-3xl font-black text-white font-satoshi tracking-tight">{title}</h1>}
-                {subtitle && <p className="text-xs sm:text-sm text-slate-400 mt-1">{subtitle}</p>}
+                {title && <h1 className="text-2xl sm:text-3xl font-black text-heading font-satoshi tracking-tight">{title}</h1>}
+                {subtitle && <p className="text-xs sm:text-sm text-muted mt-1">{subtitle}</p>}
               </div>
               {action && <div className="shrink-0">{action}</div>}
             </div>

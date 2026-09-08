@@ -25,7 +25,7 @@ import { store } from "../State/Store";
 import { logout } from "../State/AuthSlic";
 
 // ─── Base URL ─────────────────────────────────────────────────────────────────
-const API_URL = "http://localhost:8080/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
 // ─── XSRF Token Helper ────────────────────────────────────────────────────────
 // Reads the JS-readable XSRF-TOKEN cookie written by Spring Security.

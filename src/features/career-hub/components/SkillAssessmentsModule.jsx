@@ -27,6 +27,7 @@ import {
   Download,
 } from "lucide-react";
 import { useToast } from "../../../components/ui/ToastNotification";
+import { useAppSelector } from "../../../State/Store";
 
 // Rich Dataset of Skill Assessments & Real Question Banks
 const ASSESSMENT_CATALOG = [
@@ -257,20 +258,21 @@ const ASSESSMENT_CATALOG = [
 
 export default function SkillAssessmentsModule() {
   const toast = useToast();
+  const user = useAppSelector((state) => state.auth.profile);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [activeQuiz, setActiveQuiz] = useState(null);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
   const [earnedBadges, setEarnedBadges] = useState(() => {
-    const saved = localStorage.getItem("velora_earned_badges");
+    const saved = localStorage.getItem("jobportal_earned_badges");
     return saved ? JSON.parse(saved) : ["CERT-REACT-19"];
   });
   const [certificateModal, setCertificateModal] = useState(null);
 
   // Save earned badges
   useEffect(() => {
-    localStorage.setItem("velora_earned_badges", JSON.stringify(earnedBadges));
+    localStorage.setItem("jobportal_earned_badges", JSON.stringify(earnedBadges));
   }, [earnedBadges]);
 
   const categories = ["All", "Frontend", "Backend", "Architecture"];
@@ -338,56 +340,56 @@ export default function SkillAssessmentsModule() {
     const quiz = ASSESSMENT_CATALOG.find((q) => q.badgeCode === badgeCode);
     if (quiz) {
       setCertificateModal({
-        candidateName: "Vitthal Lodam",
+        candidateName: user?.name || "Verified Candidate",
         title: quiz.badgeTitle,
         code: quiz.badgeCode,
-        date: "Aug 7, 2026",
-        issuer: "Velora AI Command Center & Enterprise Assessment Board",
+        date: new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
+        issuer: "JobPortal AI Career Certification Board",
       });
     }
   };
 
   return (
-    <div className="space-y-8 font-satoshi text-white">
+    <div className="space-y-8 font-satoshi text-body">
       {/* Top Banner Header */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-[#090d16]/95 border border-white/10 backdrop-blur-2xl shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 text-xs font-black text-indigo-400 uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
             <Award size={14} /> Skill Assessments & Certifications Studio
           </div>
-          <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
-            Skill Assessments & <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Certifications</span>
+          <h2 className="text-2xl sm:text-4xl font-black text-heading tracking-tight">
+            Skill Assessments & <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">Certifications</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 font-medium max-w-xl">
+          <p className="text-xs sm:text-sm text-muted font-medium max-w-xl">
             Validate your engineering expertise with timed multiple-choice assessments, automated AI grading, and verifiable enterprise badges.
           </p>
         </div>
 
         {/* Earned Badges Stat Counter */}
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-          <div className="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 font-black">
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-surface-elevated border border-border">
+          <div className="h-10 w-10 rounded-xl bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-500/30 font-black">
             <Trophy size={20} />
           </div>
           <div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Earned Badges</span>
-            <span className="text-lg font-black text-white">{earnedBadges.length} Active Certifications</span>
+            <span className="text-[10px] font-black text-muted uppercase tracking-wider block">Earned Badges</span>
+            <span className="text-lg font-black text-heading">{earnedBadges.length} Active Certifications</span>
           </div>
         </div>
       </div>
 
       {/* Category Filter Pills */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-white/10">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="flex items-center gap-2">
-          <Filter size={16} className="text-indigo-400" />
-          <span className="text-xs font-black text-slate-400 uppercase tracking-wider">Filter Category:</span>
+          <Filter size={16} className="text-indigo-500 dark:text-indigo-400" />
+          <span className="text-xs font-black text-muted uppercase tracking-wider">Filter Category:</span>
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
                 selectedCategory === cat
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/5"
+                  ? "bg-indigo-600 !text-white shadow-md"
+                  : "bg-surface text-muted hover:text-heading border border-border"
               }`}
             >
               {cat}
@@ -404,37 +406,37 @@ export default function SkillAssessmentsModule() {
           return (
             <div
               key={item.id}
-              className="p-6 sm:p-7 rounded-3xl bg-[#090d16]/95 border border-white/10 hover:border-indigo-500/40 backdrop-blur-2xl shadow-xl transition-all space-y-5 flex flex-col justify-between"
+              className="p-6 sm:p-7 rounded-3xl bg-surface border border-border hover:border-indigo-500/40 backdrop-blur-2xl shadow-xl transition-all space-y-5 flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20 uppercase tracking-wider">
+                  <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20 uppercase tracking-wider">
                     {item.category} • {item.level}
                   </span>
-                  <span className="text-xs text-slate-400 font-bold flex items-center gap-1">
-                    <Clock size={14} className="text-indigo-400" /> {item.duration}
+                  <span className="text-xs text-muted font-bold flex items-center gap-1">
+                    <Clock size={14} className="text-indigo-500 dark:text-indigo-400" /> {item.duration}
                   </span>
                 </div>
 
-                <h3 className="text-xl font-black text-white">{item.title}</h3>
-                <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">{item.description}</p>
+                <h3 className="text-xl font-black text-heading">{item.title}</h3>
+                <p className="text-xs sm:text-sm text-body font-medium leading-relaxed">{item.description}</p>
               </div>
 
-              <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+              <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3">
                 {isEarned ? (
                   <button
                     onClick={() => handleOpenCertificate(item.badgeCode)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-black text-xs transition cursor-pointer hover:bg-emerald-500/25"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-black text-xs transition cursor-pointer hover:bg-emerald-500/25"
                   >
                     <ShieldCheck size={14} /> Certificate Unlocked
                   </button>
                 ) : (
-                  <span className="text-xs text-slate-400 font-medium">Pass threshold: 70% Score</span>
+                  <span className="text-xs text-muted font-medium">Pass threshold: 70% Score</span>
                 )}
 
                 <button
                   onClick={() => handleStartQuiz(item)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-lg ml-auto"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 !text-white font-black text-xs transition cursor-pointer shadow-lg ml-auto"
                 >
                   <Play size={14} /> {isEarned ? "Retake Exam" : "Take Assessment"}
                 </button>
@@ -452,12 +454,12 @@ export default function SkillAssessmentsModule() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-3xl rounded-3xl bg-[#090d16] border border-white/10 p-6 sm:p-8 space-y-6 shadow-2xl text-white relative max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-3xl rounded-3xl bg-surface border border-border p-6 sm:p-8 space-y-6 shadow-2xl text-body relative max-h-[90vh] overflow-y-auto"
             >
               {/* Close Button */}
               <button
                 onClick={() => setActiveQuiz(null)}
-                className="absolute top-6 right-6 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition cursor-pointer"
+                className="absolute top-6 right-6 p-2 rounded-xl bg-surface-elevated hover:bg-surface-hover text-muted hover:text-heading transition cursor-pointer border border-border"
               >
                 <X size={18} />
               </button>
@@ -465,18 +467,18 @@ export default function SkillAssessmentsModule() {
               {!quizResult ? (
                 /* Active Quiz Environment */
                 <div className="space-y-6">
-                  <div className="space-y-2 pb-4 border-b border-white/10">
+                  <div className="space-y-2 pb-4 border-b border-border">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black text-indigo-400 uppercase tracking-wider">
+                      <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
                         Question {currentQuestionIdx + 1} of {activeQuiz.questions.length}
                       </span>
-                      <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                        <Clock size={14} className="text-purple-400" /> {activeQuiz.duration} Exam
+                      <span className="text-xs text-muted font-medium flex items-center gap-1">
+                        <Clock size={14} className="text-purple-500 dark:text-purple-400" /> {activeQuiz.duration} Exam
                       </span>
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-surface-elevated rounded-full overflow-hidden border border-border">
                       <div
                         className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
                         style={{ width: `${((currentQuestionIdx + 1) / activeQuiz.questions.length) * 100}%` }}
@@ -486,7 +488,7 @@ export default function SkillAssessmentsModule() {
 
                   {/* Question Prompt */}
                   <div className="space-y-4">
-                    <h3 className="text-lg sm:text-xl font-black text-white leading-relaxed">
+                    <h3 className="text-lg sm:text-xl font-black text-heading leading-relaxed">
                       {activeQuiz.questions[currentQuestionIdx].question}
                     </h3>
 
@@ -501,19 +503,19 @@ export default function SkillAssessmentsModule() {
                             onClick={() => handleAnswerSelect(optIdx)}
                             className={`p-4 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-4 ${
                               isSelected
-                                ? "bg-indigo-600/20 border-indigo-500 text-white font-bold ring-1 ring-indigo-500"
-                                : "bg-white/[0.02] border-white/10 text-slate-300 hover:bg-white/[0.05]"
+                                ? "bg-indigo-600/20 border-indigo-500 text-heading font-bold ring-1 ring-indigo-500"
+                                : "bg-surface-elevated border-border text-body hover:bg-surface-hover"
                             }`}
                           >
                             <div className="flex items-center gap-3">
                               <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-xs font-black ${
-                                isSelected ? "bg-indigo-600 text-white" : "bg-white/10 text-slate-400"
+                                isSelected ? "bg-indigo-600 text-white" : "bg-surface text-muted border border-border"
                               }`}>
                                 {String.fromCharCode(65 + optIdx)}
                               </span>
                               <span className="text-sm font-medium">{opt}</span>
                             </div>
-                            {isSelected && <CheckCircle2 size={18} className="text-indigo-400" />}
+                            {isSelected && <CheckCircle2 size={18} className="text-indigo-500 dark:text-indigo-400" />}
                           </div>
                         );
                       })}
@@ -521,11 +523,11 @@ export default function SkillAssessmentsModule() {
                   </div>
 
                   {/* Navigation Buttons */}
-                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
                     <button
                       onClick={handlePrevQuestion}
                       disabled={currentQuestionIdx === 0}
-                      className="px-4 py-2 rounded-xl bg-white/5 disabled:opacity-30 text-xs font-bold transition cursor-pointer"
+                      className="px-4 py-2 rounded-xl bg-surface-elevated border border-border disabled:opacity-30 text-xs font-bold text-heading transition cursor-pointer hover:bg-surface-hover"
                     >
                       Previous
                     </button>
@@ -533,14 +535,14 @@ export default function SkillAssessmentsModule() {
                     {currentQuestionIdx < activeQuiz.questions.length - 1 ? (
                       <button
                         onClick={handleNextQuestion}
-                        className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-black text-white transition cursor-pointer"
+                        className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-black !text-white transition cursor-pointer shadow-md"
                       >
                         Next Question
                       </button>
                     ) : (
                       <button
                         onClick={handleSubmitQuiz}
-                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-xs font-black text-white transition cursor-pointer shadow-lg"
+                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-xs font-black !text-white transition cursor-pointer shadow-lg"
                       >
                         Submit & Grade Exam
                       </button>
@@ -550,30 +552,30 @@ export default function SkillAssessmentsModule() {
               ) : (
                 /* Exam Results & Review */
                 <div className="space-y-6 text-center py-4">
-                  <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 mb-2">
-                    {quizResult.passed ? <Trophy size={40} className="text-amber-400" /> : <RotateCcw size={40} className="text-rose-400" />}
+                  <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-500 dark:text-indigo-400 mb-2">
+                    {quizResult.passed ? <Trophy size={40} className="text-amber-500 dark:text-amber-400" /> : <RotateCcw size={40} className="text-rose-500 dark:text-rose-400" />}
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="text-2xl sm:text-3xl font-black text-white">
+                    <h3 className="text-2xl sm:text-3xl font-black text-heading">
                       {quizResult.passed ? "Assessment Passed & Certified!" : "Assessment Needs Review"}
                     </h3>
-                    <p className="text-sm text-slate-300 font-medium max-w-md mx-auto">
+                    <p className="text-sm text-body font-medium max-w-md mx-auto">
                       {quizResult.passed
                         ? `You scored ${quizResult.score}/100 and earned the official ${quizResult.badgeTitle} Certificate.`
                         : `You scored ${quizResult.score}/100. A score of 70% or higher is required to unlock certification.`}
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 inline-flex items-center gap-6">
+                  <div className="p-4 rounded-2xl bg-surface-elevated border border-border inline-flex items-center gap-6">
                     <div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Your Score</span>
-                      <span className="text-2xl font-black text-emerald-400">{quizResult.score}/100</span>
+                      <span className="text-[10px] font-black text-muted uppercase tracking-wider block">Your Score</span>
+                      <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{quizResult.score}/100</span>
                     </div>
-                    <div className="h-8 w-px bg-white/10" />
+                    <div className="h-8 w-px bg-border" />
                     <div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Status</span>
-                      <span className={`text-sm font-black ${quizResult.passed ? "text-emerald-400" : "text-rose-400"}`}>
+                      <span className="text-[10px] font-black text-muted uppercase tracking-wider block">Status</span>
+                      <span className={`text-sm font-black ${quizResult.passed ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                         {quizResult.passed ? "PASSED" : "FAILED"}
                       </span>
                     </div>
@@ -586,14 +588,14 @@ export default function SkillAssessmentsModule() {
                           handleOpenCertificate(quizResult.badgeCode);
                           setActiveQuiz(null);
                         }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition cursor-pointer shadow-lg"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 !text-white font-black text-xs transition cursor-pointer shadow-lg"
                       >
                         <ShieldCheck size={14} /> View Certificate
                       </button>
                     )}
                     <button
                       onClick={() => handleStartQuiz(activeQuiz)}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer"
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 !text-white font-black text-xs transition cursor-pointer shadow-md"
                     >
                       <RotateCcw size={14} /> Retake Exam
                     </button>
@@ -613,53 +615,53 @@ export default function SkillAssessmentsModule() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-2xl rounded-3xl bg-[#090d16] border border-amber-500/30 p-8 sm:p-10 space-y-6 shadow-2xl text-white relative font-satoshi text-center"
+              className="w-full max-w-2xl rounded-3xl bg-surface border border-amber-500/30 p-8 sm:p-10 space-y-6 shadow-2xl text-body relative font-satoshi text-center"
             >
               <button
                 onClick={() => setCertificateModal(null)}
-                className="absolute top-6 right-6 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition cursor-pointer"
+                className="absolute top-6 right-6 p-2 rounded-xl bg-surface-elevated hover:bg-surface-hover text-muted hover:text-heading transition cursor-pointer border border-border"
               >
                 <X size={18} />
               </button>
 
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 mx-auto">
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-500 dark:text-amber-400 border border-amber-500/30 mx-auto">
                 <Trophy size={32} />
               </div>
 
-              <div className="space-y-2 border-b border-white/10 pb-6">
-                <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+              <div className="space-y-2 border-b border-border pb-6">
+                <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
                   OFFICIAL CERTIFICATE OF ACHIEVEMENT
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-black text-white pt-2">{certificateModal.title}</h3>
-                <p className="text-xs text-slate-400 font-medium">Verification Code: <span className="font-mono text-indigo-400">{certificateModal.code}</span></p>
+                <h3 className="text-2xl sm:text-3xl font-black text-heading pt-2">{certificateModal.title}</h3>
+                <p className="text-xs text-muted font-medium">Verification Code: <span className="font-mono text-indigo-600 dark:text-indigo-400">{certificateModal.code}</span></p>
               </div>
 
               <div className="space-y-3 py-2">
-                <p className="text-xs text-slate-300 uppercase tracking-wider font-bold">This certifies that</p>
-                <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                <p className="text-xs text-muted uppercase tracking-wider font-bold">This certifies that</p>
+                <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
                   {certificateModal.candidateName}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+                <p className="text-xs sm:text-sm text-body max-w-md mx-auto leading-relaxed">
                   Has successfully passed the formal technical competency examination administered by Velora Enterprise Assessment Engine.
                 </p>
               </div>
 
-              <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+              <div className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted">
                 <div className="text-left">
-                  <span className="font-bold text-white block">Issued Date: {certificateModal.date}</span>
+                  <span className="font-bold text-heading block">Issued Date: {certificateModal.date}</span>
                   <span>Authority: Velora Certification Board</span>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => toast.success("Certificate link copied to clipboard!")}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-elevated hover:bg-surface-hover text-heading border border-border font-bold text-xs transition cursor-pointer"
                   >
                     <Share2 size={14} /> Share
                   </button>
                   <button
                     onClick={() => toast.success("Downloading Certificate PDF...")}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 !text-white font-black text-xs transition cursor-pointer shadow-md"
                   >
                     <Download size={14} /> Download PDF
                   </button>

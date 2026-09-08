@@ -37,23 +37,23 @@ export default function QuestionCard({ question, currentNumber, totalQuestions }
   const hints = Array.isArray(q.hints) ? q.hints : [];
 
   return (
-    <div className="p-6 sm:p-8 rounded-3xl bg-[#090d16]/95 border border-indigo-500/30 backdrop-blur-2xl shadow-2xl space-y-6 font-satoshi">
+    <div className="p-6 sm:p-8 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl space-y-6 font-satoshi">
       {/* Header Info */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 font-black text-white text-xs shadow-md">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 font-black text-white text-xs shadow-md shadow-indigo-500/20">
             {currentNum}
           </span>
-          <span className="text-xs font-black text-slate-300 uppercase tracking-wider">
+          <span className="text-xs font-black text-body uppercase tracking-wider">
             Question {currentNum} of {totalNum}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-black text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20 flex items-center gap-1.5">
+          <span className="text-[10px] font-black text-indigo-500 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20 flex items-center gap-1.5">
             <Tag size={12} /> {topic}
           </span>
-          <span className="text-[10px] font-black text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20 uppercase">
+          <span className="text-[10px] font-black text-purple-500 dark:text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20 uppercase">
             {difficulty}
           </span>
         </div>
@@ -61,11 +61,11 @@ export default function QuestionCard({ question, currentNumber, totalQuestions }
 
       {/* Main Question Text */}
       <div className="space-y-3">
-        <h3 className="text-lg sm:text-xl font-black text-indigo-300 leading-snug flex items-center gap-2">
-          <HelpCircle size={20} className="text-indigo-400 shrink-0" />
+        <h3 className="text-lg sm:text-xl font-black text-indigo-600 dark:text-indigo-300 leading-snug flex items-center gap-2">
+          <HelpCircle size={20} className="text-indigo-500 dark:text-indigo-400 shrink-0" />
           <span>{title}</span>
         </h3>
-        <p className="text-base sm:text-lg text-white font-extrabold leading-relaxed p-4 rounded-2xl bg-white/[0.03] border border-white/10 shadow-inner">
+        <p className="text-base sm:text-lg text-heading font-extrabold leading-relaxed p-4 rounded-2xl bg-surface-hover border border-border shadow-inner">
           {questionText}
         </p>
       </div>
@@ -76,7 +76,7 @@ export default function QuestionCard({ question, currentNumber, totalQuestions }
           <button
             type="button"
             onClick={() => setShowHints(!showHints)}
-            className="flex items-center gap-2 text-xs font-black text-amber-400 hover:text-amber-300 transition cursor-pointer"
+            className="flex items-center gap-2 text-xs font-black text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 transition cursor-pointer"
           >
             <Lightbulb size={16} />
             <span>{showHints ? "Hide AI Hints" : "Need AI Hints?"}</span>
@@ -84,8 +84,8 @@ export default function QuestionCard({ question, currentNumber, totalQuestions }
           </button>
 
           {showHints && (
-            <div className="mt-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2 text-xs text-amber-200">
-              <h5 className="font-black uppercase tracking-wider text-amber-300">Guiding Concepts:</h5>
+            <div className="mt-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2 text-xs text-amber-900 dark:text-amber-200">
+              <h5 className="font-black uppercase tracking-wider text-amber-600 dark:text-amber-300">Guiding Concepts:</h5>
               <ul className="list-disc list-inside space-y-1 font-medium">
                 {hints.map((hint, idx) => (
                   <li key={idx}>{hint}</li>

@@ -28,26 +28,26 @@ export default function MockInterviewMain() {
   ];
 
   return (
-    <div className="space-y-6 font-satoshi text-white min-h-screen">
+    <div className="space-y-6 font-satoshi text-body min-h-screen">
       {/* Module Top Navigation Switcher Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-white/10">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shadow-md">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/20 shadow-sm">
             <Bot size={24} />
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+            <h2 className="text-lg sm:text-xl font-black text-heading flex items-center gap-2">
               <span>AI Mock Interview Studio</span>
-              <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                 PRO ENGINE
               </span>
             </h2>
-            <p className="text-xs text-slate-400 font-medium">Real-Time Technical Interview Simulator & Neural Evaluator</p>
+            <p className="text-xs text-muted font-medium">Real-Time Technical Interview Simulator & Neural Evaluator</p>
           </div>
         </div>
 
         {/* Tab Switcher Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 rounded-2xl bg-white/[0.03] border border-white/10 p-1.5">
+        <div className="flex flex-wrap items-center gap-1.5 rounded-2xl bg-surface-hover border border-border p-1.5 shadow-inner">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -59,8 +59,8 @@ export default function MockInterviewMain() {
                 disabled={item.disabled}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
                   isActive
-                    ? "bg-indigo-600 text-white shadow-md"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                    : "text-muted hover:text-heading hover:bg-surface-elevated"
                 }`}
               >
                 <Icon size={14} />

@@ -23,6 +23,8 @@ import {
   UserCheck,
   LogOut,
   ChevronRight,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -34,6 +36,8 @@ import { logout } from "../State/AuthSlic";
 import { fetchMySavedJobsThunk } from "../State/savedJobThunk";
 import { fetchMyApplicationsThunk } from "../State/applicationThunk";
 import { getUnreadCountApi } from "../api/chatApi";
+import { useTheme } from "../context/ThemeContext";
+
 
 /* ────────────────────────────────────────────────────────────
    Constants
@@ -225,7 +229,9 @@ const IconButton = memo(function IconButton({
   className = "",
   badgeCount = 0,
 }) {
+  const { theme } = useTheme();
   const hasBadge = badgeCount > 0;
+  const isLight = theme === "light";
 
   return (
     <motion.button
@@ -235,7 +241,11 @@ const IconButton = memo(function IconButton({
       transition={{ type: "spring", stiffness: 350, damping: 18 }}
       aria-label={hasBadge ? `${label} (${badgeCount} unread)` : label}
       onClick={onClick}
-      className={`relative rounded-xl p-2.5 text-[#708090] transition-colors duration-200 hover:bg-[#161B22] hover:text-[#F1F5F9] ${FOCUS_RING} ${className}`}
+      className={`relative rounded-xl p-2.5 transition-colors duration-200 ${FOCUS_RING} ${
+        isLight
+          ? "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+          : "text-[#708090] hover:bg-[#161B22] hover:text-[#F1F5F9]"
+      } ${className}`}
     >
       {hasBadge ? (
         <Indicator
@@ -286,6 +296,7 @@ function Header() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -412,8 +423,12 @@ function Header() {
         role="banner"
         className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
           scrolled
-            ? "border-white/[0.08] bg-[#05070d]/95 shadow-[0_4px_32px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
-            : "border-white/[0.05] bg-[#05070d]/80 backdrop-blur-xl"
+            ? theme === "light"
+              ? "border-slate-200 bg-white/95 shadow-[0_4px_32px_rgba(0,0,0,0.08)] backdrop-blur-2xl"
+              : "border-white/[0.08] bg-[#05070d]/95 shadow-[0_4px_32px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
+            : theme === "light"
+              ? "border-slate-100 bg-white/90 backdrop-blur-xl"
+              : "border-white/[0.05] bg-[#05070d]/80 backdrop-blur-xl"
         }`}
       >
         {/* Top gradient accent line */}
@@ -443,10 +458,10 @@ function Header() {
             </motion.div>
             
             <div className="flex flex-col shrink-0 min-w-0">
-              <span className="text-base sm:text-xl lg:text-2xl font-black text-white font-satoshi tracking-tight leading-none group-hover:text-indigo-200 transition-colors truncate">
+              <span className={`text-base sm:text-xl lg:text-2xl font-black font-satoshi tracking-tight leading-none transition-colors truncate ${theme === "light" ? "text-slate-900 group-hover:text-indigo-700" : "text-white group-hover:text-indigo-200"}`}>
                 JobPortal <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">AI</span>
               </span>
-              <span className="hidden xs:inline-block text-[9px] font-extrabold uppercase tracking-widest text-indigo-300 mt-0.5 font-satoshi truncate">
+              <span className={`hidden xs:inline-block text-[9px] font-extrabold uppercase tracking-widest mt-0.5 font-satoshi truncate ${theme === "light" ? "text-indigo-600" : "text-indigo-300"}`}>
                 Career Intelligence
               </span>
             </div>
@@ -456,7 +471,7 @@ function Header() {
           <nav
             role="navigation"
             aria-label="Main navigation"
-            className="hidden items-center justify-center gap-1 sm:gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1.5 backdrop-blur-xl md:flex"
+            className={`hidden items-center justify-center gap-1 sm:gap-2 rounded-2xl border p-1.5 backdrop-blur-xl md:flex ${theme === "light" ? "border-slate-200 bg-slate-100/60" : "border-white/10 bg-white/[0.03]"}`}
           >
             {navLinks.map((item) => {
                 const active = isNavItemActive(item, location.pathname);
@@ -471,25 +486,32 @@ function Header() {
                         whitespace-nowrap rounded-xl px-3.5 text-sm font-medium
                         transition-colors duration-300 lg:px-4
                         ${FOCUS_RING}
-                        ${active ? "text-white" : "text-[#94A3B8] hover:text-[#F1F5F9]"}
+                        ${active
+                          ? theme === "light" ? "text-slate-900" : "text-white"
+                          : theme === "light"
+                            ? "text-slate-500 hover:text-slate-900"
+                            : "text-[#94A3B8] hover:text-[#F1F5F9]"
+                        }
                       `}
                     >
                       {/* Active background */}
                       {active && (
                         <motion.span
                           layoutId="nav-active-bg"
-                          className="absolute inset-0 rounded-xl border border-white/[0.07] bg-[#161B22] shadow-[0_4px_16px_rgba(0,0,0,0.25)]"
+                          className={`absolute inset-0 rounded-xl shadow-sm ${theme === "light" ? "border border-slate-200 bg-white" : "border border-white/[0.07] bg-[#161B22] shadow-[0_4px_16px_rgba(0,0,0,0.25)]"}`}
                           transition={{ type: "spring", stiffness: 400, damping: 35 }}
                         />
                       )}
 
                       {/* Hover background */}
-                      <span className="absolute inset-0 rounded-xl bg-white/[0.04] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                      <span className={`absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${theme === "light" ? "bg-slate-100" : "bg-white/[0.04]"}`} />
 
                       {/* Label & Chevron */}
                       <span
                         className={`relative z-10 inline-flex items-center gap-1.5 transition-all duration-300 ${
-                          active ? "font-extrabold text-white" : "group-hover:text-white"
+                          active
+                            ? theme === "light" ? "font-extrabold text-slate-900" : "font-extrabold text-white"
+                            : theme === "light" ? "group-hover:text-slate-900" : "group-hover:text-white"
                         }`}
                       >
                         <span>{item.name}</span>
@@ -499,7 +521,7 @@ function Header() {
                           </span>
                         )}
                         {item.children && (
-                          <ChevronDown size={13} className="text-slate-400 group-hover:text-white transition-transform group-hover:rotate-180 duration-200" />
+                          <ChevronDown size={13} className={`transition-transform group-hover:rotate-180 duration-200 ${theme === "light" ? "text-slate-400 group-hover:text-slate-700" : "text-slate-400 group-hover:text-white"}`} />
                         )}
                       </span>
 
@@ -633,14 +655,25 @@ function Header() {
             {/* Notifications — full feature notification bell with badge and dropdown */}
             <NotificationBell />
 
-            {/* Settings (desktop) */}
-            <IconButton
-              icon={Settings}
-              label="Settings"
-              onClick={handleSettingsClick}
-              hoverRotate={45}
-              className="hidden sm:block"
-            />
+            {/* Theme Toggle (desktop) — replaces old Settings icon */}
+            <motion.button
+              type="button"
+              onClick={toggleTheme}
+              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              whileHover={{ scale: 1.08, rotate: theme === "dark" ? 15 : -15 }}
+              whileTap={{ scale: 0.93 }}
+              className={`hidden sm:flex h-9 w-9 items-center justify-center rounded-2xl border backdrop-blur-sm transition-all duration-200 cursor-pointer ${
+                theme === "light"
+                  ? "border-slate-200 bg-slate-100 text-slate-600 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-600"
+                  : "border-white/10 bg-white/5 text-slate-300 hover:border-amber-400/50 hover:bg-amber-400/10 hover:text-amber-300"
+              }`}
+              aria-label="Toggle theme"
+            >
+              {theme === "dark"
+                ? <Sun size={17} strokeWidth={1.8} />
+                : <Moon size={17} strokeWidth={1.8} />
+              }
+            </motion.button>
 
             {/* Avatar / login */}
             <div className="ml-1 hidden items-center md:flex">
@@ -686,7 +719,7 @@ function Header() {
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav"
               onClick={() => setMobileOpen((v) => !v)}
-              className={`ml-0.5 rounded-xl p-2.5 text-[#708090] transition-colors duration-200 hover:bg-[#161B22] hover:text-[#F1F5F9] md:hidden ${FOCUS_RING}`}
+              className={`ml-0.5 rounded-xl p-2.5 transition-colors duration-200 md:hidden ${FOCUS_RING} ${theme === "light" ? "text-slate-500 hover:bg-slate-100 hover:text-slate-900" : "text-[#708090] hover:bg-[#161B22] hover:text-[#F1F5F9]"}`}
             >
               <AnimatePresence mode="wait" initial={false}>
                 {mobileOpen ? (
@@ -932,8 +965,8 @@ function Header() {
                         aria-current={active ? "page" : undefined}
                         className={`relative flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition-colors duration-200 active:scale-[0.98] ${FOCUS_RING} ${
                           active
-                            ? "bg-[#161B22] text-[#F1F5F9]"
-                            : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
+                            ? theme === "light" ? "bg-indigo-50 text-indigo-700 font-bold" : "bg-[#161B22] text-[#F1F5F9]"
+                            : theme === "light" ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900" : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
                         }`}
                       >
                         {active && (
@@ -950,34 +983,38 @@ function Header() {
 
                 {/* Mobile Dynamic Candidate Profile Card */}
                 {user ? (
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-[#090d16]/95 backdrop-blur-xl p-3.5 shadow-xl space-y-3">
+                  <div className={`mt-4 rounded-2xl border backdrop-blur-xl p-3.5 shadow-xl space-y-3 ${
+                    theme === "light" ? "border-slate-200 bg-white" : "border-white/10 bg-[#090d16]/95"
+                  }`}>
                     <div className="flex items-center gap-3">
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 font-extrabold text-white text-base shadow">
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h4 className="text-sm font-extrabold text-white font-satoshi truncate">
+                        <h4 className={`text-sm font-extrabold font-satoshi truncate ${theme === "light" ? "text-slate-900" : "text-white"}`}>
                           {displayName}
                         </h4>
-                        <p className="text-xs text-indigo-400 font-bold truncate mt-0.5">
+                        <p className="text-xs text-indigo-600 font-bold truncate mt-0.5">
                           {user?.role ?? user?.accountType ?? "Candidate"}
                         </p>
-                        <p className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Verified Member
+                        <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Verified Member
                         </p>
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-white/10 grid grid-cols-3 gap-2">
+                    <div className={`pt-2 border-t grid grid-cols-3 gap-2 ${theme === "light" ? "border-slate-100" : "border-white/10"}`}>
                       <button
                         type="button"
                         onClick={() => {
                           setMobileOpen(false);
                           handleMessagesClick();
                         }}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer relative"
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-bold transition cursor-pointer relative ${
+                          theme === "light" ? "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                        }`}
                       >
-                        <MessageSquare size={13} className="text-indigo-400" />
+                        <MessageSquare size={13} className="text-indigo-500" />
                         <span>Chat</span>
                         {unreadMessages > 0 && (
                           <span className="h-2 w-2 rounded-full bg-rose-500" />
@@ -987,18 +1024,21 @@ function Header() {
                       <button
                         type="button"
                         onClick={() => {
+                          toggleTheme();
                           setMobileOpen(false);
-                          handleSettingsClick();
                         }}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 py-2 text-xs font-bold text-amber-600 hover:bg-amber-500/20 transition cursor-pointer"
                       >
-                        <Settings size={13} /> Settings
+                        {theme === "dark"
+                          ? <><Sun size={13} /> Light Mode</>
+                          : <><Moon size={13} /> Dark Mode</>
+                        }
                       </button>
 
                       <button
                         type="button"
                         onClick={handleLogout}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 py-2 text-xs font-bold text-rose-600 hover:bg-rose-500/20 transition cursor-pointer"
                       >
                         <LogOut size={13} /> Logout
                       </button>

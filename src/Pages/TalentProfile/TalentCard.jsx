@@ -7,13 +7,14 @@ import {
 import { useNavigate } from "react-router-dom";
 import { createOrGetConversationApi, resolveCandidateUserId } from "../../api/chatApi";
 import { useToast } from "../../components/ui/ToastNotification";
+import { getAssetUrl } from "../../utils/assetUtils";
 
 const getFullImageUrl = (rawPath) => {
   if (!rawPath) return null;
   if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) return rawPath;
   const cleanPath = rawPath.startsWith("/") ? rawPath.slice(1) : rawPath;
-  if (cleanPath.startsWith("uploads/")) return `http://localhost:8080/${cleanPath}`;
-  return `http://localhost:8080/uploads/${cleanPath}`;
+  if (cleanPath.startsWith("uploads/")) return getAssetUrl(cleanPath);
+  return getAssetUrl(`uploads/${cleanPath}`);
 };
 
 function AvailabilityBadge({ type }) {
@@ -90,8 +91,8 @@ function TalentCard({ talent: customTalent }) {
         w-full
         rounded-2xl
         border
-        border-white/10
-        bg-[#090d16]/90
+        border-border
+        bg-surface
         p-5
         transition-all
         duration-300
@@ -105,7 +106,7 @@ function TalentCard({ talent: customTalent }) {
         {/* Profile */}
         <div className="flex min-w-0 items-center gap-3.5">
           {/* Avatar */}
-          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-indigo-500/20 bg-slate-800">
+          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-indigo-500/20 bg-surface-elevated">
             {talent.profileImage ? (
               <img
                 src={talent.profileImage}
@@ -125,14 +126,14 @@ function TalentCard({ talent: customTalent }) {
 
           {/* Name & Role */}
           <div className="min-w-0">
-            <h3 className="truncate font-satoshi text-base font-bold text-white">
+            <h3 className="truncate font-satoshi text-base font-bold text-heading">
               {talent.name}
             </h3>
-            <p className="truncate font-satoshi text-xs font-semibold text-indigo-300 mt-0.5">
+            <p className="truncate font-satoshi text-xs font-semibold text-indigo-600 dark:text-indigo-300 mt-0.5">
               {talent.role}
             </p>
             {talent.company && (
-              <p className="truncate font-satoshi text-[11px] text-slate-400 mt-0.5">
+              <p className="truncate font-satoshi text-[11px] text-muted mt-0.5">
                 {talent.company}
               </p>
             )}
@@ -151,13 +152,13 @@ function TalentCard({ talent: customTalent }) {
             justify-center
             rounded-xl
             border
-            border-white/10
-            bg-white/5
-            text-slate-400
+            border-border
+            bg-surface-elevated
+            text-muted
             transition-all
             hover:border-rose-500/30
             hover:bg-rose-500/10
-            hover:text-rose-400
+            hover:text-rose-500
             cursor-pointer
           "
         >
@@ -167,7 +168,7 @@ function TalentCard({ talent: customTalent }) {
 
       {/* About */}
       {talent.about && (
-        <p className="mt-3 line-clamp-2 font-satoshi text-xs text-slate-300 font-normal leading-relaxed">
+        <p className="mt-3 line-clamp-2 font-satoshi text-xs text-body font-normal leading-relaxed">
           {talent.about}
         </p>
       )}
@@ -187,14 +188,15 @@ function TalentCard({ talent: customTalent }) {
               font-satoshi
               text-[11px]
               font-semibold
-              text-indigo-300
+              text-indigo-600
+              dark:text-indigo-300
             "
           >
             {typeof skill === "string" ? skill : skill.name}
           </span>
         ))}
         {talent.skills.length > 4 && (
-          <span className="rounded-lg bg-white/5 px-2 py-1 font-satoshi text-[11px] font-semibold text-slate-400">
+          <span className="rounded-lg bg-surface-elevated px-2 py-1 font-satoshi text-[11px] font-semibold text-muted">
             +{talent.skills.length - 4}
           </span>
         )}
@@ -207,13 +209,13 @@ function TalentCard({ talent: customTalent }) {
       </div>
 
       {/* Location */}
-      <div className="mt-3.5 flex items-center gap-1.5 font-satoshi text-xs text-slate-400">
-        <IconMapPin size={15} className="shrink-0 text-indigo-400" />
+      <div className="mt-3.5 flex items-center gap-1.5 font-satoshi text-xs text-muted">
+        <IconMapPin size={15} className="shrink-0 text-indigo-500 dark:text-indigo-400" />
         <span className="truncate">{talent.location}</span>
       </div>
 
       {/* Divider */}
-      <div className="my-4 h-px w-full bg-white/10" />
+      <div className="my-4 h-px w-full bg-border" />
 
       {/* Actions */}
       <div className="grid grid-cols-2 gap-2 font-satoshi">
@@ -231,7 +233,8 @@ function TalentCard({ talent: customTalent }) {
             bg-transparent
             text-xs
             font-bold
-            text-indigo-300
+            text-indigo-600
+            dark:text-indigo-300
             transition-all
             hover:bg-indigo-500/10
             cursor-pointer
@@ -254,7 +257,7 @@ function TalentCard({ talent: customTalent }) {
             bg-indigo-600
             text-xs
             font-bold
-            text-white
+            !text-white
             shadow-md
             transition-all
             hover:bg-indigo-500
