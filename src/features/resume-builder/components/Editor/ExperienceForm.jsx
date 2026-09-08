@@ -127,7 +127,7 @@ export default function ExperienceForm({ experience = [], onChange }) {
                       type="text"
                       value={item.company || ""}
                       onChange={(e) => handleUpdate(item.id, "company", e.target.value)}
-                      placeholder="e.g. Google / Velora Systems"
+                      placeholder="e.g. Google / Microsoft"
                       className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-heading placeholder:text-muted/60 focus:outline-none focus:border-indigo-500 font-medium transition"
                     />
                   </div>

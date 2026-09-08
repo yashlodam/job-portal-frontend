@@ -27,20 +27,13 @@ import { submitVerification } from "../../../State/verificationSlice";
 import { useToast } from "../../ui/ToastNotification";
 
 const fieldStyles = {
-  label: { color: "#E2E8F0", fontSize: 13, fontWeight: 600, marginBottom: 6 },
+  label: { color: "var(--text-heading)", fontSize: 13, fontWeight: 600, marginBottom: 6 },
   input: {
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderColor: "rgba(255,255,255,0.12)",
-    color: "#FFFFFF",
+    backgroundColor: "var(--bg-surface-elevated)",
+    borderColor: "var(--border-border)",
+    color: "var(--text-heading)",
     borderRadius: 14,
     fontSize: 13,
-    "&:focus, &:focusWithin": {
-      borderColor: "#6366F1 !important",
-      backgroundColor: "rgba(255,255,255,0.06)",
-    },
-    "&::placeholder": {
-      color: "#64748B !important",
-    },
   },
 };
 
@@ -149,10 +142,10 @@ export default function VerificationForm({ initialData, onSuccess }) {
       )}
 
       {/* Section 1: Recruiter Identity */}
-      <div className="rounded-3xl border border-white/10 bg-[#090d16]/80 p-5 sm:p-6 space-y-4 backdrop-blur-xl">
-        <div className="flex items-center gap-2 border-b border-white/5 pb-3">
-          <User className="h-4 w-4 text-indigo-400" />
-          <h4 className="text-sm font-extrabold text-white font-satoshi">Recruiter & Representative Identity</h4>
+      <div className="rounded-3xl border border-border bg-surface p-5 sm:p-6 space-y-4 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-border pb-3">
+          <User className="h-4 w-4 text-primary" />
+          <h4 className="text-sm font-extrabold text-heading font-satoshi">Recruiter & Representative Identity</h4>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -162,7 +155,7 @@ export default function VerificationForm({ initialData, onSuccess }) {
             value={formData.fullName}
             onChange={(e) => handleChange("fullName", e.target.value)}
             error={errors.fullName}
-            leftSection={<User size={15} className="text-slate-400" />}
+            leftSection={<User size={15} className="text-muted" />}
             styles={fieldStyles}
             required
           />
@@ -173,7 +166,7 @@ export default function VerificationForm({ initialData, onSuccess }) {
             value={formData.designation}
             onChange={(e) => handleChange("designation", e.target.value)}
             error={errors.designation}
-            leftSection={<Briefcase size={15} className="text-slate-400" />}
+            leftSection={<Briefcase size={15} className="text-muted" />}
             styles={fieldStyles}
             required
           />
@@ -184,7 +177,7 @@ export default function VerificationForm({ initialData, onSuccess }) {
             value={formData.workEmail}
             onChange={(e) => handleChange("workEmail", e.target.value)}
             error={errors.workEmail}
-            leftSection={<Mail size={15} className="text-slate-400" />}
+            leftSection={<Mail size={15} className="text-muted" />}
             styles={fieldStyles}
             required
           />
@@ -195,17 +188,17 @@ export default function VerificationForm({ initialData, onSuccess }) {
             value={formData.linkedinProfile}
             onChange={(e) => handleChange("linkedinProfile", e.target.value)}
             error={errors.linkedinProfile}
-            leftSection={<Link2 size={15} className="text-slate-400" />}
+            leftSection={<Link2 size={15} className="text-muted" />}
             styles={fieldStyles}
           />
         </div>
       </div>
 
       {/* Section 2: Company Verification Information */}
-      <div className="rounded-3xl border border-white/10 bg-[#090d16]/80 p-5 sm:p-6 space-y-4 backdrop-blur-xl">
-        <div className="flex items-center gap-2 border-b border-white/5 pb-3">
-          <Building2 className="h-4 w-4 text-purple-400" />
-          <h4 className="text-sm font-extrabold text-white font-satoshi">Corporate & Employer Information</h4>
+      <div className="rounded-3xl border border-border bg-surface p-5 sm:p-6 space-y-4 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-border pb-3">
+          <Building2 className="h-4 w-4 text-purple-500" />
+          <h4 className="text-sm font-extrabold text-heading font-satoshi">Corporate & Employer Information</h4>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -215,7 +208,7 @@ export default function VerificationForm({ initialData, onSuccess }) {
             value={formData.companyName}
             onChange={(e) => handleChange("companyName", e.target.value)}
             error={errors.companyName}
-            leftSection={<Building2 size={15} className="text-slate-400" />}
+            leftSection={<Building2 size={15} className="text-muted" />}
             styles={fieldStyles}
             required
           />
@@ -226,7 +219,7 @@ export default function VerificationForm({ initialData, onSuccess }) {
             value={formData.companyWebsite}
             onChange={(e) => handleChange("companyWebsite", e.target.value)}
             error={errors.companyWebsite}
-            leftSection={<Globe size={15} className="text-slate-400" />}
+            leftSection={<Globe size={15} className="text-muted" />}
             styles={fieldStyles}
             required
           />
@@ -238,7 +231,7 @@ export default function VerificationForm({ initialData, onSuccess }) {
               value={formData.companyLocation}
               onChange={(e) => handleChange("companyLocation", e.target.value)}
               error={errors.companyLocation}
-              leftSection={<MapPin size={15} className="text-slate-400" />}
+              leftSection={<MapPin size={15} className="text-muted" />}
               styles={fieldStyles}
               required
             />

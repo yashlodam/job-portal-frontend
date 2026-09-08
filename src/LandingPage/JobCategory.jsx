@@ -95,8 +95,8 @@ function CategoryCard({ item, activeParam, variants }) {
       whileTap={{ scale: 0.98 }}
       className={`group relative flex min-h-[170px] flex-col justify-between overflow-hidden rounded-3xl border p-6 backdrop-blur-xl transition-all duration-300 cursor-pointer ${
         isLight
-          ? "border-slate-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-xl"
-          : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
+          ? "border-slate-200/90 bg-white/85 shadow-xs hover:border-indigo-300 hover:shadow-xl hover:bg-white"
+          : "border-white/10 bg-[#090d16]/85 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
       }`}
     >
       {/* Glow Wash effect on hover */}
@@ -212,8 +212,8 @@ export default function JobCategory() {
   const activeTabMeta = TABS.find((tab) => tab.key === activeTab) ?? TABS[0];
 
   return (
-    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
-      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 bg-transparent ${
+      isLight ? "text-slate-800" : "text-slate-200"
     }`}>
       {/* ── Background Ambient Lighting & Mesh Orbs ── */}
       <div

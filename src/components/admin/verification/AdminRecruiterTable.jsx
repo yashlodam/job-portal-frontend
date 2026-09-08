@@ -42,9 +42,9 @@ export default function AdminRecruiterTable({
 }) {
   if (loading) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-[#090d16]/80 p-12 text-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
-        <p className="mt-3 text-xs font-semibold text-slate-400 font-satoshi">
+      <div className="rounded-2xl border border-border bg-surface p-12 text-center shadow-sm">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="mt-3 text-xs font-semibold text-muted font-satoshi">
           Loading recruiter verifications…
         </p>
       </div>
@@ -53,10 +53,10 @@ export default function AdminRecruiterTable({
 
   if (!recruiters || recruiters.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-[#090d16]/80 p-12 text-center space-y-2">
-        <Building2 size={36} className="text-slate-500 mx-auto opacity-60" />
-        <h4 className="text-sm font-bold text-white font-satoshi">No Recruiters Found</h4>
-        <p className="text-xs text-slate-400 max-w-sm mx-auto">
+      <div className="rounded-2xl border border-border bg-surface p-12 text-center space-y-2 shadow-sm">
+        <Building2 size={36} className="text-muted mx-auto opacity-60" />
+        <h4 className="text-sm font-bold text-heading font-satoshi">No Recruiters Found</h4>
+        <p className="text-xs text-muted max-w-sm mx-auto">
           No recruiter verification records match the current filter or search criteria.
         </p>
       </div>
@@ -100,12 +100,12 @@ export default function AdminRecruiterTable({
                 {/* Recruiter Name & Email */}
                 <TableCell>
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 font-bold text-xs">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-600 dark:text-purple-300 font-bold text-xs">
                       {recruiterName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-bold text-white font-satoshi text-xs">{recruiterName}</p>
-                      <p className="text-[11px] text-slate-400 font-mono">{recruiterEmail}</p>
+                      <p className="font-bold text-heading font-satoshi text-xs">{recruiterName}</p>
+                      <p className="text-[11px] text-muted font-mono">{recruiterEmail}</p>
                     </div>
                   </div>
                 </TableCell>
@@ -113,13 +113,13 @@ export default function AdminRecruiterTable({
                 {/* Company & Website Link */}
                 <TableCell>
                   <div>
-                    <p className="font-semibold text-white text-xs">{companyName}</p>
+                    <p className="font-semibold text-heading text-xs">{companyName}</p>
                     {recruiter.companyWebsite && (
                       <a
                         href={recruiter.companyWebsite}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[10px] text-indigo-400 hover:underline inline-flex items-center gap-0.5 mt-0.5"
+                        className="text-[10px] text-primary hover:underline inline-flex items-center gap-0.5 mt-0.5"
                       >
                         <span className="truncate max-w-[140px]">{recruiter.companyWebsite}</span>
                         <ExternalLink size={9} />
@@ -130,7 +130,7 @@ export default function AdminRecruiterTable({
 
                 {/* Designation */}
                 <TableCell>
-                  <span className="text-slate-300 text-xs font-medium">
+                  <span className="text-body text-xs font-medium">
                     {recruiter.designation || "Recruiter"}
                   </span>
                 </TableCell>
@@ -142,7 +142,7 @@ export default function AdminRecruiterTable({
 
                 {/* Submitted At */}
                 <TableCell>
-                  <span className="text-slate-400 text-xs">{submittedDate}</span>
+                  <span className="text-muted text-xs">{submittedDate}</span>
                 </TableCell>
 
                 {/* Actions */}
@@ -152,7 +152,7 @@ export default function AdminRecruiterTable({
                       type="button"
                       onClick={() => onViewDetails(recruiter)}
                       title="Inspect Verification Details"
-                      className="flex h-8 items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2.5 text-[11px] font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                      className="flex h-8 items-center gap-1 rounded-xl border border-border bg-surface px-2.5 text-[11px] font-semibold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
                     >
                       <Eye size={13} />
                       <span className="hidden sm:inline">Details</span>
@@ -175,7 +175,7 @@ export default function AdminRecruiterTable({
                         type="button"
                         onClick={() => onReject(recruiter)}
                         title="Reject Verification"
-                        className="flex h-8 items-center gap-1 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 px-2.5 text-[11px] font-bold transition cursor-pointer"
+                        className="flex h-8 items-center gap-1 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-300 hover:bg-rose-500/20 px-2.5 text-[11px] font-bold transition cursor-pointer"
                       >
                         <XCircle size={13} />
                         <span className="hidden sm:inline">Reject</span>
@@ -187,7 +187,7 @@ export default function AdminRecruiterTable({
                         type="button"
                         onClick={() => onSuspend(recruiter)}
                         title="Suspend Account"
-                        className="flex h-8 items-center gap-1 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 px-2 text-[11px] font-semibold transition cursor-pointer"
+                        className="flex h-8 items-center gap-1 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 px-2 text-[11px] font-semibold transition cursor-pointer"
                       >
                         <AlertOctagon size={13} />
                       </button>

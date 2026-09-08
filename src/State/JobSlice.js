@@ -225,7 +225,6 @@ export const filterJobs = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      console.log("Filters in filterJobs thunk:", filters);
       const { data } = await api.post(
         "/jobs/filter",
         filters,

@@ -93,7 +93,7 @@ export const Input = forwardRef(function Input(
       </div>
 
       {error && (
-        <span id={`${inputId}-error`} className="text-xs text-rose-400 font-medium animate-fadeIn">
+        <span id={`${inputId}-error`} className="text-xs text-rose-600 dark:text-rose-400 font-medium animate-fadeIn">
           {error}
         </span>
       )}

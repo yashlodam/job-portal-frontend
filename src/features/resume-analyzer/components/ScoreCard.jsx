@@ -24,10 +24,10 @@ export default function ScoreCard({
       whileHover={{ y: -4, scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
       onClick={onClick}
-      className={`relative p-5 sm:p-6 rounded-3xl transition-all duration-300 cursor-pointer overflow-hidden border backdrop-blur-2xl ${
+      className={`relative p-5 sm:p-6 rounded-3xl transition-all duration-300 cursor-pointer overflow-hidden border backdrop-blur-2xl shadow-sm ${
         isActive
-          ? `bg-[#0e1424] border-indigo-500/60 shadow-[0_0_30px_rgba(99,102,241,0.25)]`
-          : `bg-[#080c16]/90 border-white/10 hover:border-white/20 hover:bg-[#0c111e]/95`
+          ? `bg-surface-elevated border-primary shadow-[0_0_30px_rgba(99,102,241,0.25)]`
+          : `bg-surface border-border hover:border-primary/40 hover:bg-surface-hover`
       }`}
     >
       {/* Background Subtle Gradient Glow */}
@@ -41,7 +41,7 @@ export default function ScoreCard({
                 <Icon size={18} />
               </div>
             )}
-            <h3 className="font-extrabold text-slate-200 text-sm sm:text-base font-satoshi">{title}</h3>
+            <h3 className="font-extrabold text-heading text-sm sm:text-base font-satoshi">{title}</h3>
           </div>
 
           <div className="flex items-center gap-2 pt-1">
@@ -51,7 +51,7 @@ export default function ScoreCard({
           </div>
 
           {description && (
-            <p className="text-xs text-slate-400 font-medium leading-relaxed line-clamp-2 pt-1">
+            <p className="text-xs text-muted font-medium leading-relaxed line-clamp-2 pt-1">
               {description}
             </p>
           )}

@@ -85,14 +85,9 @@ export default function HowItWorks() {
   const isLight = theme === "light";
 
   return (
-    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
-      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 bg-transparent ${
+      isLight ? "text-slate-800" : "text-slate-200"
     }`} aria-label="How it works">
-      {/* Ambient background orbs */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/3 top-1/4 h-[550px] w-[550px] -translate-x-1/2 rounded-full bg-indigo-600/5 blur-[200px]" />
-      </div>
-
       <div className="section-container relative z-10">
         <SectionHeader
           badge="Intelligent Recruitment"
@@ -125,8 +120,8 @@ export default function HowItWorks() {
                 whileHover={{ y: -6, scale: 1.01 }}
                 className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-7 sm:p-8 backdrop-blur-xl transition-all duration-300 cursor-pointer ${
                   isLight
-                    ? "border-slate-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-xl"
-                    : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
+                    ? "border-slate-200/90 bg-white/85 shadow-xs hover:border-indigo-300 hover:shadow-xl hover:bg-white"
+                    : "border-white/10 bg-[#090d16]/85 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
                 }`}
               >
                 {/* Step Number Watermark */}
@@ -229,9 +224,13 @@ export default function HowItWorks() {
                 </Link>
                 <Link
                   to="/find-jobs"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 hover:border-white/25 transition cursor-pointer"
+                  className={`inline-flex items-center gap-2 rounded-2xl border px-5 py-3 text-xs font-bold transition cursor-pointer ${
+                    isLight
+                      ? "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                      : "border-white/15 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 hover:border-white/25"
+                  }`}
                 >
-                  <Zap size={14} className="text-indigo-400" />
+                  <Zap size={14} className={isLight ? "text-indigo-600" : "text-indigo-400"} />
                   <span>Explore Matched Jobs</span>
                 </Link>
               </div>
@@ -239,60 +238,82 @@ export default function HowItWorks() {
 
             {/* Right: Realistic AI Match Score Simulation Card */}
             <div className="lg:col-span-6">
-              <div className="rounded-2xl border border-white/10 bg-[#070b14]/90 p-5 sm:p-6 shadow-xl space-y-4">
+              <div className={`rounded-2xl border p-5 sm:p-6 shadow-xl space-y-4 ${
+                isLight ? "bg-slate-50 border-slate-200" : "bg-[#070b14]/90 border-white/10"
+              }`}>
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className={`flex items-center justify-between border-b pb-4 ${
+                  isLight ? "border-slate-200" : "border-white/10"
+                }`}>
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 font-satoshi">
-                      Target Role: Senior Fullstack Engineer
+                    <span className={`text-[10px] font-bold uppercase tracking-wider font-satoshi ${
+                      isLight ? "text-indigo-600" : "text-indigo-400"
+                    }`}>
+                      Sample Match Preview
                     </span>
-                    <h5 className="text-base font-extrabold text-white font-satoshi">
-                      Stripe • Remote
+                    <h5 className={`text-base font-extrabold font-satoshi ${
+                      isLight ? "text-slate-900" : "text-white"
+                    }`}>
+                      Fullstack Engineer • Tech Sector
                     </h5>
                   </div>
 
                   <div className="flex items-center gap-2 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 px-3.5 py-1.5">
-                    <Zap size={16} className="text-emerald-400" />
-                    <span className="text-base font-black text-emerald-300 font-satoshi">94%</span>
-                    <span className="text-[10px] font-bold text-emerald-400">Match</span>
+                    <Zap size={16} className="text-emerald-500" />
+                    <span className={`text-base font-black font-satoshi ${isLight ? "text-emerald-700" : "text-emerald-300"}`}>92%</span>
+                    <span className="text-[10px] font-bold text-emerald-600">Match</span>
                   </div>
                 </div>
 
                 {/* Skill Matrix */}
                 <div className="space-y-2.5 text-xs">
                   <div className="flex justify-between items-center text-[11px] font-bold">
-                    <span className="text-slate-400">Matched Competencies (5/6)</span>
-                    <span className="text-emerald-400">High Compatibility</span>
+                    <span className={isLight ? "text-slate-600" : "text-slate-400"}>Matched Competencies (5/6)</span>
+                    <span className="text-emerald-600 font-extrabold">High Compatibility</span>
                   </div>
 
                   <div className="flex flex-wrap gap-1.5">
                     {["React 19", "TypeScript", "Node.js", "GraphQL", "PostgreSQL"].map((skill) => (
                       <span
                         key={skill}
-                        className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 text-[11px] font-bold text-emerald-300"
+                        className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-bold ${
+                          isLight
+                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                            : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                        }`}
                       >
-                        <CheckCircle2 size={11} className="text-emerald-400" />
+                        <CheckCircle2 size={11} className="text-emerald-500" />
                         {skill}
                       </span>
                     ))}
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 text-[11px] font-bold text-amber-300">
-                      <Sparkles size={11} className="text-amber-400" />
+                    <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-bold ${
+                      isLight
+                        ? "bg-amber-50 border-amber-200 text-amber-700"
+                        : "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                    }`}>
+                      <Sparkles size={11} className="text-amber-500" />
                       Docker (Recommended)
                     </span>
                   </div>
                 </div>
 
                 {/* AI Summary note */}
-                <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-[11px] text-indigo-200 leading-relaxed">
+                <div className={`p-3 rounded-xl border text-[11px] leading-relaxed ${
+                  isLight
+                    ? "bg-indigo-50 border-indigo-200 text-indigo-950 font-medium"
+                    : "bg-indigo-500/10 border-indigo-500/20 text-indigo-200"
+                }`}>
                   💡 <strong>AI Recommendation:</strong> Strong match on modern frontend and relational architecture. Highlight your recent distributed system experience in your cover letter.
                 </div>
 
                 {/* Direct Action Link */}
                 <div className="pt-1 flex items-center justify-between text-xs">
-                  <span className="text-[11px] text-slate-400 font-medium">Want to see your resume score?</span>
+                  <span className={`text-[11px] font-medium ${isLight ? "text-slate-600" : "text-slate-400"}`}>Want to see your resume score?</span>
                   <Link
                     to="/career-hub/resume-analyzer"
-                    className="inline-flex items-center gap-1 font-bold text-indigo-400 hover:text-indigo-300 transition group"
+                    className={`inline-flex items-center gap-1 font-bold transition group ${
+                      isLight ? "text-indigo-600 hover:text-indigo-700" : "text-indigo-400 hover:text-indigo-300"
+                    }`}
                   >
                     <span>Test Your Resume Now</span>
                     <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />

@@ -61,6 +61,7 @@ export const Button = forwardRef(function Button(
       ref={ref}
       type={type}
       disabled={isDisabled}
+      aria-busy={isLoading}
       onClick={onClick}
       className={`${baseStyles} ${variants[variant] || variants.primary} ${sizes[size] || sizes.md} ${className}`}
       {...props}

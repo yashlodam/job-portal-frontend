@@ -40,23 +40,23 @@ export default function LoadingAnalyzer({ onComplete }) {
     <div className="py-12 px-4 max-w-xl mx-auto text-center space-y-8 font-satoshi">
       {/* Glow Avatar Circle */}
       <div className="relative inline-block">
-        <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-30 blur-2xl animate-pulse" />
-        <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-[#090d16] border border-indigo-500/40 text-indigo-400 mx-auto shadow-2xl">
-          <Cpu size={48} className="animate-pulse text-indigo-400" />
+        <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 blur-2xl animate-pulse" />
+        <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-surface border border-primary/40 text-primary mx-auto shadow-sm">
+          <Cpu size={48} className="animate-pulse text-primary" />
         </div>
       </div>
 
       <div className="space-y-2">
-        <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-          AI Neural Analysis <span className="bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">In Progress</span>
+        <h3 className="text-2xl sm:text-3xl font-black text-heading tracking-tight">
+          AI Neural Analysis <span className="bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent">In Progress</span>
         </h3>
-        <p className="text-xs sm:text-sm text-slate-400 font-medium max-w-md mx-auto">
+        <p className="text-xs sm:text-sm text-muted font-medium max-w-md mx-auto">
           Please wait while our AI engine scans your resume against enterprise applicant tracking systems.
         </p>
       </div>
 
       {/* Step Progress List */}
-      <div className="p-6 rounded-3xl bg-[#090d16]/95 border border-white/10 space-y-3 text-left shadow-2xl backdrop-blur-2xl">
+      <div className="p-6 rounded-3xl bg-surface border border-border space-y-3 text-left shadow-sm backdrop-blur-2xl">
         {steps.map((step, idx) => {
           const Icon = step.icon;
           const isDone = idx < currentStep;
@@ -70,18 +70,18 @@ export default function LoadingAnalyzer({ onComplete }) {
               transition={{ delay: idx * 0.1 }}
               className={`p-3 rounded-2xl flex items-center justify-between gap-3 text-xs font-bold transition-all ${
                 isDone
-                  ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20"
                   : isCurrent
-                  ? "bg-indigo-500/20 text-white border border-indigo-500/40 shadow-md"
-                  : "text-slate-500 border border-transparent"
+                  ? "bg-primary/10 text-heading border border-primary/40 shadow-sm"
+                  : "text-muted border border-transparent"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon size={16} className={isDone ? "text-emerald-400" : isCurrent ? "text-indigo-400 animate-spin" : "text-slate-600"} />
+                <Icon size={16} className={isDone ? "text-emerald-500" : isCurrent ? "text-primary animate-spin" : "text-muted"} />
                 <span>{step.title}</span>
               </div>
 
-              {isDone && <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />}
+              {isDone && <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />}
             </motion.div>
           );
         })}

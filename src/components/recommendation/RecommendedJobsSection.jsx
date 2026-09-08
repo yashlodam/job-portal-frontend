@@ -44,6 +44,7 @@ import { fetchRecommendations } from "../../State/recommendationSlice";
 import { saveJobThunk, unsaveJobThunk } from "../../State/savedJobThunk";
 import { updateSkillsThunk } from "../../State/profileThunk";
 import { useToast } from "../ui/ToastNotification";
+import { getAssetUrl } from "../../utils/assetUtils";
 
 const POPULAR_SKILLS = [
   "Java",
@@ -66,42 +67,42 @@ function getMatchColors(percentage) {
   if (percentage >= 85)
     return {
       bg: "bg-emerald-500/15",
-      text: "text-emerald-400",
+      text: "text-emerald-600 dark:text-emerald-400",
       border: "border-emerald-500/30",
       bar: "bg-emerald-500",
       badgeBg: "bg-emerald-500",
-      badgeText: "text-slate-950",
+      badgeText: "text-white",
     };
   if (percentage >= 70)
     return {
-      bg: "bg-indigo-500/15",
-      text: "text-indigo-400",
-      border: "border-indigo-500/30",
-      bar: "bg-indigo-500",
-      badgeBg: "bg-indigo-500",
+      bg: "bg-primary/15",
+      text: "text-primary-light",
+      border: "border-primary/30",
+      bar: "bg-primary",
+      badgeBg: "bg-primary",
       badgeText: "text-white",
     };
   if (percentage >= 55)
     return {
       bg: "bg-cyan-500/15",
-      text: "text-cyan-400",
+      text: "text-cyan-600 dark:text-cyan-400",
       border: "border-cyan-500/30",
       bar: "bg-cyan-500",
       badgeBg: "bg-cyan-500",
-      badgeText: "text-slate-950",
+      badgeText: "text-white",
     };
   if (percentage >= 35)
     return {
       bg: "bg-amber-500/15",
-      text: "text-amber-400",
+      text: "text-amber-600 dark:text-amber-400",
       border: "border-amber-500/30",
       bar: "bg-amber-500",
       badgeBg: "bg-amber-500",
-      badgeText: "text-slate-950",
+      badgeText: "text-white",
     };
   return {
     bg: "bg-rose-500/15",
-    text: "text-rose-400",
+    text: "text-rose-600 dark:text-rose-400",
     border: "border-rose-500/30",
     bar: "bg-rose-500",
     badgeBg: "bg-rose-500",
@@ -113,10 +114,10 @@ function ScoreBar({ label, value, colorClass }) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-[11px]">
-        <span className="text-slate-400 font-semibold">{label}</span>
-        <span className={`font-black ${colorClass}`}>{value}%</span>
+        <span className="text-muted font-semibold">{label}</span>
+        <span className={`font-black ${colorClass || "text-heading"}`}>{value}%</span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+      <div className="h-1.5 w-full rounded-full bg-surface-elevated overflow-hidden border border-border">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
@@ -188,27 +189,27 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 font-inter text-body ${className}`}>
 
       {/* ── Section Header ──────────────────────────────────────────────────── */}
       {showHeading && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-4">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-pink-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-300 mb-2">
-              <Sparkles className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-bold text-primary-light mb-2">
+              <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
               <span>Personalized Career Engine</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-satoshi tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-heading font-satoshi tracking-tight">
               Recommended Jobs for You
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-muted mt-1">
               Ranked by your skills, experience fit, location, and posting freshness.
             </p>
           </div>
 
           {/* Filters & Refresh */}
           <div className="flex items-center gap-2.5">
-            <div className="flex items-center rounded-xl bg-white/5 border border-white/10 p-1 text-xs">
+            <div className="flex items-center rounded-2xl bg-surface border border-border p-1 text-xs">
               {[
                 { label: "All", value: 0 },
                 { label: "50%+ Fit", value: 50 },
@@ -217,10 +218,10 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                 <button
                   key={opt.value}
                   onClick={() => setMinMatch(opt.value)}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                  className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${
                     minMatch === opt.value
-                      ? "bg-indigo-600 text-white shadow"
-                      : "text-slate-400 hover:text-white"
+                      ? "gradient-bg-signature text-white shadow-button"
+                      : "text-muted hover:text-heading hover:bg-surface-hover"
                   }`}
                 >
                   {opt.label}
@@ -231,9 +232,9 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               onClick={handleRefresh}
               disabled={loading}
               title="Refresh recommendations"
-              className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition disabled:opacity-50"
+              className="p-2.5 rounded-2xl bg-surface border border-border text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer disabled:opacity-50"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-primary" : ""}`} />
             </button>
           </div>
         </div>
@@ -244,25 +245,25 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-[#0a0f1d] to-[#090d16] p-5 sm:p-6 space-y-4 shadow-xl"
+          className="rounded-3xl border border-primary/25 bg-surface p-5 sm:p-6 space-y-4 shadow-xl backdrop-blur-md"
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-xs">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-sm sm:text-base font-extrabold text-white font-satoshi">
+                <h4 className="text-sm sm:text-base font-extrabold text-heading font-satoshi">
                   ✨ Quick Start: Select your top skills to unlock instant matches
                 </h4>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-muted mt-0.5">
                   Click any skill below to add it and immediately recalculate your match scores.
                 </p>
               </div>
             </div>
             <Link
               to="/profile"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 self-start sm:self-auto shrink-0"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-light self-start sm:self-auto shrink-0"
             >
               <span>Full Profile</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -280,18 +281,18 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                   key={skill}
                   onClick={() => handleQuickAddSkill(skill)}
                   disabled={isSelected || isAdding}
-                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
+                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-semibold transition-all ${
                     isSelected
-                      ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300 cursor-default"
-                      : "border-white/10 bg-white/5 text-slate-300 hover:bg-indigo-600 hover:border-indigo-500 hover:text-white shadow-sm cursor-pointer"
+                      ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 cursor-default font-bold"
+                      : "border-border bg-surface-elevated text-heading hover:bg-primary/10 hover:border-primary/40 hover:text-primary shadow-xs cursor-pointer"
                   }`}
                 >
                   {isSelected ? (
-                    <Check className="h-3 w-3 text-emerald-400" />
+                    <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                   ) : isAdding ? (
-                    <RefreshCw className="h-3 w-3 animate-spin text-indigo-400" />
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin text-primary" />
                   ) : (
-                    <Plus className="h-3 w-3 text-slate-400" />
+                    <Plus className="h-3.5 w-3.5 text-muted" />
                   )}
                   <span>{skill}</span>
                 </button>
@@ -305,21 +306,21 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
       {loading && recommendations.length === 0 && (
         <div className={`grid grid-cols-1 md:grid-cols-2 ${limit > 4 ? "xl:grid-cols-3" : "xl:grid-cols-2"} gap-5`}>
           {[1, 2, 3, 4].map((n) => (
-            <div key={n} className="rounded-2xl border border-white/10 bg-[#090d16] p-5 space-y-4 animate-pulse">
+            <div key={n} className="rounded-2xl border border-border bg-surface p-5 space-y-4 animate-pulse">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-white/10" />
+                  <div className="h-12 w-12 rounded-xl bg-surface-elevated" />
                   <div className="space-y-2">
-                    <div className="h-4 w-44 rounded bg-white/10" />
-                    <div className="h-3 w-28 rounded bg-white/5" />
+                    <div className="h-4 w-44 rounded bg-surface-elevated" />
+                    <div className="h-3 w-28 rounded bg-surface-elevated/60" />
                   </div>
                 </div>
-                <div className="h-8 w-16 rounded-full bg-white/10" />
+                <div className="h-8 w-16 rounded-full bg-surface-elevated" />
               </div>
-              <div className="h-12 rounded-xl bg-white/5" />
+              <div className="h-12 rounded-xl bg-surface-elevated/50" />
               <div className="flex gap-2">
-                <div className="h-6 w-20 rounded-full bg-white/5" />
-                <div className="h-6 w-24 rounded-full bg-white/5" />
+                <div className="h-6 w-20 rounded-full bg-surface-elevated" />
+                <div className="h-6 w-24 rounded-full bg-surface-elevated" />
               </div>
             </div>
           ))}
@@ -328,14 +329,14 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
 
       {/* ── Empty State ──────────────────────────────────────────────────────── */}
       {!loading && recommendations.length === 0 && (
-        <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-[#090d16] p-8 sm:p-12 text-center space-y-4">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+        <div className="rounded-3xl border border-border bg-surface p-8 sm:p-12 text-center space-y-4 shadow-xl">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary shadow-inner">
             <Zap className="h-8 w-8" />
           </div>
-          <h3 className="text-xl font-extrabold text-white font-satoshi">
+          <h3 className="text-xl font-extrabold text-heading font-satoshi">
             {minMatch > 0 ? "No Jobs Matching Filter" : "Explore Active Opportunities"}
           </h3>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-muted max-w-md mx-auto leading-relaxed font-medium">
             {minMatch > 0
               ? `No jobs reached the ${minMatch}% match threshold. Try resetting to "All Matches".`
               : "Select 3+ skills in the quick-start banner above to unlock instant job matching."}
@@ -344,14 +345,14 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
             {minMatch > 0 && (
               <button
                 onClick={() => setMinMatch(0)}
-                className="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20"
+                className="gradient-bg-signature rounded-xl px-5 py-2.5 text-xs font-bold text-white shadow-button transition hover:scale-105 cursor-pointer"
               >
                 Reset to All Matches
               </button>
             )}
             <Link
               to="/find-jobs"
-              className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition"
+              className="rounded-xl border border-border bg-surface-elevated px-5 py-2.5 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition"
             >
               Browse All Jobs
             </Link>
@@ -364,6 +365,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
         {recommendations.map((job, idx) => {
           const colors = getMatchColors(job.matchPercentage);
           const isSaved = savedJobs?.some((sj) => sj.job?.id === job.id || sj.id === job.id);
+          const logoUrl = job.companyLogo ? getAssetUrl(job.companyLogo) : null;
 
           return (
             <motion.div
@@ -371,31 +373,31 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="group relative flex flex-col justify-between rounded-2xl border border-white/10 bg-[#090d16] hover:bg-[#0c1220] hover:border-indigo-500/30 transition-all p-5 shadow-lg shadow-black/20"
+              className="group relative flex flex-col justify-between rounded-2xl border border-border bg-surface hover:border-primary/40 hover:shadow-glow-primary transition-all p-5 shadow-sm"
             >
               <div className="space-y-3.5">
                 {/* Company Logo + Title + Match Badge */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0">
-                    <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
-                      {job.companyLogo ? (
+                    <div className="h-11 w-11 rounded-xl bg-surface-elevated border border-border flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
+                      {logoUrl ? (
                         <img
-                          src={job.companyLogo}
+                          src={logoUrl}
                           alt={job.companyName}
                           className="h-full w-full object-contain p-1"
                         />
                       ) : (
-                        <Building2 className="h-5 w-5 text-indigo-400" />
+                        <Building2 className="h-5 w-5 text-primary" />
                       )}
                     </div>
                     <div className="min-w-0">
                       <Link
                         to={`/jobs/${job.id}`}
-                        className="font-bold text-white text-base hover:text-indigo-400 transition truncate block font-satoshi"
+                        className="font-bold text-heading text-base hover:text-primary transition truncate block font-satoshi"
                       >
                         {job.jobTitle}
                       </Link>
-                      <p className="text-xs text-slate-400 truncate mt-0.5">
+                      <p className="text-xs text-muted truncate mt-0.5 font-medium">
                         {job.companyName || "Verified Company"}
                       </p>
                     </div>
@@ -409,16 +411,16 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                       <Sparkles className="h-3 w-3" />
                       <span>{job.matchPercentage}% Fit</span>
                     </div>
-                    <span className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-muted mt-1 uppercase tracking-wider">
                       {job.matchGrade}
                     </span>
                   </div>
                 </div>
 
                 {/* Metadata Pills */}
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-                  <span className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-0.5 border border-white/5">
-                    <MapPin className="h-3 w-3" />
+                <div className="flex flex-wrap items-center gap-2 text-xs text-body">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-surface-elevated px-2.5 py-1 border border-border text-muted">
+                    <MapPin className="h-3 w-3 text-primary-light" />
                     {job.workingMode === "REMOTE"
                       ? "Remote"
                       : job.city
@@ -427,39 +429,39 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                   </span>
 
                   {job.workingMode && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-0.5 border border-white/5 font-semibold text-slate-300">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-surface-elevated px-2.5 py-1 border border-border font-semibold text-body">
                       {job.workingMode}
                     </span>
                   )}
 
                   {job.minimumSalary && job.maximumSalary && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 text-emerald-400 px-2 py-0.5 border border-emerald-500/20 font-semibold">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 border border-emerald-500/20 font-semibold">
                       ₹{(job.minimumSalary / 100000).toFixed(1)}–{(job.maximumSalary / 100000).toFixed(1)} LPA
                     </span>
                   )}
 
                   {job.urgentHiring && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 text-rose-300 px-2 py-0.5 border border-rose-500/30 text-[10px] font-extrabold uppercase">
-                      <Flame className="h-3 w-3 text-rose-400 fill-rose-400" /> Urgent
+                    <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-300 px-2 py-0.5 border border-rose-500/30 text-[10px] font-extrabold uppercase">
+                      <Flame className="h-3 w-3 text-rose-500 fill-rose-500/20" /> Urgent
                     </span>
                   )}
 
                   {job.featured && !job.urgentHiring && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 text-amber-300 px-2 py-0.5 border border-amber-500/30 text-[10px] font-extrabold uppercase">
-                      <Star className="h-3 w-3 text-amber-400 fill-amber-400" /> Featured
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-300 px-2 py-0.5 border border-amber-500/30 text-[10px] font-extrabold uppercase">
+                      <Star className="h-3 w-3 text-amber-500 fill-amber-500/20" /> Featured
                     </span>
                   )}
                 </div>
 
                 {/* Why Recommended Banner */}
                 {job.matchReason && (
-                  <div className="rounded-xl bg-white/[0.03] border border-white/5 px-3 py-2 text-[11px] text-slate-300 flex items-center justify-between gap-2">
+                  <div className="rounded-xl bg-primary/[0.04] border border-primary/10 px-3 py-2 text-[11px] text-body flex items-center justify-between gap-2">
                     <span className="truncate">
-                      💡 <strong className="text-white">Why:</strong> {job.matchReason}
+                      💡 <strong className="text-heading font-bold">Why:</strong> {job.matchReason}
                     </span>
                     <button
                       onClick={() => setSelectedJob(job)}
-                      className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 shrink-0 underline ml-1 cursor-pointer"
+                      className="text-[10px] font-bold text-primary-light hover:text-primary shrink-0 underline ml-1 cursor-pointer"
                     >
                       Details
                     </button>
@@ -469,22 +471,22 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                 {/* Matched Required Skills */}
                 {job.matchedSkills?.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider mr-1">
+                    <span className="text-[10px] font-bold uppercase text-muted tracking-wider mr-1">
                       Matched:
                     </span>
                     {job.matchedSkills.slice(0, 4).map((skill, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300"
+                        className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400"
                       >
-                        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-400" />
+                        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />
                         {skill}
                       </span>
                     ))}
                     {job.matchedSkills.length > 4 && (
                       <button
                         onClick={() => setSelectedJob(job)}
-                        className="text-[10px] font-bold text-slate-400 hover:text-indigo-400 transition"
+                        className="text-[10px] font-bold text-muted hover:text-heading transition cursor-pointer"
                       >
                         +{job.matchedSkills.length - 4} more
                       </button>
@@ -495,15 +497,15 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                 {/* Matched Preferred Skills (bonus) */}
                 {job.matchedPreferredSkills?.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider mr-1">
+                    <span className="text-[10px] font-bold uppercase text-muted tracking-wider mr-1">
                       Bonus:
                     </span>
                     {job.matchedPreferredSkills.slice(0, 3).map((skill, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 text-[11px] font-medium text-indigo-300"
+                        className="inline-flex items-center gap-1 rounded-lg bg-primary/10 border border-primary/20 px-2 py-0.5 text-[11px] font-medium text-primary-light"
                       >
-                        <Star className="h-2.5 w-2.5 text-indigo-400" />
+                        <Star className="h-2.5 w-2.5 text-primary" />
                         {skill}
                       </span>
                     ))}
@@ -513,22 +515,22 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                 {/* Missing Skills */}
                 {job.missingSkills?.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider mr-1">
+                    <span className="text-[10px] font-bold uppercase text-muted tracking-wider mr-1">
                       Missing:
                     </span>
                     {job.missingSkills.slice(0, 3).map((skill, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1 rounded-lg bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 text-[11px] font-medium text-rose-300"
+                        className="inline-flex items-center gap-1 rounded-lg bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 text-[11px] font-medium text-rose-600 dark:text-rose-400"
                       >
-                        <XCircle className="h-2.5 w-2.5 text-rose-400" />
+                        <XCircle className="h-2.5 w-2.5 text-rose-500" />
                         {skill}
                       </span>
                     ))}
                     {job.missingSkills.length > 3 && (
                       <button
                         onClick={() => setSelectedJob(job)}
-                        className="text-[10px] font-bold text-slate-400 hover:text-indigo-400 transition"
+                        className="text-[10px] font-bold text-muted hover:text-heading transition cursor-pointer"
                       >
                         +{job.missingSkills.length - 3} more
                       </button>
@@ -538,23 +540,23 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               </div>
 
               {/* Card Footer Actions */}
-              <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between gap-3">
+              <div className="mt-5 pt-3 border-t border-border flex items-center justify-between gap-3">
                 <button
                   onClick={(e) => handleToggleSave(e, job)}
                   className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition cursor-pointer ${
                     isSaved
-                      ? "border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
-                      : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                      ? "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-300 hover:bg-amber-500/20"
+                      : "border-border bg-surface-elevated text-body hover:bg-surface-hover hover:text-heading"
                   }`}
                 >
                   {isSaved ? (
                     <>
-                      <BookmarkCheck className="h-3.5 w-3.5 text-amber-400" />
+                      <BookmarkCheck className="h-3.5 w-3.5 text-amber-500" />
                       <span>Saved</span>
                     </>
                   ) : (
                     <>
-                      <Bookmark className="h-3.5 w-3.5" />
+                      <Bookmark className="h-3.5 w-3.5 text-muted" />
                       <span>Save</span>
                     </>
                   )}
@@ -562,7 +564,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
 
                 <Link
                   to={`/jobs/${job.id}`}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  className="gradient-bg-signature inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-white shadow-button hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
                   <span>View & Apply</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -577,7 +579,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
       <AnimatePresence>
         {selectedJob && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
             onClick={() => setSelectedJob(null)}
           >
             <motion.div
@@ -585,22 +587,22 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-lg rounded-3xl border border-white/15 bg-[#090d16] p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-lg rounded-3xl border border-border bg-surface p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto text-body"
             >
               {/* Modal Header */}
-              <div className="flex items-start justify-between border-b border-white/10 pb-4">
+              <div className="flex items-start justify-between border-b border-border pb-4">
                 <div>
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 text-[11px] font-bold text-indigo-300 mb-1">
-                    <Sparkles className="h-3 w-3" /> Match Scoring Breakdown
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[11px] font-bold text-primary-light mb-1">
+                    <Sparkles className="h-3 w-3 text-primary" /> Match Scoring Breakdown
                   </div>
-                  <h3 className="text-lg font-bold text-white font-satoshi leading-tight">
+                  <h3 className="text-lg font-bold text-heading font-satoshi leading-tight">
                     {selectedJob.jobTitle}
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">{selectedJob.companyName}</p>
+                  <p className="text-xs text-muted mt-0.5 font-medium">{selectedJob.companyName}</p>
                 </div>
                 <button
                   onClick={() => setSelectedJob(null)}
-                  className="rounded-xl p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition"
+                  className="rounded-xl p-1.5 text-muted hover:bg-surface-hover hover:text-heading transition cursor-pointer"
                 >
                   ✕
                 </button>
@@ -611,7 +613,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                 const c = getMatchColors(selectedJob.matchPercentage);
                 return (
                   <div className={`rounded-2xl border ${c.border} ${c.bg} p-4 text-center space-y-1`}>
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
                       Overall Match
                     </p>
                     <p className={`text-4xl font-black font-satoshi ${c.text}`}>
@@ -628,7 +630,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
 
               {/* Score Breakdown Bars (4 dimensions) */}
               <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                <p className="text-xs font-bold text-heading uppercase tracking-wider font-satoshi">
                   Score Breakdown
                 </p>
                 <ScoreBar label="Skill Match (55% weight)" value={selectedJob.skillMatchScore ?? 0} />
@@ -639,8 +641,8 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
 
               {/* Matched Required Skills */}
               <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                <span className="text-xs font-bold text-heading flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                   Matched Required Skills
                 </span>
                 <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
@@ -648,13 +650,13 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                     selectedJob.matchedSkills.map((s, i) => (
                       <span
                         key={i}
-                        className="rounded-lg bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-xs font-medium text-emerald-300"
+                        className="rounded-lg bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-300"
                       >
                         {s}
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-slate-500 italic">No exact required skill matches</span>
+                    <span className="text-xs text-muted italic">No exact required skill matches</span>
                   )}
                 </div>
               </div>
@@ -662,15 +664,15 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               {/* Matched Preferred Skills */}
               {selectedJob.matchedPreferredSkills?.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <Star className="h-3.5 w-3.5 text-indigo-400" />
+                  <span className="text-xs font-bold text-heading flex items-center gap-1.5">
+                    <Star className="h-3.5 w-3.5 text-primary" />
                     Preferred Skills You Have (Bonus)
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedJob.matchedPreferredSkills.map((s, i) => (
                       <span
                         key={i}
-                        className="rounded-lg bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-1 text-xs font-medium text-indigo-300"
+                        className="rounded-lg bg-primary/15 border border-primary/30 px-2.5 py-1 text-xs font-medium text-primary-light"
                       >
                         {s}
                       </span>
@@ -682,15 +684,15 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               {/* Missing Required Skills */}
               {selectedJob.missingSkills?.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
-                    <XCircle className="h-3.5 w-3.5 text-rose-400" />
+                  <span className="text-xs font-bold text-muted flex items-center gap-1.5">
+                    <XCircle className="h-3.5 w-3.5 text-rose-500" />
                     Skills to Learn for This Role
                   </span>
                   <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
                     {selectedJob.missingSkills.map((s, i) => (
                       <span
                         key={i}
-                        className="rounded-lg bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 text-xs font-medium text-rose-300"
+                        className="rounded-lg bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 text-xs font-medium text-rose-600 dark:text-rose-300"
                       >
                         {s}
                       </span>
@@ -701,8 +703,8 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
 
               {/* Why Recommended */}
               {selectedJob.matchReason && (
-                <div className="rounded-xl bg-white/[0.03] border border-white/5 px-4 py-3 text-xs text-slate-300 leading-relaxed">
-                  💡 <strong className="text-white">Why recommended:</strong> {selectedJob.matchReason}
+                <div className="rounded-xl bg-surface-elevated border border-border px-4 py-3 text-xs text-body leading-relaxed">
+                  💡 <strong className="text-heading">Why recommended:</strong> {selectedJob.matchReason}
                 </div>
               )}
 
@@ -710,14 +712,14 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               <div className="pt-2 flex justify-end gap-2">
                 <button
                   onClick={() => setSelectedJob(null)}
-                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition"
+                  className="rounded-xl border border-border bg-surface-elevated px-4 py-2 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
                 >
                   Close
                 </button>
                 <Link
                   to={`/jobs/${selectedJob.id}`}
                   onClick={() => setSelectedJob(null)}
-                  className="rounded-xl bg-indigo-600 px-5 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20"
+                  className="gradient-bg-signature rounded-xl px-5 py-2 text-xs font-bold text-white shadow-button transition hover:scale-105"
                 >
                   Apply to Job
                 </Link>

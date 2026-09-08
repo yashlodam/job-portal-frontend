@@ -141,8 +141,8 @@ export default function RecruiterCandidatesPage() {
         });
         setMatchApplicationsMap(map);
       }
-    } catch (err) {
-      console.warn("[RecruiterCandidatesPage] Match score fetch notice:", err?.userMessage || err?.message);
+    } catch {
+      // ignore match score fetch notice
     }
   };
 
@@ -175,15 +175,15 @@ export default function RecruiterCandidatesPage() {
             resumeName: t.resumeName || (Array.isArray(t.resumes) && t.resumes[0]?.resumeName) || "Resume.pdf",
             status: t.availability ? t.availability.replace(/_/g, " ") : "OPEN TO WORK",
             appliedDate: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "Registered Candidate",
-            matchPercentage: 88,
-            matchStatus: "COMPLETED",
+            matchPercentage: t.matchPercentage || t.matchScore || null,
+            matchStatus: t.matchStatus || (t.matchPercentage ? "COMPLETED" : "PENDING"),
             isTalentProfile: true,
             raw: t,
           }));
           setTalentDirectoryCandidates(mapped);
         }
-      } catch (err) {
-        console.error("Error searching talent directory for candidate page:", err);
+      } catch {
+        // talent search handled gracefully
       } finally {
         if (isMounted) setIsSearchingTalent(false);
       }
@@ -206,7 +206,7 @@ export default function RecruiterCandidatesPage() {
           ? app.matchPercentage
           : app.matchScore !== undefined
           ? app.matchScore
-          : 85;
+          : null;
 
       list.push({
         ...matchInfo,
@@ -217,7 +217,7 @@ export default function RecruiterCandidatesPage() {
         jobTitle: app.jobTitle || app.job?.title || "Applicant",
         resumeUrl: getFullResumeUrl(app.resumeUrl || app.resumePath),
         matchPercentage: score,
-        matchStatus: matchInfo.matchStatus || app.matchStatus || "COMPLETED",
+        matchStatus: matchInfo.matchStatus || app.matchStatus || (score !== null ? "COMPLETED" : "PENDING"),
       });
     });
 
@@ -286,8 +286,8 @@ export default function RecruiterCandidatesPage() {
       }
       setSuccessMsg(`Candidate status updated to ${newStatus}`);
       setTimeout(() => setSuccessMsg(""), 3000);
-    } catch (err) {
-      console.error("Failed to update status:", err);
+    } catch {
+      toast.error("Failed to update candidate status.");
     }
   };
 
@@ -300,7 +300,6 @@ export default function RecruiterCandidatesPage() {
     setMessagingCandidateId(candidate.id);
     try {
       const candidateUserId = await resolveCandidateUserId(candidate);
-      console.debug("[Candidates Message] resolved userId:", candidateUserId, "from", candidate);
 
       if (!candidateUserId) {
         toast.error("Could not find candidate user account to start conversation.");
@@ -321,7 +320,6 @@ export default function RecruiterCandidatesPage() {
         navigate("/recruiter/messages");
       }
     } catch (err) {
-      console.error("handleMessageCandidate error:", err);
       toast.error(err?.response?.data?.message || "Failed to start conversation. Please try again.");
     } finally {
       setMessagingCandidateId(null);
@@ -352,29 +350,29 @@ export default function RecruiterCandidatesPage() {
     >
       {/* Success Banner */}
       {successMsg && (
-        <div className="flex items-center gap-2 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 p-4 text-xs font-bold text-emerald-300 font-satoshi shadow-lg">
-          <CheckCircle2 size={16} className="text-emerald-400" />
+        <div className="flex items-center gap-2 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 p-4 text-xs font-bold text-emerald-600 dark:text-emerald-300 font-satoshi shadow-lg">
+          <CheckCircle2 size={16} className="text-emerald-500 dark:text-emerald-400" />
           {successMsg}
         </div>
       )}
 
       {/* Top Filter & Toolbar */}
-      <Card className="p-4 sm:p-5 border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-xl font-satoshi space-y-4">
+      <Card className="p-4 sm:p-5 border-border bg-surface shadow-xl font-satoshi space-y-4">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="relative w-full md:w-96">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search candidate name, skill, or email…"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 pl-10 pr-9 py-2 text-xs text-white placeholder-slate-400 outline-none focus:border-indigo-500/60 font-medium"
+              className="w-full rounded-2xl border border-border bg-surface-elevated pl-10 pr-9 py-2 text-xs text-heading placeholder-muted outline-none focus:border-primary/60 font-medium transition-colors"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-heading transition-colors"
               >
                 <X size={14} />
               </button>
@@ -383,16 +381,16 @@ export default function RecruiterCandidatesPage() {
 
           <div className="flex flex-wrap items-center gap-3 justify-end">
             <div className="flex items-center gap-2">
-              <label className="text-xs text-slate-400 font-bold">Job Filter:</label>
+              <label className="text-xs text-muted font-bold">Job Filter:</label>
               <select
                 value={selectedJobId}
                 onChange={(e) => setSelectedJobId(e.target.value)}
-                className="rounded-2xl border border-white/10 bg-[#070b12] px-3.5 py-2 text-xs text-white font-bold outline-none focus:border-indigo-500/60"
-                style={{ colorScheme: 'dark' }}
+                className="rounded-2xl border border-border bg-surface-elevated px-3.5 py-2 text-xs text-heading font-bold outline-none focus:border-primary/60 cursor-pointer"
+                style={{ colorScheme: 'auto' }}
               >
-                <option value="all">All Jobs & Directory</option>
+                <option value="all" className="bg-surface text-heading">All Jobs & Directory</option>
                 {myJobs.map((j) => (
-                  <option key={j.id} value={j.id}>
+                  <option key={j.id} value={j.id} className="bg-surface text-heading">
                     {j.title || j.jobTitle}
                   </option>
                 ))}
@@ -400,18 +398,18 @@ export default function RecruiterCandidatesPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-xs text-slate-400 font-bold flex items-center gap-1">
-                <ArrowUpDown size={13} className="text-indigo-400" /> Sort:
+              <label className="text-xs text-muted font-bold flex items-center gap-1">
+                <ArrowUpDown size={13} className="text-primary-light" /> Sort:
               </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="rounded-2xl border border-indigo-500/30 bg-[#070b12] px-3 py-2 text-xs font-extrabold text-indigo-300 outline-none focus:border-indigo-500"
-                style={{ colorScheme: 'dark' }}
+                className="rounded-2xl border border-primary/30 bg-surface-elevated px-3 py-2 text-xs font-extrabold text-primary-light outline-none focus:border-primary cursor-pointer"
+                style={{ colorScheme: 'auto' }}
               >
-                <option value="ma.matchPercentage,desc">🎯 Highest Match</option>
-                <option value="ma.matchPercentage,asc">📉 Lowest Match</option>
-                <option value="app.createdAt,desc">🕒 Newest Applied</option>
+                <option value="ma.matchPercentage,desc" className="bg-surface text-heading">🎯 Highest Match</option>
+                <option value="ma.matchPercentage,asc" className="bg-surface text-heading">📉 Lowest Match</option>
+                <option value="app.createdAt,desc" className="bg-surface text-heading">🕒 Newest Applied</option>
               </select>
             </div>
           </div>
@@ -420,22 +418,22 @@ export default function RecruiterCandidatesPage() {
 
       {/* Main Split-Screen Studio */}
       {filteredCandidates.length === 0 ? (
-        <Card className="p-12 text-center space-y-4 border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-2xl font-satoshi">
-          <AlertCircle className="h-12 w-12 text-indigo-400 mx-auto opacity-60" />
-          <h3 className="text-lg font-black text-white">No Candidates Match "{searchQuery}"</h3>
-          <p className="text-xs text-slate-400 max-w-md mx-auto font-medium leading-relaxed">
+        <Card className="p-12 text-center space-y-4 border-border bg-surface shadow-2xl font-satoshi">
+          <AlertCircle className="h-12 w-12 text-primary-light mx-auto opacity-60" />
+          <h3 className="text-lg font-black text-heading">No Candidates Match "{searchQuery}"</h3>
+          <p className="text-xs text-body max-w-md mx-auto font-medium leading-relaxed">
             No registered candidate profiles or job applications matched your search. Try searching by name, email, or skill.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2 font-satoshi">
             <button
               onClick={() => setSearchQuery("")}
-              className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 px-5 py-2.5 text-xs font-bold text-indigo-300 hover:bg-indigo-600/30 transition cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-2xl bg-primary/15 border border-primary/30 px-5 py-2.5 text-xs font-bold text-primary-light hover:bg-primary/25 transition cursor-pointer"
             >
               Clear Search Query
             </button>
             <Link
               to="/upload-job"
-              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg hover:scale-105 transition cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-2xl gradient-bg-signature px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg hover:scale-105 transition cursor-pointer"
             >
               <Plus size={14} /> Post New Job
             </Link>
@@ -444,13 +442,13 @@ export default function RecruiterCandidatesPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start font-satoshi">
           {/* Left Column: Applicants & Candidates List */}
-          <Card className="lg:col-span-1 p-4 border-white/10 bg-[#090d16]/95 backdrop-blur-xl shadow-2xl space-y-3">
+          <Card className="lg:col-span-1 p-4 border-border bg-surface shadow-2xl space-y-3">
             <div className="flex items-center justify-between px-2 pb-1">
-              <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">
+              <h4 className="text-xs font-black uppercase tracking-widest text-muted">
                 Candidates ({filteredCandidates.length})
               </h4>
               {isSearchingTalent && (
-                <span className="text-[10px] text-indigo-400 font-bold animate-pulse">Searching DB...</span>
+                <span className="text-[10px] text-primary-light font-bold animate-pulse">Searching DB...</span>
               )}
             </div>
 
@@ -468,15 +466,15 @@ export default function RecruiterCandidatesPage() {
                     onClick={() => setSelectedCandidate(c)}
                     className={`p-3.5 rounded-2xl border transition-all cursor-pointer space-y-2 ${
                       isSelected
-                        ? "bg-indigo-600/20 border-indigo-500/50 shadow-glow-primary"
-                        : "bg-white/[0.02] border-white/5 hover:border-white/20 hover:bg-white/[0.04]"
+                        ? "bg-primary/15 border-primary/50 shadow-glow-primary"
+                        : "bg-surface-elevated border-border hover:border-primary/30 hover:bg-surface-hover"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <Avatar name={name} src={c.profileImage} size="md" />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-1">
-                          <h4 className="font-bold text-white text-sm truncate">{name}</h4>
+                          <h4 className="font-bold text-heading text-sm truncate">{name}</h4>
                           <MatchScoreBadge
                             score={matchScore}
                             status={matchStatus}
@@ -487,9 +485,9 @@ export default function RecruiterCandidatesPage() {
                             }}
                           />
                         </div>
-                        <p className="text-xs text-indigo-300 font-semibold truncate mt-0.5">{role}</p>
+                        <p className="text-xs text-primary-light font-semibold truncate mt-0.5">{role}</p>
                         {c.company && (
-                          <p className="text-[11px] text-slate-400 truncate mt-0.5">{c.company}</p>
+                          <p className="text-[11px] text-muted truncate mt-0.5">{c.company}</p>
                         )}
                       </div>
                     </div>
@@ -502,14 +500,14 @@ export default function RecruiterCandidatesPage() {
           {/* Right Column: Detailed Profile Studio View */}
           <div className="lg:col-span-2 space-y-6">
             {selectedCandidate ? (
-              <Card className="p-6 sm:p-8 border-white/10 bg-[#090d16]/95 backdrop-blur-xl shadow-2xl space-y-6">
+              <Card className="p-6 sm:p-8 border-border bg-surface shadow-2xl space-y-6">
                 {/* Header Card */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-border">
                   <div className="flex items-center gap-4">
-                    <Avatar name={selectedCandidate.applicantName} src={selectedCandidate.profileImage} size="xl" className="ring-2 ring-indigo-500/30" />
+                    <Avatar name={selectedCandidate.applicantName} src={selectedCandidate.profileImage} size="xl" className="ring-2 ring-primary/30" />
                     <div>
                       <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-black text-white">{selectedCandidate.applicantName}</h2>
+                        <h2 className="text-2xl font-black text-heading">{selectedCandidate.applicantName}</h2>
                         <MatchScoreBadge
                           score={selectedCandidate.matchPercentage}
                           status={selectedCandidate.matchStatus || "COMPLETED"}
@@ -518,12 +516,12 @@ export default function RecruiterCandidatesPage() {
                           className="cursor-pointer"
                         />
                       </div>
-                      <p className="text-sm font-bold text-indigo-400 mt-0.5">{selectedCandidate.jobTitle}</p>
+                      <p className="text-sm font-bold text-primary-light mt-0.5">{selectedCandidate.jobTitle}</p>
                       {selectedCandidate.company && (
-                        <p className="text-xs font-semibold text-slate-300 mt-0.5">{selectedCandidate.company}</p>
+                        <p className="text-xs font-semibold text-body mt-0.5">{selectedCandidate.company}</p>
                       )}
-                      <p className="text-xs text-slate-400 mt-1 flex items-center gap-2">
-                        <MapPin size={12} className="text-indigo-400" />
+                      <p className="text-xs text-muted mt-1 flex items-center gap-2">
+                        <MapPin size={12} className="text-primary-light" />
                         <span>{selectedCandidate.location || "Nashik"}</span>
                         <span>•</span>
                         <span>{selectedCandidate.appliedDate || "Registered Candidate"}</span>
@@ -535,9 +533,9 @@ export default function RecruiterCandidatesPage() {
                     <button
                       type="button"
                       onClick={() => handleOpenMatchModal(selectedCandidate.id || selectedCandidate.applicationId)}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 px-3.5 py-2 text-xs font-extrabold text-indigo-300 transition cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary/15 hover:bg-primary/25 border border-primary/30 px-3.5 py-2 text-xs font-extrabold text-primary-light transition cursor-pointer"
                     >
-                      <Sparkles size={13} className="text-amber-400" /> AI Breakdown
+                      <Sparkles size={13} className="text-amber-500 dark:text-amber-400" /> AI Breakdown
                     </button>
 
                     {/* Message Candidate Button */}
@@ -545,7 +543,7 @@ export default function RecruiterCandidatesPage() {
                       type="button"
                       onClick={() => handleMessageCandidate(selectedCandidate)}
                       disabled={messagingCandidateId === selectedCandidate.id}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 px-3.5 py-2 text-xs font-extrabold text-teal-300 transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 px-3.5 py-2 text-xs font-extrabold text-teal-600 dark:text-teal-300 transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                       title="Send a direct message to this candidate"
                     >
                       {messagingCandidateId === selectedCandidate.id
@@ -560,7 +558,7 @@ export default function RecruiterCandidatesPage() {
                         href={selectedCandidate.resumeUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600/20 border border-indigo-500/30 px-3.5 py-2 text-xs font-bold text-indigo-300 hover:bg-indigo-600/30 transition"
+                        className="inline-flex items-center gap-2 rounded-xl bg-primary/20 border border-primary/30 px-3.5 py-2 text-xs font-bold text-primary-light hover:bg-primary/30 transition"
                       >
                         <Download size={14} />
                         <span>{selectedCandidate.resumeName || "Resume"}</span>
@@ -571,24 +569,24 @@ export default function RecruiterCandidatesPage() {
 
                 {/* Candidate Info Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="p-3.5 rounded-2xl border border-white/5 bg-white/[0.02] space-y-1">
-                    <span className="text-slate-400 text-[11px] font-bold block uppercase tracking-wider">Email Address</span>
-                    <span className="text-white font-bold text-sm block">{selectedCandidate.applicantEmail || selectedCandidate.email || "candidate@example.com"}</span>
+                  <div className="p-3.5 rounded-2xl border border-border bg-surface-elevated space-y-1">
+                    <span className="text-muted text-[11px] font-bold block uppercase tracking-wider">Email Address</span>
+                    <span className="text-heading font-bold text-sm block">{selectedCandidate.applicantEmail || selectedCandidate.email || "candidate@example.com"}</span>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl border border-white/5 bg-white/[0.02] space-y-1">
-                    <span className="text-slate-400 text-[11px] font-bold block uppercase tracking-wider">Status / Availability</span>
-                    <span className="text-emerald-400 font-bold text-sm block">{selectedCandidate.status || "OPEN TO WORK"}</span>
+                  <div className="p-3.5 rounded-2xl border border-border bg-surface-elevated space-y-1">
+                    <span className="text-muted text-[11px] font-bold block uppercase tracking-wider">Status / Availability</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm block">{selectedCandidate.status || "OPEN TO WORK"}</span>
                   </div>
                 </div>
 
                 {/* Skills */}
                 {selectedCandidate.skills && selectedCandidate.skills.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Verified Skills</h4>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-muted mb-2">Verified Skills</h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedCandidate.skills.map((skill, i) => (
-                        <span key={i} className="rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs font-bold text-indigo-300">
+                        <span key={i} className="rounded-lg border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold text-primary-light">
                           {typeof skill === "string" ? skill : skill.name}
                         </span>
                       ))}
@@ -599,8 +597,8 @@ export default function RecruiterCandidatesPage() {
                 {/* About Summary */}
                 {selectedCandidate.about && (
                   <div>
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">About Summary</h4>
-                    <p className="text-xs leading-6 text-slate-300 bg-white/[0.02] border border-white/5 p-4 rounded-2xl">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-muted mb-2">About Summary</h4>
+                    <p className="text-xs leading-6 text-body bg-surface-elevated border border-border p-4 rounded-2xl">
                       {selectedCandidate.about}
                     </p>
                   </div>
@@ -608,8 +606,8 @@ export default function RecruiterCandidatesPage() {
 
                 {/* Status Progression Controls for Job Applications */}
                 {!selectedCandidate.isTalentProfile && (
-                  <div className="pt-4 border-t border-white/10 space-y-3">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Update Application Stage</h4>
+                  <div className="pt-4 border-t border-border space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-muted">Update Application Stage</h4>
                     <div className="flex flex-wrap gap-2">
                       {["APPLIED", "REVIEWING", "SHORTLISTED", "INTERVIEWING", "OFFERED", "ACCEPTED", "REJECTED"].map((st) => (
                         <button
@@ -617,8 +615,8 @@ export default function RecruiterCandidatesPage() {
                           onClick={() => handleUpdateStatus(selectedCandidate.id, st)}
                           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                             selectedCandidate.status === st
-                              ? "bg-indigo-600 text-white shadow-lg"
-                              : "bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10"
+                              ? "bg-primary text-white shadow-lg"
+                              : "bg-surface-elevated border border-border text-body hover:bg-surface-hover hover:text-heading"
                           }`}
                         >
                           {st}

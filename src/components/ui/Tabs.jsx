@@ -6,12 +6,14 @@ import { motion } from "framer-motion";
 
 export function Tabs({ tabs = [], activeTab, onChange, className = "" }) {
   return (
-    <div className={`flex items-center gap-1 border-b border-border overflow-x-auto ${className}`}>
+    <div role="tablist" className={`flex items-center gap-1 border-b border-border overflow-x-auto ${className}`}>
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={isActive}
             onClick={() => onChange(tab.id)}
             className={`relative flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-semibold transition-colors cursor-pointer whitespace-nowrap ${
               isActive ? "text-heading font-bold" : "text-muted hover:text-body"

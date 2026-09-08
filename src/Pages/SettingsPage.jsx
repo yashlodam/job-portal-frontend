@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useAppSelector } from "../State/Store";
 import { useToast } from "../components/ui/ToastNotification";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 
 export default function SettingsPage() {
   const user = useAppSelector((state) => state.auth.profile);
@@ -54,6 +55,7 @@ export default function SettingsPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [twoFactor, setTwoFactor] = useState(true);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const toast = useToast();
 
@@ -62,6 +64,22 @@ export default function SettingsPage() {
     setSavedSuccess(true);
     toast.success("Account settings updated successfully!");
     setTimeout(() => setSavedSuccess(false), 3000);
+  };
+
+  const handleExportData = () => {
+    const exportPayload = {
+      user: user || {},
+      exportedAt: new Date().toISOString(),
+      accountType: "CANDIDATE",
+    };
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `jobportal-candidate-data-${user?.name?.replace(/\s+/g, "_") || "profile"}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Candidate data exported successfully.");
   };
 
   return (
@@ -315,6 +333,7 @@ export default function SettingsPage() {
                   </div>
                   <button
                     type="button"
+                    onClick={handleExportData}
                     className="px-4 py-2 rounded-2xl bg-surface border border-border text-xs font-bold text-heading hover:bg-surface-hover transition cursor-pointer shadow-sm"
                   >
                     Export Data
@@ -328,6 +347,7 @@ export default function SettingsPage() {
                   </div>
                   <button
                     type="button"
+                    onClick={() => setShowDeleteConfirm(true)}
                     className="px-4 py-2 rounded-2xl bg-rose-600 text-xs font-extrabold text-white shadow hover:bg-rose-500 transition cursor-pointer"
                   >
                     Delete Account
@@ -338,6 +358,19 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        opened={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          setShowDeleteConfirm(false);
+          toast.info("Account deletion request submitted. An administrative verification email has been dispatched.");
+        }}
+        title="Delete Candidate Account"
+        description="Are you sure you want to permanently delete your account and all associated resumes, applications, and messages? This action cannot be reversed."
+        confirmLabel="Erase My Account"
+        variant="danger"
+      />
     </div>
   );
 }

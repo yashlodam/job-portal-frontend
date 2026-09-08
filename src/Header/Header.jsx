@@ -545,7 +545,11 @@ function Header() {
 
                     {item.children && (
                       <div className="invisible absolute left-1/2 -translate-x-1/2 top-full z-50 w-88 sm:w-96 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                        <div className="overflow-hidden rounded-3xl border border-white/15 bg-[#090d16]/98 p-3 shadow-[0_25px_60px_rgba(0,0,0,0.8)] backdrop-blur-2xl">
+                        <div className={`overflow-hidden rounded-3xl border p-3 backdrop-blur-2xl ${
+                          theme === "light"
+                            ? "bg-white/95 border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
+                            : "bg-[#090d16]/98 border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.8)]"
+                        }`}>
                           <div className="space-y-1.5">
                             {item.children.map((child) => {
                               const childActive = location.pathname === child.url;
@@ -569,18 +573,26 @@ function Header() {
                                   aria-current={childActive ? "page" : undefined}
                                   className={`group/child relative flex items-start gap-3.5 rounded-2xl p-3 transition-all duration-200 ${FOCUS_RING} ${
                                     childActive
-                                      ? "bg-indigo-600/20 border border-indigo-500/40 text-white shadow-md"
+                                      ? theme === "light"
+                                        ? "bg-indigo-50 border border-indigo-200 text-indigo-700 shadow-sm"
+                                        : "bg-indigo-600/20 border border-indigo-500/40 text-white shadow-md"
+                                      : theme === "light"
+                                      ? "text-slate-700 hover:bg-slate-100 hover:border-slate-200 border border-transparent"
                                       : "text-slate-200 hover:bg-white/10 hover:border-indigo-500/30 border border-transparent"
                                   }`}
                                 >
                                   {Icon && (
-                                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/15 border border-indigo-500/30 text-indigo-400 group-hover/child:bg-gradient-to-r group-hover/child:from-indigo-600 group-hover/child:to-purple-600 group-hover/child:text-white transition-all shadow-md">
+                                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/15 border border-indigo-500/30 text-indigo-500 dark:text-indigo-400 group-hover/child:bg-gradient-to-r group-hover/child:from-indigo-600 group-hover/child:to-purple-600 group-hover/child:text-white transition-all shadow-md">
                                       <Icon size={18} />
                                     </div>
                                   )}
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs font-black text-white font-satoshi group-hover/child:text-indigo-300 transition-colors">
+                                      <span className={`text-xs font-black font-satoshi transition-colors ${
+                                        theme === "light"
+                                          ? "text-slate-900 group-hover/child:text-indigo-600"
+                                          : "text-white group-hover/child:text-indigo-300"
+                                      }`}>
                                         {child.name}
                                       </span>
                                       {badgeText && (
@@ -590,7 +602,9 @@ function Header() {
                                       )}
                                     </div>
                                     {child.desc && (
-                                      <p className="text-[11px] font-medium text-slate-400 leading-snug mt-0.5 line-clamp-1">
+                                      <p className={`text-[11px] font-medium leading-snug mt-0.5 line-clamp-1 ${
+                                        theme === "light" ? "text-slate-500" : "text-slate-400"
+                                      }`}>
                                         {child.desc}
                                       </p>
                                     )}
@@ -762,28 +776,27 @@ function Header() {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="overflow-hidden border-t md:hidden"
-              style={{
-                borderColor: "rgba(148,163,184,0.08)",
-                background: "rgba(13,17,23,0.97)",
-                backdropFilter: "blur(32px)",
-                WebkitBackdropFilter: "blur(32px)",
-              }}
+              className={`overflow-hidden border-t md:hidden transition-colors duration-200 ${
+                theme === "light"
+                  ? "border-slate-200/90 bg-white/98 text-slate-900 shadow-2xl backdrop-blur-2xl"
+                  : "border-white/10 bg-[#080d1a]/98 text-slate-100 shadow-2xl backdrop-blur-2xl"
+              }`}
             >
               <div
-                className="section-container py-3"
+                className="section-container py-3.5 space-y-2"
                 style={{
-                  paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
+                  paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))",
                 }}
               >
                 {/* Mobile primary CTA */}
                 {primaryCta && (
                   <Link
                     to={primaryCta.url}
-                    className={`mb-3 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white ${FOCUS_RING}`}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-indigo-500/25 ${FOCUS_RING}`}
                     style={{ background: BRAND_GRADIENT }}
                   >
-                    <primaryCta.icon size={16} strokeWidth={2} />
+                    <primaryCta.icon size={16} strokeWidth={2.2} />
                     {primaryCta.label}
                   </Link>
                 )}
@@ -793,44 +806,236 @@ function Header() {
                   <Link
                     to="/messages"
                     onClick={() => setMobileOpen(false)}
-                    className={`mb-3 flex items-center justify-between gap-3 rounded-2xl p-3.5 border transition-all ${
+                    className={`flex items-center justify-between gap-3 rounded-2xl p-3.5 border transition-all duration-200 shadow-xs ${
                       location.pathname === "/messages"
-                        ? "bg-indigo-600/20 border-indigo-500/40 text-white shadow-lg"
+                        ? theme === "light"
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-md text-white-force"
+                          : "bg-indigo-600/30 border-indigo-500/50 text-white shadow-lg text-white-force"
+                        : theme === "light"
+                        ? "bg-indigo-50/80 border-indigo-200/90 text-slate-900 hover:border-indigo-300 hover:bg-indigo-100/70"
                         : "bg-white/[0.04] border-white/10 text-slate-200 hover:bg-white/[0.08]"
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-white shadow-md">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 text-white text-white-force shadow-md">
                         <MessageSquare size={18} />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-extrabold text-white font-satoshi truncate">
+                          <span
+                            className={`text-sm font-black font-satoshi truncate ${
+                              location.pathname === "/messages"
+                                ? "text-white text-white-force"
+                                : theme === "light"
+                                ? "text-slate-900"
+                                : "text-white"
+                            }`}
+                          >
                             Messages & Chats
                           </span>
                           {unreadMessages > 0 && (
-                            <span className="inline-flex items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow-md animate-pulse">
+                            <span className="inline-flex items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white text-white-force shadow-md animate-pulse">
                               {unreadMessages} new
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
+                        <p
+                          className={`text-[11px] font-semibold truncate mt-0.5 ${
+                            location.pathname === "/messages"
+                              ? "text-indigo-100"
+                              : theme === "light"
+                              ? "text-slate-600"
+                              : "text-slate-400"
+                          }`}
+                        >
                           Direct chat with recruiters & employers
                         </p>
                       </div>
                     </div>
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 text-slate-400">
+                    <div
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                        theme === "light"
+                          ? "bg-indigo-100 text-indigo-700"
+                          : "bg-white/5 text-slate-400"
+                      }`}
+                    >
                       <ChevronRight size={16} />
                     </div>
                   </Link>
                 )}
 
-                {navLinks.map((item, i) => {
-                  const active = isNavItemActive(item, location.pathname);
-                  const hasChildren = item.children && item.children.length > 0;
-                  const isExpanded = !!expandedMobileSubmenu[item.name];
+                {/* Nav items loop */}
+                <div className="space-y-1.5">
+                  {navLinks.map((item, i) => {
+                    const active = isNavItemActive(item, location.pathname);
+                    const hasChildren = item.children && item.children.length > 0;
+                    const isExpanded = !!expandedMobileSubmenu[item.name];
 
-                  if (hasChildren) {
+                    if (hasChildren) {
+                      return (
+                        <motion.div
+                          key={item.name}
+                          custom={i}
+                          variants={mobileLinkVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                        >
+                          {/* Accordion header button */}
+                          <button
+                            type="button"
+                            onClick={() => toggleMobileSubmenu(item.name)}
+                            className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-black font-satoshi transition-all duration-200 cursor-pointer ${FOCUS_RING} ${
+                              isExpanded
+                                ? theme === "light"
+                                  ? "bg-indigo-50/90 text-indigo-950 border border-indigo-200/90 shadow-xs"
+                                  : "bg-indigo-950/40 text-indigo-200 border border-indigo-500/40 shadow-md"
+                                : active
+                                ? theme === "light"
+                                  ? "bg-indigo-50 text-indigo-900 border border-indigo-200"
+                                  : "bg-white/10 text-white border border-white/10"
+                                : theme === "light"
+                                ? "text-slate-700 hover:bg-slate-100/80 hover:text-slate-950 border border-slate-200/60 bg-slate-50/50"
+                                : "text-slate-300 hover:bg-white/5 hover:text-white border border-white/5 bg-white/[0.02]"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2.5">
+                              {active && (
+                                <span
+                                  className="h-4 w-[3px] rounded-full"
+                                  style={{ background: BRAND_GRADIENT }}
+                                />
+                              )}
+                              <span>{item.name}</span>
+                              {item.name === "My Jobs" && savedJobs?.length > 0 && (
+                                <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[10px] font-extrabold text-indigo-600 dark:text-indigo-300 border border-indigo-500/30">
+                                  {savedJobs.length}
+                                </span>
+                              )}
+                            </span>
+                            <ChevronDown
+                              size={17}
+                              className={`transition-transform duration-300 ${
+                                isExpanded
+                                  ? "rotate-180 text-indigo-600 dark:text-indigo-400"
+                                  : theme === "light"
+                                  ? "text-slate-400"
+                                  : "text-slate-500"
+                              }`}
+                            />
+                          </button>
+
+                          {/* Accordion dropdown body */}
+                          <AnimatePresence initial={false}>
+                            {isExpanded && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2, ease: "easeInOut" }}
+                                className="overflow-hidden"
+                              >
+                                <div
+                                  className={`my-2 space-y-1.5 p-2 rounded-2xl border-l-2 ml-3 ${
+                                    theme === "light"
+                                      ? "bg-slate-50/90 border-indigo-500 shadow-2xs"
+                                      : "bg-white/[0.02] border-indigo-400 shadow-inner"
+                                  }`}
+                                >
+                                  <Link
+                                    to={item.url}
+                                    onClick={() => setMobileOpen(false)}
+                                    className={`block rounded-xl px-3.5 py-2 text-xs font-black transition-colors ${
+                                      location.pathname === item.url
+                                        ? theme === "light"
+                                          ? "text-indigo-900 bg-indigo-100/80"
+                                          : "text-indigo-300 bg-indigo-500/20"
+                                        : theme === "light"
+                                        ? "text-slate-700 hover:text-indigo-900 hover:bg-white"
+                                        : "text-slate-300 hover:text-white hover:bg-white/5"
+                                    }`}
+                                  >
+                                    {item.name} Overview
+                                  </Link>
+
+                                  {item.children.map((child) => {
+                                    const childActive = location.pathname === child.url;
+                                    const Icon = child.icon;
+                                    const offersCount = (myApplications || []).filter(
+                                      (a) => a?.status === "OFFERED" || a?.status === "ACCEPTED"
+                                    ).length;
+                                    const badgeText =
+                                      child.url === "/my-jobs/saved"
+                                        ? savedJobs?.length > 0 ? String(savedJobs.length) : null
+                                        : child.url === "/my-jobs/applied"
+                                        ? myApplications?.length > 0 ? String(myApplications.length) : null
+                                        : child.url === "/my-jobs/offers"
+                                        ? offersCount > 0 ? String(offersCount) : null
+                                        : child.badge;
+
+                                    return (
+                                      <Link
+                                        key={child.url}
+                                        to={child.url}
+                                        onClick={() => setMobileOpen(false)}
+                                        aria-current={childActive ? "page" : undefined}
+                                        className={`flex items-start gap-3 rounded-xl px-3 py-2.5 transition-all duration-150 ${FOCUS_RING} ${
+                                          childActive
+                                            ? theme === "light"
+                                              ? "bg-white border border-indigo-200 text-indigo-900 shadow-xs font-black"
+                                              : "bg-indigo-500/20 border border-indigo-500/40 text-white shadow-xs font-black"
+                                            : theme === "light"
+                                            ? "text-slate-700 hover:bg-white hover:text-slate-900"
+                                            : "text-slate-300 hover:bg-white/5 hover:text-white"
+                                        }`}
+                                      >
+                                        {Icon && (
+                                          <div
+                                            className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-lg shrink-0 ${
+                                              theme === "light"
+                                                ? "bg-indigo-100/70 text-indigo-700"
+                                                : "bg-white/5 text-indigo-400"
+                                            }`}
+                                          >
+                                            <Icon size={15} />
+                                          </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center gap-1.5">
+                                            <span
+                                              className={`text-xs font-extrabold font-satoshi ${
+                                                theme === "light" ? "text-slate-900" : "text-white"
+                                              }`}
+                                            >
+                                              {child.name}
+                                            </span>
+                                            {badgeText && (
+                                              <span className="rounded-full bg-indigo-500/20 px-1.5 py-0.2 text-[9px] font-extrabold text-indigo-600 dark:text-indigo-300 border border-indigo-500/30">
+                                                {badgeText}
+                                              </span>
+                                            )}
+                                          </div>
+                                          {child.desc && (
+                                            <p
+                                              className={`text-[10px] leading-snug mt-0.5 line-clamp-1 ${
+                                                theme === "light" ? "text-slate-500" : "text-slate-400"
+                                              }`}
+                                            >
+                                              {child.desc}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.div>
+                      );
+                    }
+
                     return (
                       <motion.div
                         key={item.name}
@@ -839,185 +1044,103 @@ function Header() {
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className="mb-1"
                       >
-                        {/* Accordion header button */}
-                        <button
-                          type="button"
-                          onClick={() => toggleMobileSubmenu(item.name)}
-                          className={`flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-base font-semibold transition-all duration-200 cursor-pointer ${FOCUS_RING} ${
+                        <Link
+                          to={item.url}
+                          onClick={() => setMobileOpen(false)}
+                          aria-current={active ? "page" : undefined}
+                          className={`relative flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-black font-satoshi transition-all duration-200 active:scale-[0.98] ${FOCUS_RING} ${
                             active
-                              ? "bg-[#161B22] text-[#F1F5F9]"
-                              : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
+                              ? theme === "light"
+                                ? "bg-indigo-50/90 text-indigo-950 border border-indigo-200/90 shadow-xs"
+                                : "bg-indigo-950/40 text-indigo-200 border border-indigo-500/40 shadow-md"
+                              : theme === "light"
+                              ? "text-slate-700 hover:bg-slate-100/80 hover:text-slate-950 border border-slate-200/60 bg-slate-50/50"
+                              : "text-slate-300 hover:bg-white/5 hover:text-white border border-white/5 bg-white/[0.02]"
                           }`}
                         >
-                          <span className="flex items-center gap-3">
+                          <span className="flex items-center gap-2.5">
                             {active && (
                               <span
-                                className="h-5 w-[3px] rounded-full"
+                                className="h-4 w-[3px] rounded-full"
                                 style={{ background: BRAND_GRADIENT }}
                               />
                             )}
-                            {item.name}
-                            {item.name === "My Jobs" && savedJobs?.length > 0 && (
-                              <span className="rounded-full bg-indigo-500/30 px-2 py-0.5 text-[10px] font-bold text-indigo-300 border border-indigo-500/40">
-                                {savedJobs.length}
-                              </span>
-                            )}
+                            <span>{item.name}</span>
                           </span>
-                          <ChevronDown
-                            size={18}
-                            className={`transition-transform duration-300 ${
-                              isExpanded ? "rotate-180 text-indigo-400" : "text-[#708090]"
-                            }`}
+                          <ChevronRight
+                            size={16}
+                            className={theme === "light" ? "text-slate-400" : "text-slate-500"}
                           />
-                        </button>
-
-                        {/* Accordion dropdown body */}
-                        <AnimatePresence initial={false}>
-                          {isExpanded && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2, ease: "easeInOut" }}
-                              className="overflow-hidden"
-                            >
-                              <div className="my-1.5 space-y-1 pl-4 pr-1 border-l-2 border-white/10 ml-5">
-                                <Link
-                                  to={item.url}
-                                  onClick={() => setMobileOpen(false)}
-                                  className={`block rounded-xl px-3.5 py-2 text-sm font-medium transition-colors ${
-                                    location.pathname === item.url
-                                      ? "text-indigo-400 bg-indigo-500/10 font-semibold"
-                                      : "text-white/70 hover:text-white hover:bg-white/5"
-                                  }`}
-                                >
-                                  {item.name} Overview
-                                </Link>
-
-                                {item.children.map((child) => {
-                                  const childActive = location.pathname === child.url;
-                                  const Icon = child.icon;
-                                  const offersCount = (myApplications || []).filter(
-                                    (a) => a?.status === "OFFERED" || a?.status === "ACCEPTED"
-                                  ).length;
-                                  const badgeText =
-                                    child.url === "/my-jobs/saved"
-                                      ? (savedJobs?.length > 0 ? String(savedJobs.length) : null)
-                                      : child.url === "/my-jobs/applied"
-                                      ? (myApplications?.length > 0 ? String(myApplications.length) : null)
-                                      : child.url === "/my-jobs/offers"
-                                      ? (offersCount > 0 ? String(offersCount) : null)
-                                      : child.badge;
-                                  return (
-                                    <Link
-                                      key={child.url}
-                                      to={child.url}
-                                      onClick={() => setMobileOpen(false)}
-                                      aria-current={childActive ? "page" : undefined}
-                                      className={`flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 ${FOCUS_RING} ${
-                                        childActive
-                                          ? "bg-indigo-500/15 border border-indigo-500/30 text-white font-semibold"
-                                          : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
-                                      }`}
-                                    >
-                                      {Icon && (
-                                        <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 text-indigo-400 shrink-0">
-                                          <Icon size={15} />
-                                        </div>
-                                      )}
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                          <span className="text-xs font-bold text-white font-satoshi">{child.name}</span>
-                                          {badgeText && (
-                                            <span className="rounded-full bg-indigo-500/30 px-1.5 py-0.2 text-[9px] font-bold text-indigo-300 border border-indigo-500/40">
-                                              {badgeText}
-                                            </span>
-                                          )}
-                                        </div>
-                                        {child.desc && <p className="text-[10px] text-white/50 leading-snug mt-0.5 line-clamp-1">{child.desc}</p>}
-                                      </div>
-                                    </Link>
-                                  );
-                                })}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                        </Link>
                       </motion.div>
                     );
-                  }
+                  })}
+                </div>
 
-                  return (
-                    <motion.div
-                      key={item.name}
-                      custom={i}
-                      variants={mobileLinkVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      className="mb-1"
-                    >
-                      <Link
-                        to={item.url}
-                        onClick={() => setMobileOpen(false)}
-                        aria-current={active ? "page" : undefined}
-                        className={`relative flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition-colors duration-200 active:scale-[0.98] ${FOCUS_RING} ${
-                          active
-                            ? theme === "light" ? "bg-indigo-50 text-indigo-700 font-bold" : "bg-[#161B22] text-[#F1F5F9]"
-                            : theme === "light" ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900" : "text-[#94A3B8] hover:bg-[#161B22] hover:text-[#F1F5F9]"
-                        }`}
-                      >
-                        {active && (
-                          <span
-                            className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full"
-                            style={{ background: BRAND_GRADIENT }}
-                          />
-                        )}
-                        {item.name}
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-
-                {/* Mobile Dynamic Candidate Profile Card */}
+                {/* Mobile Dynamic Candidate / Recruiter Profile Card */}
                 {user ? (
-                  <div className={`mt-4 rounded-2xl border backdrop-blur-xl p-3.5 shadow-xl space-y-3 ${
-                    theme === "light" ? "border-slate-200 bg-white" : "border-white/10 bg-[#090d16]/95"
-                  }`}>
+                  <div
+                    className={`mt-4 rounded-3xl border p-4 shadow-lg space-y-3.5 backdrop-blur-xl ${
+                      theme === "light"
+                        ? "border-slate-200/90 bg-slate-50/90"
+                        : "border-white/10 bg-[#090d18]/95"
+                    }`}
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 font-extrabold text-white text-base shadow">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 font-black text-white text-base shadow-md">
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h4 className={`text-sm font-extrabold font-satoshi truncate ${theme === "light" ? "text-slate-900" : "text-white"}`}>
+                        <h4
+                          className={`text-sm font-black font-satoshi truncate ${
+                            theme === "light" ? "text-slate-900" : "text-white"
+                          }`}
+                        >
                           {displayName}
                         </h4>
-                        <p className="text-xs text-indigo-600 font-bold truncate mt-0.5">
+                        <p
+                          className={`text-xs font-black truncate mt-0.5 ${
+                            theme === "light" ? "text-indigo-700" : "text-indigo-400"
+                          }`}
+                        >
                           {user?.role ?? user?.accountType ?? "Candidate"}
                         </p>
-                        <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Verified Member
+                        <p
+                          className={`text-[11px] font-semibold flex items-center gap-1 mt-0.5 ${
+                            theme === "light" ? "text-emerald-700" : "text-emerald-400"
+                          }`}
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
+                          Verified Member
                         </p>
                       </div>
                     </div>
 
-                    <div className={`pt-2 border-t grid grid-cols-3 gap-2 ${theme === "light" ? "border-slate-100" : "border-white/10"}`}>
+                    <div
+                      className={`pt-2.5 border-t grid grid-cols-3 gap-2 ${
+                        theme === "light" ? "border-slate-200/80" : "border-white/10"
+                      }`}
+                    >
                       <button
                         type="button"
                         onClick={() => {
                           setMobileOpen(false);
                           handleMessagesClick();
                         }}
-                        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-bold transition cursor-pointer relative ${
-                          theme === "light" ? "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-extrabold transition cursor-pointer relative ${
+                          theme === "light"
+                            ? "border-indigo-200/90 bg-white text-indigo-900 hover:bg-indigo-50 shadow-2xs"
+                            : "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
                         }`}
                       >
-                        <MessageSquare size={13} className="text-indigo-500" />
+                        <MessageSquare
+                          size={14}
+                          className="text-indigo-600 dark:text-indigo-400"
+                        />
                         <span>Chat</span>
                         {unreadMessages > 0 && (
-                          <span className="h-2 w-2 rounded-full bg-rose-500" />
+                          <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
                         )}
                       </button>
 
@@ -1027,20 +1150,33 @@ function Header() {
                           toggleTheme();
                           setMobileOpen(false);
                         }}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 py-2 text-xs font-bold text-amber-600 hover:bg-amber-500/20 transition cursor-pointer"
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-extrabold transition cursor-pointer ${
+                          theme === "light"
+                            ? "border-amber-200/90 bg-amber-50/80 text-amber-900 hover:bg-amber-100/80 shadow-2xs"
+                            : "border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+                        }`}
                       >
-                        {theme === "dark"
-                          ? <><Sun size={13} /> Light Mode</>
-                          : <><Moon size={13} /> Dark Mode</>
-                        }
+                        {theme === "dark" ? (
+                          <>
+                            <Sun size={14} className="text-amber-400" /> Light
+                          </>
+                        ) : (
+                          <>
+                            <Moon size={14} className="text-indigo-600" /> Dark
+                          </>
+                        )}
                       </button>
 
                       <button
                         type="button"
                         onClick={handleLogout}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 py-2 text-xs font-bold text-rose-600 hover:bg-rose-500/20 transition cursor-pointer"
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-extrabold transition cursor-pointer ${
+                          theme === "light"
+                            ? "border-rose-200/90 bg-rose-50/80 text-rose-800 hover:bg-rose-100/80 shadow-2xs"
+                            : "border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
+                        }`}
                       >
-                        <LogOut size={13} /> Logout
+                        <LogOut size={14} /> Logout
                       </button>
                     </div>
                   </div>
@@ -1048,14 +1184,14 @@ function Header() {
                   <Link
                     to="/login"
                     onClick={() => setMobileOpen(false)}
-                    className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-sm font-extrabold text-white shadow-lg cursor-pointer"
+                    className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3.5 text-sm font-black text-white shadow-lg cursor-pointer"
                   >
                     Sign In to Your Account
                   </Link>
                 )}
 
                 {/* Bottom safe-area spacer */}
-                <div className="h-4" />
+                <div className="h-2" />
               </div>
             </motion.nav>
           )}

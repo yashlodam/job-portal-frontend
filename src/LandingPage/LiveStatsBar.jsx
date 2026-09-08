@@ -54,7 +54,7 @@ const STATS_DATA = [
     icon: Sparkles,
     gradient: "from-purple-500 to-pink-600",
     glow: "rgba(168, 85, 247, 0.22)",
-    link: "/mock-interview",
+    link: "/career-hub",
   },
   {
     id: "pipeline",

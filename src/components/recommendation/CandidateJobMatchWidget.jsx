@@ -189,24 +189,34 @@ function resolveGrade(pct) {
 
 const COLOR_MAP = {
   emerald: {
-    text: "text-emerald-400", bg: "bg-emerald-500/15",
-    border: "border-emerald-500/30", bar: "bg-emerald-500",
+    text: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-500/15",
+    border: "border-emerald-500/30",
+    bar: "bg-emerald-500",
   },
   indigo: {
-    text: "text-indigo-400", bg: "bg-indigo-500/15",
-    border: "border-indigo-500/30", bar: "bg-indigo-500",
+    text: "text-primary dark:text-indigo-400",
+    bg: "bg-primary/15",
+    border: "border-primary/30",
+    bar: "bg-primary",
   },
   cyan: {
-    text: "text-cyan-400", bg: "bg-cyan-500/15",
-    border: "border-cyan-500/30", bar: "bg-cyan-500",
+    text: "text-cyan-600 dark:text-cyan-400",
+    bg: "bg-cyan-500/15",
+    border: "border-cyan-500/30",
+    bar: "bg-cyan-500",
   },
   amber: {
-    text: "text-amber-400", bg: "bg-amber-500/15",
-    border: "border-amber-500/30", bar: "bg-amber-500",
+    text: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-500/15",
+    border: "border-amber-500/30",
+    bar: "bg-amber-500",
   },
   rose: {
-    text: "text-rose-400", bg: "bg-rose-500/15",
-    border: "border-rose-500/30", bar: "bg-rose-500",
+    text: "text-rose-600 dark:text-rose-400",
+    bg: "bg-rose-500/15",
+    border: "border-rose-500/30",
+    bar: "bg-rose-500",
   },
 };
 
@@ -215,12 +225,12 @@ function ScoreRow({ label, value }) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-[11px]">
-        <span className="text-slate-400">{label}</span>
-        <span className={`font-black ${value >= 70 ? "text-emerald-400" : value >= 40 ? "text-amber-400" : "text-rose-400"}`}>
+        <span className="text-muted font-medium">{label}</span>
+        <span className={`font-black ${value >= 70 ? "text-emerald-600 dark:text-emerald-400" : value >= 40 ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400"}`}>
           {value}%
         </span>
       </div>
-      <div className="h-1 w-full rounded-full bg-white/10 overflow-hidden">
+      <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
@@ -376,17 +386,17 @@ export default function CandidateJobMatchWidget({ job }) {
   // ── Guest / No Profile State ─────────────────────────────────────────────────
   if (!currentProfile) {
     return (
-      <div className="rounded-[20px] border border-white/10 bg-[#090d16] p-5 text-center space-y-3">
-        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400">
+      <div className="rounded-2xl border border-border bg-surface p-5 text-center space-y-3 shadow-sm">
+        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Sparkles className="h-5 w-5" />
         </div>
-        <h4 className="text-sm font-bold text-white font-satoshi">See Your Match Score</h4>
-        <p className="text-xs text-slate-400 leading-relaxed">
+        <h4 className="text-sm font-bold text-heading font-satoshi">See Your Match Score</h4>
+        <p className="text-xs text-muted leading-relaxed">
           Log in and update your profile to see how your skills match this role.
         </p>
         <Link
           to="/profile"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition shadow"
+          className="inline-flex items-center gap-1.5 rounded-xl gradient-bg-signature px-4 py-2 text-xs font-bold text-white hover:opacity-90 transition shadow"
         >
           <span>Update Profile</span>
           <ArrowRight className="h-3.5 w-3.5" />
@@ -406,13 +416,13 @@ export default function CandidateJobMatchWidget({ job }) {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5 }}
-      className="rounded-[20px] border border-white/10 bg-[#090d16] p-5 space-y-4 shadow-xl"
+      className="rounded-2xl border border-border bg-surface p-5 space-y-4 shadow-sm"
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-3">
+      <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-indigo-400 animate-pulse" />
-          <h4 className="text-xs font-extrabold uppercase tracking-wider text-white font-satoshi">
+          <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+          <h4 className="text-xs font-extrabold uppercase tracking-wider text-heading font-satoshi">
             Your Match Analysis
           </h4>
         </div>
@@ -429,13 +439,13 @@ export default function CandidateJobMatchWidget({ job }) {
           <span className={`text-3xl font-black font-satoshi ${c.text}`}>
             {percentage}%
           </span>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-muted font-medium">
             {totalRequired > 0
               ? `${matched.length}/${totalRequired} required skills`
               : "No required skills listed"}
           </span>
         </div>
-        <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+        <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
@@ -446,8 +456,8 @@ export default function CandidateJobMatchWidget({ job }) {
       </div>
 
       {/* Score Breakdown (4 dimensions) */}
-      <div className="space-y-2.5 pt-1 border-t border-white/5">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+      <div className="space-y-2.5 pt-1 border-t border-border">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
           Score Breakdown
         </p>
         <ScoreRow label="Skills (55%)" value={skillScore} />
@@ -459,15 +469,15 @@ export default function CandidateJobMatchWidget({ job }) {
       {/* Matched Required Skills */}
       {matched.length > 0 && (
         <div className="space-y-1.5">
-          <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+          <span className="text-[11px] font-bold text-heading flex items-center gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
             Matched Skills:
           </span>
           <div className="flex flex-wrap gap-1.5">
             {matched.map((s, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-300 capitalize"
+                className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 capitalize"
               >
                 {s}
               </span>
@@ -479,15 +489,15 @@ export default function CandidateJobMatchWidget({ job }) {
       {/* Matched Preferred Skills */}
       {matchedPreferred.length > 0 && (
         <div className="space-y-1.5">
-          <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
-            <Star className="h-3 w-3 text-indigo-400" />
+          <span className="text-[11px] font-bold text-heading flex items-center gap-1">
+            <Star className="h-3.5 w-3.5 text-primary" />
             Preferred Skills (Bonus):
           </span>
           <div className="flex flex-wrap gap-1.5">
             {matchedPreferred.map((s, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 text-[11px] font-medium text-indigo-300 capitalize"
+                className="inline-flex items-center gap-1 rounded-md bg-primary/15 border border-primary/30 px-2 py-0.5 text-[11px] font-medium text-primary capitalize"
               >
                 {s}
               </span>
@@ -499,15 +509,15 @@ export default function CandidateJobMatchWidget({ job }) {
       {/* Missing Skills */}
       {missing.length > 0 && (
         <div className="space-y-1.5">
-          <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
-            <XCircle className="h-3 w-3 text-rose-400" />
+          <span className="text-[11px] font-bold text-muted flex items-center gap-1">
+            <XCircle className="h-3.5 w-3.5 text-rose-500" />
             Skills to Learn:
           </span>
           <div className="flex flex-wrap gap-1.5">
             {missing.map((s, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1 rounded-md bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 text-[11px] font-medium text-rose-300 capitalize"
+                className="inline-flex items-center gap-1 rounded-md bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 text-[11px] font-medium text-rose-600 dark:text-rose-300 capitalize"
               >
                 {s}
               </span>
@@ -517,11 +527,11 @@ export default function CandidateJobMatchWidget({ job }) {
       )}
 
       {/* Footer */}
-      <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px]">
-        <span className="text-slate-500">Based on your profile · Live calculation</span>
+      <div className="pt-2 border-t border-border flex items-center justify-between text-[11px]">
+        <span className="text-muted">Based on your profile · Live calculation</span>
         <Link
           to="/profile"
-          className="font-bold text-indigo-400 hover:text-indigo-300 transition"
+          className="font-bold text-primary hover:underline transition"
         >
           Edit Skills →
         </Link>

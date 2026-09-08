@@ -111,17 +111,12 @@ export default function SalaryInsights() {
   const isLight = theme === "light";
 
   return (
-    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
-      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 bg-transparent ${
+      isLight ? "text-slate-800" : "text-slate-200"
     }`} aria-label="Salary Insights">
-      {/* Background Lighting */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute right-1/3 top-10 h-[500px] w-[500px] rounded-full bg-emerald-600/5 blur-[180px]" />
-      </div>
-
       <div className="section-container relative z-10">
         <SectionHeader
-          badge="Market Intelligence 2026"
+          badge="Industry Compensation Benchmarks"
           title={
             <>
               Tech Salary &{" "}
@@ -130,7 +125,7 @@ export default function SalaryInsights() {
               </span>
             </>
           }
-          subtitle="Transparent, verified compensation data across software engineering, AI, and design roles in India and Remote."
+          subtitle="Comparative compensation benchmark estimates across software engineering, AI, and product roles in India and Remote."
         />
 
         {/* Role Selector Tabs */}
@@ -147,8 +142,8 @@ export default function SalaryInsights() {
                   isSelected
                     ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 !text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] scale-105"
                     : isLight
-                      ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-xs"
-                      : "border border-white/10 bg-[#090d16]/90 text-slate-400 hover:text-white hover:border-white/20 hover:bg-[#0c111f]"
+                      ? "border border-slate-200/90 bg-white/85 text-slate-700 hover:bg-white hover:text-slate-900 shadow-xs backdrop-blur-md"
+                      : "border border-white/10 bg-[#090d16]/85 text-slate-400 hover:text-white hover:border-white/20 hover:bg-[#0c111f] backdrop-blur-md"
                 }`}
               >
                 <span className={isSelected ? "!text-white" : ""}>{r.role}</span>
@@ -167,8 +162,8 @@ export default function SalaryInsights() {
             transition={{ duration: 0.4 }}
             className={`mt-8 rounded-3xl border p-6 sm:p-10 shadow-2xl backdrop-blur-2xl ${
               isLight
-                ? "border-slate-200 bg-white shadow-xl"
-                : "border-white/10 bg-[#090d16]/95"
+                ? "border-slate-200/90 bg-white/90 shadow-xl"
+                : "border-white/10 bg-[#090d16]/90"
             }`}
           >
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -292,8 +287,10 @@ export default function SalaryInsights() {
                 </div>
 
                 {/* Data Transparency Banner */}
-                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-[11px] text-slate-400 leading-relaxed flex items-center gap-2.5">
-                  <Sparkles size={16} className="text-indigo-400 shrink-0" />
+                <div className={`rounded-2xl border p-4 text-[11px] leading-relaxed flex items-center gap-2.5 ${
+                  isLight ? "border-slate-200 bg-slate-50 text-slate-600 font-medium" : "border-white/10 bg-white/[0.02] text-slate-400"
+                }`}>
+                  <Sparkles size={16} className={isLight ? "text-indigo-600 shrink-0" : "text-indigo-400 shrink-0"} />
                   <span>
                     Aggregated from 15,000+ verified active job postings and employer compensation disclosures.
                   </span>

@@ -146,7 +146,7 @@ export default function ApplyJobComp() {
     },
   ];
 
-  // AI Cover Letter Generator
+  // Template-based Cover Letter Draft Generator
   const handleGenerateAICoverLetter = (targetVersionIdx) => {
     const nextIdx = targetVersionIdx !== undefined ? targetVersionIdx : (aiVersionIndex + 1) % AI_VERSIONS.length;
     setAiVersionIndex(nextIdx);
@@ -161,11 +161,11 @@ export default function ApplyJobComp() {
       setCoverLetter(generated);
       setIsGeneratingAI(false);
       notifications.show({
-        title: `AI Cover Letter (${versionConfig.name})`,
-        message: `Tailored version created highlighting ${skillsListText.substring(0, 30)}...`,
+        title: `Draft Generated (${versionConfig.name})`,
+        message: `Template tailored with your profile skills. Review and edit before submitting.`,
         color: "indigo",
       });
-    }, 500);
+    }, 150);
   };
 
   // Pre-select default resume or first available
@@ -267,30 +267,30 @@ export default function ApplyJobComp() {
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto shadow-2xl"
+          className="flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 mx-auto shadow-2xl"
         >
           <IconCircleCheck size={48} />
         </motion.div>
 
-        <h2 className="text-3xl font-extrabold text-white font-satoshi">
+        <h2 className="text-3xl font-extrabold text-heading font-satoshi">
           Application Submitted!
         </h2>
 
-        <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-          Your application for <span className="text-indigo-400 font-bold">{activeJob.jobTitle || activeJob.title}</span> at{" "}
-          <span className="text-white font-bold">{activeJob.companyName || activeJob.company}</span> has been sent successfully.
+        <p className="text-sm text-muted max-w-md mx-auto leading-relaxed">
+          Your application for <span className="text-primary-light font-bold">{activeJob.jobTitle || activeJob.title}</span> at{" "}
+          <span className="text-heading font-bold">{activeJob.companyName || activeJob.company}</span> has been sent successfully.
         </p>
 
         <div className="pt-4 flex items-center justify-center gap-4">
           <button
             onClick={() => navigate("/my-jobs/applied")}
-            className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3 text-xs font-bold text-white shadow-lg hover:scale-105 transition cursor-pointer"
+            className="rounded-2xl gradient-bg-signature px-6 py-3 text-xs font-bold text-white shadow-button hover:scale-105 transition cursor-pointer"
           >
             Track Application Status →
           </button>
           <button
             onClick={() => navigate("/find-jobs")}
-            className="rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+            className="rounded-2xl border border-border bg-surface-elevated px-6 py-3 text-xs font-semibold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
           >
             Explore More Jobs
           </button>
@@ -306,15 +306,15 @@ export default function ApplyJobComp() {
     : null;
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto font-inter text-body">
       {/* ── Active Job Header Card ── */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6 rounded-3xl border border-white/10 bg-[#090d16]/90 p-6 backdrop-blur-xl shadow-2xl"
+        className="mb-6 rounded-3xl border border-border bg-surface/90 p-6 backdrop-blur-xl shadow-xl"
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/15 border border-indigo-500/20 text-indigo-400 font-black text-xl font-satoshi">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary font-black text-xl font-satoshi shadow-xs">
             {logoSrc ? (
               <img src={logoSrc} alt={activeJob.companyName} className="h-full w-full object-contain rounded-2xl" />
             ) : (
@@ -323,73 +323,73 @@ export default function ApplyJobComp() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-widest text-indigo-400 font-satoshi">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary-light font-satoshi">
               {activeJob.companyName || activeJob.company}
             </p>
-            <h2 className="mt-0.5 text-xl sm:text-2xl font-black text-white font-satoshi leading-tight">
+            <h2 className="mt-0.5 text-xl sm:text-2xl font-black text-heading font-satoshi leading-tight">
               {activeJob.jobTitle || activeJob.title}
             </h2>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span className="inline-flex items-center gap-1 text-xs text-slate-400 font-medium">
-                <IconMapPin size={13} className="text-indigo-400" />
+              <span className="inline-flex items-center gap-1 text-xs text-muted font-medium">
+                <IconMapPin size={13} className="text-primary-light" />
                 {[activeJob.city, activeJob.state].filter(Boolean).join(", ") || activeJob.location || "Remote"}
               </span>
-              <span className="inline-flex items-center gap-1 text-xs text-slate-400 font-medium">
-                <IconBriefcase size={13} className="text-purple-400" />
+              <span className="inline-flex items-center gap-1 text-xs text-muted font-medium">
+                <IconBriefcase size={13} className="text-violet" />
                 {humanise(activeJob.jobType || activeJob.type || "FULL_TIME")}
               </span>
-              <span className="inline-flex items-center gap-1 text-xs text-emerald-400 font-bold">
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
                 {formatINR(activeJob.minimumSalary)} - {formatINR(activeJob.maximumSalary)}
               </span>
             </div>
           </div>
 
-          <span className="hidden sm:inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="hidden sm:inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Fast-Track Application
           </span>
         </div>
       </motion.div>
 
       {/* ── Main Application Card ── */}
-      <div className="rounded-3xl border border-white/10 bg-[#090d16] p-6 sm:p-8 shadow-2xl space-y-8">
+      <div className="rounded-3xl border border-border bg-surface p-6 sm:p-8 shadow-2xl space-y-8">
         {/* ── Candidate Profile Summary Badge & AI Match Score ── */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-4 sm:p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-indigo-500/15">
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" className="rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-primary/15">
             <div className="flex items-center gap-2">
-              <IconShield className="h-4 w-4 text-indigo-400 shrink-0" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-300 font-satoshi">
+              <IconShield className="h-4 w-4 text-primary shrink-0" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-primary-light font-satoshi">
                 Applicant Verified Profile
               </h3>
             </div>
 
             {/* AI Job Match Badge */}
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-xs font-extrabold text-amber-300 shadow-sm">
-                <IconSparkles size={13} className="text-amber-400 fill-amber-400/20 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-extrabold text-amber-600 dark:text-amber-300 shadow-2xs">
+                <IconSparkles size={13} className="text-amber-500 fill-amber-500/20 animate-pulse" />
                 {matchPercentage}% AI Match Score
               </span>
 
               <Link
                 to="/profile"
-                className="text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-1 shrink-0"
+                className="text-xs font-semibold text-muted hover:text-heading transition flex items-center gap-1 shrink-0"
               >
                 <IconEdit size={13} /> Edit Profile
               </Link>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-300">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-body">
             <div className="flex items-center gap-2">
-              <IconUser size={15} className="text-slate-400 shrink-0" />
-              <span className="font-bold text-white truncate">{fullName}</span>
+              <IconUser size={15} className="text-muted shrink-0" />
+              <span className="font-bold text-heading truncate">{fullName}</span>
             </div>
             <div className="flex items-center gap-2 min-w-0">
-              <IconMail size={15} className="text-slate-400 shrink-0" />
+              <IconMail size={15} className="text-muted shrink-0" />
               <span className="truncate">{email || "Email not set"}</span>
             </div>
             <div className="flex items-center gap-2">
-              <IconPhone size={15} className="text-slate-400 shrink-0" />
+              <IconPhone size={15} className="text-muted shrink-0" />
               <span>{phone}</span>
             </div>
           </div>
@@ -399,8 +399,8 @@ export default function ApplyJobComp() {
         <motion.div variants={fadeUp} custom={1} initial="hidden" animate="visible" className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-white font-satoshi">Select Resume</h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <h3 className="text-base font-bold text-heading font-satoshi">Select Resume</h3>
+              <p className="text-xs text-muted mt-0.5">
                 Choose the resume you want recruiters to review for this role.
               </p>
             </div>
@@ -417,7 +417,7 @@ export default function ApplyJobComp() {
               type="button"
               disabled={uploadingResume}
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:bg-white/20 hover:text-white hover:border-white/30 transition-all duration-200 cursor-pointer disabled:opacity-50 shadow-sm"
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading hover:border-border-hover transition-all duration-200 cursor-pointer disabled:opacity-50 shadow-xs"
             >
               <IconUpload size={14} />
               {uploadingResume ? "Uploading..." : "Upload New"}
@@ -434,25 +434,25 @@ export default function ApplyJobComp() {
                     onClick={() => setSelectedResumeId(res.id)}
                     className={`rounded-2xl border p-4 transition-all duration-300 cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? "border-indigo-500 bg-gradient-to-r from-indigo-500/20 via-purple-500/15 to-indigo-500/10 shadow-[0_8px_25px_rgba(99,102,241,0.2)] ring-1 ring-indigo-500/30 scale-[1.01]"
-                        : "border-white/10 bg-[#0c101c]/80 hover:border-white/25 hover:bg-white/[0.08]"
+                        ? "border-primary bg-primary/10 shadow-glow-primary ring-1 ring-primary/30 scale-[1.01]"
+                        : "border-border bg-surface-elevated/80 hover:border-border-hover hover:bg-surface-hover"
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${isSelected ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/30" : "bg-red-500/15 text-red-400"}`}>
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${isSelected ? "gradient-bg-signature text-white shadow-button" : "bg-rose-500/10 text-rose-500"}`}>
                         <IconFileCv size={22} />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-white truncate font-satoshi">
+                        <p className="text-xs font-bold text-heading truncate font-satoshi">
                           {res.resumeName || res.fileName || "Resume.pdf"}
                         </p>
                         {res.isDefault && (
-                          <span className="text-[10px] font-bold text-emerald-400">Default Resume</span>
+                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Default Resume</span>
                         )}
                       </div>
                     </div>
 
-                    <div className={`h-5 w-5 rounded-full border flex items-center justify-center transition-all ${isSelected ? "border-indigo-500 bg-indigo-500 text-white shadow-sm" : "border-slate-600"}`}>
+                    <div className={`h-5 w-5 rounded-full border flex items-center justify-center transition-all ${isSelected ? "border-primary bg-primary text-white shadow-xs" : "border-border"}`}>
                       {isSelected && <IconCheck size={12} />}
                     </div>
                   </div>
@@ -460,14 +460,14 @@ export default function ApplyJobComp() {
               })}
             </div>
           ) : (
-            <div className="rounded-2xl border-2 border-dashed border-white/10 p-6 text-center">
-              <IconFileCv size={36} className="mx-auto mb-2 text-indigo-400" />
-              <p className="text-xs font-semibold text-white">No Resumes Found</p>
-              <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Upload your resume to continue.</p>
+            <div className="rounded-2xl border-2 border-dashed border-border p-6 text-center">
+              <IconFileCv size={36} className="mx-auto mb-2 text-primary" />
+              <p className="text-xs font-semibold text-heading">No Resumes Found</p>
+              <p className="text-[11px] text-muted mt-0.5 mb-3">Upload your resume to continue.</p>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition cursor-pointer"
+                className="rounded-xl gradient-bg-signature px-4 py-2 text-xs font-bold text-white shadow-button transition cursor-pointer"
               >
                 Upload Resume PDF
               </button>
@@ -479,10 +479,10 @@ export default function ApplyJobComp() {
         <motion.div variants={fadeUp} custom={2} initial="hidden" animate="visible" className="space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h3 className="text-base font-bold text-white font-satoshi flex items-center gap-2">
+              <h3 className="text-base font-bold text-heading font-satoshi flex items-center gap-2">
                 Cover Letter / Note
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-muted mt-0.5">
                 Add an optional note to highlight why you're a great fit (max 2000 characters).
               </p>
             </div>
@@ -491,18 +491,18 @@ export default function ApplyJobComp() {
               type="button"
               disabled={isGeneratingAI}
               onClick={() => handleGenerateAICoverLetter()}
-              className="inline-flex items-center gap-1.5 rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-500/15 via-purple-600/20 to-indigo-600/20 px-4 py-2 text-xs font-extrabold text-amber-200 hover:text-white hover:border-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] hover:scale-105 transition-all duration-300 cursor-pointer disabled:opacity-50 shadow-sm shrink-0 self-start sm:self-auto"
-              title="Generate a personalized cover letter using AI"
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-2 text-xs font-extrabold text-indigo-600 dark:text-indigo-300 hover:border-indigo-500 hover:shadow-[0_0_20px_rgba(99,102,241,0.25)] hover:scale-105 transition-all duration-300 cursor-pointer disabled:opacity-50 shadow-xs shrink-0 self-start sm:self-auto"
+              title="Generate a template-based draft tailored with your profile skills"
             >
-              <IconSparkles size={15} className="text-amber-400 animate-pulse fill-amber-400/20" />
-              {isGeneratingAI ? "Generating AI Letter..." : "Generate with AI"}
+              <IconSparkles size={15} className="text-indigo-500 animate-pulse fill-indigo-500/20" />
+              {isGeneratingAI ? "Generating Draft..." : "Generate Draft"}
             </button>
           </div>
 
-          {/* AI Version Selector Pills */}
+          {/* Version Selector Pills */}
           <div className="flex items-center gap-2 overflow-x-auto py-1">
-            <span className="text-[11px] font-bold text-amber-300 shrink-0 flex items-center gap-1">
-              <IconSparkles size={12} className="text-amber-400" /> AI Versions:
+            <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-300 shrink-0 flex items-center gap-1">
+              <IconSparkles size={12} className="text-indigo-500" /> Draft Styles:
             </span>
             {AI_VERSIONS.map((ver, idx) => (
               <button
@@ -511,8 +511,8 @@ export default function ApplyJobComp() {
                 onClick={() => handleGenerateAICoverLetter(idx)}
                 className={`rounded-full px-3 py-1 text-[11px] font-bold border transition-all cursor-pointer shrink-0 ${
                   coverLetter && aiVersionIndex === idx
-                    ? "bg-amber-500/20 text-amber-200 border-amber-400 shadow-md shadow-amber-500/10"
-                    : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                    ? "bg-indigo-500/20 text-indigo-600 dark:text-indigo-200 border-indigo-500 shadow-xs"
+                    : "bg-surface-elevated border-border text-muted hover:bg-surface-hover hover:text-heading"
                 }`}
               >
                 {ver.name} <span className="text-[9px] opacity-75 font-normal">({ver.badge})</span>
@@ -526,12 +526,12 @@ export default function ApplyJobComp() {
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
             placeholder={`Hi Hiring Team,\n\nI am excited to submit my application for ${activeJob.jobTitle || activeJob.title}. With my experience in relevant skills, I am confident in contributing effectively...`}
-            className="w-full rounded-2xl border border-white/10 bg-[#080c16] p-4 text-xs text-white placeholder-slate-500 focus:border-amber-400/60 focus:ring-2 focus:ring-amber-500/20 focus:outline-none leading-relaxed transition-all"
+            className="w-full rounded-2xl border border-border bg-surface-elevated p-4 text-xs text-heading placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none leading-relaxed transition-all"
           />
 
-          <div className="flex items-center justify-between text-[11px] text-slate-500">
+          <div className="flex items-center justify-between text-[11px] text-muted">
             <span>Optional note to recruiter</span>
-            <span className={coverLetter.length > 2000 ? "text-rose-400 font-bold" : ""}>
+            <span className={coverLetter.length > 2000 ? "text-danger font-bold" : ""}>
               {coverLetter.length} / 2000
             </span>
           </div>
@@ -543,12 +543,12 @@ export default function ApplyJobComp() {
           custom={3}
           initial="hidden"
           animate="visible"
-          className="pt-5 border-t border-white/10 flex items-center justify-between"
+          className="pt-5 border-t border-border flex items-center justify-between"
         >
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+            className="rounded-2xl border border-border bg-surface-elevated px-5 py-3 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition-all cursor-pointer"
           >
             Cancel
           </button>
@@ -557,11 +557,11 @@ export default function ApplyJobComp() {
             type="button"
             onClick={handleSubmitApplication}
             disabled={applyLoading || (!selectedResumeId && resumes.length === 0)}
-            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-8 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-[0_0_25px_rgba(99,102,241,0.4)] hover:shadow-[0_0_35px_rgba(168,85,247,0.6)] hover:scale-105 transition-all duration-300 cursor-pointer disabled:opacity-50"
+            className="gradient-bg-signature inline-flex items-center gap-2 rounded-2xl px-8 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-button hover:shadow-[0_0_35px_rgba(99,102,241,0.5)] hover:scale-105 transition-all duration-300 cursor-pointer disabled:opacity-50"
           >
             {applyLoading ? (
               <>
-                <IconLoader2 size={16} className="animate-spin text-amber-300" /> Submitting Application...
+                <IconLoader2 size={16} className="animate-spin text-white" /> Submitting Application...
               </>
             ) : (
               <>

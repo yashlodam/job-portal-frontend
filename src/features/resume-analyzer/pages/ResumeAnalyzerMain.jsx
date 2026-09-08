@@ -55,26 +55,26 @@ export default function ResumeAnalyzerMain() {
   }
 
   return (
-    <div className="space-y-6 font-satoshi text-white">
+    <div className="space-y-6 font-satoshi text-body">
       {/* Mode Switcher Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 border border-indigo-500/30">
             <Sparkles size={20} />
           </div>
           <div>
-            <h2 className="text-lg font-black text-white">AI Resume Analyzer</h2>
-            <p className="text-xs text-slate-400 font-medium">ATS Document Compliance, Skill Extraction & Analysis Dashboard</p>
+            <h2 className="text-lg font-black text-heading">AI Resume Analyzer</h2>
+            <p className="text-xs text-muted font-medium">ATS Document Compliance, Skill Extraction & Analysis Dashboard</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-2xl bg-white/[0.03] border border-white/10 p-1.5 font-satoshi">
+        <div className="flex items-center gap-2 rounded-2xl bg-surface-elevated border border-border p-1.5 font-satoshi">
           <button
             onClick={handleUploadNavClick}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
               viewMode === "upload"
                 ? "bg-indigo-600 text-white shadow-md"
-                : "text-slate-400 hover:text-white"
+                : "text-muted hover:text-heading"
             }`}
           >
             <Upload size={14} /> Upload Resume
@@ -84,7 +84,7 @@ export default function ResumeAnalyzerMain() {
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
               viewMode === "dashboard"
                 ? "bg-indigo-600 text-white shadow-md"
-                : "text-slate-400 hover:text-white"
+                : "text-muted hover:text-heading"
             }`}
           >
             <BarChart3 size={14} /> Analysis Dashboard

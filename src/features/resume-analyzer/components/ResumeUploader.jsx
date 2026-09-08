@@ -54,28 +54,28 @@ export default function ResumeUploader({ onFileSelect, error }) {
         onDragLeave={handleDrag}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed rounded-3xl p-10 sm:p-14 text-center cursor-pointer transition-all duration-300 space-y-4 bg-[#090d16]/90 backdrop-blur-2xl group ${
+        className={`border-2 border-dashed rounded-3xl p-10 sm:p-14 text-center cursor-pointer transition-all duration-300 space-y-4 bg-surface backdrop-blur-2xl group ${
           dragActive
-            ? "border-indigo-500 bg-indigo-500/10 shadow-[0_0_30px_rgba(99,102,241,0.2)]"
-            : "border-white/15 hover:border-indigo-500/60 hover:bg-white/[0.03]"
+            ? "border-primary bg-primary/10 shadow-[0_0_30px_rgba(99,102,241,0.2)]"
+            : "border-border hover:border-primary/60 hover:bg-surface-hover"
         }`}
       >
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 mx-auto shadow-lg group-hover:scale-110 transition duration-300">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary mx-auto shadow-sm group-hover:scale-110 transition duration-300">
           <Upload size={32} />
         </div>
 
         <div className="space-y-1.5">
-          <h3 className="text-xl sm:text-2xl font-black text-white">
+          <h3 className="text-xl sm:text-2xl font-black text-heading">
             Upload Your Resume
           </h3>
-          <p className="text-xs sm:text-sm text-slate-300 font-medium">
-            Drag & drop your PDF or DOCX file here, or <span className="text-indigo-400 font-bold underline">browse files</span>
+          <p className="text-xs sm:text-sm text-body font-medium">
+            Drag & drop your PDF or DOCX file here, or <span className="text-primary font-bold underline">browse files</span>
           </p>
         </div>
 
-        <div className="flex items-center justify-center gap-3 text-xs text-slate-400 font-medium pt-2">
+        <div className="flex items-center justify-center gap-3 text-xs text-muted font-medium pt-2">
           <span className="flex items-center gap-1.5">
-            <FileCheck size={14} className="text-emerald-400" /> PDF & Word DOCX
+            <FileCheck size={14} className="text-emerald-500" /> PDF & Word DOCX
           </span>
           <span>•</span>
           <span>Max 10MB</span>
@@ -83,8 +83,8 @@ export default function ResumeUploader({ onFileSelect, error }) {
       </motion.div>
 
       {error && (
-        <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-bold flex items-center gap-2">
-          <AlertCircle size={16} className="shrink-0 text-rose-400" />
+        <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs font-bold flex items-center gap-2">
+          <AlertCircle size={16} className="shrink-0 text-rose-500" />
           <span>{error}</span>
         </div>
       )}

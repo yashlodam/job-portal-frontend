@@ -6,48 +6,48 @@
 export function getScoreColor(score) {
   if (score >= 90) {
     return {
-      text: "text-emerald-400",
+      text: "text-emerald-600 dark:text-emerald-400",
       bg: "bg-emerald-500/10",
       border: "border-emerald-500/30",
       stroke: "#10B981",
       glow: "shadow-[0_0_15px_rgba(16,185,129,0.3)]",
       gradient: "from-emerald-500 to-teal-400",
-      badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+      badge: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
       status: "Excellent",
     };
   }
   if (score >= 75) {
     return {
-      text: "text-indigo-400",
-      bg: "bg-indigo-500/10",
-      border: "border-indigo-500/30",
+      text: "text-primary dark:text-indigo-400",
+      bg: "bg-primary/10",
+      border: "border-primary/30",
       stroke: "#6366F1",
       glow: "shadow-[0_0_15px_rgba(99,102,241,0.3)]",
       gradient: "from-indigo-500 to-purple-400",
-      badge: "bg-indigo-500/15 text-indigo-300 border-indigo-500/30",
+      badge: "bg-primary/15 text-primary dark:text-indigo-300 border-primary/30",
       status: "Good",
     };
   }
   if (score >= 60) {
     return {
-      text: "text-amber-400",
+      text: "text-amber-600 dark:text-amber-400",
       bg: "bg-amber-500/10",
       border: "border-amber-500/30",
       stroke: "#F59E0B",
       glow: "shadow-[0_0_15px_rgba(245,158,11,0.3)]",
       gradient: "from-amber-500 to-yellow-400",
-      badge: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+      badge: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
       status: "Needs Polish",
     };
   }
   return {
-    text: "text-rose-400",
+    text: "text-rose-600 dark:text-rose-400",
     bg: "bg-rose-500/10",
     border: "border-rose-500/30",
     stroke: "#F43F5E",
     glow: "shadow-[0_0_15px_rgba(244,63,94,0.3)]",
     gradient: "from-rose-500 to-red-400",
-    badge: "bg-rose-500/15 text-rose-300 border-rose-500/30",
+    badge: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
     status: "Critical Fixes",
   };
 }

@@ -9,7 +9,6 @@ const COMPANY_LOGOS = [
   {
     name: "Google",
     color: "#4285F4",
-    openRoles: "1,240+ Jobs",
     svg: (
       <svg className="h-6 w-auto" viewBox="0 0 24 24" fill="currentColor">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -22,7 +21,6 @@ const COMPANY_LOGOS = [
   {
     name: "Microsoft",
     color: "#00A4EF",
-    openRoles: "890+ Jobs",
     renderSvg: (isLight) => (
       <div className="flex items-center gap-2">
         <div className="grid grid-cols-2 gap-0.5 w-5 h-5">
@@ -38,7 +36,6 @@ const COMPANY_LOGOS = [
   {
     name: "Amazon",
     color: "#FF9900",
-    openRoles: "2,150+ Jobs",
     renderSvg: (isLight) => (
       <div className="flex flex-col items-center">
         <span className={`text-base font-black tracking-tighter font-satoshi leading-none ${isLight ? "text-slate-900" : "text-white"}`}>amazon</span>
@@ -51,7 +48,6 @@ const COMPANY_LOGOS = [
   {
     name: "Meta",
     color: "#0866FF",
-    openRoles: "760+ Jobs",
     renderSvg: (isLight) => (
       <div className="flex items-center gap-2">
         <svg className="h-5 w-6 text-[#0866FF]" viewBox="0 0 24 24" fill="currentColor">
@@ -64,7 +60,6 @@ const COMPANY_LOGOS = [
   {
     name: "Netflix",
     color: "#E50914",
-    openRoles: "340+ Jobs",
     renderSvg: () => (
       <span className="text-lg font-black tracking-tighter text-[#E50914] font-satoshi">NETFLIX</span>
     ),
@@ -72,7 +67,6 @@ const COMPANY_LOGOS = [
   {
     name: "Spotify",
     color: "#1DB954",
-    openRoles: "520+ Jobs",
     renderSvg: (isLight) => (
       <div className="flex items-center gap-2">
         <svg className="h-5 w-5 text-[#1DB954]" viewBox="0 0 24 24" fill="currentColor">
@@ -85,7 +79,6 @@ const COMPANY_LOGOS = [
   {
     name: "Airbnb",
     color: "#FF5A5F",
-    openRoles: "430+ Jobs",
     renderSvg: (isLight) => (
       <div className="flex items-center gap-2">
         <svg className="h-5 w-5 text-[#FF5A5F]" viewBox="0 0 24 24" fill="currentColor">
@@ -98,7 +91,6 @@ const COMPANY_LOGOS = [
   {
     name: "Stripe",
     color: "#635BFF",
-    openRoles: "820+ Jobs",
     renderSvg: () => (
       <span className="text-lg font-black text-[#635BFF] tracking-tighter font-satoshi">stripe</span>
     ),
@@ -106,7 +98,6 @@ const COMPANY_LOGOS = [
   {
     name: "Apple",
     color: "#F5F5F7",
-    openRoles: "1,540+ Jobs",
     renderSvg: (isLight) => (
       <div className="flex items-center gap-2">
         <svg className={`h-5 w-5 ${isLight ? "text-slate-900" : "text-white"}`} viewBox="0 0 24 24" fill="currentColor">
@@ -121,18 +112,12 @@ const COMPANY_LOGOS = [
 export default function Companies() {
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const marqueeBg = isLight ? "#F8FAFC" : "#05070d";
 
   return (
-    <section className={`relative overflow-hidden py-10 sm:py-14 border-y font-inter transition-colors duration-300 ${isLight ? "bg-[#F8FAFC] border-slate-200 text-slate-800" : "bg-[#05070d] border-white/10 text-slate-200"}`} aria-label="Trusted Companies">
-      {/* Ambient Radial Mesh Glow */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className={`absolute left-1/2 top-1/2 h-[350px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[170px] ${isLight ? "bg-indigo-400/5 opacity-50" : "bg-indigo-600/10"}`} />
-      </div>
-
+    <section className={`relative overflow-hidden py-10 sm:py-14 border-y font-inter transition-colors duration-300 bg-transparent ${isLight ? "border-slate-200/80 text-slate-800" : "border-white/10 text-slate-200"}`} aria-label="Trusted Companies">
       {/* Section Header */}
       <div className="section-container relative z-10 text-center mb-6 sm:mb-8">
-        <div className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1 shadow-sm ${isLight ? "border-indigo-200 bg-indigo-50 text-indigo-800" : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300"}`}>
+        <div className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1 shadow-xs backdrop-blur-md ${isLight ? "border-indigo-200 bg-indigo-50/90 text-indigo-800" : "border-indigo-500/30 bg-indigo-500/15 text-indigo-300"}`}>
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest font-satoshi">
             Global Enterprise Hiring Partners
@@ -144,31 +129,27 @@ export default function Companies() {
       </div>
 
       {/* 3D Glass Marquee Cards */}
-      <div className="relative z-10 py-3">
-        <Marquee speed={34} gradient gradientColor={marqueeBg} gradientWidth={120} pauseOnHover autoFill>
+      <div className="relative z-10 py-2 sm:py-3">
+        <Marquee speed={32} gradient={false} pauseOnHover autoFill>
           {COMPANY_LOGOS.map((brand) => (
             <Link
               key={brand.name}
               to={`/find-jobs?keyword=${encodeURIComponent(brand.name)}`}
-              className={`mx-3.5 group relative flex h-16 w-56 items-center justify-between rounded-2xl border px-4.5 py-3 backdrop-blur-xl transition-all duration-300 hover:scale-105 cursor-pointer shrink-0 ${
+              className={`mx-2 sm:mx-3.5 group relative flex h-14 sm:h-16 w-48 sm:w-56 items-center justify-between rounded-2xl border px-3.5 sm:px-4.5 py-2.5 sm:py-3 backdrop-blur-xl transition-all duration-300 hover:scale-105 cursor-pointer shrink-0 ${
                 isLight
-                  ? "border-slate-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-md"
-                  : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_15px_35px_rgba(99,102,241,0.2)]"
+                  ? "border-slate-200/90 bg-white/80 shadow-xs hover:bg-white hover:border-indigo-300 hover:shadow-md"
+                  : "border-white/10 bg-[#090d16]/80 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_15px_35px_rgba(99,102,241,0.2)]"
               }`}
             >
               {/* SVG Brand Vector */}
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                 {brand.renderSvg ? brand.renderSvg(isLight) : brand.svg}
               </div>
 
               {/* Hiring Badge */}
-              <div className="flex flex-col items-end shrink-0">
-                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Hiring
-                </span>
-                <span className={`text-[9px] font-bold mt-0.5 ${isLight ? "text-slate-500" : "text-slate-400"}`}>
-                  {brand.openRoles}
-                </span>
+              <div className="flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Hiring</span>
               </div>
             </Link>
           ))}

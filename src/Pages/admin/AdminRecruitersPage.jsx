@@ -209,7 +209,7 @@ export default function AdminRecruitersPage() {
         <button
           onClick={loadRecruiters}
           disabled={adminLoading}
-          className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+          className="flex items-center gap-1.5 rounded-2xl border border-border bg-surface px-3.5 py-2 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
         >
           <RefreshCw size={14} className={adminLoading ? "animate-spin" : ""} />
           <span>Refresh Queue</span>
@@ -227,18 +227,18 @@ export default function AdminRecruitersPage() {
           <Card
             className={`p-4 transition-all duration-200 ${
               activeTab === "PENDING_VERIFICATION"
-                ? "bg-amber-950/60 border-amber-400 ring-2 ring-amber-400/20"
-                : "bg-gradient-to-br from-amber-950/30 to-slate-900/60 border-amber-500/20 hover:border-amber-500/40"
+                ? "bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/20"
+                : "bg-surface border border-border hover:border-amber-500/40 hover:bg-surface-hover"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-amber-200">Pending Review</span>
-              <Clock className="h-4 w-4 text-amber-400" />
+              <span className="text-xs font-semibold text-muted">Pending Review</span>
+              <Clock className="h-4 w-4 text-amber-500" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-white font-satoshi">
+            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">
               {stats.pending > 0 ? stats.pending : (activeTab === "PENDING_VERIFICATION" ? recruitersList.length : "0")}
             </p>
-            <p className="text-[10px] text-amber-300 font-semibold mt-1">Awaiting Administrator Action</p>
+            <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-1">Awaiting Administrator Action</p>
           </Card>
         </button>
 
@@ -251,18 +251,18 @@ export default function AdminRecruitersPage() {
           <Card
             className={`p-4 transition-all duration-200 ${
               activeTab === "APPROVED"
-                ? "bg-emerald-950/60 border-emerald-400 ring-2 ring-emerald-400/20"
-                : "bg-gradient-to-br from-emerald-950/30 to-slate-900/60 border-emerald-500/20 hover:border-emerald-500/40"
+                ? "bg-emerald-500/10 border-emerald-500 ring-2 ring-emerald-500/20"
+                : "bg-surface border border-border hover:border-emerald-500/40 hover:bg-surface-hover"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-emerald-200">Approved Active</span>
-              <ShieldCheck className="h-4 w-4 text-emerald-400" />
+              <span className="text-xs font-semibold text-muted">Approved Active</span>
+              <ShieldCheck className="h-4 w-4 text-emerald-500" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-white font-satoshi">
+            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">
               {stats.approved > 0 ? stats.approved : (activeTab === "APPROVED" ? recruitersList.length : "0")}
             </p>
-            <p className="text-[10px] text-emerald-400 font-semibold mt-1">Authorized Job Posters</p>
+            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">Authorized Job Posters</p>
           </Card>
         </button>
 
@@ -275,18 +275,18 @@ export default function AdminRecruitersPage() {
           <Card
             className={`p-4 transition-all duration-200 ${
               activeTab === "REJECTED"
-                ? "bg-rose-950/60 border-rose-400 ring-2 ring-rose-400/20"
-                : "bg-gradient-to-br from-rose-950/30 to-slate-900/60 border-rose-500/20 hover:border-rose-500/40"
+                ? "bg-rose-500/10 border-rose-500 ring-2 ring-rose-500/20"
+                : "bg-surface border border-border hover:border-rose-500/40 hover:bg-surface-hover"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-rose-200">Rejected</span>
-              <XCircle className="h-4 w-4 text-rose-400" />
+              <span className="text-xs font-semibold text-muted">Rejected</span>
+              <XCircle className="h-4 w-4 text-rose-500" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-white font-satoshi">
+            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">
               {stats.rejected > 0 ? stats.rejected : (activeTab === "REJECTED" ? recruitersList.length : "0")}
             </p>
-            <p className="text-[10px] text-rose-300 font-semibold mt-1">Feedback Provided to Employer</p>
+            <p className="text-[10px] text-rose-600 dark:text-rose-400 font-semibold mt-1">Feedback Provided to Employer</p>
           </Card>
         </button>
 
@@ -299,25 +299,25 @@ export default function AdminRecruitersPage() {
           <Card
             className={`p-4 transition-all duration-200 ${
               activeTab === "SUSPENDED"
-                ? "bg-rose-950/70 border-rose-500 ring-2 ring-rose-500/20"
-                : "bg-gradient-to-br from-rose-950/40 to-slate-900/60 border-rose-600/30 hover:border-rose-500/50"
+                ? "bg-rose-500/15 border-rose-600 ring-2 ring-rose-600/20"
+                : "bg-surface border border-border hover:border-rose-600/40 hover:bg-surface-hover"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-rose-200">Suspended</span>
-              <AlertOctagon className="h-4 w-4 text-rose-400" />
+              <span className="text-xs font-semibold text-muted">Suspended</span>
+              <AlertOctagon className="h-4 w-4 text-rose-600" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-white font-satoshi">
+            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">
               {stats.suspended > 0 ? stats.suspended : (activeTab === "SUSPENDED" ? recruitersList.length : "0")}
             </p>
-            <p className="text-[10px] text-rose-400 font-semibold mt-1">Account & Postings Inactive</p>
+            <p className="text-[10px] text-rose-600 dark:text-rose-400 font-semibold mt-1">Account & Postings Inactive</p>
           </Card>
         </button>
       </div>
 
       {/* 2. Filter & Search Toolbar */}
       <div className="space-y-4 pt-2">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-4">
           <Tabs
             tabs={FILTER_TABS}
             activeTab={activeTab}
@@ -329,24 +329,25 @@ export default function AdminRecruitersPage() {
             <div className="relative">
               <select
                 value={sortBy}
+                style={{ colorScheme: "auto" }}
                 onChange={(e) => {
                   setSortBy(e.target.value);
                   setCurrentPage(0);
                 }}
-                className="appearance-none rounded-2xl border border-white/10 bg-[#090d16] px-3.5 py-2 pr-8 text-xs font-semibold text-slate-300 focus:border-purple-500 focus:outline-none cursor-pointer"
+                className="appearance-none rounded-2xl border border-border bg-surface px-3.5 py-2 pr-8 text-xs font-semibold text-heading focus:border-primary focus:outline-none cursor-pointer"
               >
                 {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value} className="bg-[#090d16] text-white">
+                  <option key={opt.value} value={opt.value} className="bg-surface text-heading">
                     {opt.label}
                   </option>
                 ))}
               </select>
-              <ArrowUpDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+              <ArrowUpDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted pointer-events-none" />
             </div>
 
             {/* Search Input */}
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
               <input
                 type="text"
                 value={searchQuery}
@@ -355,7 +356,7 @@ export default function AdminRecruitersPage() {
                   setCurrentPage(0);
                 }}
                 placeholder="Search recruiter or company…"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 transition"
+                className="w-full rounded-2xl border border-border bg-surface-elevated pl-10 pr-4 py-2 text-xs text-heading placeholder-muted focus:outline-none focus:border-primary transition"
               />
             </div>
           </div>

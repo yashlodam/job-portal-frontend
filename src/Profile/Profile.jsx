@@ -754,7 +754,7 @@ function Profile() {
         ).unwrap();
         dispatch(fetchMyResumesThunk());
       } catch (error) {
-        console.error("Resume upload error:", error);
+        // Handled silently
       } finally {
         e.target.value = "";
       }
@@ -768,7 +768,7 @@ function Profile() {
         await dispatch(deleteResumeThunk(resumeId)).unwrap();
         dispatch(fetchMyResumesThunk());
       } catch (error) {
-        console.error("Delete resume error:", error);
+        // Handled silently
       }
     },
     [dispatch]
@@ -780,7 +780,7 @@ function Profile() {
         await dispatch(setDefaultResumeThunk(resumeId)).unwrap();
         dispatch(fetchMyResumesThunk());
       } catch (error) {
-        console.error("Set default resume error:", error);
+        // Handled silently
       }
     },
     [dispatch]
@@ -911,7 +911,6 @@ function Profile() {
   }, [skillsSection]);
 
   const addSkillLocal = useCallback(() => {
-    console.log("data",data)
     const value = skillInput.trim();
     if (!value) return;
     if (data.skills.some((s) => (typeof s === "string" ? s : s.skill) === value)) {

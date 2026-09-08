@@ -30,7 +30,7 @@ export function useNotificationActions() {
       try {
         await markAsReadMutation(id).unwrap();
       } catch (err) {
-        console.error("Failed to mark notification as read:", err);
+        // Handled silently
       }
     },
     [markAsReadMutation]
@@ -40,7 +40,7 @@ export function useNotificationActions() {
     try {
       await markAllAsReadMutation().unwrap();
     } catch (err) {
-      console.error("Failed to mark all as read:", err);
+      // Handled silently
     }
   }, [markAllAsReadMutation]);
 
@@ -49,7 +49,7 @@ export function useNotificationActions() {
       try {
         await archiveMutation(id).unwrap();
       } catch (err) {
-        console.error("Failed to archive notification:", err);
+        // Handled silently
       }
     },
     [archiveMutation]
@@ -59,7 +59,7 @@ export function useNotificationActions() {
     try {
       await archiveAllMutation().unwrap();
     } catch (err) {
-      console.error("Failed to archive all:", err);
+      // Handled silently
     }
   }, [archiveAllMutation]);
 
@@ -68,7 +68,7 @@ export function useNotificationActions() {
       try {
         await deleteMutation(id).unwrap();
       } catch (err) {
-        console.error("Failed to delete notification:", err);
+        // Handled silently
       }
     },
     [deleteMutation]
@@ -78,7 +78,7 @@ export function useNotificationActions() {
     try {
       await deleteAllMutation().unwrap();
     } catch (err) {
-      console.error("Failed to delete all:", err);
+      // Handled silently
     }
   }, [deleteAllMutation]);
 
@@ -87,7 +87,7 @@ export function useNotificationActions() {
       try {
         await createTestMutation({ type }).unwrap();
       } catch (err) {
-        console.error("Failed to create test notification:", err);
+        // Handled silently
       }
     },
     [createTestMutation]

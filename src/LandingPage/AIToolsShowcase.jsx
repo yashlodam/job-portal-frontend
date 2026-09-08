@@ -27,47 +27,47 @@ import { useTheme } from "../context/ThemeContext";
 const AI_TOOLS_DATA = [
   {
     id: 1,
-    title: "AI ATS Resume Studio",
+    title: "ATS Resume Studio",
     description:
-      "Create high-scoring, ATS-compliant resumes with real-time AI bullet enhancements, keyword optimization, and multi-template export.",
+      "Create high-scoring, ATS-compliant resumes with real-time keyword optimization, bullet improvements, and multi-template export.",
     icon: FileText,
     link: "/career-hub/resume-builder",
     gradient: { from: "#6366F1", to: "#8B5CF6", glow: "rgba(99, 102, 241, 0.35)", text: "#A5B4FC" },
-    stats: "50K+ Resumes Optimized",
-    tag: "ATS Grade A+",
+    stats: "ATS-Ready Formats",
+    tag: "Resume Studio",
   },
   {
     id: 2,
-    title: "AI Neural Job Match Fit",
+    title: "Neural Job Match Fit",
     description:
-      "Evaluate your skill alignment against 15,000+ live jobs with instant 0–100% Match Scores and personalized skill gap reports.",
+      "Evaluate your skill alignment against open jobs with instant semantic match scores and personalized skill gap reports.",
     icon: Zap,
     link: "/find-jobs",
     gradient: { from: "#06B6D4", to: "#3B82F6", glow: "rgba(6, 182, 212, 0.35)", text: "#67E8F9" },
-    stats: "98.4% Match Accuracy",
-    tag: "Top Rated",
+    stats: "Semantic Gap Analysis",
+    tag: "Match Fit",
   },
   {
     id: 3,
-    title: "AI Mock Technical Interview",
+    title: "Mock Technical Interview",
     description:
-      "Practice coding, system design, and behavioral questions with an intelligent AI interviewer that gives actionable feedback on your answers.",
+      "Practice coding, system design, and behavioral questions with an intelligent mock interviewer that provides actionable evaluation.",
     icon: Video,
     link: "/career-hub/interview-coach",
     gradient: { from: "#EC4899", to: "#F43F5E", glow: "rgba(236, 72, 153, 0.35)", text: "#F472B6" },
-    stats: "Interactive Voice & Code",
-    tag: "Candidate Favorite",
+    stats: "Interactive Practice",
+    tag: "Interview Coach",
   },
   {
     id: 4,
-    title: "AI Real-Time Application Tracker",
+    title: "Application Pipeline",
     description:
-      "Track your applications with complete visibility across all 8 pipeline stages, get direct recruiter chat access, and receive zero ghosting updates.",
+      "Track your applications with complete visibility across all hiring stages and message directly with hiring recruiters.",
     icon: Bot,
     link: "/my-jobs/applied",
     gradient: { from: "#10B981", to: "#14B8A6", glow: "rgba(16, 185, 129, 0.35)", text: "#6EE7B7" },
-    stats: "8 Pipeline Stages",
-    tag: "Zero Ghosting",
+    stats: "Status Pipeline",
+    tag: "Track Applications",
   },
 ];
 
@@ -109,8 +109,8 @@ function AIToolCard({ tool }) {
       onClick={() => navigate(tool.link)}
       className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-6 sm:p-8 backdrop-blur-xl transition-all duration-300 cursor-pointer ${
         isLight
-          ? "border-slate-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-xl"
-          : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
+          ? "border-slate-200/90 bg-white/85 shadow-xs hover:border-indigo-300 hover:shadow-xl hover:bg-white"
+          : "border-white/10 bg-[#090d16]/85 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
       }`}
     >
       {/* Glow Wash */}
@@ -198,8 +198,8 @@ export default function AIToolsShowcase() {
   const isLight = theme === "light";
 
   return (
-    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
-      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 bg-transparent ${
+      isLight ? "text-slate-800" : "text-slate-200"
     }`} aria-label="AI tools showcase">
       {/* Background Lighting Mesh */}
       <div className="pointer-events-none absolute inset-0">

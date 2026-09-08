@@ -70,7 +70,6 @@ function TalentProfilePage() {
           setProfileData(mapBackendToProfile(raw));
         }
       } catch (err) {
-        console.warn("Could not fetch talent from backend, trying authenticated profile:", err);
         try {
           const res = await getMyTalentProfile();
           const raw = res?.data || res;
@@ -78,7 +77,7 @@ function TalentProfilePage() {
             setProfileData(mapBackendToProfile(raw));
           }
         } catch (myErr) {
-          console.error("Failed to load talent profile:", myErr);
+          // Handled silently
         }
       } finally {
         if (isMounted) setLoading(false);

@@ -49,21 +49,21 @@ export default function ResumeRewriteModal() {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-3xl rounded-3xl bg-[#090d16] border border-white/15 p-6 sm:p-8 space-y-6 shadow-2xl font-satoshi relative overflow-hidden text-white"
+          className="w-full max-w-3xl rounded-3xl bg-surface border border-border p-6 sm:p-8 space-y-6 shadow-2xl font-satoshi relative overflow-hidden text-body"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-white/10">
+          <div className="flex items-center justify-between pb-4 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary">
                 <Sparkles size={22} />
               </div>
               <div>
-                <h3 className="text-xl font-black">AI Content Optimization Assistant</h3>
-                <p className="text-xs text-slate-400 font-medium">Generate ATS-optimized text, cover letters, & executive summaries.</p>
+                <h3 className="text-xl font-black text-heading">AI Content Optimization Assistant</h3>
+                <p className="text-xs text-muted font-medium">Generate ATS-optimized text, cover letters, & executive summaries.</p>
               </div>
             </div>
 
-            <button onClick={hideRewriteModal} className="p-2 rounded-2xl hover:bg-white/10 text-slate-400 hover:text-white transition">
+            <button onClick={hideRewriteModal} className="p-2 rounded-2xl hover:bg-surface-hover text-muted hover:text-heading transition cursor-pointer">
               <X size={20} />
             </button>
           </div>
@@ -79,11 +79,11 @@ export default function ResumeRewriteModal() {
                   onClick={() => handleGenerate(item.id)}
                   className={`p-3 rounded-2xl text-left border transition cursor-pointer space-y-1.5 ${
                     isSelected
-                      ? "bg-indigo-600/30 border-indigo-500 text-white shadow-lg"
-                      : "bg-white/[0.02] border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
+                      ? "bg-primary/15 border-primary text-primary font-bold shadow-sm"
+                      : "bg-surface-elevated border-border text-muted hover:bg-surface-hover hover:text-heading"
                   }`}
                 >
-                  <Icon size={16} className={isSelected ? "text-indigo-300" : "text-slate-400"} />
+                  <Icon size={16} className={isSelected ? "text-primary" : "text-muted"} />
                   <p className="text-xs font-black line-clamp-1">{item.label}</p>
                 </button>
               );
@@ -91,36 +91,36 @@ export default function ResumeRewriteModal() {
           </div>
 
           {/* Generated Result Output */}
-          <div className="p-5 rounded-3xl bg-[#0d1322] border border-white/10 min-h-[220px] flex flex-col justify-between space-y-4 shadow-inner">
+          <div className="p-5 rounded-3xl bg-surface-elevated border border-border min-h-[220px] flex flex-col justify-between space-y-4 shadow-inner">
             {isGeneratingRewrite ? (
               <div className="flex flex-col items-center justify-center h-48 space-y-3">
-                <RefreshCw size={28} className="text-indigo-400 animate-spin" />
-                <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest">AI Neural Model Drafting Response...</p>
+                <RefreshCw size={28} className="text-primary animate-spin" />
+                <p className="text-xs font-bold text-primary uppercase tracking-widest">AI Neural Model Drafting Response...</p>
               </div>
             ) : rewriteResult ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-indigo-400 uppercase tracking-wider">{rewriteResult.title}</span>
+                  <span className="text-xs font-black text-primary uppercase tracking-wider">{rewriteResult.title}</span>
                   <button
                     onClick={() => handleCopy(rewriteResult.content || rewriteResult.bullets?.join("\n"))}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold text-white transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-surface hover:bg-surface-hover border border-border text-xs font-extrabold text-heading transition cursor-pointer"
                   >
-                    {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                    {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
                     <span>{copied ? "Copied!" : "Copy to Clipboard"}</span>
                   </button>
                 </div>
 
                 {rewriteResult.content && (
-                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium whitespace-pre-line p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                  <p className="text-xs sm:text-sm text-body leading-relaxed font-medium whitespace-pre-line p-4 rounded-2xl bg-surface border border-border">
                     {rewriteResult.content}
                   </p>
                 )}
 
                 {rewriteResult.bullets && (
-                  <ul className="space-y-2 text-xs sm:text-sm text-slate-200 font-medium">
+                  <ul className="space-y-2 text-xs sm:text-sm text-body font-medium">
                     {rewriteResult.bullets.map((b, i) => (
-                      <li key={i} className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 flex items-start gap-2.5">
-                        <span className="h-2 w-2 rounded-full bg-indigo-400 mt-2 shrink-0" />
+                      <li key={i} className="p-3 rounded-2xl bg-surface border border-border flex items-start gap-2.5">
+                        <span className="h-2 w-2 rounded-full bg-primary mt-2 shrink-0" />
                         <span>{b}</span>
                       </li>
                     ))}
@@ -129,21 +129,21 @@ export default function ResumeRewriteModal() {
               </div>
             ) : (
               <div className="text-center py-10 space-y-3">
-                <Sparkles size={32} className="text-indigo-400 mx-auto opacity-40" />
-                <p className="text-xs text-slate-400 font-medium">Click any option above to trigger instant AI text optimization.</p>
+                <Sparkles size={32} className="text-primary mx-auto opacity-40" />
+                <p className="text-xs text-muted font-medium">Click any option above to trigger instant AI text optimization.</p>
               </div>
             )}
           </div>
 
           {/* Footer Actions */}
           <div className="flex items-center justify-between pt-2">
-            <button onClick={hideRewriteModal} className="text-xs font-bold text-slate-400 hover:text-white transition">
+            <button onClick={hideRewriteModal} className="text-xs font-bold text-muted hover:text-heading transition cursor-pointer">
               Close Studio
             </button>
             <button
               onClick={() => handleGenerate(selectedType)}
               disabled={isGeneratingRewrite}
-              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg hover:scale-105 transition cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 rounded-2xl gradient-bg-signature px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-button hover:opacity-90 transition cursor-pointer disabled:opacity-50"
             >
               <RefreshCw size={14} className={isGeneratingRewrite ? "animate-spin" : ""} />
               <span>Regenerate AI Variant</span>

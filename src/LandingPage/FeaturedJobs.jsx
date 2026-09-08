@@ -95,27 +95,27 @@ function JobCard({ job }) {
       variants={cardVariants}
       whileHover={{ y: -6, scale: 1.01 }}
       onClick={() => navigate(`/jobs/${job.id}`)}
-      className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-6 backdrop-blur-xl transition-all duration-300 cursor-pointer ${
+      className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-5 sm:p-6 backdrop-blur-xl transition-all duration-300 cursor-pointer ${
         isLight
-          ? "border-slate-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-xl"
-          : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
+          ? "border-slate-200/90 bg-white/85 shadow-xs hover:border-indigo-300 hover:shadow-xl hover:bg-white"
+          : "border-white/10 bg-[#090d16]/85 hover:border-indigo-500/50 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
       }`}
     >
       {/* Featured Badge Pill */}
       {job.featured && (
-        <div className="absolute left-0 top-0 flex items-center gap-1.5 rounded-tl-[23px] rounded-br-[14px] bg-gradient-to-r from-indigo-600 to-purple-600 px-3.5 py-1.5 shadow-md z-20">
-          <Sparkles size={12} className="text-amber-300 fill-amber-300/20 animate-pulse" />
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-white">
+        <div className="absolute left-0 top-0 flex items-center gap-1.5 rounded-tl-[23px] rounded-br-[14px] bg-gradient-to-r from-indigo-600 to-purple-600 px-3 py-1 sm:px-3.5 sm:py-1.5 shadow-md z-20">
+          <Sparkles size={11} className="text-amber-300 fill-amber-300/20 animate-pulse" />
+          <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-white">
             Featured Role
           </span>
         </div>
       )}
 
-      <div className={`flex flex-1 flex-col ${job.featured ? "pt-5" : ""}`}>
+      <div className={`flex flex-1 flex-col ${job.featured ? "pt-4 sm:pt-5" : ""}`}>
         {/* Header: Logo, Company & Save Action */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border font-extrabold text-base font-satoshi shadow-md ${
+        <div className="flex items-start justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className={`flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl border font-extrabold text-sm sm:text-base font-satoshi shadow-md ${
               isLight ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-white/10 bg-indigo-600/15 text-indigo-400"
             }`}>
               {job.companyLogo && !logoError ? (
@@ -132,12 +132,12 @@ function JobCard({ job }) {
             </div>
 
             <div className="min-w-0">
-              <p className={`text-xs font-extrabold uppercase tracking-wider font-satoshi truncate ${
+              <p className={`text-[11px] sm:text-xs font-extrabold uppercase tracking-wider font-satoshi truncate ${
                 isLight ? "text-indigo-600" : "text-indigo-400"
               }`}>
                 {job.companyName || job.company || "Tech Enterprise"}
               </p>
-              <h3 className={`mt-0.5 text-base font-extrabold font-satoshi transition-colors truncate ${
+              <h3 className={`mt-0.5 text-sm sm:text-base font-extrabold font-satoshi transition-colors truncate ${
                 isLight ? "text-slate-900 group-hover:text-indigo-600" : "text-white group-hover:text-indigo-300"
               }`}>
                 {job.jobTitle || job.title}
@@ -156,22 +156,22 @@ function JobCard({ job }) {
             title={isSaved ? "Remove from Saved Jobs" : "Save Job"}
           >
             {isSaved ? (
-              <BookmarkCheck size={18} className="text-indigo-600 fill-indigo-600/20" />
+              <BookmarkCheck size={16} className="text-indigo-600 fill-indigo-600/20" />
             ) : (
-              <Bookmark size={18} />
+              <Bookmark size={16} />
             )}
           </button>
         </div>
 
         {/* Location & Mode */}
-        <div className={`mt-4 flex flex-wrap items-center gap-2 text-xs ${isLight ? "text-slate-500" : "text-slate-400"}`}>
-          <span className="inline-flex items-center gap-1 font-medium">
-            <MapPin size={13} className={isLight ? "text-indigo-600 shrink-0" : "text-indigo-400 shrink-0"} />
+        <div className={`mt-3 sm:mt-4 flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs ${isLight ? "text-slate-500" : "text-slate-400"}`}>
+          <span className="inline-flex items-center gap-1 font-medium truncate max-w-[180px]">
+            <MapPin size={12} className={isLight ? "text-indigo-600 shrink-0" : "text-indigo-400 shrink-0"} />
             {[job.city, job.state].filter(Boolean).join(", ") || job.location || "Remote"}
           </span>
           <span className={isLight ? "text-slate-300" : "text-slate-600"}>•</span>
           <span
-            className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold border"
+            className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-bold border"
             style={{
               backgroundColor: isLight ? badge.lightBg : badge.bg,
               color: isLight ? badge.lightText : badge.text,
@@ -184,11 +184,11 @@ function JobCard({ job }) {
 
         {/* Skills Pills */}
         {Array.isArray(job.skills) && job.skills.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-1.5">
+          <div className="mt-3 sm:mt-4 flex flex-wrap gap-1 sm:gap-1.5">
             {job.skills.slice(0, 3).map((skill, index) => (
               <span
                 key={index}
-                className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold border ${
+                className={`rounded-lg px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-[11px] font-semibold border ${
                   isLight
                     ? "border-slate-200 bg-slate-50 text-slate-700"
                     : "border-white/5 bg-white/5 text-slate-300"
@@ -198,8 +198,8 @@ function JobCard({ job }) {
               </span>
             ))}
             {job.skills.length > 3 && (
-              <span className={`rounded-lg px-2 py-1 text-[11px] font-semibold ${isLight ? "text-slate-400" : "text-slate-500"}`}>
-                +{job.skills.length - 3} more
+              <span className={`rounded-lg px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold ${isLight ? "text-slate-400" : "text-slate-500"}`}>
+                +{job.skills.length - 3}
               </span>
             )}
           </div>
@@ -207,22 +207,22 @@ function JobCard({ job }) {
       </div>
 
       {/* Footer: Salary & View Action */}
-      <div className={`mt-6 pt-4 border-t flex items-center justify-between gap-2 ${
+      <div className={`mt-5 sm:mt-6 pt-3.5 sm:pt-4 border-t flex items-center justify-between gap-2 ${
         isLight ? "border-slate-100" : "border-white/10"
       }`}>
-        <div>
-          <span className={`text-[10px] font-bold uppercase tracking-wider block ${isLight ? "text-slate-400" : "text-slate-500"}`}>
+        <div className="min-w-0">
+          <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider block ${isLight ? "text-slate-400" : "text-slate-500"}`}>
             Est. CTC
           </span>
-          <span className={`text-sm font-extrabold font-satoshi ${isLight ? "text-slate-900" : "text-slate-100"}`}>
+          <span className={`text-xs sm:text-sm font-extrabold font-satoshi truncate block ${isLight ? "text-slate-900" : "text-slate-100"}`}>
             {formatSalary(job.packageOffered || job.salaryMin, job.salaryMax)}
           </span>
         </div>
 
-        <span className={`inline-flex items-center gap-1 text-xs font-extrabold transition group-hover:translate-x-0.5 ${
+        <span className={`inline-flex items-center gap-1 text-[11px] sm:text-xs font-extrabold transition group-hover:translate-x-0.5 shrink-0 ${
           isLight ? "text-indigo-600 group-hover:text-indigo-700" : "text-indigo-400 group-hover:text-indigo-300"
         }`}>
-          Apply Now <ArrowRight size={14} />
+          Apply <ArrowRight size={13} />
         </span>
       </div>
     </motion.article>
@@ -244,19 +244,15 @@ export default function FeaturedJobs() {
   }, [dispatch]);
 
   const displayJobs = useMemo(() => {
-    if (allJobs && Array.isArray(allJobs) && allJobs.length >= 6) {
-      return allJobs.slice(0, 6);
-    }
     if (allJobs && Array.isArray(allJobs) && allJobs.length > 0) {
-      const needed = 6 - allJobs.length;
-      return [...allJobs, ...fallbackJobs.slice(0, needed)];
+      return allJobs.slice(0, 6);
     }
     return fallbackJobs.slice(0, 6);
   }, [allJobs]);
 
   return (
-    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
-      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 bg-transparent ${
+      isLight ? "text-slate-800" : "text-slate-200"
     }`}>
       {/* ── Ambient Background Lighting ── */}
       <div
@@ -305,7 +301,7 @@ export default function FeaturedJobs() {
                 : "border-white/10 bg-[#090d16]/90 text-white hover:border-indigo-500/40 hover:bg-[#0c111f]"
             }`}
           >
-            <span>Explore All 15,000+ Verified Jobs</span>
+            <span>Explore All Open Positions</span>
             <ArrowRight size={16} className="text-indigo-500 transition-transform group-hover:translate-x-1" />
           </button>
         </motion.div>

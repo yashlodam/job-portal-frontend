@@ -305,7 +305,7 @@ export default function CompanyPage() {
     { label: "Company Size", value: company.companySize || "—", icon: IconUsers },
     { label: "Headquarters", value: company.headquarters ? company.headquarters.split(",")[0] : "—", icon: IconMapPin },
     { label: "Founded", value: company.foundedYear || "—", icon: IconRocket },
-    { label: "Open Roles", value: company.length > 0 ? String(companyJobs.length) : (company.totalJobs ?? "—"), icon: IconBriefcase },
+    { label: "Open Roles", value: companyJobs?.length > 0 ? String(companyJobs.length) : (company.totalJobs ?? "—"), icon: IconBriefcase },
   ];
 
   const details = [

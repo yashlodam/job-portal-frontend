@@ -25,20 +25,20 @@ export default function AIErrorBanner({
   };
 
   return (
-    <div className="p-6 sm:p-7 rounded-3xl bg-[#090d16]/95 border border-indigo-500/30 backdrop-blur-2xl shadow-2xl space-y-4 font-satoshi my-4 text-white">
+    <div className="p-6 sm:p-7 rounded-3xl bg-surface border border-primary/30 backdrop-blur-2xl shadow-sm space-y-4 font-satoshi my-4 text-body">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-md shrink-0">
-            <Sparkles className="h-6 w-6 text-indigo-400 animate-pulse" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary shadow-sm shrink-0">
+            <Sparkles className="h-6 w-6 text-primary animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-black text-white">{title}</h3>
-              <span className="text-[10px] font-black text-amber-300 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 uppercase">
+              <h3 className="text-base sm:text-lg font-black text-heading">{title}</h3>
+              <span className="text-[10px] font-black text-amber-600 dark:text-amber-300 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 uppercase">
                 High Demand
               </span>
             </div>
-            <p className="text-xs text-slate-300 font-medium mt-0.5 leading-relaxed max-w-lg">
+            <p className="text-xs text-muted font-medium mt-0.5 leading-relaxed max-w-lg">
               {getUserFriendlyMessage()}
             </p>
           </div>
@@ -47,15 +47,15 @@ export default function AIErrorBanner({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs transition cursor-pointer shadow-lg hover:scale-105 shrink-0"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl gradient-bg-signature text-white font-black text-xs transition cursor-pointer shadow-button hover:opacity-90 hover:scale-105 shrink-0"
           >
             <RefreshCw size={14} /> Try Again Now
           </button>
         )}
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-slate-400 font-medium pt-1 border-t border-white/5">
-        <Clock size={14} className="text-indigo-400" />
+      <div className="flex items-center gap-2 text-xs text-muted font-medium pt-1 border-t border-border">
+        <Clock size={14} className="text-primary" />
         <span>Average wait time: under 30 seconds</span>
       </div>
     </div>

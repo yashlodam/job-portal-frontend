@@ -56,6 +56,10 @@
   --color-warning:       #F59E0B;
   --color-danger:        #EF4444;
   --color-info:          #3B82F6;
+  --color-status-success: var(--status-success);
+  --color-status-warning: var(--status-warning);
+  --color-status-error:   var(--status-error);
+  --color-status-info:    var(--status-info);
 
   /* ── Radius — 8-point scale ── */
   --radius-xs:   8px;
@@ -101,6 +105,10 @@
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-hover: rgba(255, 255, 255, 0.18);
   --border-active: rgba(99, 102, 241, 0.40);
+  --status-success: #34D399;
+  --status-warning: #FBBF24;
+  --status-error:   #F87171;
+  --status-info:    #60A5FA;
   --shadow-card-token: 0 1px 3px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.2);
   --shadow-elevated-token: 0 4px 6px rgba(0,0,0,0.3), 0 16px 48px rgba(0,0,0,0.3);
   --shadow-navbar-token: 0 1px 0 rgba(148, 163, 184, 0.06), 0 4px 20px rgba(0,0,0,0.3);
@@ -119,6 +127,10 @@ body.light {
   --border-subtle: #E2E8F0;
   --border-hover: #CBD5E1;
   --border-active: rgba(99, 102, 241, 0.50);
+  --status-success: #059669;
+  --status-warning: #D97706;
+  --status-error:   #E11D48;
+  --status-info:    #2563EB;
   --shadow-card-token: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
   --shadow-elevated-token: 0 4px 6px rgba(0,0,0,0.04), 0 16px 48px rgba(0,0,0,0.06);
   --shadow-navbar-token: 0 1px 0 rgba(15, 23, 42, 0.06), 0 4px 20px rgba(0,0,0,0.04);
@@ -208,48 +220,70 @@ html.light [class*="border-white/[0.2]"] {
   border-color: #E2E8F0 !important;
 }
 
-/* ── 5. Headings & General Text in Light Mode ── */
-html.light .text-white {
+/* ── 5. Headings & General Text in Light Mode (Scoped to light containers) ── */
+html.light .text-white:not([class*="bg-slate-900"] *):not([class*="bg-slate-950"] *):not([class*="bg-[#070b12]"] *):not([class*="bg-[#0b0f19]"] *):not(.auth-hero-panel *):not([data-theme-preserve="dark"] *):not([class*="bg-indigo-6"]):not([class*="bg-indigo-7"]):not([class*="bg-indigo-8"]):not([class*="bg-indigo-9"]):not([class*="bg-primary"]):not([class*="from-indigo-6"]):not([class*="from-indigo-7"]):not([class*="from-indigo-8"]):not([class*="bg-purple-6"]):not([class*="bg-purple-7"]):not([class*="bg-emerald-6"]):not([class*="bg-rose-6"]):not([class*="bg-blue-6"]):not(.text-white-force):not(.text-white-force *) {
   color: #0F172A;
 }
 
-html.light .text-slate-100,
-html.light .text-slate-200 {
-  color: #1E293B !important;
+html.light [class*="text-white/40"]:not([class*="bg-slate-900"] *):not([class*="bg-slate-950"] *):not([class*="bg-[#070b12]"] *):not([class*="bg-[#0b0f19]"] *):not(.auth-hero-panel *):not([data-theme-preserve="dark"] *) {
+  color: #64748B !important;
 }
 
-html.light .text-slate-300 {
+html.light [class*="text-white/50"]:not([class*="bg-slate-900"] *):not([class*="bg-slate-950"] *):not([class*="bg-[#070b12]"] *):not([class*="bg-[#0b0f19]"] *):not(.auth-hero-panel *):not([data-theme-preserve="dark"] *),
+html.light [class*="text-white/60"]:not([class*="bg-slate-900"] *):not([class*="bg-slate-950"] *):not([class*="bg-[#070b12]"] *):not([class*="bg-[#0b0f19]"] *):not(.auth-hero-panel *):not([data-theme-preserve="dark"] *) {
+  color: #64748B !important;
+}
+
+html.light [class*="text-white/70"]:not([class*="bg-slate-900"] *):not([class*="bg-slate-950"] *):not([class*="bg-[#070b12]"] *):not([class*="bg-[#0b0f19]"] *):not(.auth-hero-panel *):not([data-theme-preserve="dark"] *),
+html.light [class*="text-white/80"]:not([class*="bg-slate-900"] *):not([class*="bg-slate-950"] *):not([class*="bg-[#070b12]"] *):not([class*="bg-[#0b0f19]"] *):not(.auth-hero-panel *):not([data-theme-preserve="dark"] *),
+html.light [class*="text-white/90"]:not([class*="bg-slate-900"] *):not([class*="bg-slate-950"] *):not([class*="bg-[#070b12]"] *):not([class*="bg-[#0b0f19]"] *):not(.auth-hero-panel *):not([data-theme-preserve="dark"] *) {
   color: #334155 !important;
 }
 
-html.light .text-slate-400 {
-  color: #64748B !important;
-}
-
-html.light .text-slate-500 {
-  color: #64748B !important;
-}
-
-/* ── 6. Solid Primary & Gradient Buttons text color ── */
-html.light .btn-primary,
-html.light .btn-primary *,
-html.light button[class*="from-"],
-html.light button[class*="from-"] *,
-html.light button[class*="bg-indigo-600"],
-html.light button[class*="bg-indigo-600"] *,
-html.light a[class*="from-"],
-html.light a[class*="from-"] *,
-html.light a[class*="bg-indigo-600"],
-html.light a[class*="bg-indigo-600"] * {
+/* ── Explicit preservation for intentionally dark containers & auth hero panel ── */
+html.light [data-theme-preserve="dark"],
+html.light [data-theme-preserve="dark"] *,
+html.light .auth-hero-panel,
+html.light .auth-hero-panel * {
   color: #FFFFFF !important;
 }
 
-/* ── 7. Transparent Gradient Text Preservation ── */
+html.light [data-theme-preserve="dark"] [class*="text-slate-200"],
+html.light [data-theme-preserve="dark"] [class*="text-slate-300"],
+html.light .auth-hero-panel [class*="text-slate-200"],
+html.light .auth-hero-panel [class*="text-slate-300"] {
+  color: #E2E8F0 !important;
+}
+
+html.light [data-theme-preserve="dark"] [class*="text-slate-400"],
+html.light .auth-hero-panel [class*="text-slate-400"] {
+  color: #94A3B8 !important;
+}
+
+/* ── 6. Solid Primary, Dark & Signature Badges / Buttons text color preservation ── */
+html.light .text-white-force,
+html.light .text-white-force *,
+html.light .btn-primary,
+html.light [class*="gradient-bg-signature"],
+html.light span[class*="bg-indigo-600"],
+html.light span[class*="bg-primary"],
+html.light .badge-indigo-solid,
+html.light .badge-indigo-solid * {
+  color: #FFFFFF !important;
+}
+
+/* ── 7. Transparent Gradient Text Preservation (Strict High Priority) ── */
 html.light .bg-clip-text,
-html.light [class*="bg-clip-text"] {
+html.light [class*="bg-clip-text"],
+html.light .text-transparent,
+html.light [class*="text-transparent"],
+html.light span.bg-clip-text,
+html.light span[class*="bg-clip-text"],
+html.light h1 span[class*="bg-clip-text"] {
   -webkit-background-clip: text !important;
   background-clip: text !important;
   color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 /* ── 8. Colored Text / Badges Contrast Enhancement in Light Mode ── */

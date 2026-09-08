@@ -46,7 +46,6 @@ export default function ResumeUploadPage({ onAnalyzeSuccess }) {
       setIsAnalyzingLocal(false);
       const errMsg = typeof err === "string" ? err : err?.message || "AI Analysis failed.";
       toast.error(errMsg);
-      console.error("[ResumeUploadPage] Analysis error:", err);
     }
   };
 
@@ -68,14 +67,14 @@ export default function ResumeUploadPage({ onAnalyzeSuccess }) {
     <div className="max-w-3xl mx-auto space-y-8 font-satoshi py-4">
       {/* Header Banner */}
       <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 text-xs font-black text-indigo-400 uppercase tracking-widest shadow-sm">
-          <Sparkles className="h-4 w-4 text-indigo-400 animate-pulse" /> AI Resume Analyzer
+        <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 text-xs font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest shadow-sm">
+          <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400 animate-pulse" /> AI Resume Analyzer
         </div>
-        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-          Score & Match Your Resume Against <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Target Jobs</span>
+        <h1 className="text-3xl sm:text-5xl font-black text-heading tracking-tight">
+          Score & Match Your Resume Against <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">Target Jobs</span>
         </h1>
-        <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto font-medium leading-relaxed">
-          Upload your resume, then click <span className="text-indigo-400 font-bold">Analyze Resume</span> to trigger your AI audit.
+        <p className="text-sm sm:text-base text-muted max-w-xl mx-auto font-medium leading-relaxed">
+          Upload your resume, then click <span className="text-primary font-bold">Analyze Resume</span> to trigger your AI audit.
         </p>
       </div>
 
@@ -114,9 +113,9 @@ export default function ResumeUploadPage({ onAnalyzeSuccess }) {
       </div>
 
       {/* Trust Badges */}
-      <div className="flex items-center justify-center gap-6 text-xs text-slate-400 font-medium pt-4">
+      <div className="flex items-center justify-center gap-6 text-xs text-muted font-medium pt-4">
         <span className="flex items-center gap-1.5">
-          <ShieldCheck size={16} className="text-emerald-400" /> Enterprise ATS Parser
+          <ShieldCheck size={16} className="text-emerald-500 dark:text-emerald-400" /> Enterprise ATS Parser
         </span>
         <span>•</span>
         <span>Private & Confidential</span>

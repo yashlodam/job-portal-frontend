@@ -1428,11 +1428,10 @@ function UploadJob() {
     try {
       await dispatch(createJob(payload)).unwrap();
       toast.success("Job opening created and published successfully!");
+      setPublished(true);
     } catch (err) {
       toast.error(err || "Failed to post job via API.");
-      console.error("Failed to post job via API:", err);
     }
-    setPublished(true);
   };
 
   if (published) {

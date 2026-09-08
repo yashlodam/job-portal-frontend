@@ -244,20 +244,16 @@ export default function RecruiterApplicationsPage() {
       const appId = app.id || app.applicationId || idx;
       const matchInfo = matchApplicationsMap[app.id] || matchApplicationsMap[app.applicationId] || {};
       
-      let matchScore = 87; // fallback default
+      let matchScore = null;
       if (matchInfo.matchPercentage !== undefined && matchInfo.matchPercentage !== null && Number(matchInfo.matchPercentage) > 0) {
         matchScore = Math.round(Number(matchInfo.matchPercentage));
       } else if (app.matchPercentage !== undefined && app.matchPercentage !== null && Number(app.matchPercentage) > 0) {
         matchScore = Math.round(Number(app.matchPercentage));
       } else if (app.matchScore !== undefined && app.matchScore !== null && Number(app.matchScore) > 0) {
         matchScore = Math.round(Number(app.matchScore));
-      } else {
-        // Calculate deterministic score based on skills
-        const skillsCount = Array.isArray(app.skills) ? app.skills.length : 3;
-        matchScore = Math.min(78 + skillsCount * 3, 94);
       }
 
-      const matchStatus = matchInfo.matchStatus || app.matchStatus || "COMPLETED";
+      const matchStatus = matchInfo.matchStatus || app.matchStatus || (matchScore !== null ? "COMPLETED" : "PENDING");
 
       return {
         ...matchInfo,
@@ -552,25 +548,25 @@ export default function RecruiterApplicationsPage() {
                   <span className="text-[10px] font-black uppercase tracking-wider text-indigo-300 flex items-center gap-1">
                     <Sparkles size={12} className="text-amber-400" /> Candidate Cover Letter
                   </span>
-                  <p className="text-xs text-slate-200 leading-relaxed font-medium italic">
+                  <p className="text-xs text-body leading-relaxed font-medium italic">
                     "{selectedCandidate.coverLetter}"
                   </p>
                 </div>
               )}
 
-              {/* Resume File Actions & Dark Preview */}
+              {/* Resume File Actions & Preview */}
               {fullResumeUrl ? (
                 <div className="space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                  <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-surface-elevated border border-border">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400 shrink-0">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 shrink-0">
                         <FileText size={18} />
                       </div>
                       <div className="min-w-0">
-                        <h5 className="text-xs font-extrabold text-white truncate">
+                        <h5 className="text-xs font-extrabold text-heading truncate">
                           {selectedCandidate.candidateName || "Candidate"}_Resume.pdf
                         </h5>
-                        <span className="text-[10px] text-emerald-400 font-semibold">Verified PDF Document</span>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Verified PDF Document</span>
                       </div>
                     </div>
 
@@ -589,23 +585,23 @@ export default function RecruiterApplicationsPage() {
                         download
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/20 hover:text-white transition cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-bold text-body hover:bg-surface-hover transition cursor-pointer"
                       >
                         <Download size={14} /> Download
                       </a>
                     </div>
                   </div>
 
-                  <div className="h-[420px] w-full rounded-2xl border border-white/10 bg-[#070b12] overflow-hidden shadow-2xl relative flex flex-col items-center justify-center">
+                  <div className="h-[420px] w-full rounded-2xl border border-border bg-surface-elevated overflow-hidden shadow-2xl relative flex flex-col items-center justify-center">
                     <object
                       data={fullResumeUrl}
                       type="application/pdf"
                       className="h-full w-full border-none"
                     >
                       <div className="p-8 text-center space-y-3">
-                        <FileText size={48} className="text-indigo-400 opacity-60 mx-auto" />
-                        <h4 className="text-sm font-extrabold text-white">PDF Document Ready</h4>
-                        <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                        <FileText size={48} className="text-indigo-500 dark:text-indigo-400 opacity-60 mx-auto" />
+                        <h4 className="text-sm font-extrabold text-heading">PDF Document Ready</h4>
+                        <p className="text-xs text-muted max-w-xs mx-auto">
                           Click the button below to view or download the candidate's resume directly.
                         </p>
                         <a
@@ -621,10 +617,10 @@ export default function RecruiterApplicationsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="h-64 w-full rounded-2xl border border-white/10 bg-slate-950 p-6 flex flex-col items-center justify-center text-center space-y-2">
-                  <FileText size={44} className="text-indigo-400 opacity-60" />
-                  <h4 className="text-sm font-extrabold text-white">No Resume PDF Attached</h4>
-                  <p className="text-xs text-slate-400 max-w-xs">
+                <div className="h-64 w-full rounded-2xl border border-border bg-surface p-6 flex flex-col items-center justify-center text-center space-y-2">
+                  <FileText size={44} className="text-indigo-500 dark:text-indigo-400 opacity-60" />
+                  <h4 className="text-sm font-extrabold text-heading">No Resume PDF Attached</h4>
+                  <p className="text-xs text-muted max-w-xs">
                     The candidate did not attach a resume file during application submission.
                   </p>
                 </div>

@@ -1032,7 +1032,7 @@ function JobDetail() {
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-elevated p-2 shrink-0">
                       {companyLogo ? (
                         <img
-                          src={companyLogo}
+                          src={getAssetUrl(companyLogo)}
                           alt={`${companyName} logo`}
                           width={32}
                           height={32}
@@ -1165,32 +1165,35 @@ function JobDetail() {
 
       {/* ===== Mobile Sticky Apply Bar ===== */}
       <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden">
-        <div className="glass-strong border-t border-border px-4 py-3">
-          <div className="flex items-center gap-3 max-w-md mx-auto">
+        <div
+          className="border-t border-border bg-surface/95 backdrop-blur-xl px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom, 0px))" }}
+        >
+          <div className="flex items-center gap-2.5 max-w-md mx-auto">
             <button
               onClick={handleToggleSave}
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-all cursor-pointer ${
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all cursor-pointer ${
                 saved
                   ? "border-primary/30 bg-primary/10 text-primary-light"
                   : "border-border bg-surface hover:bg-surface-elevated text-muted"
               }`}
               aria-label={saved ? "Unsave job" : "Save job"}
             >
-              {saved ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+              {saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
             </button>
             <button
               onClick={() => setShareOpen(true)}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-surface hover:bg-surface-elevated text-muted hover:text-heading transition-colors cursor-pointer"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-surface hover:bg-surface-elevated text-muted hover:text-heading transition-colors cursor-pointer"
               aria-label="Share job"
             >
-              <Share2 size={20} />
+              <Share2 size={18} />
             </button>
             <button
               onClick={() => navigate("/apply-jobs", { state: { job: selectedJob } })}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl gradient-bg-signature h-12 px-8 text-sm font-semibold text-white shadow-button transition-all cursor-pointer"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl gradient-bg-signature h-11 px-5 text-sm font-bold text-white shadow-button transition-all cursor-pointer"
             >
-              <Sparkles size={16} />
-              Apply Now
+              <Sparkles size={15} />
+              <span>Apply Now</span>
             </button>
           </div>
         </div>

@@ -104,7 +104,7 @@ export default function AdminUsersPage() {
             const talentData = {
               id: t.id || t.userId || t.user?.id || existing?.id,
               name: t.name || t.fullName || t.user?.name || existing?.name || "Candidate",
-              email: t.email || t.user?.email || existing?.email || `applicant-${t.id || Math.random()}@jobportal.ai`,
+              email: t.email || t.user?.email || existing?.email || "No email provided",
               role: "APPLICANT",
               accountType: "APPLICANT",
               status: t.status || existing?.status || "ACTIVE",
@@ -174,8 +174,8 @@ export default function AdminUsersPage() {
 
       const mergedList = Array.from(userMap.values());
       setUsersList(mergedList);
-    } catch (err) {
-      console.warn("Notice loading users directory in admin:", err?.message);
+    } catch {
+      // ignore user load notice
     } finally {
       setLoading(false);
     }
@@ -251,7 +251,7 @@ export default function AdminUsersPage() {
         <button
           onClick={loadAllUsers}
           disabled={loading}
-          className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+          className="flex items-center gap-1.5 rounded-2xl border border-border bg-surface px-3.5 py-2 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
           <span>Refresh Directory ({usersList.length})</span>
@@ -260,7 +260,7 @@ export default function AdminUsersPage() {
     >
       <div className="space-y-4">
         {/* Filter Tabs & Search Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-4">
           <Tabs
             tabs={USER_ROLE_TABS}
             activeTab={activeTab}
@@ -270,28 +270,28 @@ export default function AdminUsersPage() {
           />
 
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, email, skills…"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 transition"
+              className="w-full rounded-2xl border border-border bg-surface-elevated pl-10 pr-4 py-2 text-xs text-heading placeholder-muted focus:outline-none focus:border-primary transition"
             />
           </div>
         </div>
 
         {/* Users Table */}
         {loading ? (
-          <div className="rounded-2xl border border-white/10 bg-[#090d16]/80 p-12 text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
-            <p className="mt-3 text-xs font-semibold text-slate-400 font-satoshi">Loading complete users directory…</p>
+          <div className="rounded-2xl border border-border bg-surface p-12 text-center shadow-sm">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <p className="mt-3 text-xs font-semibold text-muted font-satoshi">Loading complete users directory…</p>
           </div>
         ) : filteredUsers.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-[#090d16]/80 p-12 text-center space-y-2">
-            <Users size={36} className="text-slate-500 mx-auto opacity-60" />
-            <h4 className="text-sm font-bold text-white font-satoshi">No Users Found</h4>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">No accounts matched your filter or search query.</p>
+          <div className="rounded-2xl border border-border bg-surface p-12 text-center space-y-2 shadow-sm">
+            <Users size={36} className="text-muted mx-auto opacity-60" />
+            <h4 className="text-sm font-bold text-heading font-satoshi">No Users Found</h4>
+            <p className="text-xs text-muted max-w-sm mx-auto">No accounts matched your filter or search query.</p>
           </div>
         ) : (
           <Table>
@@ -315,7 +315,7 @@ export default function AdminUsersPage() {
                 const isApplicant = !isAdmin && !isRecruiter;
                 const uniqueRowKey = `user-${roleStr}-${user.id || userEmail}-${idx}`;
 
-                return (
+                  return (
                   <TableRow key={uniqueRowKey}>
                     {/* User & Avatar */}
                     <TableCell>
@@ -323,20 +323,20 @@ export default function AdminUsersPage() {
                         <div
                           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl font-bold text-xs ${
                             isAdmin
-                              ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
+                              ? "bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30"
                               : isRecruiter
-                              ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                              : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                              ? "bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30"
+                              : "bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30"
                           }`}
                         >
                           {userName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-bold text-white font-satoshi text-xs">{userName}</p>
+                          <p className="font-bold text-heading font-satoshi text-xs">{userName}</p>
                           {user.headline ? (
-                            <p className="text-[11px] text-slate-400 truncate max-w-[160px]">{user.headline}</p>
+                            <p className="text-[11px] text-muted truncate max-w-[160px]">{user.headline}</p>
                           ) : user.designation ? (
-                            <p className="text-[11px] text-slate-400 truncate max-w-[160px]">{user.designation}</p>
+                            <p className="text-[11px] text-muted truncate max-w-[160px]">{user.designation}</p>
                           ) : null}
                         </div>
                       </div>
@@ -344,21 +344,21 @@ export default function AdminUsersPage() {
 
                     {/* Email */}
                     <TableCell>
-                      <span className="font-mono text-slate-300 text-xs">{userEmail}</span>
+                      <span className="font-mono text-body text-xs">{userEmail}</span>
                     </TableCell>
 
                     {/* Role Chip */}
                     <TableCell>
                       {isAdmin ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-300 bg-purple-500/15 border border-purple-400/30 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 dark:text-purple-300 bg-purple-500/15 border border-purple-400/30 px-2 py-0.5 rounded-md">
                           Administrator
                         </span>
                       ) : isRecruiter ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-300 bg-indigo-500/15 border border-indigo-400/30 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-500/15 border border-indigo-400/30 px-2 py-0.5 rounded-md">
                           Recruiter / Employer
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 px-2 py-0.5 rounded-md">
                           Applicant / Candidate
                         </span>
                       )}
@@ -367,20 +367,20 @@ export default function AdminUsersPage() {
                     {/* Organization / Details / Skills */}
                     <TableCell>
                       {isRecruiter ? (
-                        <span className="text-xs font-medium text-white">{user.companyName || "Recruiter Account"}</span>
+                        <span className="text-xs font-medium text-heading">{user.companyName || "Recruiter Account"}</span>
                       ) : isApplicant && Array.isArray(user.skills) && user.skills.length > 0 ? (
                         <div className="flex flex-wrap gap-1 max-w-[200px]">
                           {user.skills.slice(0, 3).map((sk) => (
-                            <span key={sk} className="rounded bg-white/5 px-1.5 py-0.5 text-[9px] font-semibold text-slate-300 border border-white/5">
+                            <span key={sk} className="rounded bg-surface-elevated px-1.5 py-0.5 text-[9px] font-semibold text-body border border-border">
                               {sk}
                             </span>
                           ))}
                           {user.skills.length > 3 && (
-                            <span className="text-[9px] text-slate-400">+{user.skills.length - 3}</span>
+                            <span className="text-[9px] text-muted">+{user.skills.length - 3}</span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-slate-400 text-xs">{user.location || "Global"}</span>
+                        <span className="text-muted text-xs">{user.location || "Global"}</span>
                       )}
                     </TableCell>
 
@@ -396,7 +396,7 @@ export default function AdminUsersPage() {
                           type="button"
                           onClick={() => setSelectedUser(user)}
                           title="Inspect User Details"
-                          className="flex h-8 items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2.5 text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                          className="flex h-8 items-center gap-1 rounded-xl border border-border bg-surface px-2.5 text-xs font-semibold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
                         >
                           <Eye size={13} />
                           <span>Inspect</span>
@@ -407,7 +407,7 @@ export default function AdminUsersPage() {
                           type="button"
                           onClick={() => setDeleteTarget(user)}
                           title={isApplicant ? "Delete Applicant Account" : isRecruiter ? "Delete Recruiter Account" : "Delete User"}
-                          className="flex h-8 items-center rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 p-2 transition cursor-pointer"
+                          className="flex h-8 items-center rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20 p-2 transition cursor-pointer"
                         >
                           <Trash2 size={13} />
                         </button>
@@ -429,60 +429,60 @@ export default function AdminUsersPage() {
         size="md"
       >
         {selectedUser && (
-          <div className="p-4 space-y-4 text-slate-200">
-            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+          <div className="p-4 space-y-4 text-heading">
+            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-surface-elevated border border-border">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-extrabold text-lg">
                 {(selectedUser.name || "U").charAt(0)}
               </div>
               <div>
-                <h4 className="text-sm font-extrabold text-white font-satoshi">{selectedUser.name}</h4>
-                <p className="text-xs text-slate-400">{selectedUser.email}</p>
-                <p className="text-[10px] text-purple-300 font-semibold mt-0.5 uppercase tracking-wider">
+                <h4 className="text-sm font-extrabold text-heading font-satoshi">{selectedUser.name}</h4>
+                <p className="text-xs text-muted">{selectedUser.email}</p>
+                <p className="text-[10px] text-primary font-semibold mt-0.5 uppercase tracking-wider">
                   {selectedUser.accountType || selectedUser.role}
                 </p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/5 bg-[#090d16] p-4 space-y-2.5 text-xs">
-              <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-400">Account ID:</span>
-                <span className="font-mono text-indigo-300 font-bold">#{selectedUser.id || "—"}</span>
+            <div className="rounded-2xl border border-border bg-surface p-4 space-y-2.5 text-xs">
+              <div className="flex justify-between py-1 border-b border-border">
+                <span className="text-muted">Account ID:</span>
+                <span className="font-mono text-primary font-bold">#{selectedUser.id || "—"}</span>
               </div>
 
               {selectedUser.headline && (
-                <div className="flex justify-between py-1 border-b border-white/5">
-                  <span className="text-slate-400">Professional Headline:</span>
-                  <span className="font-semibold text-white">{selectedUser.headline}</span>
+                <div className="flex justify-between py-1 border-b border-border">
+                  <span className="text-muted">Professional Headline:</span>
+                  <span className="font-semibold text-heading">{selectedUser.headline}</span>
                 </div>
               )}
 
               {selectedUser.companyName && (
-                <div className="flex justify-between py-1 border-b border-white/5">
-                  <span className="text-slate-400">Company:</span>
-                  <span className="font-bold text-white">{selectedUser.companyName}</span>
+                <div className="flex justify-between py-1 border-b border-border">
+                  <span className="text-muted">Company:</span>
+                  <span className="font-bold text-heading">{selectedUser.companyName}</span>
                 </div>
               )}
 
               {selectedUser.designation && (
-                <div className="flex justify-between py-1 border-b border-white/5">
-                  <span className="text-slate-400">Designation:</span>
-                  <span className="font-medium text-white">{selectedUser.designation}</span>
+                <div className="flex justify-between py-1 border-b border-border">
+                  <span className="text-muted">Designation:</span>
+                  <span className="font-medium text-heading">{selectedUser.designation}</span>
                 </div>
               )}
 
               {selectedUser.location && (
-                <div className="flex justify-between py-1 border-b border-white/5">
-                  <span className="text-slate-400">Location:</span>
-                  <span className="text-white">{selectedUser.location}</span>
+                <div className="flex justify-between py-1 border-b border-border">
+                  <span className="text-muted">Location:</span>
+                  <span className="text-heading">{selectedUser.location}</span>
                 </div>
               )}
 
               {Array.isArray(selectedUser.skills) && selectedUser.skills.length > 0 && (
-                <div className="pt-1 border-b border-white/5 pb-2">
-                  <span className="text-slate-400 block mb-1">Skills & Competencies:</span>
+                <div className="pt-1 border-b border-border pb-2">
+                  <span className="text-muted block mb-1">Skills & Competencies:</span>
                   <div className="flex flex-wrap gap-1">
                     {selectedUser.skills.map((s) => (
-                      <span key={s} className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] text-indigo-300 border border-white/5">
+                      <span key={s} className="rounded-md bg-surface-elevated px-2 py-0.5 text-[10px] text-primary border border-border">
                         {s}
                       </span>
                     ))}
@@ -491,7 +491,7 @@ export default function AdminUsersPage() {
               )}
 
               <div className="flex justify-between py-1">
-                <span className="text-slate-400">Account Status:</span>
+                <span className="text-muted">Account Status:</span>
                 <StatusChip status={selectedUser.status || selectedUser.verificationStatus || "ACTIVE"} />
               </div>
             </div>
@@ -502,7 +502,7 @@ export default function AdminUsersPage() {
                 onClick={() => {
                   setDeleteTarget(selectedUser);
                 }}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3.5 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3.5 py-2 text-xs font-bold text-rose-500 dark:text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"
               >
                 <Trash2 size={13} />
                 <span>Delete Account</span>
@@ -511,7 +511,7 @@ export default function AdminUsersPage() {
               <button
                 type="button"
                 onClick={() => setSelectedUser(null)}
-                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                className="rounded-xl border border-border bg-surface px-4 py-2 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
               >
                 Close
               </button>
@@ -529,19 +529,19 @@ export default function AdminUsersPage() {
       >
         {deleteTarget && (
           <div className="p-4 text-center space-y-4">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-500 border border-rose-500/30">
               <AlertTriangle size={24} />
             </div>
             <div>
-              <h4 className="text-base font-bold text-white font-satoshi">
+              <h4 className="text-base font-bold text-heading font-satoshi">
                 {deleteTarget.role === "APPLICANT" || deleteTarget.accountType === "APPLICANT"
                   ? "Delete Applicant Profile?"
                   : deleteTarget.role === "EMPLOYER" || deleteTarget.accountType === "EMPLOYER"
                   ? "Delete Recruiter Account?"
                   : "Delete User Account?"}
               </h4>
-              <p className="text-xs text-slate-400 mt-1">
-                Are you sure you want to delete <strong className="text-white">{deleteTarget.name || deleteTarget.email}</strong>? This user and their associated data will be removed.
+              <p className="text-xs text-muted mt-1">
+                Are you sure you want to delete <strong className="text-heading">{deleteTarget.name || deleteTarget.email}</strong>? This user and their associated data will be removed.
               </p>
             </div>
 
@@ -550,7 +550,7 @@ export default function AdminUsersPage() {
                 type="button"
                 disabled={deleting}
                 onClick={() => setDeleteTarget(null)}
-                className="rounded-xl border border-white/10 bg-white/5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 transition cursor-pointer"
+                className="rounded-xl border border-border bg-surface py-2 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
               >
                 Cancel
               </button>

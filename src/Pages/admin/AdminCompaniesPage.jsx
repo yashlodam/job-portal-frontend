@@ -70,7 +70,7 @@ export default function AdminCompaniesPage() {
         <button
           onClick={() => dispatch(getAllCompanies({ page: currentPage, size: 15 }))}
           disabled={loading}
-          className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+          className="flex items-center gap-1.5 rounded-2xl border border-border bg-surface px-3.5 py-2 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
           <span>Refresh</span>
@@ -79,37 +79,37 @@ export default function AdminCompaniesPage() {
     >
       <div className="space-y-4">
         {/* Search Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400">Total Companies:</span>
-            <span className="rounded-full bg-purple-500/15 border border-purple-500/30 px-2.5 py-0.5 text-xs font-bold text-purple-300 font-satoshi">
+            <span className="text-xs font-bold text-muted">Total Companies:</span>
+            <span className="rounded-full bg-purple-500/15 border border-purple-500/30 px-2.5 py-0.5 text-xs font-bold text-purple-600 dark:text-purple-300 font-satoshi">
               {totalElements || companiesList.length}
             </span>
           </div>
 
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search company by name or location…"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 transition"
+              className="w-full rounded-2xl border border-border bg-surface-elevated pl-10 pr-4 py-2 text-xs text-heading placeholder-muted focus:outline-none focus:border-primary transition"
             />
           </div>
         </div>
 
         {/* Table */}
         {loading ? (
-          <div className="rounded-2xl border border-white/10 bg-[#090d16]/80 p-12 text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
-            <p className="mt-3 text-xs font-semibold text-slate-400 font-satoshi">Loading companies directory…</p>
+          <div className="rounded-2xl border border-border bg-surface p-12 text-center shadow-sm">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <p className="mt-3 text-xs font-semibold text-muted font-satoshi">Loading companies directory…</p>
           </div>
         ) : filteredCompanies.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-[#090d16]/80 p-12 text-center space-y-2">
-            <Building2 size={36} className="text-slate-500 mx-auto opacity-60" />
-            <h4 className="text-sm font-bold text-white font-satoshi">No Companies Found</h4>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">No registered companies matched your search criteria.</p>
+          <div className="rounded-2xl border border-border bg-surface p-12 text-center space-y-2 shadow-sm">
+            <Building2 size={36} className="text-muted mx-auto opacity-60" />
+            <h4 className="text-sm font-bold text-heading font-satoshi">No Companies Found</h4>
+            <p className="text-xs text-muted max-w-sm mx-auto">No registered companies matched your search criteria.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -134,12 +134,12 @@ export default function AdminCompaniesPage() {
                     <TableRow key={comp.id || comp.companyId || companyName}>
                       <TableCell>
                         <div className="flex items-center gap-2.5">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 font-bold text-xs">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-600 dark:text-purple-300 font-bold text-xs">
                             {companyName.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-bold text-white font-satoshi text-xs">{companyName}</p>
-                            {comp.id && <p className="text-[10px] text-slate-500 font-mono">ID: #{comp.id}</p>}
+                            <p className="font-bold text-heading font-satoshi text-xs">{companyName}</p>
+                            {comp.id && <p className="text-[10px] text-muted font-mono">ID: #{comp.id}</p>}
                           </div>
                         </div>
                       </TableCell>
@@ -150,22 +150,22 @@ export default function AdminCompaniesPage() {
                             href={website.startsWith("http") ? website : `https://${website}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-indigo-400 hover:underline inline-flex items-center gap-1"
+                            className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                           >
                             <span className="truncate max-w-[160px]">{website}</span>
                             <ExternalLink size={11} />
                           </a>
                         ) : (
-                          <span className="text-slate-500 text-xs">—</span>
+                          <span className="text-muted text-xs">—</span>
                         )}
                       </TableCell>
 
                       <TableCell>
-                        <span className="text-slate-300 text-xs">{location}</span>
+                        <span className="text-body text-xs">{location}</span>
                       </TableCell>
 
                       <TableCell>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-300 bg-white/5 border border-white/10 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-body bg-surface-elevated border border-border px-2 py-0.5 rounded-md">
                           {industry}
                         </span>
                       </TableCell>
@@ -175,7 +175,7 @@ export default function AdminCompaniesPage() {
                           <button
                             type="button"
                             onClick={() => setSelectedCompany(comp)}
-                            className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                            className="inline-flex items-center gap-1 rounded-xl border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
                           >
                             <Eye size={13} />
                             <span>Details</span>
@@ -184,7 +184,7 @@ export default function AdminCompaniesPage() {
                             <Link
                               to={`/company/${comp.id}`}
                               target="_blank"
-                              className="inline-flex items-center gap-1 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 hover:bg-purple-500/25 px-2.5 py-1 text-xs font-semibold transition"
+                              className="inline-flex items-center gap-1 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-600 dark:text-purple-300 hover:bg-purple-500/25 px-2.5 py-1 text-xs font-semibold transition"
                             >
                               <span>Public Page</span>
                               <ExternalLink size={10} />
@@ -216,33 +216,33 @@ export default function AdminCompaniesPage() {
         size="md"
       >
         {selectedCompany && (
-          <div className="p-4 space-y-4 text-slate-200">
-            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+          <div className="p-4 space-y-4 text-heading">
+            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-surface-elevated border border-border">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-extrabold text-lg">
                 {(selectedCompany.companyName || selectedCompany.name || "C").charAt(0)}
               </div>
               <div>
-                <h4 className="text-sm font-extrabold text-white font-satoshi">
+                <h4 className="text-sm font-extrabold text-heading font-satoshi">
                   {selectedCompany.companyName || selectedCompany.name}
                 </h4>
-                <p className="text-xs text-slate-400">{selectedCompany.industry || "Technology & Software"}</p>
+                <p className="text-xs text-muted">{selectedCompany.industry || "Technology & Software"}</p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/5 bg-[#090d16] p-4 space-y-2.5 text-xs">
-              <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-400">Headquarters:</span>
-                <span className="text-white font-medium">{selectedCompany.location || selectedCompany.headquarters || "Global"}</span>
+            <div className="rounded-2xl border border-border bg-surface p-4 space-y-2.5 text-xs">
+              <div className="flex justify-between py-1 border-b border-border">
+                <span className="text-muted">Headquarters:</span>
+                <span className="text-heading font-medium">{selectedCompany.location || selectedCompany.headquarters || "Global"}</span>
               </div>
 
               {(selectedCompany.companyWebsite || selectedCompany.website) && (
-                <div className="flex justify-between py-1 border-b border-white/5">
-                  <span className="text-slate-400">Official Website:</span>
+                <div className="flex justify-between py-1 border-b border-border">
+                  <span className="text-muted">Official Website:</span>
                   <a
                     href={selectedCompany.companyWebsite || selectedCompany.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-400 hover:underline inline-flex items-center gap-1"
+                    className="text-primary hover:underline inline-flex items-center gap-1"
                   >
                     <span>{selectedCompany.companyWebsite || selectedCompany.website}</span>
                     <ExternalLink size={11} />
@@ -252,8 +252,8 @@ export default function AdminCompaniesPage() {
 
               {selectedCompany.description && (
                 <div className="pt-2">
-                  <span className="text-slate-400 block mb-1">Company Description:</span>
-                  <p className="text-slate-300 leading-relaxed text-[11px] bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
+                  <span className="text-muted block mb-1">Company Description:</span>
+                  <p className="text-body leading-relaxed text-[11px] bg-surface-elevated p-2.5 rounded-xl border border-border">
                     {selectedCompany.description}
                   </p>
                 </div>
@@ -264,7 +264,7 @@ export default function AdminCompaniesPage() {
               <button
                 type="button"
                 onClick={() => setSelectedCompany(null)}
-                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                className="rounded-xl border border-border bg-surface px-4 py-2 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
               >
                 Close
               </button>

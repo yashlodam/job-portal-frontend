@@ -277,10 +277,10 @@ export default function About() {
                   </span>
                 </div>
 
-                <h3 className="mt-5 text-2xl font-black text-white font-satoshi">
+                <h3 className={`mt-5 text-2xl font-black font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}>
                   Yash Lodam
                 </h3>
-                <p className="text-xs sm:text-sm font-bold text-indigo-400 mt-0.5">
+                <p className={`text-xs sm:text-sm font-bold mt-0.5 ${isLight ? "text-indigo-600" : "text-indigo-400"}`}>
                   Founder & Fullstack AI Architect
                 </p>
 

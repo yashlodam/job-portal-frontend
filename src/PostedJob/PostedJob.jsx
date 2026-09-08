@@ -5,8 +5,8 @@ import PostedJobCard from './PostedJobCard'
 
 function PostedJob() {
   return (
-    <div className='w-1/6 mt-5'>
-        <div className='text-2xl font-semibold mb-5'>Jobs</div>
+    <div className='w-1/6 mt-5 text-heading'>
+        <div className='text-2xl font-semibold mb-5 text-heading'>Jobs</div>
         <div>
         <Tabs autoContrast variant='pills' defaultValue="active">
       <Tabs.List>

@@ -111,7 +111,7 @@ export default function PendingRecruiterDashboard() {
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto font-inter text-slate-200">
+    <div className="space-y-8 max-w-7xl mx-auto font-inter text-body">
       {/* 1. Status Overview Banner */}
       <VerificationStatusCard
         status={currentStatus}
@@ -122,14 +122,14 @@ export default function PendingRecruiterDashboard() {
       />
 
       {/* 2. Verification Progress Roadmap */}
-      <div className="rounded-3xl border border-white/10 bg-[#090d16]/90 p-6 sm:p-7 shadow-xl backdrop-blur-xl space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-4">
+      <div className="rounded-3xl border border-border bg-surface p-6 sm:p-7 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4">
           <div>
-            <h3 className="text-base sm:text-lg font-black text-white font-satoshi flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-indigo-400" />
+            <h3 className="text-base sm:text-lg font-black text-heading font-satoshi flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
               What Happens Next? (Verification Pipeline)
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted mt-0.5">
               To protect candidates and maintain platform integrity, all hiring accounts undergo verification.
             </p>
           </div>
@@ -137,7 +137,7 @@ export default function PendingRecruiterDashboard() {
           {!hasSubmittedCompany && (
             <button
               onClick={() => setEditModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-indigo-500 transition cursor-pointer shrink-0"
+              className="inline-flex items-center gap-2 rounded-2xl gradient-bg-signature px-4 py-2 text-xs font-bold text-white shadow-md hover:scale-105 transition cursor-pointer shrink-0"
             >
               <PlusCircle size={14} /> Submit Company Info
             </button>
@@ -150,20 +150,20 @@ export default function PendingRecruiterDashboard() {
               key={step.id}
               className={`rounded-2xl border p-4 transition-all duration-300 relative ${
                 step.completed
-                  ? "border-emerald-500/30 bg-emerald-950/15"
+                  ? "border-emerald-500/30 bg-emerald-500/10"
                   : step.current
-                  ? "border-amber-500/40 bg-amber-950/15 ring-2 ring-amber-500/20"
-                  : "border-white/5 bg-white/[0.02]"
+                  ? "border-amber-500/40 bg-amber-500/10 ring-2 ring-amber-500/20"
+                  : "border-border bg-surface-elevated"
               }`}
             >
               <div className="flex items-center gap-3 mb-2.5">
                 <div
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl font-bold text-xs ${
                     step.completed
-                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      ? "bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 border border-emerald-500/30"
                       : step.current
-                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse"
-                      : "bg-white/5 text-slate-500 border border-white/10"
+                      ? "bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/30 animate-pulse"
+                      : "bg-surface text-muted border border-border"
                   }`}
                 >
                   {step.completed ? <CheckCircle2 size={16} /> : step.id}
@@ -171,17 +171,17 @@ export default function PendingRecruiterDashboard() {
                 <span
                   className={`text-xs font-bold font-satoshi truncate ${
                     step.completed
-                      ? "text-emerald-400"
+                      ? "text-emerald-600 dark:text-emerald-400"
                       : step.current
-                      ? "text-amber-300"
-                      : "text-slate-400"
+                      ? "text-amber-600 dark:text-amber-300"
+                      : "text-muted"
                   }`}
                 >
                   {step.title}
                 </span>
               </div>
 
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <p className="text-[11px] text-muted leading-relaxed">
                 {step.desc}
               </p>
             </div>
@@ -194,18 +194,18 @@ export default function PendingRecruiterDashboard() {
         {/* Left 2 Cols: Submitted Details */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-6">
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center gap-2.5">
-                <Building2 className="h-5 w-5 text-indigo-400" />
+                <Building2 className="h-5 w-5 text-primary" />
                 <div>
-                  <h4 className="text-base font-bold text-white font-satoshi">Submitted Company Information</h4>
-                  <p className="text-xs text-slate-400">Information submitted for compliance and admin review.</p>
+                  <h4 className="text-base font-bold text-heading font-satoshi">Submitted Company Information</h4>
+                  <p className="text-xs text-muted">Information submitted for compliance and admin review.</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setEditModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-elevated px-3 py-1.5 text-xs font-semibold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
               >
                 <Edit3 size={13} />
                 <span>{hasSubmittedCompany ? "Edit Details" : "Add Details"}</span>
@@ -213,16 +213,16 @@ export default function PendingRecruiterDashboard() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 text-xs">
-              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
-                <span className="text-slate-400 block">Company Name:</span>
-                <p className="font-bold text-white text-sm font-satoshi">
+              <div className="p-3.5 rounded-2xl bg-surface-elevated border border-border space-y-1">
+                <span className="text-muted block">Company Name:</span>
+                <p className="font-bold text-heading text-sm font-satoshi">
                   {verificationData?.companyName || user?.companyName || "Not Submitted"}
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
-                <span className="text-slate-400 block">Official Website:</span>
-                <p className="font-medium text-indigo-300 truncate">
+              <div className="p-3.5 rounded-2xl bg-surface-elevated border border-border space-y-1">
+                <span className="text-muted block">Official Website:</span>
+                <p className="font-medium text-primary-light truncate">
                   {verificationData?.companyWebsite ? (
                     <a
                       href={verificationData.companyWebsite}
@@ -239,32 +239,32 @@ export default function PendingRecruiterDashboard() {
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
-                <span className="text-slate-400 block">Recruiter Representative:</span>
-                <p className="font-semibold text-white">
+              <div className="p-3.5 rounded-2xl bg-surface-elevated border border-border space-y-1">
+                <span className="text-muted block">Recruiter Representative:</span>
+                <p className="font-semibold text-heading">
                   {verificationData?.fullName || user?.name || "Representative"}
                   {verificationData?.designation ? ` (${verificationData.designation})` : ""}
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
-                <span className="text-slate-400 block">Work Email:</span>
-                <p className="font-semibold text-white">
+              <div className="p-3.5 rounded-2xl bg-surface-elevated border border-border space-y-1">
+                <span className="text-muted block">Work Email:</span>
+                <p className="font-semibold text-heading">
                   {verificationData?.workEmail || user?.email || "Not Submitted"}
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1 sm:col-span-2">
-                <span className="text-slate-400 block">Headquarters / Location:</span>
-                <p className="font-semibold text-white">
+              <div className="p-3.5 rounded-2xl bg-surface-elevated border border-border space-y-1 sm:col-span-2">
+                <span className="text-muted block">Headquarters / Location:</span>
+                <p className="font-semibold text-heading">
                   {verificationData?.companyLocation || "Not Provided"}
                 </p>
               </div>
 
               {verificationData?.companyDescription && (
-                <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1 sm:col-span-2">
-                  <span className="text-slate-400 block">Company Overview:</span>
-                  <p className="text-slate-300 leading-relaxed text-[11px]">
+                <div className="p-3.5 rounded-2xl bg-surface-elevated border border-border space-y-1 sm:col-span-2">
+                  <span className="text-muted block">Company Overview:</span>
+                  <p className="text-body leading-relaxed text-[11px]">
                     {verificationData.companyDescription}
                   </p>
                 </div>
@@ -276,29 +276,29 @@ export default function PendingRecruiterDashboard() {
         {/* Right Col: FAQ & Support */}
         <div className="space-y-6">
           <Card className="p-6 space-y-4">
-            <div className="flex items-center gap-2 border-b border-white/5 pb-3">
-              <HelpCircle className="h-4 w-4 text-purple-400" />
-              <h4 className="text-sm font-bold text-white font-satoshi">Frequently Asked Questions</h4>
+            <div className="flex items-center gap-2 border-b border-border pb-3">
+              <HelpCircle className="h-4 w-4 text-purple-500 dark:text-purple-400" />
+              <h4 className="text-sm font-bold text-heading font-satoshi">Frequently Asked Questions</h4>
             </div>
 
-            <div className="space-y-3.5 text-xs text-slate-300">
+            <div className="space-y-3.5 text-xs text-body">
               <div>
-                <h5 className="font-bold text-white">How long does verification take?</h5>
-                <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                <h5 className="font-bold text-heading">How long does verification take?</h5>
+                <p className="text-[11px] text-muted mt-0.5 leading-relaxed">
                   Verification is typically completed within 12–24 business hours by our operations team.
                 </p>
               </div>
 
               <div>
-                <h5 className="font-bold text-white">What can I do while waiting?</h5>
-                <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                <h5 className="font-bold text-heading">What can I do while waiting?</h5>
+                <p className="text-[11px] text-muted mt-0.5 leading-relaxed">
                   You can ensure your corporate profile and contact information are fully accurate. Once verified, you will immediately gain full access to post roles.
                 </p>
               </div>
 
               <div>
-                <h5 className="font-bold text-white">Need expedited verification?</h5>
-                <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                <h5 className="font-bold text-heading">Need expedited verification?</h5>
+                <p className="text-[11px] text-muted mt-0.5 leading-relaxed">
                   Please reach out to support@jobportal.ai from your official company work email address.
                 </p>
               </div>

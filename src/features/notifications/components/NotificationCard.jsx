@@ -114,8 +114,8 @@ export default function NotificationCard({
       onClick={handleClick}
       className={`group relative flex items-start gap-3.5 rounded-2xl border p-4 transition-all duration-200 cursor-pointer ${priorityBorderClass} ${
         !read
-          ? "bg-indigo-500/[0.07] border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.06)] hover:bg-indigo-500/[0.12]"
-          : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/10"
+          ? "bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/15"
+          : "bg-surface border-border hover:bg-surface-elevated"
       }`}
     >
       {/* Checkbox for bulk actions */}
@@ -125,7 +125,7 @@ export default function NotificationCard({
             type="checkbox"
             checked={isSelected}
             onChange={() => onToggleSelect?.(id)}
-            className="h-4 w-4 rounded border-white/20 bg-white/5 text-indigo-500 focus:ring-indigo-500/40 cursor-pointer"
+            className="h-4 w-4 rounded border-border bg-surface text-indigo-600 focus:ring-indigo-500/40 cursor-pointer"
           />
         </div>
       )}
@@ -138,8 +138,8 @@ export default function NotificationCard({
         <div className="flex items-center justify-between gap-2 mb-1">
           <div className="flex items-center gap-2 min-w-0">
             <h4
-              className={`text-sm font-semibold truncate ${
-                !read ? "text-white font-satoshi" : "text-white/80"
+              className={`text-sm font-bold truncate font-satoshi ${
+                !read ? "text-heading" : "text-body"
               }`}
             >
               {title}
@@ -147,25 +147,25 @@ export default function NotificationCard({
 
             {/* Critical Priority Badge */}
             {priority === "CRITICAL" && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-400 border border-rose-500/20">
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 border border-rose-500/20">
                 <ShieldAlert className="h-3 w-3" /> Critical
               </span>
             )}
           </div>
 
-          <span className="shrink-0 text-[11px] font-medium text-white/40">
+          <span className="shrink-0 text-[11px] font-medium text-muted">
             {formatTimestamp(createdAt)}
           </span>
         </div>
 
         {/* Message preview */}
-        <p className="text-xs text-white/60 line-clamp-2 leading-relaxed">
+        <p className="text-xs text-body line-clamp-2 leading-relaxed font-medium">
           {message}
         </p>
 
         {/* Action Chip / Deep Link */}
         {actionUrl && (
-          <div className="mt-2.5 flex items-center gap-1 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
+          <div className="mt-2.5 flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline transition-colors">
             <span>View details</span>
             <ExternalLink className="h-3 w-3" />
           </div>
@@ -178,12 +178,12 @@ export default function NotificationCard({
         {!read && (
           <span
             aria-label="Unread notification"
-            className="h-2.5 w-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_#6366f1]"
+            className="h-2.5 w-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400 shadow-[0_0_8px_#6366f1]"
           />
         )}
 
         {/* Per-item Hover Actions */}
-        <div className="absolute right-3 bottom-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-lg">
+        <div className="absolute right-3 bottom-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-surface border border-border p-1 rounded-xl shadow-lg">
           {!read && (
             <button
               onClick={(e) => {
@@ -192,7 +192,7 @@ export default function NotificationCard({
               }}
               title="Mark as read"
               aria-label="Mark as read"
-              className="p-1.5 text-white/60 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+              className="p-1.5 text-muted hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-surface-elevated rounded-lg transition-colors cursor-pointer"
             >
               <Check className="h-3.5 w-3.5" />
             </button>
@@ -206,7 +206,7 @@ export default function NotificationCard({
               }}
               title="Archive notification"
               aria-label="Archive notification"
-              className="p-1.5 text-white/60 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors"
+              className="p-1.5 text-muted hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-surface-elevated rounded-lg transition-colors cursor-pointer"
             >
               <Archive className="h-3.5 w-3.5" />
             </button>
@@ -219,7 +219,7 @@ export default function NotificationCard({
             }}
             title="Delete notification"
             aria-label="Delete notification"
-            className="p-1.5 text-white/60 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+            className="p-1.5 text-muted hover:text-rose-600 dark:hover:text-rose-400 hover:bg-surface-elevated rounded-lg transition-colors cursor-pointer"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>

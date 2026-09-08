@@ -28,17 +28,13 @@ import { submitVerification, fetchVerificationStatus } from "../../../State/veri
 import { useToast } from "../../ui/ToastNotification";
 
 const fieldStyles = {
-  label: { color: "#E2E8F0", fontSize: 12, fontWeight: 600, marginBottom: 5 },
+  label: { color: "var(--text-heading)", fontSize: 12, fontWeight: 600, marginBottom: 5 },
   input: {
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderColor: "rgba(255,255,255,0.12)",
-    color: "#FFFFFF",
+    backgroundColor: "var(--bg-surface-elevated)",
+    borderColor: "var(--border-border)",
+    color: "var(--text-heading)",
     borderRadius: 12,
     fontSize: 13,
-    "&:focus, &:focusWithin": {
-      borderColor: "#6366F1 !important",
-      backgroundColor: "rgba(255,255,255,0.08)",
-    },
   },
 };
 
@@ -125,16 +121,16 @@ export default function ResubmitModal({ isOpen, onClose, initialData }) {
       title="Update & Resubmit Verification"
       size="lg"
     >
-      <form onSubmit={handleSubmit} className="p-2 sm:p-4 space-y-5 text-slate-200">
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-200 leading-relaxed flex items-start gap-2.5">
-          <Sparkles size={16} className="text-amber-400 shrink-0 mt-0.5" />
+      <form onSubmit={handleSubmit} className="p-2 sm:p-4 space-y-5 text-heading">
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-600 dark:text-amber-200 leading-relaxed flex items-start gap-2.5">
+          <Sparkles size={16} className="text-amber-500 shrink-0 mt-0.5" />
           <span>
             Please address any issues highlighted in your review feedback. Resubmitting will immediately update your status back to <strong>Pending Verification</strong> for administrator review.
           </span>
         </div>
 
         {verificationError && (
-          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs text-rose-300 flex items-center gap-2">
+          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs text-rose-600 dark:text-rose-300 flex items-center gap-2">
             <AlertCircle size={15} className="shrink-0" />
             <span>{verificationError}</span>
           </div>
@@ -147,7 +143,7 @@ export default function ResubmitModal({ isOpen, onClose, initialData }) {
             value={formData.designation}
             onChange={(e) => handleChange("designation", e.target.value)}
             error={errors.designation}
-            leftSection={<Briefcase size={15} className="text-slate-400" />}
+            leftSection={<Briefcase size={15} className="text-muted" />}
             styles={fieldStyles}
             required
           />
@@ -158,7 +154,7 @@ export default function ResubmitModal({ isOpen, onClose, initialData }) {
             value={formData.workEmail}
             onChange={(e) => handleChange("workEmail", e.target.value)}
             error={errors.workEmail}
-            leftSection={<Mail size={15} className="text-slate-400" />}
+            leftSection={<Mail size={15} className="text-muted" />}
             styles={fieldStyles}
             required
           />
@@ -169,7 +165,7 @@ export default function ResubmitModal({ isOpen, onClose, initialData }) {
             value={formData.companyName}
             onChange={(e) => handleChange("companyName", e.target.value)}
             error={errors.companyName}
-            leftSection={<Building2 size={15} className="text-slate-400" />}
+            leftSection={<Building2 size={15} className="text-muted" />}
             styles={fieldStyles}
             required
           />
@@ -180,7 +176,7 @@ export default function ResubmitModal({ isOpen, onClose, initialData }) {
             value={formData.companyWebsite}
             onChange={(e) => handleChange("companyWebsite", e.target.value)}
             error={errors.companyWebsite}
-            leftSection={<Globe size={15} className="text-slate-400" />}
+            leftSection={<Globe size={15} className="text-muted" />}
             styles={fieldStyles}
             required
           />
@@ -191,7 +187,7 @@ export default function ResubmitModal({ isOpen, onClose, initialData }) {
               placeholder="e.g. San Francisco, CA"
               value={formData.companyLocation}
               onChange={(e) => handleChange("companyLocation", e.target.value)}
-              leftSection={<MapPin size={15} className="text-slate-400" />}
+              leftSection={<MapPin size={15} className="text-muted" />}
               styles={fieldStyles}
             />
           </div>
@@ -212,12 +208,12 @@ export default function ResubmitModal({ isOpen, onClose, initialData }) {
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/5">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
           <button
             type="button"
             disabled={verificationSubmitting}
             onClick={onClose}
-            className="h-10 rounded-xl border border-white/10 bg-white/5 px-4 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+            className="h-10 rounded-xl border border-border bg-surface px-4 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
           >
             Cancel
           </button>

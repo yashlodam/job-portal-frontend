@@ -44,10 +44,10 @@ export default function NotificationEmptyState({
       >
         <IconComponent className="h-8 w-8 animate-pulse" />
       </div>
-      <h3 className="text-base font-semibold text-white font-satoshi">
+      <h3 className="text-base font-bold text-heading font-satoshi">
         {title || config.defaultTitle}
       </h3>
-      <p className="mt-1.5 max-w-sm text-xs text-white/60 leading-relaxed">
+      <p className="mt-1.5 max-w-sm text-xs text-muted leading-relaxed font-medium">
         {message || config.defaultMessage}
       </p>
       {actionButton && <div className="mt-5">{actionButton}</div>}

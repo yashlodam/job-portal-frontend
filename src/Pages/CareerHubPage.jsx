@@ -18,7 +18,6 @@ import {
   CheckCircle2,
   Compass,
   TrendingUp,
-  Upload,
   Download,
   Play,
   RotateCcw,
@@ -34,7 +33,6 @@ import {
   DollarSign,
   Mic,
   Star,
-  FileCheck,
   Shield,
   Layers,
   Cpu,
@@ -201,119 +199,7 @@ function ResumeBuilderSection() {
    2. Interactive ATS Document Auditor Section
    ──────────────────────────────────────────────────────────── */
 function ResumeAnalyzerSection() {
-  const [file, setFile] = useState(null);
-  const [analyzed, setAnalyzed] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-
-  const handleFileUpload = (e) => {
-    const uploadedFile = e.target.files?.[0];
-    if (uploadedFile) {
-      setFile(uploadedFile);
-      setAnalyzed(false);
-    }
-  };
-
-  const handleAnalyze = () => {
-    setAnalyzing(true);
-    setTimeout(() => {
-      setAnalyzing(false);
-      setAnalyzed(true);
-    }, 1600);
-  };
-
-  return (
-    <div className="space-y-8 font-satoshi">
-      {/* Upload Zone Card */}
-      <Card className="p-8 sm:p-10 max-w-2xl mx-auto space-y-6 text-center border-white/10 bg-[#090d16]/95 backdrop-blur-2xl shadow-2xl rounded-3xl">
-        <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400 mx-auto shadow-lg">
-          <Upload className="h-8 w-8" />
-        </div>
-        <div>
-          <h3 className="text-2xl font-black text-white font-satoshi">Upload Resume for Instant AI ATS Audit</h3>
-          <p className="text-sm text-slate-300 mt-2 font-medium max-w-md mx-auto leading-relaxed">
-            Scan your PDF or DOCX resume against top applicant tracking systems (ATS) like Greenhouse, Lever, and Workday.
-          </p>
-        </div>
-
-        {/* Drag & Drop File Picker */}
-        <label className="block border-2 border-dashed border-white/20 hover:border-indigo-500/80 rounded-3xl p-8 cursor-pointer transition bg-white/[0.02] group">
-          <input type="file" accept=".pdf,.docx" onChange={handleFileUpload} className="hidden" />
-          <div className="space-y-3">
-            <FileCheck size={44} className="text-indigo-400 mx-auto group-hover:scale-110 transition" />
-            {file ? (
-              <p className="text-sm font-black text-emerald-400">Selected File: {file.name} ({(file.size / 1024).toFixed(1)} KB)</p>
-            ) : (
-              <p className="text-sm font-black text-slate-200">Click or drag your PDF/DOCX resume file here</p>
-            )}
-            <p className="text-xs text-slate-400 font-medium">Supports PDF & Microsoft Word DOCX up to 10MB</p>
-          </div>
-        </label>
-
-        <button
-          onClick={handleAnalyze}
-          disabled={analyzing}
-          className="rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-8 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-[0_0_25px_rgba(99,102,241,0.4)] hover:scale-105 transition cursor-pointer disabled:opacity-50"
-        >
-          {analyzing ? "Scanning Document & Match Algorithms..." : file ? `Run AI Audit on ${file.name}` : "Run AI Audit on Sample Resume"}
-        </button>
-      </Card>
-
-      {/* Audit Results Dashboard */}
-      {analyzed && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-          {/* Top 4 KPI Glass Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="p-6 text-center space-y-2 border-emerald-500/30 bg-[#090d16]/95">
-              <p className="text-xs text-slate-400 font-black uppercase tracking-wider">Overall ATS Score</p>
-              <h2 className="text-4xl font-black text-emerald-400">96 / 100</h2>
-              <p className="text-xs text-emerald-400 font-extrabold">Top 2% Candidate Pool Match</p>
-            </Card>
-
-            <Card className="p-6 text-center space-y-2 border-indigo-500/30 bg-[#090d16]/95">
-              <p className="text-xs text-slate-400 font-black uppercase tracking-wider">Keyword Density</p>
-              <h2 className="text-4xl font-black text-indigo-400">19 / 20</h2>
-              <p className="text-xs text-slate-300 font-medium">React 19, Spring Boot, Microservices</p>
-            </Card>
-
-            <Card className="p-6 text-center space-y-2 border-purple-500/30 bg-[#090d16]/95">
-              <p className="text-xs text-slate-400 font-black uppercase tracking-wider">Formatting & Readability</p>
-              <h2 className="text-4xl font-black text-purple-400">98 / 100</h2>
-              <p className="text-xs text-slate-300 font-medium">Single-Column Parsable Structure</p>
-            </Card>
-
-            <Card className="p-6 text-center space-y-2 border-amber-500/30 bg-[#090d16]/95">
-              <p className="text-xs text-slate-400 font-black uppercase tracking-wider">Recruiter Response</p>
-              <h2 className="text-4xl font-black text-amber-400">98% VERY HIGH</h2>
-              <p className="text-xs text-amber-400 font-extrabold">High Callback Likelihood</p>
-            </Card>
-          </div>
-
-          {/* Actionable Suggestions Card */}
-          <Card className="p-6 sm:p-8 space-y-5 border-white/10 bg-[#090d16]/95 backdrop-blur-2xl">
-            <h4 className="text-lg font-black text-white flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-amber-400" /> AI Actionable Improvement Suggestions
-            </h4>
-            <div className="space-y-4 text-sm">
-              <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-slate-200">
-                <CheckCircle2 size={20} className="text-emerald-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-extrabold text-white text-base block mb-0.5">Strong Technical Keyword Alignment</span>
-                  Contains key high-demand frameworks: React 19, Spring Boot 3, REST Controllers, and Redux Toolkit.
-                </div>
-              </div>
-              <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-slate-200">
-                <Sparkles size={20} className="text-amber-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-extrabold text-white text-base block mb-0.5">Quantify Revenue & Performance Impact</span>
-                  Add concrete metrics to your work experience bullets (e.g. "Optimized API throughput by 35% and scaled microservices to 500k daily users").
-                </div>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-      )}
-    </div>
-  );
+  return <ResumeAnalyzerMain />;
 }
 
 /* ────────────────────────────────────────────────────────────

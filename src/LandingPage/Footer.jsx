@@ -99,10 +99,10 @@ export default function Footer() {
       <div className="section-container py-16 sm:py-20 relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Main Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-12">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-6 gap-8 sm:gap-10 lg:gap-12">
           
           {/* Brand & Platform Architecture Column */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="col-span-2 space-y-5">
             <Link to="/" className="inline-flex items-center gap-3 group">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 shadow-[0_0_20px_rgba(99,102,241,0.4)] group-hover:scale-105 transition-transform">
                 <Sparkles size={20} className="text-white fill-white/20" />
@@ -120,21 +120,21 @@ export default function Footer() {
             <div className="pt-1">
               <a
                 href="mailto:yashlodam03@gmail.com"
-                className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-extrabold transition shadow-sm ${
+                className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-extrabold transition shadow-sm max-w-full truncate ${
                   isLight
                     ? "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
                     : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:text-white hover:bg-indigo-500/20"
                 }`}
               >
-                <Mail size={15} className={isLight ? "text-indigo-600" : "text-indigo-400"} />
-                <span>yashlodam03@gmail.com</span>
+                <Mail size={15} className={isLight ? "text-indigo-600 shrink-0" : "text-indigo-400 shrink-0"} />
+                <span className="truncate">yashlodam03@gmail.com</span>
               </a>
             </div>
 
             {/* Newsletter Subscription */}
             <div className="pt-2">
               <p className={`text-xs font-extrabold uppercase tracking-wider font-satoshi mb-2.5 ${isLight ? "text-slate-700" : "text-slate-200"}`}>
-                Join 15,000+ Engineers on AI Insights
+                Stay Updated on Tech Roles & AI Insights
               </p>
               {subscribed ? (
                 <div className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-extrabold ${
@@ -144,7 +144,7 @@ export default function Footer() {
                   Subscribed to AI Career Updates!
                 </div>
               ) : (
-                <form onSubmit={handleSubscribe} className="flex gap-2">
+                <form onSubmit={handleSubscribe} className="flex flex-col xs:flex-row gap-2">
                   <input
                     type="email"
                     value={email}
@@ -159,7 +159,7 @@ export default function Footer() {
                   />
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-2.5 text-xs font-black !text-white shadow-lg hover:scale-105 transition cursor-pointer shrink-0"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-5 py-2.5 text-xs font-black !text-white shadow-lg hover:scale-105 transition cursor-pointer shrink-0"
                   >
                     <Send size={13} className="!text-white" />
                     <span className="!text-white">Join</span>

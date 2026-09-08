@@ -136,10 +136,10 @@ export const ToastProvider = ({ children }) => {
             const isWarning = t.type === "warning";
             const isLoading = t.type === "loading";
 
-            let bgClasses = "bg-[#090d16]/95 border-indigo-500/30 text-indigo-200 shadow-[0_0_30px_rgba(99,102,241,0.25)]";
-            if (isSuccess) bgClasses = "bg-[#05130d]/95 border-emerald-500/40 text-emerald-200 shadow-[0_0_30px_rgba(16,185,129,0.25)]";
-            else if (isError) bgClasses = "bg-[#160609]/95 border-rose-500/40 text-rose-200 shadow-[0_0_30px_rgba(244,63,94,0.25)]";
-            else if (isWarning) bgClasses = "bg-[#181105]/95 border-amber-500/40 text-amber-200 shadow-[0_0_30px_rgba(245,158,11,0.25)]";
+            let bgClasses = "bg-surface border-primary/30 text-body shadow-xl";
+            if (isSuccess) bgClasses = "bg-surface border-emerald-500/40 text-body shadow-xl";
+            else if (isError) bgClasses = "bg-surface border-rose-500/40 text-body shadow-xl";
+            else if (isWarning) bgClasses = "bg-surface border-amber-500/40 text-body shadow-xl";
 
             return (
               <motion.div
@@ -154,20 +154,20 @@ export const ToastProvider = ({ children }) => {
                 {/* Visual Icon */}
                 <div className="flex items-start gap-3 min-w-0 flex-1">
                   <span className="mt-0.5 shrink-0">
-                    {isSuccess && <CheckCircle2 size={18} className="text-emerald-400" />}
-                    {isError && <XCircle size={18} className="text-rose-400" />}
-                    {isWarning && <AlertTriangle size={18} className="text-amber-400" />}
-                    {isLoading && <Loader2 size={18} className="text-indigo-400 animate-spin" />}
-                    {!isSuccess && !isError && !isWarning && !isLoading && <Info size={18} className="text-indigo-400" />}
+                    {isSuccess && <CheckCircle2 size={18} className="text-emerald-500" />}
+                    {isError && <XCircle size={18} className="text-rose-500" />}
+                    {isWarning && <AlertTriangle size={18} className="text-amber-500" />}
+                    {isLoading && <Loader2 size={18} className="text-primary animate-spin" />}
+                    {!isSuccess && !isError && !isWarning && !isLoading && <Info size={18} className="text-primary" />}
                   </span>
 
                   <div className="space-y-0.5 min-w-0">
                     {t.title && (
-                      <h5 className="font-extrabold text-white text-xs sm:text-sm tracking-tight truncate">
+                      <h5 className="font-extrabold text-heading text-xs sm:text-sm tracking-tight truncate">
                         {t.title}
                       </h5>
                     )}
-                    <p className="leading-relaxed font-medium text-slate-200 break-words">
+                    <p className="leading-relaxed font-medium text-body break-words">
                       {t.message}
                     </p>
 
@@ -177,7 +177,7 @@ export const ToastProvider = ({ children }) => {
                           t.action.onClick?.();
                           removeToast(t.id);
                         }}
-                        className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-black text-white bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-lg transition cursor-pointer"
+                        className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-black text-white gradient-bg-signature px-2.5 py-1 rounded-lg transition cursor-pointer"
                       >
                         {t.action.label || "Undo"}
                       </button>
@@ -189,7 +189,7 @@ export const ToastProvider = ({ children }) => {
                 <button
                   type="button"
                   onClick={() => removeToast(t.id)}
-                  className="p-1 rounded-lg bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white transition cursor-pointer shrink-0 mt-0.5"
+                  className="p-1 rounded-lg bg-surface-elevated hover:bg-surface-hover text-muted hover:text-heading transition cursor-pointer shrink-0 mt-0.5"
                   aria-label="Dismiss notification"
                 >
                   <X size={14} />
@@ -212,11 +212,11 @@ export const useToast = () => {
   if (globalToastEmitter) return globalToastEmitter;
 
   return {
-    success: (msg) => console.log("[Toast SUCCESS]", msg),
-    error: (msg) => console.error("[Toast ERROR]", msg),
-    warning: (msg) => console.warn("[Toast WARNING]", msg),
-    info: (msg) => console.info("[Toast INFO]", msg),
-    loading: (msg) => console.info("[Toast LOADING]", msg),
+    success: () => {},
+    error: () => {},
+    warning: () => {},
+    info: () => {},
+    loading: () => {},
     dismiss: () => {},
     update: () => {},
     clearAll: () => {},
@@ -225,11 +225,11 @@ export const useToast = () => {
 
 // Imperative singleton for non-component code
 export const toast = {
-  success: (msg, dur, opt) => (globalToastEmitter ? globalToastEmitter.success(msg, dur, opt) : console.log(msg)),
-  error: (msg, dur, opt) => (globalToastEmitter ? globalToastEmitter.error(msg, dur, opt) : console.error(msg)),
-  warning: (msg, dur, opt) => (globalToastEmitter ? globalToastEmitter.warning(msg, dur, opt) : console.warn(msg)),
-  info: (msg, dur, opt) => (globalToastEmitter ? globalToastEmitter.info(msg, dur, opt) : console.info(msg)),
-  loading: (msg, opt) => (globalToastEmitter ? globalToastEmitter.loading(msg, opt) : console.info(msg)),
+  success: (msg, dur, opt) => globalToastEmitter?.success(msg, dur, opt),
+  error: (msg, dur, opt) => globalToastEmitter?.error(msg, dur, opt),
+  warning: (msg, dur, opt) => globalToastEmitter?.warning(msg, dur, opt),
+  info: (msg, dur, opt) => globalToastEmitter?.info(msg, dur, opt),
+  loading: (msg, opt) => globalToastEmitter?.loading(msg, opt),
   dismiss: (id) => globalToastEmitter?.dismiss(id),
   clearAll: () => globalToastEmitter?.clearAll(),
 };

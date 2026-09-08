@@ -113,7 +113,7 @@ export default function AdminJobsPage() {
         <button
           onClick={() => dispatch(getAllJobs())}
           disabled={loading}
-          className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+          className="flex items-center gap-1.5 rounded-2xl border border-border bg-surface px-3.5 py-2 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
           <span>Refresh</span>
@@ -122,7 +122,7 @@ export default function AdminJobsPage() {
     >
       <div className="space-y-4">
         {/* Tabs & Search */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-4">
           <Tabs
             tabs={JOB_STATUS_TABS}
             activeTab={activeTab}
@@ -130,28 +130,28 @@ export default function AdminJobsPage() {
           />
 
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by job title, company, category…"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 transition"
+              className="w-full rounded-2xl border border-border bg-surface-elevated pl-10 pr-4 py-2 text-xs text-heading placeholder-muted focus:outline-none focus:border-primary transition"
             />
           </div>
         </div>
 
         {/* Table */}
         {loading ? (
-          <div className="rounded-2xl border border-white/10 bg-[#090d16]/80 p-12 text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
-            <p className="mt-3 text-xs font-semibold text-slate-400 font-satoshi">Loading job postings…</p>
+          <div className="rounded-2xl border border-border bg-surface p-12 text-center shadow-sm">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <p className="mt-3 text-xs font-semibold text-muted font-satoshi">Loading job postings…</p>
           </div>
         ) : filteredJobs.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-[#090d16]/80 p-12 text-center space-y-2">
-            <Briefcase size={36} className="text-slate-500 mx-auto opacity-60" />
-            <h4 className="text-sm font-bold text-white font-satoshi">No Job Postings Found</h4>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">No job records matched your filter or search query.</p>
+          <div className="rounded-2xl border border-border bg-surface p-12 text-center space-y-2 shadow-sm">
+            <Briefcase size={36} className="text-muted mx-auto opacity-60" />
+            <h4 className="text-sm font-bold text-heading font-satoshi">No Job Postings Found</h4>
+            <p className="text-xs text-muted max-w-sm mx-auto">No job records matched your filter or search query.</p>
           </div>
         ) : (
           <Table>
@@ -179,30 +179,30 @@ export default function AdminJobsPage() {
                   <TableRow key={job.id || Math.random()}>
                     <TableCell>
                       <div>
-                        <p className="font-bold text-white font-satoshi text-xs">{jobTitle}</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
-                          <MapPin size={10} className="text-slate-500" />
+                        <p className="font-bold text-heading font-satoshi text-xs">{jobTitle}</p>
+                        <p className="text-[11px] text-muted mt-0.5 flex items-center gap-1">
+                          <MapPin size={10} className="text-muted" />
                           <span>{location}</span>
                         </p>
                       </div>
                     </TableCell>
 
                     <TableCell>
-                      <span className="font-semibold text-white text-xs">{companyName}</span>
+                      <span className="font-semibold text-heading text-xs">{companyName}</span>
                     </TableCell>
 
                     <TableCell>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-300 bg-white/5 border border-white/10 px-2 py-0.5 rounded-md">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-body bg-surface-elevated border border-border px-2 py-0.5 rounded-md">
                         {category}
                       </span>
                     </TableCell>
 
                     <TableCell>
-                      <span className="text-slate-300 text-xs">{workMode}</span>
+                      <span className="text-body text-xs">{workMode}</span>
                     </TableCell>
 
                     <TableCell>
-                      <span className="text-xs font-bold text-indigo-300 font-satoshi">
+                      <span className="text-xs font-bold text-primary font-satoshi">
                         {getApplicantsCount(job)} Candidates
                       </span>
                     </TableCell>
@@ -216,7 +216,7 @@ export default function AdminJobsPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedJob(job)}
-                          className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                          className="inline-flex items-center gap-1 rounded-xl border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
                         >
                           <Eye size={13} />
                           <span>Inspect</span>
@@ -225,7 +225,7 @@ export default function AdminJobsPage() {
                         <Link
                           to={`/jobs/${job.id}`}
                           target="_blank"
-                          className="inline-flex items-center gap-1 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/25 px-2.5 py-1 text-xs font-semibold transition"
+                          className="inline-flex items-center gap-1 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/25 px-2.5 py-1 text-xs font-semibold transition"
                         >
                           <span>Live</span>
                           <ExternalLink size={10} />
@@ -234,7 +234,7 @@ export default function AdminJobsPage() {
                         <button
                           type="button"
                           onClick={() => setDeleteTarget(job)}
-                          className="inline-flex items-center rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 p-1.5 transition cursor-pointer"
+                          className="inline-flex items-center rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20 p-1.5 transition cursor-pointer"
                           title="Delete Job"
                         >
                           <Trash2 size={13} />
@@ -257,38 +257,38 @@ export default function AdminJobsPage() {
         size="lg"
       >
         {selectedJob && (
-          <div className="p-4 space-y-4 text-slate-200">
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+          <div className="p-4 space-y-4 text-heading">
+            <div className="p-4 rounded-2xl bg-surface-elevated border border-border space-y-1">
               <div className="flex items-center justify-between">
-                <h4 className="text-base font-extrabold text-white font-satoshi">{selectedJob.title || selectedJob.jobTitle}</h4>
+                <h4 className="text-base font-extrabold text-heading font-satoshi">{selectedJob.title || selectedJob.jobTitle}</h4>
                 <StatusChip status={selectedJob.jobStatus || selectedJob.status || "ACTIVE"} />
               </div>
-              <p className="text-xs text-indigo-400 font-semibold">{selectedJob.company || selectedJob.companyName} · {selectedJob.location || "Remote"}</p>
+              <p className="text-xs text-primary font-semibold">{selectedJob.company || selectedJob.companyName} · {selectedJob.location || "Remote"}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-[#090d16] border border-white/5 space-y-0.5">
-                <span className="text-slate-400 block">Category:</span>
-                <span className="font-bold text-white">{selectedJob.category || selectedJob.department || "General"}</span>
+              <div className="p-3 rounded-xl bg-surface border border-border space-y-0.5">
+                <span className="text-muted block">Category:</span>
+                <span className="font-bold text-heading">{selectedJob.category || selectedJob.department || "General"}</span>
               </div>
-              <div className="p-3 rounded-xl bg-[#090d16] border border-white/5 space-y-0.5">
-                <span className="text-slate-400 block">Work Mode:</span>
-                <span className="font-bold text-white">{selectedJob.workMode || selectedJob.jobType || "Full-time"}</span>
+              <div className="p-3 rounded-xl bg-surface border border-border space-y-0.5">
+                <span className="text-muted block">Work Mode:</span>
+                <span className="font-bold text-heading">{selectedJob.workMode || selectedJob.jobType || "Full-time"}</span>
               </div>
-              <div className="p-3 rounded-xl bg-[#090d16] border border-white/5 space-y-0.5">
-                <span className="text-slate-400 block">Experience Level:</span>
-                <span className="font-bold text-white">{selectedJob.experience || selectedJob.experienceLevel || "Mid-Senior"}</span>
+              <div className="p-3 rounded-xl bg-surface border border-border space-y-0.5">
+                <span className="text-muted block">Experience Level:</span>
+                <span className="font-bold text-heading">{selectedJob.experience || selectedJob.experienceLevel || "Mid-Senior"}</span>
               </div>
-              <div className="p-3 rounded-xl bg-[#090d16] border border-white/5 space-y-0.5">
-                <span className="text-slate-400 block">Salary / Package:</span>
-                <span className="font-bold text-emerald-400">{selectedJob.salary || selectedJob.package || "Competitive"}</span>
+              <div className="p-3 rounded-xl bg-surface border border-border space-y-0.5">
+                <span className="text-muted block">Salary / Package:</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">{selectedJob.salary || selectedJob.package || "Competitive"}</span>
               </div>
             </div>
 
             {selectedJob.description && (
               <div className="space-y-1 text-xs">
-                <span className="text-slate-400 block">Job Description Overview:</span>
-                <div className="max-h-48 overflow-y-auto p-3 rounded-xl bg-[#090d16] border border-white/5 text-slate-300 leading-relaxed text-[11px]">
+                <span className="text-muted block">Job Description Overview:</span>
+                <div className="max-h-48 overflow-y-auto p-3 rounded-xl bg-surface border border-border text-body leading-relaxed text-[11px]">
                   {selectedJob.description}
                 </div>
               </div>
@@ -298,7 +298,7 @@ export default function AdminJobsPage() {
               <button
                 type="button"
                 onClick={() => setSelectedJob(null)}
-                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                className="rounded-xl border border-border bg-surface px-4 py-2 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
               >
                 Close
               </button>
@@ -316,13 +316,13 @@ export default function AdminJobsPage() {
       >
         {deleteTarget && (
           <div className="p-4 text-center space-y-4">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-500 border border-rose-500/30">
               <AlertTriangle size={24} />
             </div>
             <div>
-              <h4 className="text-base font-bold text-white font-satoshi">Delete Job Posting?</h4>
-              <p className="text-xs text-slate-400 mt-1">
-                Are you sure you want to remove <strong className="text-white">{deleteTarget.title || deleteTarget.jobTitle}</strong> by {deleteTarget.company || deleteTarget.companyName}?
+              <h4 className="text-base font-bold text-heading font-satoshi">Delete Job Posting?</h4>
+              <p className="text-xs text-muted mt-1">
+                Are you sure you want to remove <strong className="text-heading">{deleteTarget.title || deleteTarget.jobTitle}</strong> by {deleteTarget.company || deleteTarget.companyName}?
               </p>
             </div>
 
@@ -331,7 +331,7 @@ export default function AdminJobsPage() {
                 type="button"
                 disabled={deleting}
                 onClick={() => setDeleteTarget(null)}
-                className="rounded-xl border border-white/10 bg-white/5 py-2 text-xs font-bold text-slate-300 hover:bg-white/10 transition cursor-pointer"
+                className="rounded-xl border border-border bg-surface py-2 text-xs font-bold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
               >
                 Cancel
               </button>

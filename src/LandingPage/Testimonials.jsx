@@ -166,11 +166,11 @@ function TestimonialCard({ item, highlight }) {
       className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-6 sm:p-7 backdrop-blur-xl transition-all duration-300 cursor-pointer ${
         highlight
           ? isLight
-            ? "border-indigo-300 bg-indigo-50/40 shadow-lg"
-            : "border-indigo-500/50 bg-[#0c111f] shadow-[0_20px_50px_rgba(99,102,241,0.2)]"
+            ? "border-indigo-300 bg-white/95 shadow-lg"
+            : "border-indigo-500/50 bg-[#0c111f]/90 shadow-[0_20px_50px_rgba(99,102,241,0.2)]"
           : isLight
-            ? "border-slate-200 bg-white shadow-sm hover:border-indigo-300 hover:shadow-xl"
-            : "border-white/10 bg-[#090d16]/90 hover:border-indigo-500/40 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
+            ? "border-slate-200/90 bg-white/85 shadow-xs hover:border-indigo-300 hover:shadow-xl hover:bg-white"
+            : "border-white/10 bg-[#090d16]/85 hover:border-indigo-500/40 hover:bg-[#0c111f] hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]"
       }`}
     >
       {/* Decorative Watermark Quote */}
@@ -263,8 +263,8 @@ export default function Testimonials() {
   const isLight = theme === "light";
 
   return (
-    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
-      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 bg-transparent ${
+      isLight ? "text-slate-800" : "text-slate-200"
     }`} aria-label="Candidate testimonials">
       {/* Background Ambient Glows */}
       <div className="pointer-events-none absolute inset-0">

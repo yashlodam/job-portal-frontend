@@ -42,15 +42,8 @@ function CallToAction() {
           viewport={{ once: true }}
           transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
-          {/* Premium gradient card */}
-          <div
-            className="relative overflow-hidden rounded-[28px] border p-8 text-center sm:p-12 lg:p-20"
-            style={{
-              borderColor: "rgba(99,102,241,0.20)",
-              background:
-                "linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.04), rgba(6,182,212,0.05))",
-            }}
-          >
+          {/* Premium card */}
+          <div className="relative overflow-hidden rounded-[28px] border border-border bg-surface shadow-xl p-8 text-center sm:p-12 lg:p-20">
             {/* Inner ambient glow — top */}
             <div
               className="pointer-events-none absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full"
@@ -109,33 +102,27 @@ function CallToAction() {
                 whileInView={{ scale: 1, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.15 }}
-                className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl"
-                style={{
-                  background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-                  boxShadow: "0 8px 32px rgba(99,102,241,0.30)",
-                }}
+                className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl gradient-bg-signature shadow-lg shadow-indigo-500/25"
               >
                 <Sparkles size={24} className="text-white" />
               </motion.div>
 
               {/* Headline */}
-              <h2
-                className="mt-7 text-3xl font-extrabold leading-tight tracking-tight text-[#F1F5F9] sm:mt-8 sm:text-4xl md:text-5xl lg:text-6xl"
-                style={{ fontFamily: "var(--font-satoshi)" }}
-              >
+              <h2 className="mt-7 text-3xl font-extrabold leading-tight tracking-tight text-heading sm:mt-8 sm:text-4xl md:text-5xl font-satoshi">
                 Ready to find your{" "}
                 <br className="hidden sm:block" />
-                <span className="gradient-text">next opportunity?</span>
+                <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+                  next opportunity?
+                </span>
               </h2>
 
               {/* Description */}
-              <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-[#94A3B8] sm:text-lg sm:leading-8">
-                Join 50,000+ professionals who have already accelerated their
-                careers with AI-powered tools.
+              <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-body sm:text-lg sm:leading-8">
+                Explore tailored engineering, AI, and design roles with deterministic ATS scoring and instant applications.
               </p>
 
               {/* Button row */}
-              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4 font-satoshi">
                 {/* Primary CTA */}
                 <motion.div
                   whileHover={{ scale: 1.04, y: -2 }}
@@ -144,21 +131,9 @@ function CallToAction() {
                 >
                   <Link
                     to="/find-jobs"
-                    className="flex w-full items-center justify-center gap-2.5 rounded-full px-6 py-3.5 text-base font-semibold text-white transition-shadow duration-300 sm:w-auto sm:inline-flex sm:px-8 sm:py-4"
-                    style={{
-                      background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-                      boxShadow: "0 0 20px rgba(99,102,241,0.25)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow =
-                        "0 0 32px rgba(99,102,241,0.45)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow =
-                        "0 0 20px rgba(99,102,241,0.25)";
-                    }}
+                    className="flex w-full items-center justify-center gap-2.5 rounded-full px-6 py-3.5 text-sm font-black text-white gradient-bg-signature shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-shadow sm:w-auto sm:inline-flex sm:px-8 sm:py-4 cursor-pointer"
                   >
-                    Get Started Free
+                    <span>Get Started Free</span>
                     <ArrowRight size={18} />
                   </Link>
                 </motion.div>
@@ -171,33 +146,16 @@ function CallToAction() {
                 >
                   <Link
                     to="/about"
-                    className="flex w-full items-center justify-center gap-2 rounded-full border px-6 py-3.5 text-base font-semibold text-[#F1F5F9] transition-all duration-300 sm:w-auto sm:inline-flex sm:px-8 sm:py-4"
-                    style={{
-                      borderColor: "rgba(148,163,184,0.12)",
-                      background: "rgba(13,17,23,0.80)",
-                      backdropFilter: "blur(12px)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor =
-                        "rgba(99,102,241,0.30)";
-                      e.currentTarget.style.background =
-                        "#161B22";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor =
-                        "rgba(148,163,184,0.12)";
-                      e.currentTarget.style.background =
-                        "rgba(13,17,23,0.80)";
-                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-elevated px-6 py-3.5 text-sm font-bold text-heading hover:bg-surface-hover transition-all sm:w-auto sm:inline-flex sm:px-8 sm:py-4 cursor-pointer shadow-xs"
                   >
                     Learn More
                   </Link>
                 </motion.div>
               </div>
 
-              {/* Social proof */}
-              <p className="mt-6 text-xs text-[#708090]">
-                No credit card required · Free forever · Cancel anytime
+              {/* Subtext */}
+              <p className="mt-6 text-xs text-muted font-medium">
+                Free candidate account · Instant setup · Verified opportunities
               </p>
             </div>
           </div>

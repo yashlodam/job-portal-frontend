@@ -44,7 +44,9 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }) {
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title || "Dialog"}
             className={`relative w-full ${sizes[size]} max-h-[90vh] flex flex-col rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-white/15 dark:bg-[#090d16]/95 dark:text-slate-200 backdrop-blur-2xl p-6 sm:p-7 z-10 overflow-hidden font-inter`}
           >
             {title && (
@@ -95,7 +97,9 @@ export function Drawer({ isOpen, onClose, title, children, position = "right" })
             initial="initial"
             animate="animate"
             exit="exit"
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title || "Drawer"}
             className={`relative ml-auto h-full w-full max-w-xl flex flex-col border-l border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-white/15 dark:bg-[#090d16]/95 dark:text-slate-200 backdrop-blur-2xl p-6 sm:p-7 z-10 overflow-hidden font-inter`}
           >
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10">

@@ -66,12 +66,12 @@ export default function NotificationFilters() {
   }, [searchTerm, filters.keyword, dispatch]);
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-[#0b0f19]/80 p-5 backdrop-blur-xl shadow-xl space-y-6">
+    <div className="rounded-3xl border border-border bg-surface p-5 backdrop-blur-xl shadow-xl space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4 text-indigo-400" />
-          <h3 className="text-sm font-bold text-white font-satoshi">Filters</h3>
+          <SlidersHorizontal className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+          <h3 className="text-sm font-bold text-heading font-satoshi">Filters</h3>
         </div>
 
         <button
@@ -79,7 +79,7 @@ export default function NotificationFilters() {
             setSearchTerm("");
             dispatch(resetFilters());
           }}
-          className="flex items-center gap-1.5 text-xs font-medium text-white/50 hover:text-white transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-heading transition-colors cursor-pointer"
         >
           <RotateCcw className="h-3 w-3" />
           Reset
@@ -88,30 +88,30 @@ export default function NotificationFilters() {
 
       {/* Keyword Search Input */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search notifications..."
-          className="w-full rounded-2xl border border-white/10 bg-white/5 pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/40 focus:border-indigo-500/60 focus:bg-white/[0.07] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+          className="w-full rounded-2xl border border-border bg-surface-elevated pl-10 pr-4 py-2.5 text-xs text-heading placeholder-muted focus:border-indigo-500 focus:outline-none transition-all"
         />
       </div>
 
       {/* Read Status Radio / Pills */}
       <div>
-        <label className="block text-xs font-semibold text-white/70 mb-2">
+        <label className="block text-xs font-semibold text-heading mb-2">
           Read Status
         </label>
-        <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-white/5 border border-white/5">
+        <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-surface-elevated border border-border">
           {READ_STATUS_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => dispatch(setFilter({ read: opt.value }))}
-              className={`py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+              className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 filters.read === opt.value
-                  ? "bg-indigo-500 text-white shadow-sm"
-                  : "text-white/60 hover:text-white hover:bg-white/5"
+                  ? "!bg-indigo-600 !text-white shadow-sm"
+                  : "text-muted hover:text-heading hover:bg-surface"
               }`}
             >
               {opt.label}
@@ -122,16 +122,16 @@ export default function NotificationFilters() {
 
       {/* Type Dropdown */}
       <div>
-        <label className="block text-xs font-semibold text-white/70 mb-2">
+        <label className="block text-xs font-semibold text-heading mb-2">
           Notification Type
         </label>
         <select
           value={filters.type}
           onChange={(e) => dispatch(setFilter({ type: e.target.value }))}
-          className="w-full rounded-xl border border-white/10 bg-[#111625] px-3 py-2.5 text-xs text-white focus:border-indigo-500/60 focus:outline-none cursor-pointer"
+          className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2.5 text-xs text-heading focus:border-indigo-500 focus:outline-none cursor-pointer"
         >
           {TYPE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-[#0b0f19]">
+            <option key={opt.value} value={opt.value} className="bg-surface text-heading">
               {opt.label}
             </option>
           ))}
@@ -140,7 +140,7 @@ export default function NotificationFilters() {
 
       {/* Priority Filters */}
       <div>
-        <label className="block text-xs font-semibold text-white/70 mb-2">
+        <label className="block text-xs font-semibold text-heading mb-2">
           Priority
         </label>
         <div className="flex flex-wrap gap-1.5">
@@ -148,10 +148,10 @@ export default function NotificationFilters() {
             <button
               key={opt.value}
               onClick={() => dispatch(setFilter({ priority: opt.value }))}
-              className={`px-3 py-1.5 text-xs font-medium rounded-xl border transition-all cursor-pointer ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
                 filters.priority === opt.value
-                  ? "border-indigo-500/60 bg-indigo-500/20 text-indigo-300 font-semibold"
-                  : "border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white"
+                  ? "!bg-indigo-600 !text-white border-indigo-500 shadow-sm"
+                  : "border-border bg-surface-elevated text-muted hover:border-indigo-500/40 hover:text-heading"
               }`}
             >
               {opt.label}
@@ -161,14 +161,14 @@ export default function NotificationFilters() {
       </div>
 
       {/* Show Archived Toggle */}
-      <div className="flex items-center justify-between py-2 border-t border-white/5">
-        <span className="text-xs font-semibold text-white/70">
+      <div className="flex items-center justify-between py-2 border-t border-border">
+        <span className="text-xs font-semibold text-heading">
           Show Archived
         </span>
         <button
           onClick={() => dispatch(setFilter({ archived: !filters.archived }))}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-            filters.archived ? "bg-indigo-500" : "bg-white/10"
+            filters.archived ? "bg-indigo-600" : "bg-surface-elevated border border-border"
           }`}
         >
           <span
@@ -180,38 +180,38 @@ export default function NotificationFilters() {
       </div>
 
       {/* Date Pickers */}
-      <div className="space-y-2 pt-2 border-t border-white/5">
-        <label className="block text-xs font-semibold text-white/70">
+      <div className="space-y-2 pt-2 border-t border-border">
+        <label className="block text-xs font-semibold text-heading">
           Date Range
         </label>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <span className="block text-[10px] text-white/40 mb-1">From</span>
+            <span className="block text-[10px] text-muted mb-1 font-bold">From</span>
             <input
               type="date"
               value={filters.fromDate || ""}
               onChange={(e) => dispatch(setFilter({ fromDate: e.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] text-white focus:border-indigo-500/60 focus:outline-none"
+              className="w-full rounded-xl border border-border bg-surface-elevated px-2.5 py-1.5 text-[11px] text-heading focus:border-indigo-500 focus:outline-none"
             />
           </div>
           <div>
-            <span className="block text-[10px] text-white/40 mb-1">To</span>
+            <span className="block text-[10px] text-muted mb-1 font-bold">To</span>
             <input
               type="date"
               value={filters.toDate || ""}
               onChange={(e) => dispatch(setFilter({ toDate: e.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] text-white focus:border-indigo-500/60 focus:outline-none"
+              className="w-full rounded-xl border border-border bg-surface-elevated px-2.5 py-1.5 text-[11px] text-heading focus:border-indigo-500 focus:outline-none"
             />
           </div>
         </div>
       </div>
 
       {/* Test Notification Generator Button */}
-      <div className="pt-3 border-t border-white/5">
+      <div className="pt-3 border-t border-border">
         <button
           onClick={() => createTestNotification("JOB_MATCH")}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600/30 to-purple-600/30 hover:from-indigo-600/50 hover:to-purple-600/50 border border-indigo-500/30 py-2.5 px-4 text-xs font-semibold text-indigo-300 transition-all cursor-pointer disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 py-2.5 px-4 text-xs font-bold text-indigo-600 dark:text-indigo-400 transition-all cursor-pointer disabled:opacity-50"
         >
           <Plus className="h-3.5 w-3.5" />
           <span>Generate Test Notification</span>

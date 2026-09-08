@@ -123,11 +123,11 @@ function getModeIcon(mode) {
 
 function StatCard({ label, value, icon: Icon, color }) {
   return (
-    <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${color}`}>
+    <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 bg-surface ${color}`}>
       <Icon className="h-5 w-5 shrink-0 opacity-80" />
       <div>
-        <p className="text-xl font-black font-satoshi leading-none">{value ?? "—"}</p>
-        <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70 mt-0.5">{label}</p>
+        <p className="text-xl font-black font-satoshi leading-none text-heading">{value ?? "—"}</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted mt-0.5">{label}</p>
       </div>
     </div>
   );
@@ -143,7 +143,7 @@ function StarRating({ value, onChange }) {
           key={n}
           type="button"
           onClick={() => onChange(n)}
-          className={`transition ${n <= value ? "text-amber-400" : "text-white/20"} hover:text-amber-400`}
+          className={`transition ${n <= value ? "text-amber-400" : "text-muted/40"} hover:text-amber-400`}
         >
           <Star className="h-5 w-5 fill-current" />
         </button>
@@ -225,7 +225,7 @@ export default function RecruiterInterviewsPage() {
     // datetime-local input gives "YYYY-MM-DDTHH:mm". Just pad seconds to get "YYYY-MM-DDTHH:mm:ss".
     const scheduledAt = scheduleForm.scheduledAt
       ? scheduleForm.scheduledAt.length === 16
-        ? scheduleForm.scheduledAt + ":00"   // "2026-08-20T14:00" → "2026-08-20T14:00:00"
+        ? scheduleForm.scheduledAt + ":00"
         : scheduleForm.scheduledAt
       : null;
 
@@ -319,7 +319,7 @@ export default function RecruiterInterviewsPage() {
       action={
         <button
           onClick={() => setShowSchedule(true)}
-          className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 transition cursor-pointer"
+          className="flex items-center gap-2 rounded-2xl gradient-bg-signature px-4 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 transition cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Schedule Interview</span>
@@ -329,25 +329,25 @@ export default function RecruiterInterviewsPage() {
       {/* ── Stats Row ───────────────────────────────────────────────────────── */}
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-          <StatCard label="Total"      value={stats.totalScheduled} icon={Calendar}    color="border-white/10 bg-white/5 text-white" />
-          <StatCard label="Upcoming"   value={stats.upcoming}       icon={TrendingUp}  color="border-indigo-500/25 bg-indigo-500/10 text-indigo-300" />
-          <StatCard label="Today"      value={stats.todaysCount}    icon={Clock}       color="border-cyan-500/25 bg-cyan-500/10 text-cyan-300" />
-          <StatCard label="Completed"  value={stats.completed}      icon={CheckCircle2}color="border-emerald-500/25 bg-emerald-500/10 text-emerald-300" />
-          <StatCard label="Cancelled"  value={stats.cancelled}      icon={XCircle}     color="border-rose-500/25 bg-rose-500/10 text-rose-300" />
-          <StatCard label="No Shows"   value={stats.noShow}         icon={AlertCircle} color="border-slate-500/25 bg-slate-500/10 text-slate-300" />
+          <StatCard label="Total"      value={stats.totalScheduled} icon={Calendar}    color="border-border text-heading" />
+          <StatCard label="Upcoming"   value={stats.upcoming}       icon={TrendingUp}  color="border-primary/30 text-primary-light" />
+          <StatCard label="Today"      value={stats.todaysCount}    icon={Clock}       color="border-cyan-500/30 text-cyan-500 dark:text-cyan-400" />
+          <StatCard label="Completed"  value={stats.completed}      icon={CheckCircle2}color="border-emerald-500/30 text-emerald-500 dark:text-emerald-400" />
+          <StatCard label="Cancelled"  value={stats.cancelled}      icon={XCircle}     color="border-rose-500/30 text-rose-500 dark:text-rose-400" />
+          <StatCard label="No Shows"   value={stats.noShow}         icon={AlertCircle} color="border-border text-muted" />
         </div>
       )}
 
       {/* ── Tab Bar ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 p-1 w-fit mb-6 flex-wrap">
+      <div className="flex items-center gap-1 rounded-xl bg-surface-elevated border border-border p-1 w-fit mb-6 flex-wrap">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${
               activeTab === tab.id
-                ? "bg-indigo-600 text-white shadow"
-                : "text-slate-400 hover:text-white"
+                ? "bg-primary text-white shadow"
+                : "text-muted hover:text-heading"
             }`}
           >
             {tab.label}
@@ -356,9 +356,9 @@ export default function RecruiterInterviewsPage() {
         <button
           onClick={() => dispatch(fetchInterviews(activeTab))}
           disabled={loading}
-          className="ml-1 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
+          className="ml-1 p-1.5 rounded-lg text-muted hover:text-heading hover:bg-surface-hover transition"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-indigo-400" : ""}`} />
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-primary" : ""}`} />
         </button>
       </div>
 
@@ -366,26 +366,26 @@ export default function RecruiterInterviewsPage() {
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3].map((n) => (
-            <div key={n} className="rounded-2xl border border-white/10 bg-[#090d16] p-5 space-y-4 animate-pulse h-56" />
+            <div key={n} className="rounded-2xl border border-border bg-surface p-5 space-y-4 animate-pulse h-56" />
           ))}
         </div>
       )}
 
       {/* ── Empty State ──────────────────────────────────────────────────────── */}
       {!loading && interviews.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-          <div className="h-16 w-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-            <Calendar className="h-8 w-8 text-indigo-400" />
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-surface rounded-3xl border border-border p-8">
+          <div className="h-16 w-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <Calendar className="h-8 w-8 text-primary" />
           </div>
-          <h3 className="text-lg font-bold text-white font-satoshi">No interviews found</h3>
-          <p className="text-sm text-slate-400 max-w-xs">
+          <h3 className="text-lg font-bold text-heading font-satoshi">No interviews found</h3>
+          <p className="text-sm text-muted max-w-xs">
             {activeTab === "all"
               ? "Schedule your first interview to get started."
               : `No ${activeTab} interviews to show.`}
           </p>
           <button
             onClick={() => setShowSchedule(true)}
-            className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-500 transition shadow"
+            className="mt-2 inline-flex items-center gap-2 rounded-2xl gradient-bg-signature px-5 py-2.5 text-xs font-bold text-white shadow hover:scale-105 transition"
           >
             <Plus className="h-4 w-4" /> Schedule Interview
           </button>
@@ -406,19 +406,19 @@ export default function RecruiterInterviewsPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.04 }}
-                className="group flex flex-col justify-between rounded-2xl border border-white/10 bg-[#090d16] hover:border-indigo-500/30 hover:bg-[#0c1220] transition-all p-5 shadow-lg"
+                className="group flex flex-col justify-between rounded-2xl border border-border bg-surface hover:border-primary/40 hover:bg-surface-hover transition-all p-5 shadow-sm hover:shadow-md"
               >
                 {/* Candidate info */}
                 <div>
                   <div className="flex items-start gap-3">
                     <Avatar name={item.candidateName || "?"} size="md" />
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-white font-satoshi text-base truncate">
+                      <h3 className="font-bold text-heading font-satoshi text-base truncate">
                         {item.candidateName || "Candidate"}
                       </h3>
-                      <p className="text-xs text-white/50 truncate">{item.jobTitle || "Job Role"}</p>
+                      <p className="text-xs text-muted truncate">{item.jobTitle || "Job Role"}</p>
                       {item.companyName && (
-                        <p className="text-[11px] text-slate-500 truncate">{item.companyName}</p>
+                        <p className="text-[11px] text-muted/70 truncate">{item.companyName}</p>
                       )}
                     </div>
                     {/* Status badge */}
@@ -428,28 +428,28 @@ export default function RecruiterInterviewsPage() {
                   </div>
 
                   {/* Interview details */}
-                  <div className="mt-4 pt-3 border-t border-white/5 space-y-2 text-xs">
-                    <div className="flex items-center gap-2 text-indigo-300 font-semibold">
+                  <div className="mt-4 pt-3 border-t border-border space-y-2 text-xs">
+                    <div className="flex items-center gap-2 text-primary-light font-semibold">
                       <Calendar className="h-3.5 w-3.5" />
                       {formatInterviewDate(item.scheduledAt)}
                     </div>
-                    <div className="flex items-center gap-2 text-white/70">
-                      <Clock className="h-3.5 w-3.5 text-white/40" />
+                    <div className="flex items-center gap-2 text-body">
+                      <Clock className="h-3.5 w-3.5 text-muted" />
                       {formatInterviewTime(item.scheduledAt, item.endsAt)}
                       {item.durationMinutes && (
-                        <span className="text-white/40">· {item.durationMinutes} min</span>
+                        <span className="text-muted">· {item.durationMinutes} min</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-white/70">
+                    <div className="flex items-center gap-2 text-body">
                       {getModeIcon(item.interviewMode)}
-                      <span className="text-white/40 mr-1">{item.meetingPlatform || "Video Call"}</span>
-                      <span className="text-slate-400 capitalize">
+                      <span className="text-muted mr-1">{item.meetingPlatform || "Video Call"}</span>
+                      <span className="text-body capitalize">
                         {item.interviewRound?.replace("_", " ") || "Screening"}
                       </span>
                     </div>
                     {item.interviewerName && (
-                      <div className="flex items-center gap-2 text-white/50">
-                        <UserCheck className="h-3.5 w-3.5 text-white/30" />
+                      <div className="flex items-center gap-2 text-muted">
+                        <UserCheck className="h-3.5 w-3.5 opacity-70" />
                         {item.interviewerName}
                       </div>
                     )}
@@ -461,16 +461,16 @@ export default function RecruiterInterviewsPage() {
                       {[1,2,3,4,5].map((n) => (
                         <Star
                           key={n}
-                          className={`h-3.5 w-3.5 fill-current ${n <= item.candidateRating ? "text-amber-400" : "text-white/10"}`}
+                          className={`h-3.5 w-3.5 fill-current ${n <= item.candidateRating ? "text-amber-400" : "text-muted/30"}`}
                         />
                       ))}
-                      <span className="text-[11px] text-slate-400 ml-1">Candidate Rating</span>
+                      <span className="text-[11px] text-muted ml-1">Candidate Rating</span>
                     </div>
                   )}
                 </div>
 
                 {/* Footer actions */}
-                <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-2 flex-wrap">
+                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between gap-2 flex-wrap">
                   {/* Join meeting */}
                   {canJoin ? (
                     <a
@@ -486,7 +486,7 @@ export default function RecruiterInterviewsPage() {
                       href={item.meetingLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary-light hover:underline transition"
                     >
                       <ExternalLink className="h-3.5 w-3.5" /> Meeting Link
                     </a>
@@ -496,15 +496,15 @@ export default function RecruiterInterviewsPage() {
                     {/* Status change dropdown */}
                     {isActive && (
                       <div className="relative group/status">
-                        <button className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-white/10 transition">
+                        <button className="inline-flex items-center gap-1 rounded-xl border border-border bg-surface-elevated px-2.5 py-1.5 text-[11px] font-semibold text-body hover:bg-surface-hover transition">
                           Status <ChevronDown className="h-3 w-3" />
                         </button>
-                        <div className="absolute right-0 bottom-8 z-20 hidden group-hover/status:block bg-[#0f1629] border border-white/10 rounded-xl shadow-2xl py-1 min-w-[160px]">
+                        <div className="absolute right-0 bottom-8 z-20 hidden group-hover/status:block bg-surface border border-border rounded-xl shadow-xl py-1 min-w-[160px]">
                           {["IN_PROGRESS", "COMPLETED", "NO_SHOW"].map((s) => (
                             <button
                               key={s}
                               onClick={() => handleStatusChange(item, s)}
-                              className="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-white/10 hover:text-white transition"
+                              className="w-full text-left px-4 py-2 text-xs text-body hover:bg-surface-hover hover:text-heading transition"
                             >
                               {s.replace("_", " ")}
                             </button>
@@ -517,7 +517,7 @@ export default function RecruiterInterviewsPage() {
                     {item.status !== "CANCELLED" && item.status !== "SCHEDULED" && item.status !== "RESCHEDULED" && (
                       <button
                         onClick={() => { setShowFeedback(item); setFeedbackForm({ feedback: item.feedback || "", candidateRating: item.candidateRating || 0 }); }}
-                        className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-white/10 transition"
+                        className="inline-flex items-center gap-1 rounded-xl border border-border bg-surface-elevated px-2.5 py-1.5 text-[11px] font-semibold text-body hover:bg-surface-hover transition"
                       >
                         <Star className="h-3 w-3" /> Feedback
                       </button>
@@ -527,7 +527,7 @@ export default function RecruiterInterviewsPage() {
                     {isActive && (
                       <button
                         onClick={() => setShowCancel(item.id)}
-                        className="inline-flex items-center gap-1 rounded-xl border border-rose-500/20 bg-rose-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-rose-400 hover:bg-rose-500/20 transition"
+                        className="inline-flex items-center gap-1 rounded-xl border border-rose-500/20 bg-rose-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-rose-500 dark:text-rose-400 hover:bg-rose-500/20 transition"
                       >
                         <X className="h-3 w-3" /> Cancel
                       </button>
@@ -550,18 +550,19 @@ export default function RecruiterInterviewsPage() {
 
           {/* Step 1: Pick Job */}
           <div>
-            <label className="block text-xs font-semibold text-white/70 mb-1">
-              Select Job Posting <span className="text-rose-400">*</span>
+            <label className="block text-xs font-semibold text-heading mb-1">
+              Select Job Posting <span className="text-rose-500">*</span>
             </label>
             <select
               value={selectedJobId}
               onChange={(e) => { setSelectedJobId(e.target.value); setSelectedAppId(""); }}
               required
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 [&>option]:bg-[#0f1629]"
+              style={{ colorScheme: "auto" }}
+              className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary [&>option]:bg-surface [&>option]:text-heading"
             >
-              <option value="">-- Select a job --</option>
+              <option value="" className="bg-surface text-heading">-- Select a job --</option>
               {myJobs.map((j) => (
-                <option key={j.id} value={j.id}>{j.jobTitle}</option>
+                <option key={j.id} value={j.id} className="bg-surface text-heading">{j.jobTitle}</option>
               ))}
             </select>
           </div>
@@ -569,21 +570,22 @@ export default function RecruiterInterviewsPage() {
           {/* Step 2: Pick Candidate */}
           {selectedJobId && (
             <div>
-              <label className="block text-xs font-semibold text-white/70 mb-1">
-                Select Candidate <span className="text-rose-400">*</span>
+              <label className="block text-xs font-semibold text-heading mb-1">
+                Select Candidate <span className="text-rose-500">*</span>
               </label>
               {schedulableApps.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-2">No schedulable applications for this job.</p>
+                <p className="text-xs text-muted italic py-2">No schedulable applications for this job.</p>
               ) : (
                 <select
                   value={selectedAppId}
                   onChange={(e) => setSelectedAppId(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 [&>option]:bg-[#0f1629]"
+                  style={{ colorScheme: "auto" }}
+                  className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary [&>option]:bg-surface [&>option]:text-heading"
                 >
-                  <option value="">-- Select a candidate --</option>
+                  <option value="" className="bg-surface text-heading">-- Select a candidate --</option>
                   {schedulableApps.map((a) => (
-                    <option key={a.id} value={a.id}>
+                    <option key={a.id} value={a.id} className="bg-surface text-heading">
                       {a.applicant?.name || a.candidateName || `Application #${a.id}`} — {a.status}
                     </option>
                   ))}
@@ -595,110 +597,114 @@ export default function RecruiterInterviewsPage() {
           <div className="grid grid-cols-2 gap-3">
             {/* Round */}
             <div>
-              <label className="block text-xs font-semibold text-white/70 mb-1">Round</label>
+              <label className="block text-xs font-semibold text-heading mb-1">Round</label>
               <select
                 value={scheduleForm.interviewRound}
                 onChange={(e) => setScheduleForm((p) => ({ ...p, interviewRound: e.target.value }))}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 [&>option]:bg-[#0f1629]"
+                style={{ colorScheme: "auto" }}
+                className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary [&>option]:bg-surface [&>option]:text-heading"
               >
-                {INTERVIEW_ROUNDS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                {INTERVIEW_ROUNDS.map((r) => <option key={r.value} value={r.value} className="bg-surface text-heading">{r.label}</option>)}
               </select>
             </div>
 
             {/* Mode */}
             <div>
-              <label className="block text-xs font-semibold text-white/70 mb-1">Format</label>
+              <label className="block text-xs font-semibold text-heading mb-1">Format</label>
               <select
                 value={scheduleForm.interviewMode}
                 onChange={(e) => setScheduleForm((p) => ({ ...p, interviewMode: e.target.value }))}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 [&>option]:bg-[#0f1629]"
+                style={{ colorScheme: "auto" }}
+                className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary [&>option]:bg-surface [&>option]:text-heading"
               >
-                {INTERVIEW_MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+                {INTERVIEW_MODES.map((m) => <option key={m.value} value={m.value} className="bg-surface text-heading">{m.label}</option>)}
               </select>
             </div>
           </div>
 
           {/* Platform */}
           <div>
-            <label className="block text-xs font-semibold text-white/70 mb-1">Meeting Platform</label>
+            <label className="block text-xs font-semibold text-heading mb-1">Meeting Platform</label>
             <select
               value={scheduleForm.meetingPlatform}
               onChange={(e) => setScheduleForm((p) => ({ ...p, meetingPlatform: e.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 [&>option]:bg-[#0f1629]"
+              style={{ colorScheme: "auto" }}
+              className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary [&>option]:bg-surface [&>option]:text-heading"
             >
-              {PLATFORM_PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}
+              {PLATFORM_PLATFORMS.map((p) => <option key={p} value={p} className="bg-surface text-heading">{p}</option>)}
             </select>
           </div>
 
           {/* Meeting Link */}
           <div>
-            <label className="block text-xs font-semibold text-white/70 mb-1">Meeting Link</label>
+            <label className="block text-xs font-semibold text-heading mb-1">Meeting Link</label>
             <input
               type="url"
               placeholder="https://meet.google.com/xxx-yyyy-zzz"
               value={scheduleForm.meetingLink}
               onChange={(e) => setScheduleForm((p) => ({ ...p, meetingLink: e.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 placeholder:text-white/25"
+              className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary placeholder:text-muted"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             {/* Date & Time */}
             <div>
-              <label className="block text-xs font-semibold text-white/70 mb-1">
-                Date & Time <span className="text-rose-400">*</span>
+              <label className="block text-xs font-semibold text-heading mb-1">
+                Date & Time <span className="text-rose-500">*</span>
               </label>
               <input
                 type="datetime-local"
                 required
                 value={scheduleForm.scheduledAt}
                 onChange={(e) => setScheduleForm((p) => ({ ...p, scheduledAt: e.target.value }))}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
-                style={{ colorScheme: "dark" }}
+                className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary"
+                style={{ colorScheme: "auto" }}
               />
             </div>
 
             {/* Duration */}
             <div>
-              <label className="block text-xs font-semibold text-white/70 mb-1">Duration (min)</label>
+              <label className="block text-xs font-semibold text-heading mb-1">Duration (min)</label>
               <select
                 value={scheduleForm.durationMinutes}
                 onChange={(e) => setScheduleForm((p) => ({ ...p, durationMinutes: Number(e.target.value) }))}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 [&>option]:bg-[#0f1629]"
+                style={{ colorScheme: "auto" }}
+                className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary [&>option]:bg-surface [&>option]:text-heading"
               >
-                {[15, 30, 45, 60, 90, 120].map((d) => <option key={d} value={d}>{d} min</option>)}
+                {[15, 30, 45, 60, 90, 120].map((d) => <option key={d} value={d} className="bg-surface text-heading">{d} min</option>)}
               </select>
             </div>
           </div>
 
           {/* Interviewer Name */}
           <div>
-            <label className="block text-xs font-semibold text-white/70 mb-1">Interviewer Name</label>
+            <label className="block text-xs font-semibold text-heading mb-1">Interviewer Name</label>
             <input
               type="text"
               placeholder="e.g. Sarah Connor"
               value={scheduleForm.interviewerName}
               onChange={(e) => setScheduleForm((p) => ({ ...p, interviewerName: e.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 placeholder:text-white/25"
+              className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary placeholder:text-muted"
             />
           </div>
 
           {/* Internal Notes */}
           <div>
-            <label className="block text-xs font-semibold text-white/70 mb-1">Internal Notes (not visible to candidate)</label>
+            <label className="block text-xs font-semibold text-heading mb-1">Internal Notes (not visible to candidate)</label>
             <textarea
               rows={2}
               placeholder="Focus areas, prep notes, panel details…"
               value={scheduleForm.internalNotes}
               onChange={(e) => setScheduleForm((p) => ({ ...p, internalNotes: e.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 placeholder:text-white/25 resize-none"
+              className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary placeholder:text-muted resize-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={actionLoading}
-            className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3 text-xs font-bold text-white hover:opacity-90 transition disabled:opacity-60 cursor-pointer shadow-lg flex items-center justify-center gap-2"
+            className="w-full rounded-2xl gradient-bg-signature py-3 text-xs font-bold text-white hover:opacity-90 transition disabled:opacity-60 cursor-pointer shadow-lg flex items-center justify-center gap-2"
           >
             {actionLoading ? (
               <><Loader2 className="h-4 w-4 animate-spin" /> Scheduling…</>
@@ -717,22 +723,22 @@ export default function RecruiterInterviewsPage() {
       >
         {showFeedback && (
           <form onSubmit={handleFeedbackSubmit} className="space-y-5 font-satoshi">
-            <div className="rounded-2xl border border-white/5 bg-white/5 p-4 space-y-1">
-              <p className="text-sm font-bold text-white">{showFeedback.candidateName}</p>
-              <p className="text-xs text-slate-400">{showFeedback.jobTitle} · {showFeedback.interviewRound?.replace("_", " ")}</p>
-              <p className="text-xs text-slate-500">{formatInterviewDate(showFeedback.scheduledAt)}</p>
+            <div className="rounded-2xl border border-border bg-surface-elevated p-4 space-y-1">
+              <p className="text-sm font-bold text-heading">{showFeedback.candidateName}</p>
+              <p className="text-xs text-muted">{showFeedback.jobTitle} · {showFeedback.interviewRound?.replace("_", " ")}</p>
+              <p className="text-xs text-muted">{formatInterviewDate(showFeedback.scheduledAt)}</p>
             </div>
 
             {/* Rating */}
             <div>
-              <label className="block text-xs font-semibold text-white/70 mb-2">
-                Candidate Rating <span className="text-rose-400">*</span>
+              <label className="block text-xs font-semibold text-heading mb-2">
+                Candidate Rating <span className="text-rose-500">*</span>
               </label>
               <StarRating
                 value={feedbackForm.candidateRating}
                 onChange={(v) => setFeedbackForm((p) => ({ ...p, candidateRating: v }))}
               />
-              <p className="text-[11px] text-slate-500 mt-1">
+              <p className="text-[11px] text-muted mt-1">
                 {feedbackForm.candidateRating === 0 && "Select a rating"}
                 {feedbackForm.candidateRating === 1 && "Poor — Would not recommend"}
                 {feedbackForm.candidateRating === 2 && "Below average"}
@@ -744,13 +750,13 @@ export default function RecruiterInterviewsPage() {
 
             {/* Feedback text */}
             <div>
-              <label className="block text-xs font-semibold text-white/70 mb-1">Evaluation Notes</label>
+              <label className="block text-xs font-semibold text-heading mb-1">Evaluation Notes</label>
               <textarea
                 rows={4}
                 placeholder="Communication skills, technical depth, culture fit, recommendation…"
                 value={feedbackForm.feedback}
                 onChange={(e) => setFeedbackForm((p) => ({ ...p, feedback: e.target.value }))}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 placeholder:text-white/25 resize-none"
+                className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-heading outline-none focus:border-primary placeholder:text-muted resize-none"
               />
             </div>
 
@@ -758,14 +764,14 @@ export default function RecruiterInterviewsPage() {
               <button
                 type="button"
                 onClick={() => setShowFeedback(null)}
-                className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-bold text-slate-300 hover:bg-white/10 transition"
+                className="flex-1 rounded-xl border border-border bg-surface-elevated py-2.5 text-xs font-bold text-body hover:bg-surface-hover transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={actionLoading}
-                className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-xs font-bold text-white hover:bg-indigo-500 transition disabled:opacity-60 flex items-center justify-center gap-2"
+                className="flex-1 rounded-xl gradient-bg-signature py-2.5 text-xs font-bold text-white hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                 Submit & Complete
@@ -782,20 +788,20 @@ export default function RecruiterInterviewsPage() {
         title="Cancel Interview"
       >
         <div className="space-y-4 font-satoshi">
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-body">
             Are you sure you want to cancel this interview? This action cannot be undone.
           </p>
           <div className="flex gap-2">
             <button
               onClick={() => setShowCancel(null)}
-              className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2.5 text-xs font-bold text-slate-300 hover:bg-white/10 transition"
+              className="flex-1 rounded-xl border border-border bg-surface-elevated py-2.5 text-xs font-bold text-body hover:bg-surface-hover transition cursor-pointer"
             >
               Keep Interview
             </button>
             <button
               onClick={handleCancel}
               disabled={actionLoading}
-              className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white hover:bg-rose-500 transition disabled:opacity-60 flex items-center justify-center gap-2"
+              className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white hover:bg-rose-500 transition disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
             >
               {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
               Yes, Cancel Interview

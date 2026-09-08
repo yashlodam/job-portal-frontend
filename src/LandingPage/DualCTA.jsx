@@ -26,14 +26,9 @@ export default function DualCTA() {
   const isLight = theme === "light";
 
   return (
-    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 ${
-      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+    <section className={`relative overflow-hidden py-16 sm:py-20 lg:py-24 font-inter transition-colors duration-300 bg-transparent ${
+      isLight ? "text-slate-800" : "text-slate-200"
     }`} aria-label="Join JobPortal">
-      {/* Background Lighting */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/4 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-indigo-600/5 blur-[180px]" />
-      </div>
-
       <div className="section-container relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Card 1: Job Seekers */}
@@ -44,8 +39,8 @@ export default function DualCTA() {
             transition={{ duration: 0.6 }}
             className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-8 sm:p-10 shadow-2xl backdrop-blur-2xl transition ${
               isLight
-                ? "border-indigo-200 bg-white shadow-xl hover:border-indigo-300 hover:shadow-2xl"
-                : "border-indigo-500/30 bg-gradient-to-br from-[#0c1122]/95 via-[#090d16]/95 to-[#05070d]/95 hover:border-indigo-500/60 hover:shadow-[0_20px_50px_rgba(99,102,241,0.2)]"
+                ? "border-indigo-200/90 bg-white/90 shadow-xl hover:border-indigo-300 hover:shadow-2xl"
+                : "border-indigo-500/30 bg-gradient-to-br from-[#0c1122]/90 via-[#090d16]/90 to-[#05070d]/90 hover:border-indigo-500/60 hover:shadow-[0_20px_50px_rgba(99,102,241,0.2)]"
             }`}
           >
             {/* Top Accent */}
@@ -121,8 +116,8 @@ export default function DualCTA() {
             transition={{ duration: 0.6 }}
             className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-8 sm:p-10 shadow-2xl backdrop-blur-2xl transition ${
               isLight
-                ? "border-purple-200 bg-white shadow-xl hover:border-purple-300 hover:shadow-2xl"
-                : "border-purple-500/30 bg-gradient-to-br from-[#120c1f]/95 via-[#090d16]/95 to-[#05070d]/95 hover:border-purple-500/60 hover:shadow-[0_20px_50px_rgba(168,85,247,0.2)]"
+                ? "border-purple-200/90 bg-white/90 shadow-xl hover:border-purple-300 hover:shadow-2xl"
+                : "border-purple-500/30 bg-gradient-to-br from-[#120c1f]/90 via-[#090d16]/90 to-[#05070d]/90 hover:border-purple-500/60 hover:shadow-[0_20px_50px_rgba(168,85,247,0.2)]"
             }`}
           >
             {/* Top Accent */}
@@ -171,14 +166,14 @@ export default function DualCTA() {
               isLight ? "border-slate-100" : "border-white/10"
             }`}>
               <Link
-                to="/recruiter/post-job"
+                to="/upload-job"
                 className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 px-6 py-3.5 text-xs font-extrabold !text-white shadow-lg hover:scale-105 transition cursor-pointer"
               >
                 <span className="!text-white">Post a Job Opening</span>
                 <ArrowRight size={14} className="!text-white" />
               </Link>
               <Link
-                to="/talent"
+                to="/find-talent"
                 className={`inline-flex items-center gap-2 rounded-2xl border px-5 py-3.5 text-xs font-bold transition cursor-pointer ${
                   isLight
                     ? "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"

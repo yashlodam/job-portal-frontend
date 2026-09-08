@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import { getCandidateInterviewsApi } from "../api/recruiterInterviewApi";
 import { useAppDispatch, useAppSelector } from "../State/Store";
-import { fetchMyApplicationsThunk, withdrawApplicationThunk } from "../State/applicationThunk";
+import { fetchMyApplicationsThunk, withdrawApplicationThunk, updateApplicationStatusThunk } from "../State/applicationThunk";
 import { fetchMySavedJobsThunk, unsaveJobThunk } from "../State/savedJobThunk";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card";
 import { StatusChip } from "../components/ui/Badge";
@@ -115,6 +115,8 @@ export default function MyJobsPage() {
   const [selectedApp, setSelectedApp] = useState(null);
   const [withdrawTarget, setWithdrawTarget] = useState(null);
   const [withdrawing, setWithdrawing] = useState(false);
+  const [confirmAcceptOffer, setConfirmAcceptOffer] = useState(null);
+  const [isAcceptingOffer, setIsAcceptingOffer] = useState(false);
 
   // ── Interview State ────────────────────────────────────────────────────────
   const [interviewList, setInterviewList] = useState([]);
@@ -859,12 +861,8 @@ export default function MyJobsPage() {
                         </span>
                       ) : (
                         <button
-                          onClick={() =>
-                            toast.success(
-                              "✅ Offer accepted! Our onboarding team will be in touch within 24 hours."
-                            )
-                          }
-                          className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-amber-500/20 hover:scale-105 hover:shadow-amber-500/30 transition cursor-pointer"
+                          onClick={() => setConfirmAcceptOffer(offer)}
+                          className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-500/20 hover:scale-105 hover:shadow-emerald-500/30 transition cursor-pointer"
                         >
                           <CheckCircle2 className="h-4 w-4" />
                           Accept Offer
@@ -976,6 +974,73 @@ export default function MyJobsPage() {
                     <span>Yes, Withdraw</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ─────────────────────────────────────────────────────────────────────────────
+          ACCEPT OFFER CONFIRMATION MODAL
+         ───────────────────────────────────────────────────────────────────────────── */}
+      <Modal
+        isOpen={Boolean(confirmAcceptOffer)}
+        onClose={() => !isAcceptingOffer && setConfirmAcceptOffer(null)}
+        title="Accept Job Offer"
+      >
+        {confirmAcceptOffer && (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <div className="text-xs space-y-1">
+                <p className="font-bold text-heading">
+                  Confirm Offer Acceptance
+                </p>
+                <p className="text-muted leading-relaxed">
+                  You are accepting the offer for{" "}
+                  <span className="font-semibold text-heading">
+                    {confirmAcceptOffer.jobTitle || confirmAcceptOffer.job?.title || "this position"}
+                  </span>{" "}
+                  at{" "}
+                  <span className="font-semibold text-heading">
+                    {confirmAcceptOffer.companyName || confirmAcceptOffer.job?.companyName || "the company"}
+                  </span>.
+                  The hiring team will be updated directly.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmAcceptOffer(null)}
+                disabled={isAcceptingOffer}
+                className="rounded-xl border border-border bg-surface px-4 py-2 text-xs font-semibold text-body hover:bg-surface-hover transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const appId = confirmAcceptOffer.id || confirmAcceptOffer.applicationId;
+                  if (!appId) return;
+                  setIsAcceptingOffer(true);
+                  try {
+                    await dispatch(updateApplicationStatusThunk({ applicationId: appId, status: "ACCEPTED" })).unwrap();
+                    await dispatch(fetchMyApplicationsThunk());
+                    toast.success("Offer accepted! Congratulations on your new role.");
+                    setConfirmAcceptOffer(null);
+                  } catch (err) {
+                    toast.error(err?.message || "Failed to update offer status. Please try again or reach out to the recruiter.");
+                  } finally {
+                    setIsAcceptingOffer(false);
+                  }
+                }}
+                disabled={isAcceptingOffer}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2 text-xs font-bold text-white shadow-md hover:from-emerald-500 hover:to-teal-500 transition cursor-pointer disabled:opacity-50"
+              >
+                {isAcceptingOffer && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Confirm & Accept
               </button>
             </div>
           </div>

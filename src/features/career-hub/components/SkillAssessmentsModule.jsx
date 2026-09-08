@@ -642,14 +642,14 @@ export default function SkillAssessmentsModule() {
                   {certificateModal.candidateName}
                 </h2>
                 <p className="text-xs sm:text-sm text-body max-w-md mx-auto leading-relaxed">
-                  Has successfully passed the formal technical competency examination administered by Velora Enterprise Assessment Engine.
+                  Has successfully passed the formal technical competency examination administered by JobPortal AI Assessment Engine.
                 </p>
               </div>
 
               <div className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted">
                 <div className="text-left">
                   <span className="font-bold text-heading block">Issued Date: {certificateModal.date}</span>
-                  <span>Authority: Velora Certification Board</span>
+                  <span>Authority: JobPortal AI Certification Board</span>
                 </div>
 
                 <div className="flex items-center gap-3">

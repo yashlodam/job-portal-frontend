@@ -18,7 +18,6 @@ function RecommendTalent({ currentId }) {
           setRecommended(filtered.slice(0, 3));
         }
       } catch (err) {
-        console.error("Error loading candidate recommendations:", err);
         if (isMounted) setRecommended([]);
       } finally {
         if (isMounted) setLoading(false);

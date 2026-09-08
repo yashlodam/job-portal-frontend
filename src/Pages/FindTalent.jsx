@@ -228,9 +228,9 @@ function FindTalent() {
       try {
         const params = {};
         if (searchQuery.trim()) params.keyword = searchQuery.trim();
-        if (selectedSkills.length > 0) params.skill = selectedSkills[0];
-        if (selectedExperience.length > 0) params.experienceLevel = selectedExperience[0];
-        if (selectedAvailability.length > 0) params.availability = selectedAvailability[0];
+        if (selectedSkills.length > 0) params.skill = selectedSkills.join(",");
+        if (selectedExperience.length > 0) params.experienceLevel = selectedExperience.join(",");
+        if (selectedAvailability.length > 0) params.availability = selectedAvailability.join(",");
         if (selectedLocation && selectedLocation !== "All Locations") params.location = selectedLocation;
 
         const res = await searchTalent(params);
@@ -255,7 +255,6 @@ function FindTalent() {
           setApiTalentList([]);
         }
       } catch (err) {
-        console.error("Error loading candidate directory:", err);
         if (isMounted) setApiTalentList([]);
       } finally {
         if (isMounted) setIsLoading(false);

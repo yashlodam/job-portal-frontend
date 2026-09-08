@@ -17,28 +17,28 @@ export default function SkillChip({
   onAction = null,
 }) {
   let styles = {
-    bg: "bg-emerald-500/10 hover:bg-emerald-500/20",
+    bg: "bg-emerald-500/15 hover:bg-emerald-500/25",
     border: "border-emerald-500/30",
-    text: "text-emerald-300",
+    text: "text-emerald-700 dark:text-emerald-300",
     icon: Check,
-    iconColor: "text-emerald-400",
+    iconColor: "text-emerald-500",
   };
 
   if (type === "missing") {
     styles = {
       bg: "bg-rose-500/10 hover:bg-rose-500/20",
       border: "border-rose-500/30",
-      text: "text-rose-300",
+      text: "text-rose-700 dark:text-rose-300",
       icon: AlertCircle,
-      iconColor: "text-rose-400",
+      iconColor: "text-rose-500",
     };
   } else if (type === "recommended") {
     styles = {
-      bg: "bg-indigo-500/10 hover:bg-indigo-500/20",
-      border: "border-indigo-500/30",
-      text: "text-indigo-300",
+      bg: "bg-primary/15 hover:bg-primary/25",
+      border: "border-primary/30",
+      text: "text-primary dark:text-indigo-300",
       icon: Sparkles,
-      iconColor: "text-indigo-400",
+      iconColor: "text-primary",
     };
   }
 
@@ -56,25 +56,25 @@ export default function SkillChip({
       <span className={styles.text}>{name}</span>
 
       {category && (
-        <span className="text-[10px] text-slate-400 font-bold px-1.5 py-0.5 rounded-md bg-white/5 border border-white/5">
+        <span className="text-[10px] text-muted font-bold px-1.5 py-0.5 rounded-md bg-surface-elevated border border-border">
           {category}
         </span>
       )}
 
       {matchScore !== null && (
-        <span className="text-[10px] text-emerald-400 font-extrabold ml-0.5">
+        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold ml-0.5">
           {matchScore}%
         </span>
       )}
 
       {priority && (
-        <span className="text-[9px] uppercase tracking-wider font-black px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300">
+        <span className="text-[9px] uppercase tracking-wider font-black px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-700 dark:text-rose-300">
           {priority}
         </span>
       )}
 
       {onAction && type === "missing" && (
-        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500/30 text-rose-200 hover:bg-rose-500/50">
+        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500/30 text-rose-700 dark:text-rose-200 hover:bg-rose-500/50">
           <Plus size={10} />
         </span>
       )}
