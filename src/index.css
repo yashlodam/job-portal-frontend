@@ -5,6 +5,8 @@
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,600,700,800,900&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================================
    Design Tokens
    ============================================================ */
@@ -287,39 +289,53 @@ html.light h1 span[class*="bg-clip-text"] {
 }
 
 /* ── 8. Colored Text / Badges Contrast Enhancement in Light Mode ── */
+html.light .text-indigo-100,
+html.light .text-indigo-200,
 html.light .text-indigo-300,
 html.light .text-indigo-400 {
-  color: #4338CA !important;
+  color: #3730A3 !important;
 }
 
+html.light .text-purple-100,
+html.light .text-purple-200,
 html.light .text-purple-300,
 html.light .text-purple-400 {
-  color: #6D28D9 !important;
+  color: #5B21B6 !important;
 }
 
+html.light .text-pink-100,
+html.light .text-pink-200,
 html.light .text-pink-300,
 html.light .text-pink-400 {
-  color: #BE185D !important;
+  color: #9F1239 !important;
 }
 
+html.light .text-cyan-100,
+html.light .text-cyan-200,
 html.light .text-cyan-300,
 html.light .text-cyan-400 {
-  color: #0E7490 !important;
+  color: #155E75 !important;
 }
 
+html.light .text-emerald-100,
+html.light .text-emerald-200,
 html.light .text-emerald-300,
 html.light .text-emerald-400 {
-  color: #047857 !important;
+  color: #064E3B !important;
 }
 
+html.light .text-amber-100,
+html.light .text-amber-200,
 html.light .text-amber-300,
 html.light .text-amber-400 {
-  color: #B45309 !important;
+  color: #78350F !important;
 }
 
+html.light .text-rose-100,
+html.light .text-rose-200,
 html.light .text-rose-300,
 html.light .text-rose-400 {
-  color: #BE123C !important;
+  color: #881337 !important;
 }
 
 /* ── 9. Soft Pill Badge Backgrounds ── */

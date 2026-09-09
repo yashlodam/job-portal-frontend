@@ -66,9 +66,8 @@ export default function PendingRecruiterDashboard() {
   const isRejected = currentStatus === "REJECTED" || currentStatus === "VERIFICATION_REJECTED";
   const isSuspended = currentStatus === "SUSPENDED";
 
-  const hasSubmittedCompany = Boolean(
-    verificationData?.companyName || user?.companyName
-  );
+  // companyName now comes from the API (populated from the companies table after submitVerification)
+  const hasSubmittedCompany = Boolean(verificationData?.companyName);
 
   // Stepper Calculation
   const steps = [

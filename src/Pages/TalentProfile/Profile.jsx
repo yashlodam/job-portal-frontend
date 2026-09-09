@@ -16,6 +16,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createOrGetConversationApi, resolveCandidateUserId } from "../../api/chatApi";
 import { useToast } from "../../components/ui/ToastNotification";
+import { resolveImageUrl } from "../../utils/assetUtils";
 
 function Profile(profile) {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ function Profile(profile) {
         <div className="h-48 sm:h-64 w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950">
           {profile.bannerImage ? (
             <img
-              src={profile.bannerImage}
+              src={resolveImageUrl(profile.bannerImage, "uploads")}
               alt="Profile banner"
               className="h-full w-full object-cover"
             />
@@ -83,7 +84,7 @@ function Profile(profile) {
             "
           >
             <img
-              src={profile.profileImage || "/profile.png"}
+              src={resolveImageUrl(profile.profileImage, "uploads", "/profile.png")}
               alt={profile.name}
               className="h-full w-full object-cover"
               onError={(e) => {

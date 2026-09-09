@@ -34,11 +34,12 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useMemo,
   memo,
 } from "react";
 
 import { useAppDispatch, useAppSelector } from "../State/Store";
-import { getAssetUrl } from "../utils/assetUtils";
+import { getAssetUrl, resolveImageUrl } from "../utils/assetUtils";
 
 // ── Thunks ────────────────────────────────────────────────────────────────────
 import {
@@ -51,14 +52,19 @@ import {
   deleteSkillThunk,
   addExperienceThunk,
   updateExperienceThunk,
+  fetchExperiencesThunk,
   deleteExperienceThunk,
   addEducationThunk,
+  updateEducationThunk,
+  fetchEducationsThunk,
   deleteEducationThunk,
   addCertificationThunk,
   updateCertificationThunk,
+  fetchCertificationsThunk,
   deleteCertificationThunk,
   addLanguageThunk,
   deleteLanguageThunk,
+  fetchLanguagesThunk,
   fetchMyProfileThunk,
 } from "../State/profileThunk";
 import {
@@ -303,12 +309,12 @@ function DeleteButton({ onClick, label }) {
 export const AVAILABILITY_OPTIONS = [
   {
     label: "Open to Work",
-    value: "Open to Work",
+    value: "OPEN_TO_WORK",
     color: "bg-success/15 border-success/30 text-success-light",
   },
   {
-    label: "Open to Opportunities",
-    value: "Open to Opportunities",
+    label: "Employed",
+    value: "EMPLOYED",
     color: "bg-primary/15 border-primary/30 text-primary-light",
   },
   {
@@ -493,7 +499,16 @@ const CertificateImageCard = memo(function CertificateImageCard({ src, alt, onOp
    - saveEdit(thunkFn)  : dispatches the thunk, exits on success
    ============================================================ */
 
-function useEditableSection({ dispatch, sectionKey }) {
+const formatDateToYYYYMMDD = (val) => {
+  if (!val) return null;
+  if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+  const parsed = dayjs(val);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : null;
+};
+
+function useEditableSection(opts = {}) {
+  const storeDispatch = useAppDispatch();
+  const dispatch = (opts && typeof opts.dispatch === "function") ? opts.dispatch : storeDispatch;
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const snapshotRef = useRef(null); // deep clone of data at edit-start
@@ -513,15 +528,43 @@ function useEditableSection({ dispatch, sectionKey }) {
   }, []);
 
   const saveEdit = useCallback(
-    async (thunk, onSuccess) => {
+    async (actionOrFn, onSuccess) => {
       setSaving(true);
       try {
-        await dispatch(thunk).unwrap();
+        if (typeof actionOrFn === "function") {
+          const res = dispatch(actionOrFn);
+          if (res && typeof res.unwrap === "function") {
+            await res.unwrap();
+          } else {
+            await res;
+          }
+        } else if (actionOrFn && typeof actionOrFn.unwrap === "function") {
+          await actionOrFn.unwrap();
+        } else if (actionOrFn?.then) {
+          await actionOrFn;
+        } else if (actionOrFn) {
+          const res = dispatch(actionOrFn);
+          if (res && typeof res.unwrap === "function") {
+            await res.unwrap();
+          } else {
+            await res;
+          }
+        }
         snapshotRef.current = null;
         setEditing(false);
         if (onSuccess) onSuccess();
-      } catch {
-        // Error toasted via global Redux error effect
+      } catch (err) {
+        console.error("Save section error:", err);
+        const errorMsg =
+          err?.message ||
+          err?.error ||
+          (typeof err === "string" ? err : "Failed to save changes. Please try again.");
+        notifications.show({
+          title: "Save Failed",
+          message: errorMsg,
+          color: "red",
+          autoClose: 4000,
+        });
       } finally {
         setSaving(false);
       }
@@ -597,14 +640,19 @@ function Profile() {
 
   // ── Normalise & hydrate from Redux ────────────────────────────────────────
   const normalise = useCallback((rp) => ({
-    id: rp.id,
+    id: rp.id ?? rp.profileId ?? rp.userId ?? rp._id,
     name: rp.name ?? "",
-    jobTitle: rp.headline ?? rp.role ?? "",
-    company: rp.company ?? "",
+    jobTitle: rp.headline ?? rp.jobTitle ?? rp.role ?? "",
+    company: rp.company ?? rp.currentCompany ?? "",
     location: rp.location ?? "",
     about: typeof rp.about === "string" ? rp.about : rp.about?.about ?? "",
-    availability: rp.availability ?? "OPEN_TO_WORK",
     experienceLevel: rp.experienceLevel ?? "MID_LEVEL",
+    availability: rp.availability ? (
+      rp.availability === "Open to Work" || rp.availability === "Open to Opportunities" ? "OPEN_TO_WORK" :
+      rp.availability === "Employed" ? "EMPLOYED" :
+      rp.availability === "Not Looking" ? "NOT_LOOKING" :
+      rp.availability
+    ) : "OPEN_TO_WORK",
     profileImage: rp.profileImage ?? null,
     bannerImage: rp.bannerImage ?? null,
 
@@ -613,13 +661,13 @@ function Profile() {
     // Map ExperienceResponse fields → local UI fields
     experience: (rp.experiences ?? rp.experience ?? []).map((e) => ({
       _id: e.id ? `id_${e.id}` : uid(),
-      id: e.id,
-      title: e.title ?? "",
-      company: e.company ?? "",
+      id: e.id ?? e._id ?? null,
+      title: e.title ?? e.jobTitle ?? e.role ?? "",
+      company: e.company ?? e.companyName ?? "",
       location: e.location ?? "",
       startDate: e.startDate ?? "",
       endDate: e.endDate ?? "",
-      working: e.working ?? false,
+      working: e.working ?? e.currentlyWorking ?? false,
       description: e.description ?? "",
       employmentType: e.employmentType ?? "",
     })),
@@ -627,9 +675,9 @@ function Profile() {
     // Map EducationResponse fields → local UI fields
     education: (rp.educations ?? rp.education ?? []).map((e) => ({
       _id: e.id ? `id_${e.id}` : uid(),
-      id: e.id,
+      id: e.id ?? e._id ?? null,
       degree: e.degree ?? "",
-      collegeName: e.collegeName ?? "",
+      collegeName: e.collegeName ?? e.school ?? e.institution ?? "",
       university: e.university ?? "",
       startDate: e.startDate ?? "",
       endDate: e.endDate ?? "",
@@ -640,20 +688,21 @@ function Profile() {
     // Map CertificationResponse fields → local UI fields
     certifications: (rp.certifications ?? []).map((c) => ({
       _id: c.id ? `id_${c.id}` : uid(),
-      id: c.id,
-      title: c.title ?? "",
-      issuer: c.issuer ?? "",
+      id: c.id ?? c._id ?? null,
+      title: c.title ?? c.name ?? "",
+      issuer: c.issuer ?? c.issuingOrganization ?? "",
       issueDate: c.issueDate ?? "",
       certificateId: c.certificateId ?? "",
       certificateUrl: c.certificateUrl ?? "",
+      imageUrl: c.imageUrl ?? c.certificateImage ?? null,
     })),
 
     languages: Array.isArray(rp.languages) ? rp.languages : [],
 
     socialLinks: {
-      linkedin: rp.linkedinUrl ?? rp.links?.linkedinUrl ?? "",
-      github: rp.githubUrl ?? rp.links?.githubUrl ?? "",
-      portfolio: rp.portfolioUrl ?? rp.links?.portfolioUrl ?? "",
+      linkedin: rp.linkedinUrl ?? rp.links?.linkedinUrl ?? rp.socialLinks?.linkedin ?? "",
+      github: rp.githubUrl ?? rp.links?.githubUrl ?? rp.socialLinks?.github ?? "",
+      portfolio: rp.portfolioUrl ?? rp.links?.portfolioUrl ?? rp.socialLinks?.portfolio ?? "",
     },
 
     resume: {
@@ -666,9 +715,13 @@ function Profile() {
     if (!reduxProfile) return;
     const normalised = normalise(reduxProfile);
     setData(normalised);
-    prevBannerRef.current = reduxProfile.bannerImage ?? null;
+    if (reduxProfile.bannerImage && reduxProfile.bannerImage !== prevBannerRef.current) {
+      prevBannerRef.current = reduxProfile.bannerImage;
+      setBannerLoaded(false);
+    } else if (!prevBannerRef.current && reduxProfile.bannerImage) {
+      prevBannerRef.current = reduxProfile.bannerImage;
+    }
     prevAvatarRef.current = reduxProfile.profileImage ?? null;
-    setBannerLoaded(false);
   }, [reduxProfile, normalise]);
 
   // ── Toast handlers ────────────────────────────────────────────────────────
@@ -711,25 +764,57 @@ function Profile() {
 
   const handleBannerSelect = useCallback(async (e) => {
     const file = e.target.files?.[0];
-    if (!file || !data?.id) return;
+    if (!file || !data) return;
     revokeBlob(prevBannerRef.current);
     const url = URL.createObjectURL(file);
     prevBannerRef.current = url;
     setBannerLoaded(false);
     setData((prev) => ({ ...prev, bannerImage: url }));
     e.target.value = "";
-    dispatch(uploadBannerImageThunk(file));
+    try {
+      await dispatch(uploadBannerImageThunk(file)).unwrap();
+      dispatch(fetchMyProfileThunk());
+      notifications.show({
+        title: "Banner Updated",
+        message: "Your banner image has been updated.",
+        color: "teal",
+        autoClose: 3000,
+      });
+    } catch (err) {
+      notifications.show({
+        title: "Banner Upload Failed",
+        message: err?.message || "Failed to upload banner image.",
+        color: "red",
+        autoClose: 4000,
+      });
+    }
   }, [data, dispatch]);
 
   const handleAvatarSelect = useCallback(async (e) => {
     const file = e.target.files?.[0];
-    if (!file || !data?.id) return;
+    if (!file || !data) return;
     revokeBlob(prevAvatarRef.current);
     const url = URL.createObjectURL(file);
     prevAvatarRef.current = url;
     setData((prev) => ({ ...prev, profileImage: url }));
     e.target.value = "";
-    dispatch(uploadProfileImageThunk(file));
+    try {
+      await dispatch(uploadProfileImageThunk(file)).unwrap();
+      dispatch(fetchMyProfileThunk());
+      notifications.show({
+        title: "Profile Photo Updated",
+        message: "Your profile photo has been updated successfully.",
+        color: "teal",
+        autoClose: 3000,
+      });
+    } catch (err) {
+      notifications.show({
+        title: "Photo Upload Failed",
+        message: err?.message || "Failed to upload profile photo.",
+        color: "red",
+        autoClose: 4000,
+      });
+    }
   }, [data, dispatch]);
 
 
@@ -753,8 +838,19 @@ function Profile() {
           })
         ).unwrap();
         dispatch(fetchMyResumesThunk());
+        notifications.show({
+          title: "Resume Uploaded",
+          message: `${file.name} uploaded successfully.`,
+          color: "teal",
+          autoClose: 2500,
+        });
       } catch (error) {
-        // Handled silently
+        notifications.show({
+          title: "Upload Failed",
+          message: error?.message || "Could not upload resume.",
+          color: "red",
+          autoClose: 4000,
+        });
       } finally {
         e.target.value = "";
       }
@@ -767,8 +863,19 @@ function Profile() {
       try {
         await dispatch(deleteResumeThunk(resumeId)).unwrap();
         dispatch(fetchMyResumesThunk());
+        notifications.show({
+          title: "Resume Deleted",
+          message: "Resume removed successfully.",
+          color: "teal",
+          autoClose: 2500,
+        });
       } catch (error) {
-        // Handled silently
+        notifications.show({
+          title: "Delete Failed",
+          message: error?.message || "Could not delete resume.",
+          color: "red",
+          autoClose: 4000,
+        });
       }
     },
     [dispatch]
@@ -779,8 +886,19 @@ function Profile() {
       try {
         await dispatch(setDefaultResumeThunk(resumeId)).unwrap();
         dispatch(fetchMyResumesThunk());
+        notifications.show({
+          title: "Default Resume Updated",
+          message: "Set as default application resume.",
+          color: "teal",
+          autoClose: 2500,
+        });
       } catch (error) {
-        // Handled silently
+        notifications.show({
+          title: "Update Failed",
+          message: error?.message || "Could not update default resume.",
+          color: "red",
+          autoClose: 4000,
+        });
       }
     },
     [dispatch]
@@ -807,22 +925,22 @@ function Profile() {
   }, [headerSection]);
 
   const onSaveHeader = useCallback(() => {
-    if (!data?.id || !headerDraft) return;
-    headerSection.saveEdit(
-      updateHeaderThunk({
-         headline: headerDraft.jobTitle,
-       currentCompany: headerDraft.company,
-       location: headerDraft.location,
-        availability: headerDraft.availability,
-        experienceLevel: headerDraft.experienceLevel,
-      }),
-      () => {
-        // Merge saved draft into canonical data
-        setData((prev) => ({ ...prev, ...headerDraft }));
-        setHeaderDraft(null);
-      }
-    );
-  }, [data, headerDraft, headerSection]);
+    if (!data || !headerDraft) return;
+    headerSection.saveEdit(async () => {
+      const payload = {
+        name: headerDraft.name ? headerDraft.name.trim() : null,
+        headline: headerDraft.jobTitle ? headerDraft.jobTitle.trim() : null,
+        currentCompany: headerDraft.company ? headerDraft.company.trim() : null,
+        location: headerDraft.location ? headerDraft.location.trim() : null,
+        availability: headerDraft.availability || null,
+        experienceLevel: headerDraft.experienceLevel || null,
+      };
+      await dispatch(updateHeaderThunk(payload)).unwrap();
+      setData((prev) => ({ ...prev, ...headerDraft }));
+      setHeaderDraft(null);
+      await dispatch(fetchMyProfileThunk()).unwrap();
+    });
+  }, [data, headerDraft, headerSection, dispatch]);
 
   /* ================================================================
      ABOUT section handlers
@@ -839,15 +957,14 @@ function Profile() {
   }, [aboutSection]);
 
   const onSaveAbout = useCallback(() => {
-    if (!data?.id) return;
-    aboutSection.saveEdit(
-      updateAboutThunk({ about: aboutDraft }),
-      () => {
-        setData((prev) => ({ ...prev, about: aboutDraft }));
-        setAboutDraft(null);
-      }
-    );
-  }, [data, aboutDraft, aboutSection]);
+    if (!data) return;
+    aboutSection.saveEdit(async () => {
+      await dispatch(updateAboutThunk({ about: aboutDraft ?? "" })).unwrap();
+      setData((prev) => ({ ...prev, about: aboutDraft ?? "" }));
+      setAboutDraft(null);
+      await dispatch(fetchMyProfileThunk()).unwrap();
+    });
+  }, [data, aboutDraft, aboutSection, dispatch]);
 
   /* ================================================================
      LINKS section handlers
@@ -864,19 +981,19 @@ function Profile() {
   }, [linksSection]);
 
   const onSaveLinks = useCallback(() => {
-    if (!data?.id || !linksDraft) return;
-    linksSection.saveEdit(
-      updateLinksThunk({
-        linkedinUrl: linksDraft.linkedin,
-        githubUrl: linksDraft.github,
-        portfolioUrl: linksDraft.portfolio,
-      }),
-      () => {
-        setData((prev) => ({ ...prev, socialLinks: { ...linksDraft } }));
-        setLinksDraft(null);
-      }
-    );
-  }, [data, linksDraft, linksSection]);
+    if (!data || !linksDraft) return;
+    linksSection.saveEdit(async () => {
+      const payload = {
+        linkedinUrl: linksDraft.linkedin ? linksDraft.linkedin.trim() : null,
+        githubUrl: linksDraft.github ? linksDraft.github.trim() : null,
+        portfolioUrl: linksDraft.portfolio ? linksDraft.portfolio.trim() : null,
+      };
+      await dispatch(updateLinksThunk(payload)).unwrap();
+      setData((prev) => ({ ...prev, socialLinks: { ...linksDraft } }));
+      setLinksDraft(null);
+      await dispatch(fetchMyProfileThunk()).unwrap();
+    });
+  }, [data, linksDraft, linksSection, dispatch]);
 
   /* ================================================================
      SKILLS section handlers
@@ -902,13 +1019,28 @@ function Profile() {
     skillsSection.cancelEdit(null);
   }, [skillsDraft, skillsSection]);
 
-  const onSaveSkills = useCallback(() => {
-    // Skills are saved optimistically on add/delete, so closing is enough
-    setData((prev) => ({ ...prev })); // no-op flush
+  const onSaveSkills = useCallback(async () => {
+    const pendingSkill = skillInput.trim();
+    if (pendingSkill) {
+      if (!data.skills.some((s) => (typeof s === "string" ? s : s.skill || s.name) === pendingSkill)) {
+        setData((prev) => ({ ...prev, skills: [...prev.skills, pendingSkill] }));
+        try {
+          await dispatch(addSkillThunk(pendingSkill)).unwrap();
+        } catch {
+          // Toast handled by Redux
+        }
+      }
+    }
     setSkillsDraft(null);
     setSkillInput("");
-    skillsSection.cancelEdit(null); // just close; no API call needed here
-  }, [skillsSection]);
+    skillsSection.cancelEdit(null);
+    notifications.show({
+      title: "Skills Saved",
+      message: "Your skills have been updated.",
+      color: "teal",
+      autoClose: 2500,
+    });
+  }, [skillInput, data, dispatch, skillsSection]);
 
   const addSkillLocal = useCallback(() => {
     const value = skillInput.trim();
@@ -952,27 +1084,80 @@ function Profile() {
   }, [expDraft, expSection]);
 
   const onSaveExp = useCallback(() => {
-    if (!data?.id) return;
-    // Flush all dirty rows to API — field names match ExperienceRequest DTO
-    data.experience.forEach((item) => {
-      const payload = {
-        title: item.title,
-        company: item.company,
-        location: item.location,
-        startDate: item.startDate || null,
-        endDate: item.endDate || null,
-        working: item.working ?? false,
-        description: item.description,
-        employmentType: item.employmentType,
-      };
-      if (item.isNew || !item.id) {
-        dispatch(addExperienceThunk(payload));
-      } else {
-        dispatch(updateExperienceThunk({ experienceId: item.id, data: payload }));
-      }
+    if (!data) return;
+
+    // Filter out completely empty items
+    const validExperiences = data.experience.filter((item) => {
+      return (
+        Boolean(item.title?.trim()) ||
+        Boolean(item.company?.trim()) ||
+        Boolean(item.location?.trim()) ||
+        Boolean(item.description?.trim())
+      );
     });
-    setExpDraft(null);
-    expSection.cancelEdit(null);
+
+    // Validate required fields on each remaining item
+    for (const item of validExperiences) {
+      if (!item.title?.trim()) {
+        notifications.show({
+          title: "Validation Error",
+          message: "Role / Job title is required for all experiences.",
+          color: "red",
+          autoClose: 4000,
+        });
+        return;
+      }
+      if (!item.company?.trim()) {
+        notifications.show({
+          title: "Validation Error",
+          message: `Company name is required for "${item.title}".`,
+          color: "red",
+          autoClose: 4000,
+        });
+        return;
+      }
+      const formattedStartDate = formatDateToYYYYMMDD(item.startDate);
+      if (!formattedStartDate) {
+        notifications.show({
+          title: "Validation Error",
+          message: `Start date is required for "${item.title}".`,
+          color: "red",
+          autoClose: 4000,
+        });
+        return;
+      }
+    }
+
+    expSection.saveEdit(async () => {
+      if (validExperiences.length === 0 && data.experience.length > 0) {
+        setData((prev) => ({ ...prev, experience: [] }));
+        setExpDraft(null);
+        return;
+      }
+
+      const promises = validExperiences.map((item) => {
+        const payload = {
+          title: item.title.trim(),
+          company: item.company.trim(),
+          location: item.location?.trim() || null,
+          startDate: formatDateToYYYYMMDD(item.startDate),
+          endDate: formatDateToYYYYMMDD(item.endDate),
+          working: item.working ?? false,
+          description: item.description?.trim() || null,
+          employmentType: item.employmentType || null,
+        };
+        if (item.isNew || !item.id) {
+          return dispatch(addExperienceThunk(payload)).unwrap();
+        } else {
+          return dispatch(updateExperienceThunk({ experienceId: item.id, data: payload })).unwrap();
+        }
+      });
+
+      await Promise.all(promises);
+      await dispatch(fetchExperiencesThunk()).unwrap();
+      await dispatch(fetchMyProfileThunk()).unwrap();
+      setExpDraft(null);
+    });
   }, [data, expSection, dispatch]);
 
   const addExpItem = useCallback(() => {
@@ -1001,9 +1186,16 @@ function Profile() {
     setConfirm({
       title: "Remove Experience",
       message: `Are you sure you want to remove "${role || "this role"}"?`,
-      onConfirm: () => {
+      onConfirm: async () => {
         setData((prev) => ({ ...prev, experience: prev.experience.filter((e) => e._id !== localId) }));
-        if (backendId) dispatch(deleteExperienceThunk(backendId));
+        if (backendId) {
+          try {
+            await dispatch(deleteExperienceThunk(backendId)).unwrap();
+            dispatch(fetchExperiencesThunk());
+          } catch {
+            // Handled via toast
+          }
+        }
       },
     });
   }, [dispatch]);
@@ -1026,26 +1218,69 @@ function Profile() {
   }, [eduDraft, eduSection]);
 
   const onSaveEdu = useCallback(() => {
-    if (!data?.id) return;
-    // Field names match EducationRequest DTO
-    data.education.forEach((item) => {
-      const payload = {
-        degree: item.degree,
-        collegeName: item.collegeName,
-        university: item.university,
-        startDate: item.startDate || null,
-        endDate: item.endDate || null,
-        location: item.location,
-        grade: item.grade,
-      };
-      if (item.isNew || !item.id) {
-        dispatch(addEducationThunk(payload));
-      } else {
-        dispatch(updateEducationThunk({ educationId: item.id, data: payload }));
-      }
+    if (!data) return;
+
+    // Filter out completely empty items
+    const validEducations = data.education.filter((item) => {
+      return (
+        Boolean(item.degree?.trim()) ||
+        Boolean(item.collegeName?.trim()) ||
+        Boolean(item.university?.trim()) ||
+        Boolean(item.grade?.trim())
+      );
     });
-    setEduDraft(null);
-    eduSection.cancelEdit(null);
+
+    // Validate required fields
+    for (const item of validEducations) {
+      if (!item.degree?.trim()) {
+        notifications.show({
+          title: "Validation Error",
+          message: "Degree / Program is required for all education entries.",
+          color: "red",
+          autoClose: 4000,
+        });
+        return;
+      }
+      if (!item.collegeName?.trim()) {
+        notifications.show({
+          title: "Validation Error",
+          message: `College / Institution name is required for "${item.degree}".`,
+          color: "red",
+          autoClose: 4000,
+        });
+        return;
+      }
+    }
+
+    eduSection.saveEdit(async () => {
+      if (validEducations.length === 0 && data.education.length > 0) {
+        setData((prev) => ({ ...prev, education: [] }));
+        setEduDraft(null);
+        return;
+      }
+
+      const promises = validEducations.map((item) => {
+        const payload = {
+          degree: item.degree.trim(),
+          collegeName: item.collegeName.trim(),
+          university: item.university?.trim() || null,
+          startDate: formatDateToYYYYMMDD(item.startDate),
+          endDate: formatDateToYYYYMMDD(item.endDate),
+          location: item.location?.trim() || null,
+          grade: item.grade?.trim() || null,
+        };
+        if (item.isNew || !item.id) {
+          return dispatch(addEducationThunk(payload)).unwrap();
+        } else {
+          return dispatch(updateEducationThunk({ educationId: item.id, data: payload })).unwrap();
+        }
+      });
+
+      await Promise.all(promises);
+      await dispatch(fetchEducationsThunk()).unwrap();
+      await dispatch(fetchMyProfileThunk()).unwrap();
+      setEduDraft(null);
+    });
   }, [data, eduSection, dispatch]);
 
   const addEduItem = useCallback(() => {
@@ -1073,9 +1308,16 @@ function Profile() {
     setConfirm({
       title: "Remove Education",
       message: `Are you sure you want to remove "${degree || "this entry"}"?`,
-      onConfirm: () => {
+      onConfirm: async () => {
         setData((prev) => ({ ...prev, education: prev.education.filter((e) => e._id !== localId) }));
-        if (backendId) dispatch(deleteEducationThunk(backendId));
+        if (backendId) {
+          try {
+            await dispatch(deleteEducationThunk(backendId)).unwrap();
+            dispatch(fetchEducationsThunk());
+          } catch {
+            // Handled via toast
+          }
+        }
       },
     });
   }, [dispatch]);
@@ -1098,24 +1340,67 @@ function Profile() {
   }, [certDraft, certSection]);
 
   const onSaveCert = useCallback(() => {
-    if (!data?.id) return;
-    // Field names match CertificationRequest DTO
-    data.certifications.forEach((cert) => {
-      const payload = {
-        title: cert.title,
-        issuer: cert.issuer,
-        issueDate: cert.issueDate || null,
-        certificateId: cert.certificateId,
-        certificateUrl: cert.certificateUrl,
-      };
-      if (cert.isNew || !cert.id) {
-        dispatch(addCertificationThunk(payload));
-      } else {
-        dispatch(updateCertificationThunk({ certificationId: cert.id, data: payload }));
-      }
+    if (!data) return;
+
+    // Filter out completely empty items
+    const validCertifications = data.certifications.filter((cert) => {
+      return (
+        Boolean(cert.title?.trim()) ||
+        Boolean(cert.issuer?.trim()) ||
+        Boolean(cert.certificateId?.trim()) ||
+        Boolean(cert.certificateUrl?.trim())
+      );
     });
-    setCertDraft(null);
-    certSection.cancelEdit(null);
+
+    // Validate required fields
+    for (const cert of validCertifications) {
+      if (!cert.title?.trim()) {
+        notifications.show({
+          title: "Validation Error",
+          message: "Certificate title is required for all certifications.",
+          color: "red",
+          autoClose: 4000,
+        });
+        return;
+      }
+      if (!cert.issuer?.trim()) {
+        notifications.show({
+          title: "Validation Error",
+          message: `Issuer is required for "${cert.title}".`,
+          color: "red",
+          autoClose: 4000,
+        });
+        return;
+      }
+    }
+
+    certSection.saveEdit(async () => {
+      if (validCertifications.length === 0 && data.certifications.length > 0) {
+        setData((prev) => ({ ...prev, certifications: [] }));
+        setCertDraft(null);
+        return;
+      }
+
+      const promises = validCertifications.map((cert) => {
+        const payload = {
+          title: cert.title.trim(),
+          issuer: cert.issuer.trim(),
+          issueDate: formatDateToYYYYMMDD(cert.issueDate),
+          certificateId: cert.certificateId?.trim() || null,
+          certificateUrl: cert.certificateUrl?.trim() || null,
+        };
+        if (cert.isNew || !cert.id) {
+          return dispatch(addCertificationThunk(payload)).unwrap();
+        } else {
+          return dispatch(updateCertificationThunk({ certificationId: cert.id, data: payload })).unwrap();
+        }
+      });
+
+      await Promise.all(promises);
+      await dispatch(fetchCertificationsThunk()).unwrap();
+      await dispatch(fetchMyProfileThunk()).unwrap();
+      setCertDraft(null);
+    });
   }, [data, certSection, dispatch]);
 
   const addCertItem = useCallback(() => {
@@ -1143,9 +1428,16 @@ function Profile() {
     setConfirm({
       title: "Remove Certification",
       message: `Are you sure you want to remove "${title || "this certification"}"?`,
-      onConfirm: () => {
+      onConfirm: async () => {
         setData((prev) => ({ ...prev, certifications: prev.certifications.filter((c) => c._id !== localId) }));
-        if (backendId) dispatch(deleteCertificationThunk(backendId));
+        if (backendId) {
+          try {
+            await dispatch(deleteCertificationThunk(backendId)).unwrap();
+            dispatch(fetchCertificationsThunk());
+          } catch {
+            // Handled via toast
+          }
+        }
       },
     });
   }, [dispatch]);
@@ -1169,11 +1461,31 @@ function Profile() {
     langSection.cancelEdit(null);
   }, [langDraft, langSection]);
 
-  const onSaveLang = useCallback(() => {
+  const onSaveLang = useCallback(async () => {
+    const pendingLang = langInput.trim();
+    if (pendingLang) {
+      const exists = data.languages.some((l) =>
+        (typeof l === "object" ? l.language ?? l.name : l) === pendingLang
+      );
+      if (!exists) {
+        setData((prev) => ({ ...prev, languages: [...prev.languages, pendingLang] }));
+        try {
+          await dispatch(addLanguageThunk(pendingLang)).unwrap();
+        } catch {
+          // Handled via toast
+        }
+      }
+    }
     setLangDraft(null);
     setLangInput("");
     langSection.cancelEdit(null);
-  }, [langSection]);
+    notifications.show({
+      title: "Languages Saved",
+      message: "Your languages have been updated.",
+      color: "teal",
+      autoClose: 2500,
+    });
+  }, [langInput, data, dispatch, langSection]);
 
   const addLangLocal = useCallback(() => {
     const value = langInput.trim();
@@ -1203,13 +1515,8 @@ function Profile() {
 
   const availBadge = AVAILABILITY_OPTIONS.find((o) => o.value === data?.availability) ?? AVAILABILITY_OPTIONS[0];
 
-  const bannerSrc = data?.bannerImage
-    ? data.bannerImage.startsWith("blob:") ? data.bannerImage : getAssetUrl(`uploads/${data.bannerImage}`)
-    : null;
-
-  const avatarSrc = data?.profileImage
-    ? data.profileImage.startsWith("blob:") ? data.profileImage : getAssetUrl(`uploads/${data.profileImage}`)
-    : null;
+  const bannerSrc = useMemo(() => resolveImageUrl(data?.bannerImage, "uploads"), [data?.bannerImage]);
+  const avatarSrc = useMemo(() => resolveImageUrl(data?.profileImage, "uploads"), [data?.profileImage]);
 
   /* ── Certificate preview ── */
   const openCertPreview = useCallback((src, alt) => setCertPreview({ src, alt }), []);
@@ -1270,6 +1577,12 @@ function Profile() {
                 src={bannerSrc}
                 alt={`${data.name || "Profile"} banner`}
                 onLoad={() => setBannerLoaded(true)}
+                onError={() => setBannerLoaded(true)}
+                ref={(el) => {
+                  if (el && el.complete && el.naturalWidth > 0 && !bannerLoaded) {
+                    setBannerLoaded(true);
+                  }
+                }}
                 className={[
                   "absolute inset-0 h-full w-full object-cover object-center",
                   "transition-all duration-500 group-hover:scale-[1.03]",
@@ -1307,6 +1620,9 @@ function Profile() {
                     style={{ imageOrientation: "from-image" }}
                     loading="eager"
                     decoding="async"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-violet/20">
@@ -1659,15 +1975,27 @@ function Profile() {
                         <input className={inputCls} value={item.company ?? ""} placeholder="e.g. Google"
                           onChange={(e) => updateExpItem(item._id, "company", e.target.value)} />
                       </Field>
-                      <Field label="Start Date">
-                        <MonthPickerInput value={item.startDate ? new Date(item.startDate) : null}
-                          valueFormat="MMM YYYY" placeholder="Select month" clearable
-                          onChange={(v) => updateExpItem(item._id, "startDate", v || "")} />
+                      <Field label="Start Date" required>
+                        <MonthPickerInput
+                          value={item.startDate ? dayjs(item.startDate).toDate() : null}
+                          valueFormat="MMM YYYY"
+                          placeholder="Select month"
+                          clearable
+                          onChange={(v) =>
+                            updateExpItem(item._id, "startDate", formatDateToYYYYMMDD(v) || "")
+                          }
+                        />
                       </Field>
                       <Field label="End Date">
-                        <MonthPickerInput value={item.endDate ? new Date(item.endDate) : null}
-                          valueFormat="MMM YYYY" placeholder="Present" clearable
-                          onChange={(v) => updateExpItem(item._id, "endDate", v || "")} />
+                        <MonthPickerInput
+                          value={item.endDate ? dayjs(item.endDate).toDate() : null}
+                          valueFormat="MMM YYYY"
+                          placeholder="Present"
+                          clearable
+                          onChange={(v) =>
+                            updateExpItem(item._id, "endDate", formatDateToYYYYMMDD(v) || "")
+                          }
+                        />
                       </Field>
                       <Field label="Employment Type">
                         <select className={inputCls} value={item.employmentType ?? ""}
@@ -1762,14 +2090,26 @@ function Profile() {
                     </Field>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       <Field label="Start Date">
-                        <MonthPickerInput value={item.startDate ? new Date(item.startDate) : null}
-                          valueFormat="MMM YYYY" placeholder="Select month" clearable
-                          onChange={(v) => updateEduItem(item._id, "startDate", v || "")} />
+                        <MonthPickerInput
+                          value={item.startDate ? dayjs(item.startDate).toDate() : null}
+                          valueFormat="MMM YYYY"
+                          placeholder="Select month"
+                          clearable
+                          onChange={(v) =>
+                            updateEduItem(item._id, "startDate", formatDateToYYYYMMDD(v) || "")
+                          }
+                        />
                       </Field>
                       <Field label="End Date">
-                        <MonthPickerInput value={item.endDate ? new Date(item.endDate) : null}
-                          valueFormat="MMM YYYY" placeholder="Present" clearable
-                          onChange={(v) => updateEduItem(item._id, "endDate", v || "")} />
+                        <MonthPickerInput
+                          value={item.endDate ? dayjs(item.endDate).toDate() : null}
+                          valueFormat="MMM YYYY"
+                          placeholder="Present"
+                          clearable
+                          onChange={(v) =>
+                            updateEduItem(item._id, "endDate", formatDateToYYYYMMDD(v) || "")
+                          }
+                        />
                       </Field>
                       <Field label="Location">
                         <input className={inputCls} value={item.location ?? ""} placeholder="e.g. Pune"
@@ -1852,9 +2192,15 @@ function Profile() {
                           onChange={(e) => updateCertItem(cert._id, "issuer", e.target.value)} />
                       </Field>
                       <Field label="Issue Date">
-                        <MonthPickerInput value={cert.issueDate ? new Date(cert.issueDate) : null}
-                          valueFormat="MMM YYYY" placeholder="Select month" clearable
-                          onChange={(v) => updateCertItem(cert._id, "issueDate", v || "")} />
+                        <MonthPickerInput
+                          value={cert.issueDate ? dayjs(cert.issueDate).toDate() : null}
+                          valueFormat="MMM YYYY"
+                          placeholder="Select month"
+                          clearable
+                          onChange={(v) =>
+                            updateCertItem(cert._id, "issueDate", formatDateToYYYYMMDD(v) || "")
+                          }
+                        />
                       </Field>
                       <Field label="Certificate ID">
                         <input className={inputCls} value={cert.certificateId ?? ""} placeholder="e.g. AWS-SAA-2025"
@@ -1869,7 +2215,7 @@ function Profile() {
                       <div className="mt-2">
                         <p className={labelCls}>Certificate Image Preview</p>
                         <CertificateImageCard
-                          src={cert.imageUrl.startsWith("blob:") ? cert.imageUrl : getAssetUrl(`uploads/certificates/${cert.imageUrl}`)}
+                          src={resolveImageUrl(cert.imageUrl, "uploads/certificates")}
                           alt={cert.title || "Certificate"}
                           onOpenPreview={openCertPreview}
                         />
@@ -1903,7 +2249,7 @@ function Profile() {
                     {cert.imageUrl && (
                       <div className="mt-4">
                         <CertificateImageCard
-                          src={cert.imageUrl.startsWith("blob:") ? cert.imageUrl : getAssetUrl(`uploads/certificates/${cert.imageUrl}`)}
+                          src={resolveImageUrl(cert.imageUrl, "uploads/certificates")}
                           alt={cert.title || "Certificate image"}
                           onOpenPreview={openCertPreview}
                         />
@@ -2011,12 +2357,7 @@ function Profile() {
   {resumes && resumes.length > 0 ? (
     <div className="space-y-3">
       {resumes.map((res) => {
-        const fileUrl =
-          res.resumeUrl && (res.resumeUrl.startsWith("blob:") || res.resumeUrl.startsWith("http"))
-            ? res.resumeUrl
-            : res.resumeUrl
-            ? getAssetUrl(`uploads/${res.resumeUrl}`)
-            : null;
+        const fileUrl = resolveImageUrl(res.resumeUrl, "uploads");
 
         return (
           <div

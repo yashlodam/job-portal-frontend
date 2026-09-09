@@ -20,21 +20,13 @@ export default function LoadingAnalyzer({ onComplete }) {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
-    // If reached last step, trigger parent completion safely after a brief pause
-    if (currentStep >= steps.length - 1) {
-      const timer = setTimeout(() => {
-        if (onComplete) onComplete();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-
-    // Step progression interval
+    // Step progression interval: smoothly advances through steps while real AI processes
     const interval = setInterval(() => {
-      setCurrentStep((prev) => prev + 1);
-    }, 400);
+      setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
+    }, 1200);
 
     return () => clearInterval(interval);
-  }, [currentStep, steps.length, onComplete]);
+  }, [steps.length]);
 
   return (
     <div className="py-12 px-4 max-w-xl mx-auto text-center space-y-8 font-satoshi">

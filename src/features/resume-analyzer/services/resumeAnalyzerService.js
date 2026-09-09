@@ -3,7 +3,7 @@
  * Production Service Layer executing real Spring Boot backend API calls (/api/resumes & /api/resume-analysis).
  */
 
-import { uploadResumeApi, deleteResumeApi } from "../../../api/resumeApi";
+import { uploadResumeApi, deleteResumeApi, getMyResumesApi } from "../../../api/resumeApi";
 import { analyzeResumeApi, getLatestAnalysisApi, deleteAnalysisApi } from "../../../api/resumeAnalysisApi";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
@@ -82,6 +82,19 @@ export const resumeAnalyzerService = {
    */
   async reAnalyzeResume(resumeInfo) {
     return this.analyzeResume(resumeInfo, true);
+  },
+
+  /**
+   * Fetch user resumes from GET /api/resumes/me
+   */
+  async getMyResumes() {
+    try {
+      const response = await getMyResumesApi();
+      const list = response?.data || response || [];
+      return Array.isArray(list) ? list : [];
+    } catch (err) {
+      return [];
+    }
   },
 
   /**

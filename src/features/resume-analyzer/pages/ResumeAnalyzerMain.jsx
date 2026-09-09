@@ -19,8 +19,8 @@ export default function ResumeAnalyzerMain() {
   const dispatch = useDispatch();
   const { status, currentResume, analysis, error } = useResumeAnalyzer();
 
-  // Mode: "dashboard" (if analysis or currentResume exists) or "upload"
-  const [viewMode, setViewMode] = useState(analysis || currentResume ? "dashboard" : "upload");
+  // Mode: "dashboard" (if valid analysis exists) or "upload"
+  const [viewMode, setViewMode] = useState(analysis ? "dashboard" : "upload");
 
   // Track initial mount fetch to prevent infinite refresh loops when user resets state
   const initialFetchDone = useRef(false);
@@ -28,9 +28,7 @@ export default function ResumeAnalyzerMain() {
   useEffect(() => {
     if (!initialFetchDone.current && !analysis && status === "idle") {
       initialFetchDone.current = true;
-      if (currentResume?.id) {
-        dispatch(fetchLatestAnalysisThunk(currentResume.id));
-      }
+      dispatch(fetchLatestAnalysisThunk(currentResume?.id));
     }
   }, [dispatch, analysis, status, currentResume]);
 
@@ -50,7 +48,7 @@ export default function ResumeAnalyzerMain() {
     setViewMode("dashboard");
   };
 
-  if (status === "analyzing") {
+  if (status === "analyzing" && viewMode === "dashboard") {
     return <LoadingSkeleton />;
   }
 

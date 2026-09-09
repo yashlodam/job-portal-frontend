@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Sun,
   Moon,
+  User,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -33,6 +34,8 @@ import NotificationBell from "../features/notifications/components/NotificationB
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { useSelector } from "react-redux";
 import { logout } from "../State/AuthSlic";
+import { selectProfile } from "../State/profileSlice";
+import { resolveImageUrl } from "../utils/assetUtils";
 import { fetchMySavedJobsThunk } from "../State/savedJobThunk";
 import { fetchMyApplicationsThunk } from "../State/applicationThunk";
 import { getUnreadCountApi } from "../api/chatApi";
@@ -403,8 +406,11 @@ function Header() {
   const navLinks = useMemo(() => getNavLinksForRole(role), [role]);
   const primaryCta = PRIMARY_CTA_BY_ROLE[role];
 
-  const displayName = user?.name ?? "Guest";
-  const displayRole = user?.role ?? "Sign in to see your role";
+  const reduxProfile = useAppSelector(selectProfile);
+  const profileImageSrc = resolveImageUrl(reduxProfile?.profileImage, "uploads");
+
+  const displayName = user?.name ?? reduxProfile?.name ?? "Guest";
+  const displayRole = user?.role ?? user?.accountType ?? "Candidate";
   const initials = displayName.charAt(0).toUpperCase();
 
   return (
@@ -1087,13 +1093,20 @@ function Header() {
                         : "border-white/10 bg-[#090d18]/95"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 font-black text-white text-base shadow-md">
-                        {initials}
+                    <Link
+                      to="/profile"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 group cursor-pointer"
+                    >
+                      <div className="relative shrink-0">
+                        <Avatar src={profileImageSrc} radius="xl" size={44} className="border border-indigo-500/30">
+                          {initials}
+                        </Avatar>
+                        <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-[#090d18] animate-pulse" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <h4
-                          className={`text-sm font-black font-satoshi truncate ${
+                          className={`text-sm font-black font-satoshi truncate group-hover:text-indigo-500 transition-colors ${
                             theme === "light" ? "text-slate-900" : "text-white"
                           }`}
                         >
@@ -1107,35 +1120,47 @@ function Header() {
                           {user?.role ?? user?.accountType ?? "Candidate"}
                         </p>
                         <p
-                          className={`text-[11px] font-semibold flex items-center gap-1 mt-0.5 ${
-                            theme === "light" ? "text-emerald-700" : "text-emerald-400"
+                          className={`text-[11px] font-bold flex items-center gap-1 mt-0.5 ${
+                            theme === "light" ? "text-indigo-600" : "text-indigo-300"
                           }`}
                         >
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
-                          Verified Member
+                          View & Edit Profile &rarr;
                         </p>
                       </div>
-                    </div>
+                    </Link>
 
                     <div
-                      className={`pt-2.5 border-t grid grid-cols-3 gap-2 ${
+                      className={`pt-2.5 border-t grid grid-cols-4 gap-1.5 ${
                         theme === "light" ? "border-slate-200/80" : "border-white/10"
                       }`}
                     >
+                      <Link
+                        to="/profile"
+                        onClick={() => setMobileOpen(false)}
+                        className={`inline-flex items-center justify-center gap-1 rounded-xl border py-2 text-xs font-extrabold transition cursor-pointer ${
+                          theme === "light"
+                            ? "border-indigo-200/90 bg-indigo-50/90 text-indigo-900 hover:bg-indigo-100 shadow-2xs"
+                            : "border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20"
+                        }`}
+                      >
+                        <User size={13} className="text-indigo-600 dark:text-indigo-400" />
+                        <span>Profile</span>
+                      </Link>
+
                       <button
                         type="button"
                         onClick={() => {
                           setMobileOpen(false);
                           handleMessagesClick();
                         }}
-                        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-extrabold transition cursor-pointer relative ${
+                        className={`inline-flex items-center justify-center gap-1 rounded-xl border py-2 text-xs font-extrabold transition cursor-pointer relative ${
                           theme === "light"
                             ? "border-indigo-200/90 bg-white text-indigo-900 hover:bg-indigo-50 shadow-2xs"
                             : "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
                         }`}
                       >
                         <MessageSquare
-                          size={14}
+                          size={13}
                           className="text-indigo-600 dark:text-indigo-400"
                         />
                         <span>Chat</span>
@@ -1150,7 +1175,7 @@ function Header() {
                           toggleTheme();
                           setMobileOpen(false);
                         }}
-                        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-extrabold transition cursor-pointer ${
+                        className={`inline-flex items-center justify-center gap-1 rounded-xl border py-2 text-xs font-extrabold transition cursor-pointer ${
                           theme === "light"
                             ? "border-amber-200/90 bg-amber-50/80 text-amber-900 hover:bg-amber-100/80 shadow-2xs"
                             : "border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
@@ -1158,11 +1183,11 @@ function Header() {
                       >
                         {theme === "dark" ? (
                           <>
-                            <Sun size={14} className="text-amber-400" /> Light
+                            <Sun size={13} className="text-amber-400" /> Light
                           </>
                         ) : (
                           <>
-                            <Moon size={14} className="text-indigo-600" /> Dark
+                            <Moon size={13} className="text-indigo-600" /> Dark
                           </>
                         )}
                       </button>
@@ -1170,13 +1195,13 @@ function Header() {
                       <button
                         type="button"
                         onClick={handleLogout}
-                        className={`inline-flex items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-extrabold transition cursor-pointer ${
+                        className={`inline-flex items-center justify-center gap-1 rounded-xl border py-2 text-xs font-extrabold transition cursor-pointer ${
                           theme === "light"
                             ? "border-rose-200/90 bg-rose-50/80 text-rose-800 hover:bg-rose-100/80 shadow-2xs"
                             : "border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
                         }`}
                       >
-                        <LogOut size={14} /> Logout
+                        <LogOut size={13} /> Logout
                       </button>
                     </div>
                   </div>

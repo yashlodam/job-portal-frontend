@@ -9,6 +9,7 @@ import {
   triggerAnalysisThunk,
   fetchLatestAnalysisThunk,
   reAnalyzeResumeThunk,
+  deleteResumeThunk,
   setActiveDashboardTab,
   resetAnalysisState,
   deleteResume,
@@ -27,7 +28,7 @@ export function useResumeAnalyzer() {
     reAnalyze: () => dispatch(reAnalyzeResumeThunk()),
     setTab: (tab) => dispatch(setActiveDashboardTab(tab)),
     resetState: () => dispatch(resetAnalysisState()),
-    removeResume: () => dispatch(deleteResume()),
+    removeResume: () => dispatch(deleteResumeThunk()),
     dismissError: () => dispatch(clearError()),
   };
 }

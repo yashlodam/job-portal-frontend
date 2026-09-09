@@ -37,6 +37,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { getCompanyById, getCompanyJobs } from "../State/CompanySlice";
 import { useToast } from "../components/ui/ToastNotification";
+import { resolveImageUrl } from "../utils/assetUtils";
 
 /* ═══════════════════════════════════════
    ANIMATION VARIANTS
@@ -402,8 +403,13 @@ export default function CompanyPage() {
                 className="relative"
               >
                 <div className="flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-3xl bg-white p-4 shadow-2xl ring-4 ring-white/10 overflow-hidden">
-                  {company.logo ? (
-                    <img src={company.logo} alt={company.companyName} className="h-full w-full object-contain" />
+                  {company.logoUrl || company.logo ? (
+                    <img
+                      src={resolveImageUrl(company.logoUrl || company.logo)}
+                      alt={company.companyName}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      className="h-full w-full object-contain"
+                    />
                   ) : (
                     <span className="text-3xl sm:text-4xl font-extrabold text-primary font-satoshi select-none">
                       {company.companyName?.charAt(0) ?? "C"}

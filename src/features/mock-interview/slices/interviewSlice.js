@@ -46,7 +46,8 @@ export const submitAndEvaluateThunk = createAsyncThunk(
       for (let idx = 0; idx < questions.length; idx++) {
         const q = questions[idx];
         const qId = q?.id ?? q?.questionId ?? idx;
-        const text = answers[qId] || answers[String(qId)] || answers[q?.orderNumber] || answers[idx] || "Candidate provided technical explanation.";
+        const rawText = answers[qId] || answers[String(qId)] || answers[q?.orderNumber] || answers[idx] || "";
+        const text = typeof rawText === "string" ? rawText.trim() : "";
         await interviewService.submitAnswer(targetSessionId, qId, text);
       }
 

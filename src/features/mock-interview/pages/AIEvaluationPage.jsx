@@ -112,7 +112,7 @@ export default function AIEvaluationPage({ onRestartClick, onViewFullReportClick
   const bestPracticesScore = report.bestPracticesScore ?? Math.min(overallScore + 4, 99);
 
   const candidateName = report.candidateName || report.userName || "Candidate";
-  const trackName = report.track || report.interviewTrack || currentInterview?.trackTitle || "Technical Track";
+  const trackName = report.trackTitle || report.track || report.interviewTrack || currentInterview?.trackTitle || "Technical Track";
   const difficulty = report.difficulty || currentInterview?.difficulty || "BEGINNER";
   const status = report.status || "COMPLETED";
 

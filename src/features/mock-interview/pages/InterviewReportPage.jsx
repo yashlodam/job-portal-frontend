@@ -53,40 +53,42 @@ export default function InterviewReportPage({ reportData, onStartNewSession }) {
     ? data.questionResults
     : [];
 
+  const validEvaluations = evaluationsList.filter(
+    (item) => item.userAnswer && item.userAnswer.trim().length > 0
+  );
+
+  const answeredCount =
+    data.answeredQuestions !== undefined
+      ? data.answeredQuestions
+      : validEvaluations.length;
+
+  const isUnanswered = answeredCount === 0;
+
   const calculatedAvgScore =
-    evaluationsList.length > 0
-      ? Math.round(evaluationsList.reduce((sum, item) => sum + (item.score || 0), 0) / evaluationsList.length)
-      : 85;
+    validEvaluations.length > 0
+      ? Math.round(validEvaluations.reduce((sum, item) => sum + (item.score || 0), 0) / validEvaluations.length)
+      : 0;
 
-  const overallScore =
-    data.overallScore !== null && data.overallScore !== undefined
-      ? Math.round(Number(data.overallScore))
-      : calculatedAvgScore;
-
-  const technicalScore = data.technicalScore ?? Math.min(overallScore + 2, 98);
-  const communicationScore = data.communicationScore ?? Math.min(overallScore + 1, 95);
-  const problemSolvingScore = data.problemSolvingScore ?? Math.max(overallScore - 3, 70);
-  const confidenceScore = data.confidenceScore ?? Math.min(overallScore + 3, 96);
-  const bestPracticesScore = data.bestPracticesScore ?? Math.min(overallScore + 4, 99);
+  const overallScore = isUnanswered ? 0 : (data.overallScore ?? calculatedAvgScore);
+  const technicalScore = isUnanswered ? 0 : (data.technicalScore ?? overallScore);
+  const communicationScore = isUnanswered ? 0 : (data.communicationScore ?? overallScore);
+  const problemSolvingScore = isUnanswered ? 0 : (data.problemSolvingScore ?? overallScore);
+  const confidenceScore = isUnanswered ? 0 : (data.confidenceScore ?? overallScore);
+  const bestPracticesScore = isUnanswered ? 0 : (data.bestPracticesScore ?? overallScore);
 
   const strengths = Array.isArray(data.overallStrengths)
     ? data.overallStrengths
     : Array.isArray(data.strengths)
     ? data.strengths
-    : [
-        `Demonstrated strong architectural understanding in ${data.track || "core engineering disciplines"}.`,
-        "Clean structured communication using engineering terminology.",
-        "Appropriate focus on high availability, error isolation, and code modularity.",
-      ];
+    : [];
 
   const weaknesses = Array.isArray(data.overallWeaknesses)
     ? data.overallWeaknesses
     : Array.isArray(data.weaknesses)
     ? data.weaknesses
-    : [
-        "Include more concrete numerical throughput and latency metrics in live responses.",
-        "Discuss automated integration tests and regression strategies more explicitly.",
-      ];
+    : isUnanswered
+    ? ["No questions were answered during this session."]
+    : [];
 
   const learningPath = Array.isArray(data.overallRecommendations)
     ? data.overallRecommendations
@@ -94,14 +96,12 @@ export default function InterviewReportPage({ reportData, onStartNewSession }) {
     ? data.learningPath
     : Array.isArray(data.recommendations)
     ? data.recommendations
-    : [
-        "Master Non-blocking Concurrency & Reactive Streams",
-        "Implement Resilience4j Circuit Breakers & Distributed Rate Limiters",
-        "Design High-Throughput Event-Driven Microservices with Kafka",
-      ];
+    : isUnanswered
+    ? ["Answer questions in your next session to receive personalized recommendations."]
+    : [];
 
   const candidateName = data.candidateName || data.userName || "Candidate";
-  const trackTitle = data.track || data.interviewTrack || currentInterview?.trackTitle || "Technical Interview";
+  const trackTitle = data.trackTitle || data.track || data.interviewTrack || currentInterview?.trackTitle || "Technical Interview";
   const difficulty = data.difficulty || currentInterview?.difficulty || "INTERMEDIATE";
 
   return (
@@ -129,6 +129,18 @@ export default function InterviewReportPage({ reportData, onStartNewSession }) {
           <RotateCcw size={14} /> New Practice Session
         </button>
       </div>
+
+      {/* Unanswered Session Warning Banner */}
+      {isUnanswered && (
+        <div className="p-6 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 space-y-2 font-satoshi">
+          <div className="flex items-center gap-2 font-black text-sm uppercase tracking-wider text-amber-600 dark:text-amber-400">
+            <CheckCircle2 size={18} className="text-amber-500" /> Session Completed — 0 Answers Submitted
+          </div>
+          <p className="text-xs sm:text-sm font-medium leading-relaxed">
+            You finished this session without submitting any technical answers. Scores and verified key strengths are only generated when answers are provided during the live interview.
+          </p>
+        </div>
+      )}
 
       {/* Multi-Metric Score Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

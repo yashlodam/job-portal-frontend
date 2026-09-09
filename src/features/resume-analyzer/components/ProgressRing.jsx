@@ -36,7 +36,7 @@ export default function ProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255,255,255,0.07)"
+          className="stroke-slate-200 dark:stroke-white/10"
           strokeWidth={strokeWidth}
           fill="transparent"
         />
@@ -63,11 +63,11 @@ export default function ProgressRing({
             {score}
           </span>
           {subtitle ? (
-            <span className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-0.5">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase mt-0.5">
               {subtitle}
             </span>
           ) : (
-            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+            <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">
               / 100
             </span>
           )}

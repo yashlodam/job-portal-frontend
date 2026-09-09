@@ -12,7 +12,7 @@ export default function HistoryCard({ item, onViewReport, onDelete }) {
 
   const sessionId = item.id || item.sessionId;
   const userName = item.userName || "Candidate";
-  const trackTitle = item.interviewTrack || item.trackTitle || item.trackName || "Technical Interview";
+  const trackTitle = item.trackTitle || item.interviewTrack || item.trackName || "Technical Interview";
   const difficulty = item.difficulty || "BEGINNER";
   const status = item.status || "IN_PROGRESS";
   const isCompleted = status === "COMPLETED";

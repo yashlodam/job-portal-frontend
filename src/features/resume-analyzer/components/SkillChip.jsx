@@ -6,6 +6,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Check, Plus, AlertCircle, Sparkles } from "lucide-react";
+import { useTheme } from "../../../context/ThemeContext";
 
 export default function SkillChip({
   name,
@@ -16,29 +17,32 @@ export default function SkillChip({
   reason = "",
   onAction = null,
 }) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+
   let styles = {
-    bg: "bg-emerald-500/15 hover:bg-emerald-500/25",
-    border: "border-emerald-500/30",
-    text: "text-emerald-700 dark:text-emerald-300",
+    bg: isLight ? "bg-emerald-100/90" : "bg-emerald-500/15 hover:bg-emerald-500/25",
+    border: isLight ? "border-emerald-300" : "border-emerald-500/30",
+    textColor: isLight ? "#022c22" : "#a7f3d0",
     icon: Check,
-    iconColor: "text-emerald-500",
+    iconColor: isLight ? "text-emerald-800" : "text-emerald-400",
   };
 
   if (type === "missing") {
     styles = {
-      bg: "bg-rose-500/10 hover:bg-rose-500/20",
-      border: "border-rose-500/30",
-      text: "text-rose-700 dark:text-rose-300",
+      bg: isLight ? "bg-rose-100/90" : "bg-rose-500/15 hover:bg-rose-500/25",
+      border: isLight ? "border-rose-300" : "border-rose-500/30",
+      textColor: isLight ? "#4c0519" : "#fecdd3",
       icon: AlertCircle,
-      iconColor: "text-rose-500",
+      iconColor: isLight ? "text-rose-800" : "text-rose-400",
     };
   } else if (type === "recommended") {
     styles = {
-      bg: "bg-primary/15 hover:bg-primary/25",
-      border: "border-primary/30",
-      text: "text-primary dark:text-indigo-300",
+      bg: isLight ? "bg-indigo-100/90" : "bg-indigo-500/15 hover:bg-indigo-500/25",
+      border: isLight ? "border-indigo-300" : "border-primary/30",
+      textColor: isLight ? "#1e1b4b" : "#e0e7ff",
       icon: Sparkles,
-      iconColor: "text-primary",
+      iconColor: isLight ? "text-indigo-800" : "text-indigo-400",
     };
   }
 
@@ -53,7 +57,7 @@ export default function SkillChip({
       onClick={onAction}
     >
       <Icon size={14} className={styles.iconColor} />
-      <span className={styles.text}>{name}</span>
+      <span style={{ color: styles.textColor, fontWeight: 900 }}>{name}</span>
 
       {category && (
         <span className="text-[10px] text-muted font-bold px-1.5 py-0.5 rounded-md bg-surface-elevated border border-border">

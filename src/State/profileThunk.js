@@ -390,3 +390,15 @@ export const deleteLanguageThunk = createAsyncThunk(
     }
   }
 );
+
+/** GET /api/profile/me/languages */
+export const fetchLanguagesThunk = createAsyncThunk(
+  "profile/fetchLanguages",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await fetchLanguages();
+    } catch (error) {
+      return rejectWithValue(getErrorPayload(error));
+    }
+  }
+);

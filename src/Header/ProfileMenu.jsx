@@ -28,7 +28,7 @@ import { logout } from "../State/AuthSlic";
 import { selectProfile } from "../State/profileSlice";
 import { fetchProfileByEmailThunk } from "../State/profileThunk";
 import { useTheme } from "../context/ThemeContext";
-import { getAssetUrl } from "../utils/assetUtils";
+import { getAssetUrl, resolveImageUrl } from "../utils/assetUtils";
 
 function ProfileMenu({ user }) {
   const [opened, setOpened] = useState(false);
@@ -50,11 +50,7 @@ function ProfileMenu({ user }) {
     navigate("/");
   };
 
-  const avatarSrc = reduxProfile?.profileImage
-    ? getAssetUrl(reduxProfile.profileImage.startsWith("blob:") || reduxProfile.profileImage.startsWith("http")
-        ? reduxProfile.profileImage
-        : `/uploads/profile/${reduxProfile.profileImage}`)
-    : null;
+  const avatarSrc = resolveImageUrl(reduxProfile?.profileImage, "uploads");
 
   const displayName = user?.name || reduxProfile?.name || auth?.name || "User";
   const displayRole = user?.role || user?.accountType || reduxProfile?.role || auth?.role || "Candidate";

@@ -86,12 +86,15 @@ export const getMyCompany = createAsyncThunk(
       const { data } = await api.get("/recruiter/company");
       return data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || {
-          success: false,
-          message: "Failed to fetch company",
-        }
-      );
+      if (error.response?.status === 404) {
+        return { success: true, data: null, message: "No company created yet" };
+      }
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch company";
+      return rejectWithValue(message);
     }
   }
 );
@@ -103,12 +106,12 @@ export const createCompany = createAsyncThunk(
       const { data } = await api.post("/recruiter/company", companyData);
       return data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || {
-          success: false,
-          message: "Failed to create company",
-        }
-      );
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to create company";
+      return rejectWithValue(message);
     }
   }
 );
@@ -120,12 +123,12 @@ export const updateCompany = createAsyncThunk(
       const { data } = await api.put("/recruiter/company", companyData);
       return data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || {
-          success: false,
-          message: "Failed to update company",
-        }
-      );
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to update company";
+      return rejectWithValue(message);
     }
   }
 );
@@ -166,12 +169,12 @@ export const uploadCompanyLogo = createAsyncThunk(
 
       return data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || {
-          success: false,
-          message: "Logo upload failed",
-        }
-      );
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Logo upload failed";
+      return rejectWithValue(message);
     }
   }
 );
@@ -195,12 +198,12 @@ export const uploadCompanyCover = createAsyncThunk(
 
       return data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || {
-          success: false,
-          message: "Cover upload failed",
-        }
-      );
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Cover upload failed";
+      return rejectWithValue(message);
     }
   }
 );
@@ -440,7 +443,9 @@ const companySlice = createSlice({
         })
         .addCase(createCompany.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload?.message;
+            state.error = typeof action.payload === "string"
+                ? action.payload
+                : action.payload?.message || "Failed to create company";
         });
 
     // ==========================
@@ -461,7 +466,9 @@ const companySlice = createSlice({
         })
         .addCase(updateCompany.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload?.message;
+            state.error = typeof action.payload === "string"
+                ? action.payload
+                : action.payload?.message || "Failed to update company";
         });
 
     // ==========================
@@ -502,7 +509,9 @@ const companySlice = createSlice({
         })
         .addCase(uploadCompanyLogo.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload?.message;
+            state.error = typeof action.payload === "string"
+                ? action.payload
+                : action.payload?.message || "Logo upload failed";
         });
 
     // ==========================
@@ -522,7 +531,9 @@ const companySlice = createSlice({
         })
         .addCase(uploadCompanyCover.rejected, (state, action) => {
             state.loading = false;
-            state.error = action.payload?.message;
+            state.error = typeof action.payload === "string"
+                ? action.payload
+                : action.payload?.message || "Cover upload failed";
         });
 
     // ==========================

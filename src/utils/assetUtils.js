@@ -1,6 +1,6 @@
 /**
  * src/utils/assetUtils.js
- * Central resolver for static uploads (resumes, company logos, avatars).
+ * Central resolver for static uploads (resumes, company logos, avatars, banners).
  * Dynamically uses VITE_API_URL or defaults to http://localhost:8080.
  */
 
@@ -13,10 +13,60 @@ export const BACKEND_BASE_URL = RAW_API_URL.replace(/\/api\/?$/, "");
  * @returns {string} - fully qualified asset URL
  */
 export function getAssetUrl(path) {
-  if (!path) return "";
-  if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("blob:") || path.startsWith("data:")) {
-    return path;
+  if (!path || typeof path !== "string") return "";
+  const trimmed = path.trim();
+  if (!trimmed || trimmed === "null" || trimmed === "undefined") return "";
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("blob:") ||
+    trimmed.startsWith("data:")
+  ) {
+    return trimmed;
   }
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const cleanPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
   return `${BACKEND_BASE_URL}${cleanPath}`;
+}
+
+/**
+ * Robustly resolves any image or document path/filename into a loadable full URL.
+ * Handles blobs, data URLs, http(s) URLs, uploads/ prefixes, and bare filenames.
+ *
+ * @param {string|null} path - Raw path, URL, or filename
+ * @param {string} [subfolder="uploads"] - Default subfolder when path is a bare filename
+ * @param {string|null} [fallback=null] - Value to return when path is missing or invalid
+ * @returns {string|null}
+ */
+export function resolveImageUrl(path, subfolder = "uploads", fallback = null) {
+  if (!path || typeof path !== "string") return fallback;
+  const trimmed = path.trim();
+  if (!trimmed || trimmed === "null" || trimmed === "undefined") return fallback;
+
+  if (
+    trimmed.startsWith("blob:") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://")
+  ) {
+    return trimmed;
+  }
+
+  // Strip all leading slashes
+  const clean = trimmed.replace(/^\/+/, "");
+
+  // If path already starts with uploads/, resolve directly
+  if (clean.startsWith("uploads/")) {
+    return getAssetUrl(clean);
+  }
+
+  // Handle custom subfolders (e.g. "uploads/certificates")
+  const cleanSub = (subfolder || "").replace(/^\/+/, "").replace(/\/+$/, "");
+  if (cleanSub) {
+    if (clean.startsWith(cleanSub)) {
+      return getAssetUrl(clean);
+    }
+    return getAssetUrl(`${cleanSub}/${clean}`);
+  }
+
+  return getAssetUrl(`uploads/${clean}`);
 }

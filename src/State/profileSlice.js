@@ -54,6 +54,7 @@ import {
   deleteCertificationThunk,
   addLanguageThunk,
   deleteLanguageThunk,
+  fetchLanguagesThunk,
 } from "./profileThunk";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -199,9 +200,10 @@ const profileSlice = createSlice({
       .addCase(uploadProfileImageThunk.fulfilled, (state, action) => {
         setSuccess(state);
         const data = unwrap(action.payload);
-        state.profileImage = data?.profileImage ?? state.profileImage;
+        const img = typeof data === "string" ? data : (data?.profileImage ?? data?.url ?? data?.avatarUrl ?? state.profileImage);
+        state.profileImage = img;
         if (state.profile) {
-          state.profile.profileImage = state.profileImage;
+          state.profile.profileImage = img;
         }
       })
       .addCase(uploadProfileImageThunk.rejected, setError)
@@ -213,9 +215,10 @@ const profileSlice = createSlice({
       .addCase(uploadBannerImageThunk.fulfilled, (state, action) => {
         setSuccess(state);
         const data = unwrap(action.payload);
-        state.bannerImage = data?.bannerImage ?? state.bannerImage;
+        const banner = typeof data === "string" ? data : (data?.bannerImage ?? data?.url ?? data?.bannerUrl ?? state.bannerImage);
+        state.bannerImage = banner;
         if (state.profile) {
-          state.profile.bannerImage = state.bannerImage;
+          state.profile.bannerImage = banner;
         }
       })
       .addCase(uploadBannerImageThunk.rejected, setError)
@@ -228,9 +231,16 @@ const profileSlice = createSlice({
       .addCase(updateHeaderThunk.fulfilled, (state, action) => {
         setSuccess(state);
         const data = unwrap(action.payload);
-        // Backend returns the full ProfileResponse; extract header sub-object
         state.header = data?.header ?? data;
-        if (state.profile) state.profile.header = state.header;
+        if (state.profile) {
+          state.profile.header = state.header;
+          if (data?.name) state.profile.name = data.name;
+          if (data?.headline) state.profile.headline = data.headline;
+          if (data?.company || data?.currentCompany) state.profile.company = data.company ?? data.currentCompany;
+          if (data?.location) state.profile.location = data.location;
+          if (data?.availability) state.profile.availability = data.availability;
+          if (data?.experienceLevel) state.profile.experienceLevel = data.experienceLevel;
+        }
       })
       .addCase(updateHeaderThunk.rejected, setError)
 
@@ -243,7 +253,12 @@ const profileSlice = createSlice({
         setSuccess(state);
         const data = unwrap(action.payload);
         state.links = data?.links ?? data;
-        if (state.profile) state.profile.links = state.links;
+        if (state.profile) {
+          state.profile.links = state.links;
+          if (data?.linkedinUrl) state.profile.linkedinUrl = data.linkedinUrl;
+          if (data?.githubUrl) state.profile.githubUrl = data.githubUrl;
+          if (data?.portfolioUrl) state.profile.portfolioUrl = data.portfolioUrl;
+        }
       })
       .addCase(updateLinksThunk.rejected, setError)
 
@@ -356,7 +371,12 @@ const profileSlice = createSlice({
       .addCase(fetchExperiencesThunk.pending, startLoading)
       .addCase(fetchExperiencesThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.experiences = unwrap(action.payload) ?? [];
+        const list = unwrap(action.payload) ?? [];
+        state.experiences = list;
+        if (state.profile) {
+          state.profile.experiences = list;
+          state.profile.experience = list;
+        }
       })
       .addCase(fetchExperiencesThunk.rejected, setError)
 
@@ -415,7 +435,12 @@ const profileSlice = createSlice({
       .addCase(fetchEducationsThunk.pending, startLoading)
       .addCase(fetchEducationsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.educations = unwrap(action.payload) ?? [];
+        const list = unwrap(action.payload) ?? [];
+        state.educations = list;
+        if (state.profile) {
+          state.profile.educations = list;
+          state.profile.education = list;
+        }
       })
       .addCase(fetchEducationsThunk.rejected, setError)
 
@@ -473,7 +498,11 @@ const profileSlice = createSlice({
       .addCase(fetchCertificationsThunk.pending, startLoading)
       .addCase(fetchCertificationsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.certifications = unwrap(action.payload) ?? [];
+        const list = unwrap(action.payload) ?? [];
+        state.certifications = list;
+        if (state.profile) {
+          state.profile.certifications = list;
+        }
       })
       .addCase(fetchCertificationsThunk.rejected, setError)
 
@@ -530,7 +559,19 @@ const profileSlice = createSlice({
         }
         if (state.profile) state.profile.languages = state.languages;
       })
-      .addCase(deleteLanguageThunk.rejected, setError);
+      .addCase(deleteLanguageThunk.rejected, setError)
+      // ══════════════════════════════════════════════════════════════════════
+      // GET /profile/me/languages
+      // Response: ApiResponse<List<String>>
+      // ══════════════════════════════════════════════════════════════════════
+      .addCase(fetchLanguagesThunk.pending, startLoading)
+      .addCase(fetchLanguagesThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        const list = unwrap(action.payload) ?? [];
+        state.languages = list;
+        if (state.profile) state.profile.languages = list;
+      })
+      .addCase(fetchLanguagesThunk.rejected, setError);
   },
 });
 

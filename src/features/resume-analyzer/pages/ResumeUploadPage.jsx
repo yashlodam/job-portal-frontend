@@ -8,6 +8,7 @@
 import React, { useState } from "react";
 import { Sparkles, ShieldCheck } from "lucide-react";
 import { useResumeAnalyzer } from "../hooks/useResumeAnalyzer";
+import { uploadResumeOnlyThunk, triggerAnalysisThunk } from "../slices/analysisSlice";
 import { useToast } from "../../../components/ui/ToastNotification";
 import AIErrorBanner from "../../../components/ui/AIErrorBanner";
 import ResumeUploader from "../components/ResumeUploader";
@@ -31,34 +32,48 @@ export default function ResumeUploadPage({ onAnalyzeSuccess }) {
   const toast = useToast();
   const [isAnalyzingLocal, setIsAnalyzingLocal] = useState(false);
 
-  const handleFileSelect = (file) => {
-    uploadResumeOnly(file);
-    toast.success("Resume uploaded successfully! Click Analyze Resume to start.");
+  const handleFileSelect = async (file) => {
+    toast.info("Uploading & Analyzing resume with AI...", 4000);
+    try {
+      const res = await uploadResumeOnly(file);
+      if (uploadResumeOnlyThunk?.fulfilled?.match(res) || res?.payload?.analysisResult) {
+        toast.success("Resume AI Analysis completed!");
+        if (onAnalyzeSuccess) {
+          onAnalyzeSuccess(res.payload?.analysisResult || res.payload);
+        }
+      } else if (res?.error) {
+        toast.error(res.payload || "Failed to upload resume file.");
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to upload resume file.");
+    }
   };
 
   const handleStartAnalysis = async () => {
     setIsAnalyzingLocal(true);
     toast.info("Connecting to AI Resume Analyzer...", 3000);
     try {
-      await triggerAnalysis().unwrap();
-      toast.success("Resume AI Analysis completed!");
+      const res = await triggerAnalysis();
+      if (triggerAnalysisThunk?.fulfilled?.match(res) || res?.payload) {
+        toast.success("Resume AI Analysis completed!");
+        if (onAnalyzeSuccess) {
+          onAnalyzeSuccess(res.payload);
+        }
+      } else {
+        const errMsg = typeof res?.payload === "string" ? res.payload : res?.payload?.message || res?.error?.message || "AI Analysis failed.";
+        toast.error(errMsg);
+      }
     } catch (err) {
-      setIsAnalyzingLocal(false);
       const errMsg = typeof err === "string" ? err : err?.message || "AI Analysis failed.";
       toast.error(errMsg);
-    }
-  };
-
-  const handleLoadingComplete = () => {
-    setIsAnalyzingLocal(false);
-    if (onAnalyzeSuccess) {
-      onAnalyzeSuccess();
+    } finally {
+      setIsAnalyzingLocal(false);
     }
   };
 
   // If status is analyzing or local analyzing is active, display Loading Screen
   if (status === "analyzing" || isAnalyzingLocal) {
-    return <LoadingAnalyzer onComplete={handleLoadingComplete} />;
+    return <LoadingAnalyzer />;
   }
 
   const isUploading = status === "uploading";
