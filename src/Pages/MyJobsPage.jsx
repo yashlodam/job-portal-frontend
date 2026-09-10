@@ -47,7 +47,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card"
 import { StatusChip } from "../components/ui/Badge";
 import { Tabs } from "../components/ui/Tabs";
 import { Modal } from "../components/ui/Modal";
-import { EmptyState } from "../components/ui/LoadingSkeleton";
+import { LoadingSkeleton } from "../components/ui/LoadingSkeleton";
+import EmptyState from "../components/ui/EmptyState";
 import { useToast } from "../components/ui/ToastNotification";
 import RecommendedJobsSection from "../components/recommendation/RecommendedJobsSection";
 

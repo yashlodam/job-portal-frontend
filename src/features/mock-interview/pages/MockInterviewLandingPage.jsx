@@ -119,7 +119,7 @@ export default function MockInterviewLandingPage({ onStartClick, onTrackSelect }
       </div>
 
       {/* 4. Bottom CTA Section */}
-      <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-indigo-950/20 via-purple-950/20 to-pink-950/20 dark:from-indigo-900/40 dark:via-purple-900/40 dark:to-pink-900/40 border border-indigo-500/30 text-center space-y-4 backdrop-blur-2xl shadow-2xl">
+      <div className="p-8 sm:p-10 rounded-3xl bg-surface-elevated border border-border text-center space-y-4 backdrop-blur-2xl shadow-2xl">
         <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 border border-amber-500/20 px-3.5 py-1 text-xs font-black text-amber-500 dark:text-amber-400 uppercase tracking-widest">
           <Sparkles size={14} /> Ready to Ace Your Next Interview?
         </div>

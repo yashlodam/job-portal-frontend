@@ -35,11 +35,35 @@ export const getMatchAnalysisApi = async (applicationId) => {
     return {
       success: true,
       data: {
+        applicationId,
         matchPercentage: 92,
-        matchingSkills: ["React", "JavaScript", "TypeScript", "Tailwind CSS", "REST APIs"],
+        skillsMatchPercentage: 94,
+        experienceMatchPercentage: 88,
+        educationMatchPercentage: 95,
+        roleMatchPercentage: 90,
+        preferredSkillsMatchPercentage: 80,
+        semanticScore: 92,
+        matchedSkills: ["React", "JavaScript", "TypeScript", "Tailwind CSS", "REST APIs"],
         missingSkills: ["GraphQL"],
-        recommendation: "STRONG_FIT",
-        analysisSummary: "Candidate has 92% skill and experience overlap with the job description."
+        matchedPreferredSkills: ["Docker", "Git", "Jest"],
+        missingPreferredSkills: ["Kubernetes"],
+        seniorityFit: "STRONG_FIT",
+        evaluationSource: "AI_POWERED",
+        strengths: [
+          "Strong architecture depth with modern React & TypeScript ecosystem",
+          "Demonstrated mastery of responsive design systems and web performance optimization",
+          "Track record building scalable RESTful integrations and state management"
+        ],
+        risksOrGaps: [
+          "Limited exposure to GraphQL schema stitching or federated graphs",
+          "Verify hands-on experience with production Kubernetes cluster orchestration"
+        ],
+        suggestedInterviewQuestions: [
+          "Can you explain your approach to state management and performance tuning in large React SPAs?",
+          "How have you designed and maintained reusable design systems across distributed feature teams?",
+          "Walk us through how you would optimize Core Web Vitals (LCP and INP) for data-heavy applications."
+        ],
+        analysisSummary: "Candidate demonstrates outstanding engineering depth with strong React and TypeScript experience. Highly aligned with core requirements."
       }
     };
   }
@@ -59,11 +83,34 @@ export const recalculateMatchScoreApi = async (applicationId) => {
     return {
       success: true,
       data: {
-        matchPercentage: 94,
-        matchingSkills: ["React", "JavaScript", "TypeScript", "Tailwind CSS", "REST APIs", "Git"],
+        applicationId,
+        matchPercentage: 95,
+        skillsMatchPercentage: 96,
+        experienceMatchPercentage: 90,
+        educationMatchPercentage: 95,
+        roleMatchPercentage: 94,
+        preferredSkillsMatchPercentage: 85,
+        semanticScore: 95,
+        matchedSkills: ["React", "JavaScript", "TypeScript", "Tailwind CSS", "REST APIs", "Git"],
         missingSkills: [],
-        recommendation: "STRONG_FIT",
-        analysisSummary: "Match score recalculated: 94% alignment achieved."
+        matchedPreferredSkills: ["Docker", "Git", "Jest"],
+        missingPreferredSkills: ["Kubernetes"],
+        seniorityFit: "STRONG_FIT",
+        evaluationSource: "AI_POWERED",
+        strengths: [
+          "Comprehensive overlap across required technical stack and frameworks",
+          "Demonstrated end-to-end frontend leadership and modern web standards",
+          "Strong problem-solving capability across distributed cloud services"
+        ],
+        risksOrGaps: [
+          "Confirm familiarity with CI/CD deployment pipelines and container orchestration"
+        ],
+        suggestedInterviewQuestions: [
+          "Can you walk us through the most challenging UI performance bottleneck you diagnosed and resolved?",
+          "How do you ensure test reliability and maintainability across unit, integration, and E2E layers?",
+          "Describe how you structure component boundaries to maximize developer velocity and minimize re-renders."
+        ],
+        analysisSummary: "Match score recalculated: 95% alignment achieved with full stack qualification verified."
       }
     };
   }

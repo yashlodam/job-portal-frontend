@@ -27,9 +27,11 @@ import {
   RefreshCw,
   CheckCircle2,
   Briefcase,
+  Bookmark,
   MapPin,
   Trash2,
   ChevronRight,
+  ArrowRight,
   Maximize2,
   Minimize2,
   Copy,
@@ -51,6 +53,18 @@ import {
 import { useSelector } from "react-redux";
 import { sendCopilotMessageApi } from "../api/copilotApi";
 import { toast } from "./ui/ToastNotification";
+
+/* Helper to sanitize prompt strings: remove quotes, bullets, numbers, brackets */
+function cleanPromptText(text) {
+  if (!text) return "";
+  return text
+    .trim()
+    .replace(/^['"`]+|['"`]+$/g, "")
+    .replace(/^[\-\•\*\d\.\)\:\s]+/, "")
+    .replace(/^['"`]+|['"`]+$/g, "")
+    .replace(/^\[|\]$/g, "")
+    .trim();
+}
 
 /* ── 3D Futuristic AI Robot Avatar Logo ── */
 function BotAvatarIcon({ className = "w-6 h-6" }) {
@@ -89,6 +103,66 @@ const DEFAULT_PROMPTS = [
   "🎯 Practice 3 Technical Interview Questions",
   "✍️ Write a high-converting Cover Letter",
 ];
+
+/* ── Platform Action Cards Dictionary ── */
+const ACTION_PREVIEWS = {
+  RESUME_BUILDER: {
+    icon: FileText,
+    badge: "Resume Tool",
+    title: "Interactive Resume Builder",
+    description: "Build a sleek, ATS-optimized CV with live real-time preview and instant PDF export.",
+    cta: "Launch Builder",
+    color: "from-indigo-500/10 to-violet-500/10 border-indigo-500/20 text-indigo-500",
+  },
+  ATS_TIP: {
+    icon: Sparkles,
+    badge: "AI Analysis",
+    title: "AI Resume & ATS Analyzer",
+    description: "Scan your resume against job requirements to detect missing keywords and boost your match rate.",
+    cta: "Scan Resume",
+    color: "from-amber-500/10 to-orange-500/10 border-amber-500/20 text-amber-500",
+  },
+  INTERVIEW_DRILL: {
+    icon: Target,
+    badge: "Interview Prep",
+    title: "AI Mock Interview Practice",
+    description: "Practice technical and behavioral questions tailored to your target job title with instant scoring.",
+    cta: "Start Drill",
+    color: "from-emerald-500/10 to-teal-500/10 border-emerald-500/20 text-emerald-500",
+  },
+  APPLICATIONS: {
+    icon: Briefcase,
+    badge: "Applications",
+    title: "Application Pipeline Tracker",
+    description: "Review submitted applications, recruiter review stages, and interview invites in one dashboard.",
+    cta: "View Pipeline",
+    color: "from-blue-500/10 to-cyan-500/10 border-blue-500/20 text-blue-500",
+  },
+  SAVED_JOBS: {
+    icon: Bookmark,
+    badge: "Saved Jobs",
+    title: "Saved Opportunities",
+    description: "Quickly access and apply to bookmarked positions before applications close.",
+    cta: "View Saved Jobs",
+    color: "from-purple-500/10 to-pink-500/10 border-purple-500/20 text-purple-500",
+  },
+  PROFILE: {
+    icon: Compass,
+    badge: "Profile",
+    title: "Update Skills & Profile",
+    description: "Add your latest tech stack, education, and achievements to receive higher relevance scores.",
+    cta: "Edit Profile",
+    color: "from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-500",
+  },
+  INTERVIEWS: {
+    icon: Target,
+    badge: "Live Rounds",
+    title: "Scheduled Interviews",
+    description: "Check upcoming interview dates, round formats, and hiring manager instructions.",
+    cta: "Open Timeline",
+    color: "from-emerald-500/10 to-indigo-500/10 border-emerald-500/20 text-emerald-500",
+  },
+};
 
 /* ── Rich Markdown Formatter with Copyable Code blocks, Callouts & Headers ── */
 function FormattedMessageText({ text }) {
@@ -242,9 +316,23 @@ export default function FloatingAIChatbot() {
   const location = useLocation();
 
   const user = useSelector((state) => state.auth?.user);
+  const CHAT_STORAGE_KEY = "jobportal_copilot_chat_history";
 
-  // Initialize personalized greeting on mount or user change
+  // Initialize personalized greeting or restore persisted chat on mount
   useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(CHAT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to restore copilot chat:", e);
+    }
+
     const greetingName = user?.name ? ` ${user.name.split(" ")[0]}` : "";
     setMessages([
       {
@@ -253,9 +341,21 @@ export default function FloatingAIChatbot() {
         timestamp: "Just now",
         text: `Hello${greetingName}! I'm your **JobPortal AI Career Copilot**. I can help you discover matching jobs, optimize your resume for ATS screening, drill technical interview questions, and track your applications.\n\nHow can I assist your career search today?`,
         matchedJobs: [],
+        suggestedFollowUps: DEFAULT_PROMPTS,
       },
     ]);
   }, [user]);
+
+  // Persist messages to sessionStorage (last 25 messages)
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      try {
+        sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages.slice(-25)));
+      } catch (e) {
+        // storage quota full or restricted
+      }
+    }
+  }, [messages]);
 
   // Auto-scroll to bottom on new messages
   const scrollToBottom = () => {
@@ -389,10 +489,15 @@ export default function FloatingAIChatbot() {
       const copilotData = response.data?.data;
       const aiReply = copilotData?.reply || "I've analyzed your request and our AI intelligence engine is ready.";
       const matchedJobs = copilotData?.matchedJobs || [];
+      const actionType = copilotData?.actionType;
+      // Handle actionLink as string or object { label, url }
+      const actionLink = typeof copilotData?.actionLink === "object"
+        ? copilotData?.actionLink?.url
+        : copilotData?.actionLink;
       const newFollowUps =
         copilotData?.suggestedFollowUps?.length > 0
           ? copilotData.suggestedFollowUps
-          : DEFAULT_PROMPTS;
+          : [];
 
       setMessages((prev) => [
         ...prev,
@@ -402,12 +507,15 @@ export default function FloatingAIChatbot() {
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           text: aiReply,
           matchedJobs: matchedJobs,
-          actionLink: copilotData?.actionLink,
+          actionType: actionType,
+          actionLink: actionLink,
+          suggestedFollowUps: newFollowUps,
         },
       ]);
       setFollowUps(newFollowUps);
       setShowFollowUps(true);
     } catch (err) {
+      const fallbackPrompts = DEFAULT_PROMPTS.slice(0, 3);
       setMessages((prev) => [
         ...prev,
         {
@@ -416,8 +524,13 @@ export default function FloatingAIChatbot() {
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           text: "I'm connected to JobPortal's AI engine. You can browse active roles in **Find Jobs**, evaluate your ATS match in **Career Hub**, or ask me specific technical interview drill questions!",
           matchedJobs: [],
+          actionType: "NONE",
+          actionLink: null,
+          suggestedFollowUps: fallbackPrompts,
         },
       ]);
+      setFollowUps(fallbackPrompts);
+      setShowFollowUps(true);
     } finally {
       setIsTyping(false);
     }
@@ -447,6 +560,9 @@ export default function FloatingAIChatbot() {
   const handleClearChat = () => {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     setSpeakingMsgId(null);
+    try {
+      sessionStorage.removeItem(CHAT_STORAGE_KEY);
+    } catch (e) {}
     const greetingName = user?.name ? ` ${user.name.split(" ")[0]}` : "";
     setMessages([
       {
@@ -455,9 +571,11 @@ export default function FloatingAIChatbot() {
         timestamp: "Just now",
         text: `Conversation cleared. What would you like to explore next${greetingName}?`,
         matchedJobs: [],
+        suggestedFollowUps: DEFAULT_PROMPTS,
       },
     ]);
     setFollowUps(DEFAULT_PROMPTS);
+    setShowFollowUps(true);
   };
 
   const handleModeClick = (mode) => {
@@ -578,242 +696,338 @@ export default function FloatingAIChatbot() {
 
               {/* ── Messages Body ── */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col gap-1.5 ${msg.sender === "user" ? "items-end" : "items-start"}`}
-                  >
+                {messages.map((msg, index) => {
+                  const isLatestAiMsg =
+                    msg.sender === "ai" &&
+                    index === messages.map((m) => m.sender).lastIndexOf("ai");
+
+                  return (
                     <div
-                      className={`group relative flex gap-2.5 max-w-[92%] ${
-                        msg.sender === "user" ? "justify-end" : "justify-start"
-                      }`}
+                      key={msg.id}
+                      className={`flex flex-col gap-1.5 ${msg.sender === "user" ? "items-end" : "items-start"}`}
                     >
-                      {msg.sender === "ai" && (
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary mt-0.5 shadow-sm">
-                          <BotAvatarIcon className="w-4 h-4 text-primary" />
+                      <div
+                        className={`group relative flex gap-2.5 max-w-[92%] ${
+                          msg.sender === "user" ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        {msg.sender === "ai" && (
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary mt-0.5 shadow-2xs">
+                            <BotAvatarIcon className="w-4 h-4 text-primary" />
+                          </div>
+                        )}
+
+                        <div
+                          className={`rounded-2xl p-3.5 leading-relaxed text-xs shadow-sm relative transition-all ${
+                            msg.sender === "user"
+                              ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-tr-xs font-medium font-satoshi shadow-md"
+                              : "bg-surface-elevated border border-border text-body rounded-tl-xs font-normal"
+                          }`}
+                        >
+                          <FormattedMessageText text={msg.text} />
+
+                          {/* Action Link CTA if provided by AI (e.g. Analyze Resume, Browse Jobs) */}
+                          {msg.actionLink && (
+                            <div className="mt-3 pt-2.5 border-t border-border/50">
+                              <Link
+                                to={msg.actionLink.url}
+                                onClick={() => setIsOpen(false)}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-xs hover:scale-[1.02] transition cursor-pointer"
+                              >
+                                <span>{msg.actionLink.label}</span>
+                                <ArrowUpRight size={12} />
+                              </Link>
+                            </div>
+                          )}
+
+                          {/* Interactive Toolbar for AI replies: Copy, TTS, Feedback */}
+                          {msg.sender === "ai" && (
+                            <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between gap-2 text-[10px] text-muted">
+                              <div className="flex items-center gap-1">
+                                {/* TTS Voice Narration */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleSpeak(msg.id, msg.text)}
+                                  title={speakingMsgId === msg.id ? "Stop voice narration" : "Listen to answer"}
+                                  className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 transition cursor-pointer ${
+                                    speakingMsgId === msg.id
+                                      ? "bg-primary text-white font-bold shadow-2xs"
+                                      : "hover:bg-surface hover:text-heading"
+                                  }`}
+                                >
+                                  {speakingMsgId === msg.id ? (
+                                    <>
+                                      <VolumeX size={11} className="animate-pulse" />
+                                      <span>Speaking...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Volume2 size={11} />
+                                      <span>Listen</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                {/* Copy button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyMessage(msg.id, msg.text)}
+                                  title="Copy reply"
+                                  className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 hover:bg-surface hover:text-heading transition cursor-pointer"
+                                >
+                                  {copiedMsgId === msg.id ? (
+                                    <>
+                                      <Check size={10} className="text-emerald-500" />
+                                      <span className="text-emerald-500 font-semibold">Copied</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy size={10} />
+                                      <span>Copy</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+
+                              {/* Thumbs Up / Down Reaction */}
+                              <div className="flex items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleFeedback(msg.id, "up")}
+                                  title="Helpful answer"
+                                  className={`p-1 rounded-lg transition cursor-pointer ${
+                                    feedback[msg.id] === "up"
+                                      ? "text-emerald-500 bg-emerald-500/15"
+                                      : "hover:text-heading hover:bg-surface"
+                                  }`}
+                                >
+                                  <ThumbsUp size={11} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleFeedback(msg.id, "down")}
+                                  title="Needs improvement"
+                                  className={`p-1 rounded-lg transition cursor-pointer ${
+                                    feedback[msg.id] === "down"
+                                      ? "text-rose-500 bg-rose-500/15"
+                                      : "hover:text-heading hover:bg-surface"
+                                  }`}
+                                >
+                                  <ThumbsDown size={11} />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Timestamp */}
+                      <span className="text-[9px] text-muted px-1 font-mono">
+                        {msg.timestamp || "Just now"}
+                      </span>
+
+                      {/* ── Matched Interactive Job Cards ── */}
+                      {msg.matchedJobs && msg.matchedJobs.length > 0 && (
+                        <div className="w-full space-y-2 pt-1 pl-9">
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-wider">
+                            <Flame size={12} className="text-amber-500" />
+                            <span>Matched Opportunities in Database:</span>
+                          </div>
+
+                          <div className={`grid gap-2 ${isExpanded ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
+                            {msg.matchedJobs.map((job) => (
+                              <div
+                                key={job.id}
+                                className="rounded-2xl border border-border bg-surface p-3.5 flex flex-col justify-between gap-3 shadow-sm hover:border-primary/50 hover:bg-surface-hover transition-all group/job"
+                              >
+                                <div className="space-y-1">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs">
+                                        {(job.companyName || "J").charAt(0)}
+                                      </div>
+                                      <h5 className="font-black text-heading text-xs font-satoshi line-clamp-1 group-hover/job:text-primary transition">
+                                        {job.title}
+                                      </h5>
+                                    </div>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      {job.matchScore != null && job.matchScore > 0 && (
+                                        <span className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold font-mono border ${
+                                          job.matchScore >= 80
+                                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                                            : job.matchScore >= 60
+                                            ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30"
+                                            : "bg-surface-elevated text-body border-border"
+                                        }`}>
+                                          🎯 {job.matchScore}% Match
+                                        </span>
+                                      )}
+                                      {job.workMode && (
+                                        <span className="rounded-full bg-surface-elevated border border-border px-2 py-0.5 text-[9px] font-bold text-body shrink-0">
+                                          {job.workMode}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <p className="text-[11px] font-semibold text-primary truncate pl-9">
+                                    {job.companyName}
+                                  </p>
+
+                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted pl-9 pt-0.5">
+                                    <span className="flex items-center gap-1">
+                                      <MapPin size={10} className="text-muted" />
+                                      {job.location}
+                                    </span>
+                                    {job.salary && (
+                                      <span className="font-extrabold text-amber-600 dark:text-amber-400 font-satoshi">
+                                        {job.salary}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Top Skill Tags */}
+                                  {job.skills && job.skills.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 pl-9 pt-1">
+                                      {job.skills.map((skill, sIdx) => (
+                                        <span
+                                          key={sIdx}
+                                          className="inline-block rounded-md bg-surface-elevated border border-border px-1.5 py-0.5 text-[9px] font-medium text-body"
+                                        >
+                                          {skill}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center justify-between pt-2 border-t border-border">
+                                  <span className="text-[9px] text-muted font-medium">
+                                    {job.jobType || "Full-time"}
+                                  </span>
+                                  <Link
+                                    to={`/jobs/${job.id}`}
+                                    onClick={() => setIsOpen(false)}
+                                    className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-3 py-1 text-[10px] font-bold text-white shadow-md hover:scale-105 transition cursor-pointer shrink-0"
+                                  >
+                                    <span>View Job</span>
+                                    <ArrowUpRight size={11} />
+                                  </Link>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
 
-                      <div
-                        className={`rounded-2xl p-3.5 leading-relaxed text-xs shadow-md relative ${
-                          msg.sender === "user"
-                            ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-tr-none font-medium font-satoshi"
-                            : "bg-surface-elevated border border-border text-body rounded-tl-none font-normal"
-                        }`}
-                      >
-                        <FormattedMessageText text={msg.text} />
-
-                        {/* Interactive Toolbar for AI replies: Copy, TTS, Feedback */}
-                        {msg.sender === "ai" && (
-                          <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between gap-2 text-[10px] text-muted">
-                            <div className="flex items-center gap-1">
-                              {/* TTS Voice Narration */}
-                              <button
-                                type="button"
-                                onClick={() => handleToggleSpeak(msg.id, msg.text)}
-                                title={speakingMsgId === msg.id ? "Stop voice narration" : "Listen to answer"}
-                                className={`inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 transition cursor-pointer ${
-                                  speakingMsgId === msg.id
-                                    ? "bg-primary text-white font-bold"
-                                    : "hover:bg-surface hover:text-heading"
-                                }`}
-                              >
-                                {speakingMsgId === msg.id ? (
-                                  <>
-                                    <VolumeX size={11} className="animate-pulse" />
-                                    <span>Speaking...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Volume2 size={11} />
-                                    <span>Listen</span>
-                                  </>
-                                )}
-                              </button>
-
-                              {/* Copy button */}
-                              <button
-                                type="button"
-                                onClick={() => handleCopyMessage(msg.id, msg.text)}
-                                title="Copy reply"
-                                className="inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 hover:bg-surface hover:text-heading transition cursor-pointer"
-                              >
-                                {copiedMsgId === msg.id ? (
-                                  <>
-                                    <Check size={10} className="text-emerald-500" />
-                                    <span className="text-emerald-500">Copied</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy size={10} />
-                                    <span>Copy</span>
-                                  </>
-                                )}
-                              </button>
-                            </div>
-
-                            {/* Thumbs Up / Down Reaction */}
-                            <div className="flex items-center gap-0.5">
-                              <button
-                                type="button"
-                                onClick={() => handleFeedback(msg.id, "up")}
-                                title="Helpful answer"
-                                className={`p-1 rounded-lg transition cursor-pointer ${
-                                  feedback[msg.id] === "up"
-                                    ? "text-emerald-500 bg-emerald-500/15"
-                                    : "hover:text-heading hover:bg-surface"
-                                }`}
-                              >
-                                <ThumbsUp size={11} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleFeedback(msg.id, "down")}
-                                title="Needs improvement"
-                                className={`p-1 rounded-lg transition cursor-pointer ${
-                                  feedback[msg.id] === "down"
-                                    ? "text-rose-500 bg-rose-500/15"
-                                    : "hover:text-heading hover:bg-surface"
-                                }`}
-                              >
-                                <ThumbsDown size={11} />
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Timestamp */}
-                    <span className="text-[9px] text-muted px-1 font-mono">
-                      {msg.timestamp || "Just now"}
-                    </span>
-
-                    {/* ── Matched Interactive Job Cards ── */}
-                    {msg.matchedJobs && msg.matchedJobs.length > 0 && (
-                      <div className="w-full space-y-2 pt-1 pl-9">
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-primary uppercase tracking-wider">
-                          <Flame size={12} className="text-amber-500" />
-                          <span>Matched Opportunities in Database:</span>
-                        </div>
-
-                        <div className={`grid gap-2 ${isExpanded ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
-                          {msg.matchedJobs.map((job) => (
-                            <div
-                              key={job.id}
-                              className="rounded-2xl border border-border bg-surface p-3.5 flex flex-col justify-between gap-3 shadow-sm hover:border-primary/50 hover:bg-surface-hover transition-all group/job"
-                            >
-                              <div className="space-y-1">
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs">
-                                      {(job.companyName || "J").charAt(0)}
-                                    </div>
-                                    <h5 className="font-black text-heading text-xs font-satoshi line-clamp-1 group-hover/job:text-primary transition">
-                                      {job.title}
-                                    </h5>
+                      {/* ── Rich Platform Action Card ── */}
+                      {msg.actionType && msg.actionType !== "NONE" && msg.actionType !== "JOBS_LIST" && ACTION_PREVIEWS[msg.actionType] && (
+                        <div className="w-full pt-1 pl-9">
+                          {(() => {
+                            const act = ACTION_PREVIEWS[msg.actionType];
+                            const ActIcon = act.icon;
+                            const targetLink = msg.actionLink || "/find-jobs";
+                            return (
+                              <div className={`rounded-2xl border bg-gradient-to-br p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs ${act.color}`}>
+                                <div className="flex items-start gap-2.5">
+                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-surface border border-border text-primary shadow-xs mt-0.5">
+                                    <ActIcon size={16} />
                                   </div>
-                                  {job.workMode && (
-                                    <span className="rounded-full bg-surface-elevated border border-border px-2 py-0.5 text-[9px] font-bold text-body shrink-0">
-                                      {job.workMode}
-                                    </span>
-                                  )}
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <h5 className="font-extrabold text-heading text-xs font-satoshi">
+                                        {act.title}
+                                      </h5>
+                                      <span className="rounded-full bg-surface border border-border px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary">
+                                        {act.badge}
+                                      </span>
+                                    </div>
+                                    <p className="text-[11px] text-body line-clamp-2 mt-0.5">
+                                      {act.description}
+                                    </p>
+                                  </div>
                                 </div>
-
-                                <p className="text-[11px] font-semibold text-primary truncate pl-9">
-                                  {job.companyName}
-                                </p>
-
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted pl-9 pt-0.5">
-                                  <span className="flex items-center gap-1">
-                                    <MapPin size={10} className="text-muted" />
-                                    {job.location}
-                                  </span>
-                                  {job.salary && (
-                                    <span className="font-extrabold text-amber-600 dark:text-amber-400 font-satoshi">
-                                      {job.salary}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-between pt-2 border-t border-border">
-                                <span className="text-[9px] text-muted font-medium">
-                                  {job.jobType || "Full-time"}
-                                </span>
                                 <Link
-                                  to={`/jobs/${job.id}`}
+                                  to={targetLink}
                                   onClick={() => setIsOpen(false)}
-                                  className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-3 py-1 text-[10px] font-bold text-white shadow-md hover:scale-105 transition cursor-pointer shrink-0"
+                                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-white px-3 py-1.5 text-[10px] font-bold shadow-sm hover:opacity-95 hover:scale-[1.02] transition cursor-pointer shrink-0 self-end sm:self-center"
                                 >
-                                  <span>View Job</span>
-                                  <ArrowUpRight size={11} />
+                                  <span>{act.cta}</span>
+                                  <ArrowRight size={11} />
                                 </Link>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })()}
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
 
-                {/* ── Typing Animation ── */}
-                {isTyping && (
-                  <div className="flex items-center gap-2.5 pl-9 text-primary text-xs font-semibold">
-                    <div className="flex space-x-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-bounce [animation-delay:-0.3s]" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-purple-500 animate-bounce [animation-delay:-0.15s]" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-pink-500 animate-bounce" />
+                      {/* ── Inline Suggested Follow-ups on Latest AI Message ── */}
+                      {isLatestAiMsg && showFollowUps && !isTyping && msg.suggestedFollowUps && msg.suggestedFollowUps.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="w-full pl-9 pr-1 pt-1.5 space-y-2"
+                        >
+                          <div className="flex items-center justify-between px-0.5">
+                            <span className="text-[10px] font-black text-primary flex items-center gap-1.5 uppercase tracking-wider font-satoshi">
+                              <Sparkles size={11} className="text-amber-500 fill-amber-500/20 animate-pulse" />
+                              Suggested Follow-ups
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setShowFollowUps(false)}
+                              title="Dismiss suggestions"
+                              className="rounded-lg p-1 text-muted hover:text-heading hover:bg-surface-elevated transition cursor-pointer"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+
+                          <div className="flex flex-col gap-1.5">
+                            {msg.suggestedFollowUps.slice(0, 3).map((prompt, pIdx) => {
+                              const cleaned = cleanPromptText(prompt);
+                              if (!cleaned) return null;
+                              return (
+                                <button
+                                  key={pIdx}
+                                  type="button"
+                                  disabled={isTyping}
+                                  onClick={() => handleSend(cleaned)}
+                                  className="group w-full rounded-2xl border border-border bg-surface px-3 py-2 text-left text-xs font-medium text-body hover:border-primary/50 hover:bg-surface-elevated hover:text-heading transition-all duration-200 cursor-pointer disabled:opacity-50 flex items-start gap-2.5 shadow-2xs hover:shadow-xs"
+                                >
+                                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary mt-0.5 group-hover:bg-primary group-hover:text-white transition-colors">
+                                    <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
+                                  </div>
+                                  <span className="leading-snug flex-1 font-medium">{cleaned}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
-                    <span>AI Copilot generating career intelligence…</span>
+                  );
+                })}
+
+                {/* ── Typing Indicator Bubble ── */}
+                {isTyping && (
+                  <div className="flex items-start gap-2.5 max-w-[92%]">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary mt-0.5 shadow-2xs">
+                      <BotAvatarIcon className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="rounded-2xl rounded-tl-xs border border-border bg-surface-elevated px-4 py-2.5 shadow-xs flex items-center gap-3">
+                      <div className="flex space-x-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-bounce [animation-delay:-0.3s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-purple-500 animate-bounce [animation-delay:-0.15s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-pink-500 animate-bounce" />
+                      </div>
+                      <span className="text-xs font-medium text-muted">AI Copilot is thinking…</span>
+                    </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
-
-              {/* ── Dynamic Suggested Follow-Ups with X dismiss button ── */}
-              <AnimatePresence>
-                {showFollowUps && followUps && followUps.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="px-3.5 py-2 shrink-0 border-t border-border bg-surface-elevated/40 overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between pb-1.5 px-0.5">
-                      <span className="text-[10px] font-black text-primary flex items-center gap-1.5 uppercase tracking-wider font-satoshi">
-                        <Sparkles size={11} className="text-amber-500 fill-amber-500/20 animate-pulse" />
-                        Suggested Follow-ups
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowFollowUps(false)}
-                        title="Dismiss Suggestions"
-                        className="rounded-lg p-1 text-muted hover:text-heading hover:bg-surface-hover transition cursor-pointer"
-                      >
-                        <X size={13} />
-                      </button>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5">
-                      {followUps.slice(0, 3).map((prompt, pIdx) => (
-                        <button
-                          key={pIdx}
-                          type="button"
-                          disabled={isTyping}
-                          onClick={() => handleSend(prompt)}
-                          className="group rounded-xl border border-border bg-surface px-2.5 py-1 text-[10px] font-semibold text-body hover:border-primary/50 hover:bg-surface-hover hover:text-heading transition-all cursor-pointer disabled:opacity-50 text-left flex items-center gap-1.5 shadow-sm"
-                        >
-                          <ChevronRight size={10} className="text-primary group-hover:translate-x-0.5 transition-transform" />
-                          <span>{prompt}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
 
               {/* ── Input Form Bar ── */}
               <form
@@ -834,38 +1048,42 @@ export default function FloatingAIChatbot() {
                         ? "Listening to voice input..."
                         : "Ask AI about jobs, ATS resume, interviews…"
                     }
-                    className={`w-full rounded-2xl border bg-surface-elevated pl-4 pr-10 py-2.5 text-xs text-heading placeholder-muted outline-none transition ${
+                    className={`w-full rounded-2xl border bg-surface-elevated pl-4 pr-16 py-2.5 text-xs text-heading placeholder-muted outline-none transition ${
                       isListening
                         ? "border-rose-500/70 bg-rose-500/10 animate-pulse"
                         : "border-border focus:border-primary"
                     }`}
                   />
 
-                  {/* Show Suggestions toggle if dismissed */}
-                  {!showFollowUps && followUps && followUps.length > 0 && (
+                  <div className="absolute right-2.5 flex items-center gap-1">
+                    {/* Suggestions Toggle Button */}
                     <button
                       type="button"
-                      onClick={() => setShowFollowUps(true)}
-                      title="Show Suggested Questions"
-                      className="absolute right-9 rounded-xl p-1 text-amber-500 hover:text-amber-600 hover:bg-surface-hover transition cursor-pointer"
+                      onClick={() => setShowFollowUps((prev) => !prev)}
+                      title={showFollowUps ? "Hide suggestions" : "Show suggested follow-ups"}
+                      className={`rounded-xl p-1.5 transition cursor-pointer ${
+                        showFollowUps
+                          ? "text-amber-500 bg-amber-500/15"
+                          : "text-muted hover:text-heading hover:bg-surface"
+                      }`}
                     >
-                      <Sparkles size={13} />
+                      <Sparkles size={14} className={showFollowUps ? "fill-amber-500/20" : ""} />
                     </button>
-                  )}
 
-                  {/* Microphone Dictation Trigger */}
-                  <button
-                    type="button"
-                    onClick={toggleVoiceDictation}
-                    title={isListening ? "Stop Voice Input" : "Voice Input (Speech-to-Text)"}
-                    className={`absolute right-2.5 rounded-xl p-1 transition cursor-pointer ${
-                      isListening
-                        ? "text-rose-500 bg-rose-500/20"
-                        : "text-muted hover:text-heading hover:bg-surface-hover"
-                    }`}
-                  >
-                    {isListening ? <MicOff size={14} className="animate-pulse" /> : <Mic size={14} />}
-                  </button>
+                    {/* Microphone Dictation Trigger */}
+                    <button
+                      type="button"
+                      onClick={toggleVoiceDictation}
+                      title={isListening ? "Stop Voice Input" : "Voice Input (Speech-to-Text)"}
+                      className={`rounded-xl p-1.5 transition cursor-pointer ${
+                        isListening
+                          ? "text-rose-500 bg-rose-500/20"
+                          : "text-muted hover:text-heading hover:bg-surface"
+                      }`}
+                    >
+                      {isListening ? <MicOff size={14} className="animate-pulse" /> : <Mic size={14} />}
+                    </button>
+                  </div>
                 </div>
 
                 <button

@@ -1,26 +1,25 @@
 /**
  * src/Pages/Home.jsx
  *
- * Master Landing Page Assembly - Optimal Senior UX Hierarchy with Interactive Background Animation.
+ * Public landing page — assembled from section components.
  *
- * Flow Architecture:
- * 1. HomeAnimatedBackground (GPU-Accelerated 60 FPS Canvas Constellation, Interactive Mouse Physics & Floating Nebula Orbs)
- * 2. DreamJob (Hero with Command Search, Preserved Graphic & Anchored Stats)
- * 3. Companies (Global Enterprise Social Proof Marquee with Glassmorphism)
- * 4. JobCategory (Interactive Role & Work Mode Discovery)
- * 5. FeaturedJobs (Verified High-Impact Live Opportunities)
- * 6. HowItWorks (3-Step AI Matching Workflow & Live Match Simulation)
- * 7. AIToolsShowcase (AI Feature Suite - Cover Letter, Fit Score, Resumes)
- * 8. SalaryInsights (Interactive 2026 Tech Salary Benchmark Explorer)
- * 9. Testimonials (Verified Candidate Success Stories & 4.9/5 Rating)
- * 10. DualCTA (Job Seeker vs. Employer Split Conversion Engine)
+ * Section order:
+ * 1. DreamJob — Hero with search, quick filters, live job count
+ * 2. Companies — Employer marquee
+ * 3. RecommendedJobsSection (authenticated) / CTA card (guest)
+ * 4. JobCategory — Role & work mode discovery
+ * 5. FeaturedJobs — Live opportunities
+ * 6. HowItWorks — 3-step AI matching workflow
+ * 7. AIToolsShowcase — Feature suite
+ * 8. SalaryInsights — Salary benchmarks (illustrative, with disclaimer)
+ * 9. ProductFeatures — Honest platform capability highlights
+ * 10. DualCTA — Job seeker vs. employer conversion
  */
 
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAppSelector } from "../State/Store";
 import { useTheme } from "../context/ThemeContext";
-import HomeAnimatedBackground from "../components/home/HomeAnimatedBackground";
 import DreamJob from "../LandingPage/DreamJob";
 import Companies from "../LandingPage/Companies";
 import JobCategory from "../LandingPage/JobCategory";
@@ -28,6 +27,7 @@ import FeaturedJobs from "../LandingPage/FeaturedJobs";
 import HowItWorks from "../LandingPage/HowItWorks";
 import AIToolsShowcase from "../LandingPage/AIToolsShowcase";
 import SalaryInsights from "../LandingPage/SalaryInsights";
+import ProductFeatures from "../LandingPage/Testimonials";
 import DualCTA from "../LandingPage/DualCTA";
 import RecommendedJobsSection from "../components/recommendation/RecommendedJobsSection";
 
@@ -38,10 +38,17 @@ function Home() {
 
   return (
     <div className={`relative min-h-screen font-inter transition-colors duration-500 overflow-x-hidden ${
-      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#05070d] text-slate-200"
+      isLight 
+        ? "bg-[#F8FAFC] text-slate-800" 
+        : "bg-[#070B12] text-slate-200"
     }`}>
-      {/* ── Interactive GPU-Accelerated Background Engine ── */}
-      <HomeAnimatedBackground />
+      {/* Subtle static gradient orbs - CSS only, no JS/canvas */}
+      {!isLight && (
+        <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+          <div className="absolute top-0 left-1/4 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-600/8 blur-[120px]" />
+          <div className="absolute top-1/3 right-0 h-[400px] w-[400px] translate-x-1/2 rounded-full bg-violet-600/6 blur-[100px]" />
+        </div>
+      )}
 
       {/* ── UX-Optimized Section Flow with Layered Stacking ── */}
       <div className="relative z-10 space-y-0">
@@ -105,6 +112,7 @@ function Home() {
         <HowItWorks />
         <AIToolsShowcase />
         <SalaryInsights />
+        <ProductFeatures />
         <DualCTA />
       </div>
     </div>

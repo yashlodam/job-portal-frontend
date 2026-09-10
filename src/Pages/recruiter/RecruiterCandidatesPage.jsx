@@ -399,12 +399,12 @@ export default function RecruiterCandidatesPage() {
 
             <div className="flex items-center gap-2">
               <label className="text-xs text-muted font-bold flex items-center gap-1">
-                <ArrowUpDown size={13} className="text-primary-light" /> Sort:
+                <ArrowUpDown size={13} className="text-indigo-600 dark:text-indigo-400" /> Sort:
               </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="rounded-2xl border border-primary/30 bg-surface-elevated px-3 py-2 text-xs font-extrabold text-primary-light outline-none focus:border-primary cursor-pointer"
+                className="rounded-2xl border border-border bg-surface-elevated px-3 py-2 text-xs font-extrabold text-heading outline-none focus:border-primary cursor-pointer"
                 style={{ colorScheme: 'auto' }}
               >
                 <option value="ma.matchPercentage,desc" className="bg-surface text-heading">🎯 Highest Match</option>
@@ -419,7 +419,7 @@ export default function RecruiterCandidatesPage() {
       {/* Main Split-Screen Studio */}
       {filteredCandidates.length === 0 ? (
         <Card className="p-12 text-center space-y-4 border-border bg-surface shadow-2xl font-satoshi">
-          <AlertCircle className="h-12 w-12 text-primary-light mx-auto opacity-60" />
+          <AlertCircle className="h-12 w-12 text-indigo-500 dark:text-indigo-400 mx-auto opacity-70" />
           <h3 className="text-lg font-black text-heading">No Candidates Match "{searchQuery}"</h3>
           <p className="text-xs text-body max-w-md mx-auto font-medium leading-relaxed">
             No registered candidate profiles or job applications matched your search. Try searching by name, email, or skill.
@@ -427,7 +427,7 @@ export default function RecruiterCandidatesPage() {
           <div className="flex items-center justify-center gap-3 pt-2 font-satoshi">
             <button
               onClick={() => setSearchQuery("")}
-              className="inline-flex items-center gap-2 rounded-2xl bg-primary/15 border border-primary/30 px-5 py-2.5 text-xs font-bold text-primary-light hover:bg-primary/25 transition cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-2xl bg-indigo-50 dark:bg-primary/15 border border-indigo-200 dark:border-primary/30 px-5 py-2.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-primary/25 transition cursor-pointer"
             >
               Clear Search Query
             </button>
@@ -448,7 +448,7 @@ export default function RecruiterCandidatesPage() {
                 Candidates ({filteredCandidates.length})
               </h4>
               {isSearchingTalent && (
-                <span className="text-[10px] text-primary-light font-bold animate-pulse">Searching DB...</span>
+                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold animate-pulse">Searching DB...</span>
               )}
             </div>
 
@@ -485,7 +485,7 @@ export default function RecruiterCandidatesPage() {
                             }}
                           />
                         </div>
-                        <p className="text-xs text-primary-light font-semibold truncate mt-0.5">{role}</p>
+                        <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold truncate mt-0.5">{role}</p>
                         {c.company && (
                           <p className="text-[11px] text-muted truncate mt-0.5">{c.company}</p>
                         )}
@@ -516,12 +516,12 @@ export default function RecruiterCandidatesPage() {
                           className="cursor-pointer"
                         />
                       </div>
-                      <p className="text-sm font-bold text-primary-light mt-0.5">{selectedCandidate.jobTitle}</p>
+                      <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">{selectedCandidate.jobTitle}</p>
                       {selectedCandidate.company && (
                         <p className="text-xs font-semibold text-body mt-0.5">{selectedCandidate.company}</p>
                       )}
                       <p className="text-xs text-muted mt-1 flex items-center gap-2">
-                        <MapPin size={12} className="text-primary-light" />
+                        <MapPin size={12} className="text-indigo-600 dark:text-indigo-400" />
                         <span>{selectedCandidate.location || "Nashik"}</span>
                         <span>•</span>
                         <span>{selectedCandidate.appliedDate || "Registered Candidate"}</span>
@@ -533,7 +533,7 @@ export default function RecruiterCandidatesPage() {
                     <button
                       type="button"
                       onClick={() => handleOpenMatchModal(selectedCandidate.id || selectedCandidate.applicationId)}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary/15 hover:bg-primary/25 border border-primary/30 px-3.5 py-2 text-xs font-extrabold text-primary-light transition cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-50 dark:bg-primary/15 hover:bg-indigo-100 dark:hover:bg-primary/25 border border-indigo-200 dark:border-primary/30 px-3.5 py-2 text-xs font-extrabold text-indigo-700 dark:text-indigo-300 transition cursor-pointer"
                     >
                       <Sparkles size={13} className="text-amber-500 dark:text-amber-400" /> AI Breakdown
                     </button>
@@ -558,7 +558,7 @@ export default function RecruiterCandidatesPage() {
                         href={selectedCandidate.resumeUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-xl bg-primary/20 border border-primary/30 px-3.5 py-2 text-xs font-bold text-primary-light hover:bg-primary/30 transition"
+                        className="inline-flex items-center gap-2 rounded-xl bg-indigo-50 dark:bg-primary/20 border border-indigo-200 dark:border-primary/30 px-3.5 py-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-primary/30 transition"
                       >
                         <Download size={14} />
                         <span>{selectedCandidate.resumeName || "Resume"}</span>
@@ -586,7 +586,7 @@ export default function RecruiterCandidatesPage() {
                     <h4 className="text-xs font-black uppercase tracking-wider text-muted mb-2">Verified Skills</h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedCandidate.skills.map((skill, i) => (
-                        <span key={i} className="rounded-lg border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold text-primary-light">
+                        <span key={i} className="rounded-lg border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-3 py-1 text-xs font-bold text-indigo-700 dark:text-indigo-300">
                           {typeof skill === "string" ? skill : skill.name}
                         </span>
                       ))}

@@ -125,7 +125,7 @@ function ChatAvatar({ user, size = "md", online = false }) {
 
 export default function RecruiterMessagesPage() {
   const toast = useToast();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentUser = useAppSelector((state) => state.auth.profile);
   const currentUserId = currentUser?.id;
   const chat = useChat();
@@ -146,6 +146,7 @@ export default function RecruiterMessagesPage() {
   const [filter, setFilter] = useState("all");
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
+  const [selectedMsgId, setSelectedMsgId] = useState(null);
   const [otherTyping, setOtherTyping] = useState(false);
   const [otherOnline, setOtherOnline] = useState(false);
 
@@ -301,9 +302,41 @@ export default function RecruiterMessagesPage() {
     [chat, currentUserId]
   );
 
+  // Sync mobile chat view when convId query param changes
+  useEffect(() => {
+    if (urlConvIdNum) {
+      setActiveConvId(urlConvIdNum);
+      setShowMobileChat(true);
+    }
+  }, [urlConvIdNum]);
+
+  // Handle mobile browser / device back button
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.get("convId")) {
+        setShowMobileChat(false);
+        setShowInfoPanel(false);
+        setSelectedMsgId(null);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const handleSelectConv = (convId) => {
     setActiveConvId(convId);
     setShowMobileChat(true);
+    setShowInfoPanel(false);
+    setSelectedMsgId(null);
+    setSearchParams({ convId: String(convId) }, { replace: false });
+  };
+
+  const handleBackToConversations = () => {
+    setShowMobileChat(false);
+    setShowInfoPanel(false);
+    setSelectedMsgId(null);
+    setSearchParams({}, { replace: false });
   };
 
   const handleSend = (textToSend) => {
@@ -394,7 +427,7 @@ export default function RecruiterMessagesPage() {
       breadcrumbs={[{ label: "Messages" }]}
     >
       {/* Full-height Container */}
-      <div className="h-[calc(100vh-140px)] min-h-[580px] w-full bg-surface rounded-2xl overflow-hidden border border-border shadow-xl flex font-inter text-heading">
+      <div className="h-[calc(100dvh-130px)] md:h-[calc(100vh-140px)] min-h-[460px] md:min-h-[580px] w-full bg-surface rounded-2xl overflow-hidden border border-border shadow-xl flex font-inter text-heading">
 
         {/* ── Conversation Sidebar ───────────────────────────────────────── */}
         <div
@@ -403,22 +436,22 @@ export default function RecruiterMessagesPage() {
           }`}
         >
           {/* Header */}
-          <div className="h-16 bg-surface px-4 flex items-center justify-between border-b border-border shrink-0">
+          <div className="h-14 sm:h-16 bg-surface px-3.5 sm:px-4 flex items-center justify-between border-b border-border shrink-0">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl gradient-bg-signature flex items-center justify-center font-extrabold text-white shadow-md">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl gradient-bg-signature flex items-center justify-center font-extrabold text-white shadow-md shrink-0">
                 <Users size={18} />
               </div>
-              <div>
-                <span className="font-extrabold text-sm text-heading font-satoshi block leading-tight">
+              <div className="min-w-0">
+                <span className="font-extrabold text-xs sm:text-sm text-heading font-satoshi block leading-tight truncate">
                   Candidate Chats
                 </span>
                 {chat.connected ? (
-                  <span className="text-[11px] text-emerald-500 dark:text-emerald-400 font-semibold flex items-center gap-1.5 mt-0.5">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Live Realtime
+                  <span className="text-[10px] sm:text-[11px] text-emerald-500 dark:text-emerald-400 font-semibold flex items-center gap-1.5 mt-0.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" /> Live Realtime
                   </span>
                 ) : (
-                  <span className="text-[11px] text-muted flex items-center gap-1.5 mt-0.5">
-                    <WifiOff size={10} /> Offline Mode
+                  <span className="text-[10px] sm:text-[11px] text-muted flex items-center gap-1.5 mt-0.5">
+                    <WifiOff size={10} className="shrink-0" /> Offline Mode
                   </span>
                 )}
               </div>
@@ -428,28 +461,30 @@ export default function RecruiterMessagesPage() {
               type="button"
               onClick={loadAllConversations}
               title="Refresh Conversations"
-              className="p-2 rounded-xl border border-border bg-surface text-muted hover:text-heading hover:bg-surface-hover transition cursor-pointer"
+              aria-label="Refresh conversations"
+              className="h-9 w-9 flex items-center justify-center rounded-xl border border-border bg-surface text-muted hover:text-heading hover:bg-surface-hover transition cursor-pointer active:scale-95"
             >
               <RefreshCw size={14} className={loadingConvs ? "animate-spin" : ""} />
             </button>
           </div>
 
           {/* Search + Filters */}
-          <div className="p-3.5 bg-surface-elevated border-b border-border space-y-3">
+          <div className="p-3 sm:p-3.5 bg-surface-elevated border-b border-border space-y-2.5 sm:space-y-3">
             <div className="relative">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search candidates, roles, messages…"
-                className="w-full rounded-xl border border-border bg-surface pl-10 pr-4 py-2.5 text-xs text-heading placeholder:text-muted outline-none focus:border-primary font-medium"
+                className="w-full rounded-xl border border-border bg-surface pl-10 pr-9 py-2.5 text-base sm:text-xs text-heading placeholder:text-muted outline-none focus:border-primary font-medium transition"
               />
               {search && (
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-heading"
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-heading p-1 rounded-lg"
                 >
                   <X size={13} />
                 </button>
@@ -457,11 +492,11 @@ export default function RecruiterMessagesPage() {
             </div>
 
             {/* Filter Pills */}
-            <div className="flex items-center gap-2 text-xs font-bold font-satoshi">
+            <div className="flex items-center gap-2 text-xs font-bold font-satoshi overflow-x-auto no-scrollbar pb-0.5">
               <button
                 type="button"
                 onClick={() => setFilter("all")}
-                className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer shrink-0 active:scale-95 ${
                   filter === "all"
                     ? "bg-primary text-white shadow-md"
                     : "bg-surface border border-border text-muted hover:bg-surface-hover hover:text-heading"
@@ -473,7 +508,7 @@ export default function RecruiterMessagesPage() {
               <button
                 type="button"
                 onClick={() => setFilter("unread")}
-                className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95 ${
                   filter === "unread"
                     ? "bg-primary text-white shadow-md"
                     : "bg-surface border border-border text-muted hover:bg-surface-hover hover:text-heading"
@@ -539,7 +574,7 @@ export default function RecruiterMessagesPage() {
 
                       {/* Applied Role Badge */}
                       {conv.jobTitle && (
-                        <p className="text-[11px] font-bold text-primary-light truncate mt-0.5 flex items-center gap-1">
+                        <p className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 truncate mt-0.5 flex items-center gap-1">
                           <Briefcase size={10} className="shrink-0 text-primary" />
                           <span>{conv.jobTitle}</span>
                         </p>
@@ -575,11 +610,22 @@ export default function RecruiterMessagesPage() {
           }`}
         >
           {!activeConv ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center px-8 gap-4 z-10">
-              <div className="h-20 w-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-lg">
-                <MessageSquare size={36} className="text-primary" />
+            <div className="flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-8 gap-4 z-10">
+              {showMobileChat && (
+                <div className="md:hidden w-full flex justify-start mb-2">
+                  <button
+                    type="button"
+                    onClick={handleBackToConversations}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-border bg-surface text-heading transition cursor-pointer active:scale-95 shadow-xs"
+                  >
+                    <ArrowLeft size={16} /> Back to Chats
+                  </button>
+                </div>
+              )}
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-lg">
+                <MessageSquare size={32} className="text-primary sm:w-9 sm:h-9" />
               </div>
-              <h2 className="text-xl font-black text-heading font-satoshi">
+              <h2 className="text-lg sm:text-xl font-black text-heading font-satoshi">
                 Candidate Direct Messaging
               </h2>
               <p className="text-xs text-muted max-w-sm font-medium leading-relaxed">
@@ -593,12 +639,13 @@ export default function RecruiterMessagesPage() {
           ) : (
             <>
               {/* Chat Header */}
-              <div className="h-16 bg-surface px-4 sm:px-6 flex items-center justify-between border-b border-border z-10 shrink-0">
-                <div className="flex items-center gap-3 min-w-0">
+              <div className="h-14 sm:h-16 bg-surface px-3 sm:px-6 flex items-center justify-between border-b border-border z-10 shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-2">
                   <button
                     type="button"
-                    onClick={() => setShowMobileChat(false)}
-                    className="md:hidden flex h-9 w-9 items-center justify-center rounded-xl bg-surface-elevated text-muted hover:text-heading"
+                    onClick={handleBackToConversations}
+                    className="md:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-elevated text-muted hover:text-heading active:scale-95 transition"
+                    aria-label="Back to candidate list"
                   >
                     <ArrowLeft size={18} />
                   </button>
@@ -609,22 +656,22 @@ export default function RecruiterMessagesPage() {
                     online={otherOnline || otherParticipant?.online}
                   />
 
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-black text-heading truncate font-satoshi">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <h3 className="text-xs sm:text-sm font-black text-heading truncate font-satoshi">
                         {otherParticipant?.name || "Candidate"}
                       </h3>
-                      <span className="inline-flex items-center gap-1 rounded-lg bg-teal-500/15 border border-teal-500/30 text-teal-600 dark:text-teal-300 font-extrabold text-[9px] px-1.5 py-0.5">
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-teal-500/15 border border-teal-500/30 text-teal-600 dark:text-teal-300 font-extrabold text-[9px] px-1.5 py-0.5 shrink-0">
                         <UserCheck size={9} /> Candidate
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-[11px] truncate mt-0.5">
+                    <div className="flex items-center gap-2 text-[10px] sm:text-[11px] truncate mt-0.5">
                       {otherTyping ? (
                         <span className="text-emerald-500 dark:text-emerald-400 font-bold animate-pulse">typing message…</span>
                       ) : otherOnline || otherParticipant?.online ? (
                         <span className="text-emerald-500 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Active now
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" /> Active now
                         </span>
                       ) : otherParticipant?.lastSeenAt ? (
                         <span className="text-muted">last seen {formatMsgTime(otherParticipant.lastSeenAt)}</span>
@@ -635,7 +682,7 @@ export default function RecruiterMessagesPage() {
                       {activeConv.jobTitle && (
                         <>
                           <span className="text-muted/60 hidden sm:inline">•</span>
-                          <span className="text-primary-light font-bold hidden sm:inline truncate">
+                          <span className="text-indigo-600 dark:text-indigo-400 font-bold hidden sm:inline truncate">
                             {activeConv.jobTitle}
                           </span>
                         </>
@@ -648,13 +695,14 @@ export default function RecruiterMessagesPage() {
                   <button
                     type="button"
                     onClick={() => setShowInfoPanel(!showInfoPanel)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                    aria-label="Toggle candidate details"
+                    className={`flex h-9 px-2.5 sm:px-3 items-center gap-1.5 rounded-xl border text-xs font-bold transition cursor-pointer active:scale-95 ${
                       showInfoPanel
                         ? "bg-primary border-primary text-white shadow-md"
                         : "bg-surface-elevated border-border text-muted hover:text-heading hover:bg-surface-hover"
                     }`}
                   >
-                    <Info size={14} />
+                    <Info size={15} />
                     <span className="hidden sm:inline">Candidate Profile</span>
                   </button>
                 </div>
@@ -669,7 +717,7 @@ export default function RecruiterMessagesPage() {
                         type="button"
                         onClick={() => loadMessagesPage(activeConvId, page + 1)}
                         disabled={loadingOlder}
-                        className="rounded-full bg-surface-elevated hover:bg-surface-hover border border-border px-4 py-1 text-xs font-bold text-primary flex items-center gap-1.5 transition cursor-pointer"
+                        className="rounded-full bg-surface-elevated hover:bg-surface-hover border border-border px-4 py-1 text-xs font-bold text-primary flex items-center gap-1.5 transition cursor-pointer active:scale-95"
                       >
                         {loadingOlder && <Loader2 size={12} className="animate-spin" />}
                         Load older messages
@@ -677,7 +725,7 @@ export default function RecruiterMessagesPage() {
                     </div>
                   )}
 
-                  <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+                  <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-2.5 sm:space-y-3 overscroll-contain">
                     <div className="flex justify-center my-1">
                       <div className="inline-flex items-center gap-1.5 rounded-xl bg-surface-elevated border border-border px-3.5 py-1.5 text-[11px] text-muted text-center font-medium max-w-md">
                         <Lock size={12} className="text-amber-500 shrink-0" />
@@ -708,15 +756,16 @@ export default function RecruiterMessagesPage() {
                           <div
                             key={msg.id}
                             className={`flex flex-col group ${isMe ? "items-end" : "items-start"}`}
+                            onClick={() => setSelectedMsgId((prev) => (prev === msg.id ? null : msg.id))}
                           >
                             <div
-                              className={`relative max-w-[85%] sm:max-w-md rounded-2xl px-4 py-2.5 text-xs leading-relaxed shadow-sm transition-all ${
+                              className={`relative max-w-[86%] sm:max-w-[78%] md:max-w-md rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs leading-relaxed shadow-xs transition-all break-words [overflow-wrap:anywhere] ${
                                 isMe
-                                  ? "gradient-bg-signature text-white rounded-tr-none font-medium"
-                                  : "bg-surface-elevated border border-border text-heading rounded-tl-none font-medium"
+                                  ? "gradient-bg-signature text-white rounded-tr-none font-medium shadow-md"
+                                  : "bg-surface-elevated border border-border text-heading rounded-tl-none font-medium shadow-xs"
                               } ${isDeleted ? "opacity-60 italic" : ""}`}
                             >
-                              <p className="whitespace-pre-wrap break-words">
+                              <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
                                 {isDeleted ? "This message was deleted." : msg.displayContent || msg.content}
                                 {msg.edited && !isDeleted && (
                                   <em className="text-[10px] text-muted ml-1.5">(edited)</em>
@@ -737,9 +786,15 @@ export default function RecruiterMessagesPage() {
                               {isMe && !isDeleted && !isOptimistic && (
                                 <button
                                   type="button"
-                                  onClick={() => handleDelete(msg)}
-                                  className="absolute -top-2 -left-7 opacity-0 group-hover:opacity-100 p-1.5 rounded-full bg-surface border border-border text-rose-500 hover:text-rose-400 transition shadow"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(msg);
+                                  }}
+                                  className={`absolute -top-2.5 -left-7 ${
+                                    selectedMsgId === msg.id ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100"
+                                  } p-1.5 rounded-full bg-surface border border-border text-rose-500 hover:text-rose-400 transition shadow-xs active:scale-90`}
                                   title="Delete message"
+                                  aria-label="Delete message"
                                 >
                                   <Trash2 size={11} />
                                 </button>
@@ -758,7 +813,7 @@ export default function RecruiterMessagesPage() {
                           exit={{ opacity: 0, y: 6 }}
                           className="flex items-center gap-2"
                         >
-                          <div className="bg-surface-elevated border border-border rounded-2xl rounded-tl-none px-4 py-2.5 flex items-center gap-1.5 shadow-sm">
+                          <div className="bg-surface-elevated border border-border rounded-2xl rounded-tl-none px-3.5 sm:px-4 py-2 sm:py-2.5 flex items-center gap-1.5 shadow-sm">
                             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
                             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
                             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
@@ -772,16 +827,17 @@ export default function RecruiterMessagesPage() {
                   </div>
 
                   {/* Recruiter Quick Replies */}
-                  <div className="px-4 py-2 flex items-center gap-2 overflow-x-auto border-t border-border shrink-0 bg-surface-elevated">
+                  <div className="px-3 sm:px-4 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar border-t border-border shrink-0 bg-surface-elevated">
                     <span className="text-[11px] font-extrabold text-primary flex items-center gap-1 shrink-0 font-satoshi">
-                      <Sparkles size={13} className="text-amber-500" /> Quick Reply:
+                      <Sparkles size={13} className="text-amber-500" />
+                      <span className="hidden sm:inline">Quick Reply:</span>
                     </span>
                     {RECRUITER_QUICK_REPLIES.map((reply) => (
                       <button
                         key={reply}
                         type="button"
                         onClick={() => handleSend(reply)}
-                        className="shrink-0 rounded-xl border border-border bg-surface px-3 py-1.5 text-[11px] font-medium text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer"
+                        className="shrink-0 rounded-xl border border-border bg-surface px-3 py-1.5 text-[11px] font-semibold text-body hover:bg-surface-hover hover:text-heading transition cursor-pointer active:scale-95 whitespace-nowrap"
                       >
                         {reply}
                       </button>
@@ -792,93 +848,106 @@ export default function RecruiterMessagesPage() {
                 {/* Candidate Info Panel / Drawer */}
                 <AnimatePresence>
                   {showInfoPanel && (
-                    <motion.div
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{ width: 300, opacity: 1 }}
-                      exit={{ width: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="shrink-0 bg-surface-elevated border-l border-border flex flex-col overflow-y-auto z-20"
-                    >
-                      <div className="p-5 space-y-6">
-                        <div className="flex items-center justify-between pb-3 border-b border-border">
-                          <span className="text-xs font-extrabold uppercase tracking-wider text-muted font-satoshi">
-                            Candidate Profile
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setShowInfoPanel(false)}
-                            className="text-muted hover:text-heading p-1"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
+                    <>
+                      {/* Mobile Backdrop */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowInfoPanel(false)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden"
+                      />
 
-                        <div className="text-center space-y-2">
-                          <ChatAvatar
-                            user={otherParticipant}
-                            size="lg"
-                            online={otherOnline || otherParticipant?.online}
-                          />
-                          <h4 className="text-base font-black text-heading font-satoshi mt-3">
-                            {otherParticipant?.name || "Candidate"}
-                          </h4>
-                          <span className="inline-flex items-center gap-1 rounded-lg bg-teal-500/15 border border-teal-500/30 text-teal-600 dark:text-teal-300 font-extrabold text-[10px] px-2 py-0.5">
-                            <UserCheck size={11} /> Registered Job Candidate
-                          </span>
-                          {otherParticipant?.email && (
-                            <p className="text-xs text-muted truncate">{otherParticipant.email}</p>
-                          )}
-                        </div>
-
-                        {/* Job Position Applied For */}
-                        {activeConv?.jobTitle && (
-                          <div className="rounded-2xl border border-primary/30 bg-primary/10 p-4 space-y-1.5">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-                              <Briefcase size={13} /> Job Application
+                      <motion.div
+                        initial={{ x: "100%", opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: "100%", opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 320, damping: 32 }}
+                        className="fixed inset-y-0 right-0 z-50 w-full max-w-[340px] md:relative md:inset-auto md:w-[320px] shrink-0 bg-surface-elevated border-l border-border flex flex-col overflow-y-auto shadow-2xl pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+                      >
+                        <div className="p-4 sm:p-5 space-y-4 sm:space-y-6">
+                          <div className="flex items-center justify-between pb-3 border-b border-border">
+                            <span className="text-xs font-extrabold uppercase tracking-wider text-muted font-satoshi">
+                              Candidate Profile
                             </span>
-                            <h5 className="font-bold text-heading text-xs">{activeConv.jobTitle}</h5>
+                            <button
+                              type="button"
+                              onClick={() => setShowInfoPanel(false)}
+                              aria-label="Close candidate profile"
+                              className="text-muted hover:text-heading p-1.5 rounded-xl active:scale-95"
+                            >
+                              <X size={18} />
+                            </button>
                           </div>
-                        )}
 
-                        {/* Contact details */}
-                        <div className="rounded-2xl border border-border bg-surface p-4 space-y-2 text-xs">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-muted">
-                            Candidate Details
-                          </span>
-                          <div className="flex items-center gap-2 text-body">
-                            <Mail size={13} className="text-muted" />
-                            <span className="truncate">{otherParticipant?.email || "Email on file"}</span>
+                          <div className="text-center space-y-2">
+                            <ChatAvatar
+                              user={otherParticipant}
+                              size="lg"
+                              online={otherOnline || otherParticipant?.online}
+                            />
+                            <h4 className="text-base font-black text-heading font-satoshi mt-3">
+                              {otherParticipant?.name || "Candidate"}
+                            </h4>
+                            <span className="inline-flex items-center gap-1 rounded-lg bg-teal-500/15 border border-teal-500/30 text-teal-600 dark:text-teal-300 font-extrabold text-[10px] px-2 py-0.5">
+                              <UserCheck size={11} /> Registered Job Candidate
+                            </span>
+                            {otherParticipant?.email && (
+                              <p className="text-xs text-muted truncate">{otherParticipant.email}</p>
+                            )}
+                          </div>
+
+                          {/* Job Position Applied For */}
+                          {activeConv?.jobTitle && (
+                            <div className="rounded-2xl border border-primary/30 bg-primary/10 p-4 space-y-1.5">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+                                <Briefcase size={13} /> Job Application
+                              </span>
+                              <h5 className="font-bold text-heading text-xs">{activeConv.jobTitle}</h5>
+                            </div>
+                          )}
+
+                          {/* Contact details */}
+                          <div className="rounded-2xl border border-border bg-surface p-4 space-y-2 text-xs">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-muted">
+                              Candidate Details
+                            </span>
+                            <div className="flex items-center gap-2 text-body">
+                              <Mail size={13} className="text-muted" />
+                              <span className="truncate">{otherParticipant?.email || "Email on file"}</span>
+                            </div>
+                          </div>
+
+                          {/* Security notice */}
+                          <div className="rounded-2xl border border-border bg-surface-elevated p-3 text-[11px] text-muted flex items-center gap-2">
+                            <Lock size={14} className="text-amber-500 shrink-0" />
+                            <span>Candidate data is synchronized with your recruitment studio.</span>
                           </div>
                         </div>
-
-                        {/* Security notice */}
-                        <div className="rounded-2xl border border-border bg-surface-elevated p-3 text-[11px] text-muted flex items-center gap-2">
-                          <Lock size={14} className="text-amber-500 shrink-0" />
-                          <span>Candidate data is synchronized with your recruitment studio.</span>
-                        </div>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                    </>
                   )}
                 </AnimatePresence>
               </div>
 
               {/* Bottom Input Bar */}
-              <div className="h-16 bg-surface px-4 flex items-center gap-2.5 border-t border-border z-10 shrink-0">
+              <div className="px-3 sm:px-4 py-2 sm:py-2.5 bg-surface flex items-center gap-2 border-t border-border z-10 shrink-0 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
                 <input
                   type="text"
                   value={inputText}
                   onChange={handleInputChange}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                  placeholder="Type message to candidate…"
+                  placeholder={otherParticipant?.name ? `Message ${otherParticipant.name.split(" ")[0]}…` : "Type message to candidate…"}
                   maxLength={5000}
-                  className="flex-1 rounded-xl border border-border bg-surface-elevated px-4 py-2.5 text-xs text-heading placeholder:text-muted outline-none focus:border-primary font-medium transition"
+                  enterKeyHint="send"
+                  className="flex-1 rounded-xl border border-border bg-surface-elevated px-3.5 py-2.5 sm:px-4 sm:py-2 text-base sm:text-xs text-heading placeholder:text-muted outline-none focus:border-primary font-medium transition min-h-[42px]"
                 />
 
                 <button
                   type="button"
                   onClick={() => handleSend()}
                   disabled={!inputText.trim()}
-                  className="h-10 w-10 rounded-xl gradient-bg-signature flex items-center justify-center text-white shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 cursor-pointer"
+                  className="h-10 w-10 sm:h-10 sm:w-10 rounded-xl gradient-bg-signature flex items-center justify-center text-white shadow-md transition-all active:scale-90 hover:scale-105 disabled:opacity-40 disabled:hover:scale-100 cursor-pointer shrink-0"
                   aria-label="Send message"
                 >
                   <Send size={16} />

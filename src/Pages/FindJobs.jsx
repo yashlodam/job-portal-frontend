@@ -28,6 +28,7 @@ import {
 } from "../State/JobSlice";
 import { saveJobThunk, unsaveJobThunk } from "../State/savedJobThunk";
 import { useToast } from "../components/ui/ToastNotification";
+import { EmptyState } from "../components/ui/EmptyState";
 import RecommendedJobsSection from "../components/recommendation/RecommendedJobsSection";
 import { getAssetUrl } from "../utils/assetUtils";
 
@@ -70,13 +71,13 @@ const PAGE_SIZE = 10;
    HELPERS
    ================================================================ */
 
-/** Format a salary number into compact INR notation */
+/** Format a salary number into compact INR notation without symbol so IndianRupee icon does not duplicate */
 const formatSalary = (n) => {
   if (!n && n !== 0) return null;
-  if (n >= 10000000) return `₹${(n / 10000000).toFixed(1)}Cr`;
-  if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`;
-  if (n >= 1000) return `₹${Math.round(n / 1000)}K`;
-  return `₹${n}`;
+  if (n >= 10000000) return `${(n / 10000000).toFixed(1)}Cr`;
+  if (n >= 100000) return `${(n / 100000).toFixed(1)}L`;
+  if (n >= 1000) return `${Math.round(n / 1000)}K`;
+  return `${n}`;
 };
 
 /** Convert SNAKE_CASE enum to readable Title Case */
@@ -115,9 +116,10 @@ const initials = (name) =>
     : "?";
 
 const modeColor = {
-  REMOTE: "text-accent bg-accent/10 border-accent/20",
-  HYBRID: "text-violet-light bg-violet/10 border-violet/20",
-  ON_SITE: "text-accent-warm bg-accent-warm/10 border-accent-warm/20",
+  REMOTE: "text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-500/15 border-cyan-200 dark:border-cyan-500/30",
+  HYBRID: "text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-500/15 border-purple-200 dark:border-purple-500/30",
+  ON_SITE: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30",
+  ONSITE: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30",
 };
 
 /* ================================================================
@@ -232,7 +234,7 @@ function FilterSidebarContent({ filters, onToggleFilter, onSetSalary, onClearAll
       {hasActive && (
         <button
           onClick={onClearAll}
-          className="mb-4 flex items-center gap-2 text-xs font-semibold text-primary-light hover:text-primary transition-colors"
+          className="mb-4 flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors cursor-pointer"
         >
           <X size={14} />
           Clear all filters
@@ -286,7 +288,7 @@ function FilterSidebarContent({ filters, onToggleFilter, onSetSalary, onClearAll
                 key={r.label}
                 onClick={() => onSetSalary(active ? null : r)}
                 className={`rounded-xl border px-3 py-2 text-xs font-semibold transition-all duration-200 ${active
-                  ? "border-primary/40 bg-primary/15 text-primary-light shadow-button"
+                  ? "border-indigo-200 dark:border-primary/40 bg-indigo-50 dark:bg-primary/20 text-indigo-700 dark:text-indigo-300 shadow-sm"
                   : "border-border bg-surface-elevated/50 text-body hover:border-primary/20 hover:text-heading"
                   }`}
               >
@@ -362,14 +364,17 @@ function JobCard({ job, view }) {
     <motion.div variants={cardVariants} layout>
       <Link
         to={`/jobs/${job.id}`}
-        className={`group relative flex rounded-[20px] border border-border bg-surface backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:shadow-glow-primary hover:bg-surface-elevated/60 ${isList ? "flex-row items-center gap-5 p-5 sm:p-6" : "flex-col p-5 sm:p-6"
-          } ${job.featured ? "border-primary/25 shadow-[0_0_30px_rgba(99,102,241,0.08)]" : ""}`}
+        className={`group relative flex rounded-[20px] border border-border bg-surface backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:shadow-glow-primary hover:bg-surface-elevated/60 ${
+          isList
+            ? "flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-6"
+            : "flex-col p-4 sm:p-6"
+        } ${job.featured ? "border-primary/25 shadow-[0_0_30px_rgba(99,102,241,0.08)]" : ""}`}
       >
         {/* Featured badge */}
         {job.featured && (
-          <div className="absolute -top-px left-6 flex items-center gap-1.5 rounded-b-md bg-gradient-to-r from-primary to-violet px-3 py-1 z-10 shadow-sm">
+          <div className="absolute -top-px left-4 sm:left-6 flex items-center gap-1.5 rounded-b-md bg-gradient-to-r from-primary to-violet px-2.5 py-0.5 sm:px-3 sm:py-1 z-10 shadow-sm">
             <Sparkles size={11} className="text-white" />
-            <span className="text-xs font-bold uppercase tracking-wider text-white">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white">
               Featured
             </span>
           </div>
@@ -377,39 +382,40 @@ function JobCard({ job, view }) {
 
         {/* Company Logo */}
         <div
-          className={`flex items-center justify-center rounded-2xl border border-border bg-surface-elevated shadow-xs ${isList ? "h-14 w-14 shrink-0" : "mb-4 h-14 w-14 mt-1"
-            }`}
+          className={`flex items-center justify-center rounded-2xl border border-border bg-surface-elevated shadow-xs ${
+            isList ? "h-12 w-12 sm:h-14 sm:w-14 shrink-0" : "mb-3 sm:mb-4 h-12 w-12 sm:h-14 sm:w-14 mt-1"
+          }`}
         >
           {logoUrl && !logoError ? (
             <img
               src={logoUrl}
               alt={job.companyName}
-              className="h-9 w-9 rounded-xl object-contain"
+              className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl object-contain"
               onError={() => setLogoError(true)}
             />
           ) : (
-            <span className="text-base font-black text-primary font-satoshi" aria-hidden="true">
+            <span className="text-sm sm:text-base font-black text-primary font-satoshi" aria-hidden="true">
               {initials(job.companyName)}
             </span>
           )}
         </div>
 
         {/* Content */}
-        <div className="flex-1">
-          <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2.5 sm:gap-3">
             <div className="min-w-0 flex-1">
-              <h3 className="font-satoshi text-lg font-bold text-heading group-hover:text-primary-light transition-colors truncate">
+              <h3 className="font-satoshi text-base sm:text-lg font-bold text-heading group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
                 {job.jobTitle}
               </h3>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-body">
-                <span className="inline-flex items-center gap-1.5">
-                  <Building2 size={13} className="text-muted" />
-                  {job.companyName}
+              <div className="mt-1 flex flex-wrap items-center gap-x-2.5 sm:gap-x-3 gap-y-1 text-xs sm:text-sm text-body">
+                <span className="inline-flex items-center gap-1 sm:gap-1.5 truncate">
+                  <Building2 size={13} className="text-muted shrink-0" />
+                  <span className="truncate">{job.companyName}</span>
                 </span>
                 {location && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin size={13} className="text-muted" />
-                    {location}
+                  <span className="inline-flex items-center gap-1 sm:gap-1.5 truncate">
+                    <MapPin size={13} className="text-muted shrink-0" />
+                    <span className="truncate">{location}</span>
                   </span>
                 )}
               </div>
@@ -421,7 +427,7 @@ function JobCard({ job, view }) {
               onClick={handleToggleSave}
               className={`shrink-0 rounded-xl p-2 transition-all duration-200 cursor-pointer ${
                 isSaved
-                  ? "bg-primary/15 text-primary-light border border-primary/30"
+                  ? "bg-indigo-50 dark:bg-primary/15 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-primary/30"
                   : "text-muted hover:bg-surface-elevated hover:text-heading"
               }`}
               aria-label={isSaved ? "Unsave job" : "Save job"}
@@ -431,10 +437,10 @@ function JobCard({ job, view }) {
           </div>
 
           {/* Meta row */}
-          <div className={`flex flex-wrap items-center gap-2 ${isList ? "mt-3" : "mt-4"}`}>
+          <div className={`flex flex-wrap items-center gap-1.5 sm:gap-2 ${isList ? "mt-2.5 sm:mt-3" : "mt-3 sm:mt-4"}`}>
             {/* AI Match Badge if available */}
             {matchPercentage && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-300 shadow-2xs">
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[11px] sm:text-xs font-bold text-amber-600 dark:text-amber-300 shadow-2xs">
                 <Sparkles size={11} className="text-amber-500 fill-amber-500/20 animate-pulse" />
                 {matchPercentage}% Match
               </span>
@@ -442,21 +448,22 @@ function JobCard({ job, view }) {
 
             {/* Work Mode badge */}
             <span
-              className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${modeColor[job.workingMode] ?? "text-body bg-surface-elevated border-border"
-                }`}
+              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] sm:text-xs font-semibold ${
+                modeColor[job.workingMode] ?? "text-body bg-surface-elevated border-border"
+              }`}
             >
               {humanise(job.workingMode)}
             </span>
 
             {/* Job Type badge */}
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary-light">
+            <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-indigo-700 dark:text-indigo-300">
               <Briefcase size={11} />
               {humanise(job.jobType)}
             </span>
 
             {/* Experience Level */}
             {job.experienceLevel && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-elevated px-2.5 py-0.5 text-xs font-medium text-body">
+              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-elevated px-2 py-0.5 text-[11px] sm:text-xs font-medium text-body">
                 <TrendingUp size={11} />
                 {humanise(job.experienceLevel)}
               </span>
@@ -464,7 +471,7 @@ function JobCard({ job, view }) {
 
             {/* Vacancies */}
             {job.vacancies > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-elevated px-2.5 py-0.5 text-xs font-medium text-body">
+              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-elevated px-2 py-0.5 text-[11px] sm:text-xs font-medium text-body">
                 {job.vacancies} {job.vacancies === 1 ? "vacancy" : "vacancies"}
               </span>
             )}
@@ -472,17 +479,17 @@ function JobCard({ job, view }) {
 
           {/* Skills */}
           {skills.length > 0 && (
-            <div className={`flex flex-wrap gap-1.5 ${isList ? "mt-3" : "mt-3"}`}>
+            <div className={`flex flex-wrap gap-1 sm:gap-1.5 ${isList ? "mt-2.5 sm:mt-3" : "mt-2.5 sm:mt-3"}`}>
               {visibleSkills.map((skill) => (
                 <span
                   key={skill}
-                  className="rounded-full bg-primary/[0.08] px-2.5 py-0.5 text-xs font-medium text-primary-light/80"
+                  className="rounded-md border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 px-2 py-0.5 text-[10px] sm:text-xs font-semibold text-indigo-700 dark:text-indigo-300"
                 >
                   {skill}
                 </span>
               ))}
               {extraSkills > 0 && (
-                <span className="rounded-full bg-surface-elevated px-2.5 py-0.5 text-xs font-medium text-muted">
+                <span className="rounded-md border border-border bg-surface-elevated px-1.5 py-0.5 text-[10px] sm:text-xs font-semibold text-body">
                   +{extraSkills}
                 </span>
               )}
@@ -491,26 +498,29 @@ function JobCard({ job, view }) {
 
           {/* Bottom row */}
           <div
-            className={`flex items-center justify-between ${isList ? "mt-3" : "mt-5 border-t border-border pt-4"
-              }`}
+            className={`flex items-center justify-between ${
+              isList
+                ? "mt-3 pt-3 border-t border-border/60 sm:border-0 sm:pt-0"
+                : "mt-4 sm:mt-5 border-t border-border pt-3.5 sm:pt-4"
+            }`}
           >
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
               {salaryText && (
-                <span className="inline-flex items-center gap-1.5 font-semibold text-heading">
-                  <IndianRupee size={14} className="text-accent" />
-                  {salaryText}
-                  <span className="text-xs font-normal text-muted">/yr</span>
+                <span className="inline-flex items-center gap-1 font-semibold text-heading">
+                  <IndianRupee size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>{salaryText}</span>
+                  <span className="text-[10px] sm:text-xs font-normal text-muted">/yr</span>
                 </span>
               )}
               {job.postedAt && (
-                <span className="inline-flex items-center gap-1.5 text-muted">
-                  <Clock size={13} />
+                <span className="inline-flex items-center gap-1 text-muted text-[11px] sm:text-xs">
+                  <Clock size={12} className="shrink-0" />
                   {timeAgo(job.postedAt)}
                 </span>
               )}
             </div>
 
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary-light opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 translate-x-2">
+            <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 opacity-100 sm:opacity-0 transition-all duration-300 sm:group-hover:opacity-100 sm:group-hover:translate-x-0 sm:translate-x-2">
               Apply
               <ArrowRight size={14} />
             </span>
@@ -528,11 +538,12 @@ function JobCardSkeleton({ view }) {
   const isList = view === "list";
   return (
     <div
-      className={`animate-pulse rounded-[20px] border border-border bg-surface ${isList ? "flex flex-row items-center gap-5 p-5 sm:p-6" : "flex flex-col p-5 sm:p-6"
-        }`}
+      className={`animate-pulse rounded-[20px] border border-border bg-surface ${
+        isList ? "flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-6" : "flex flex-col p-4 sm:p-6"
+      }`}
     >
-      <div className={`shrink-0 rounded-xl bg-surface-elevated ${isList ? "h-14 w-14" : "mb-4 h-14 w-14"}`} />
-      <div className="flex-1 space-y-3">
+      <div className={`shrink-0 rounded-xl bg-surface-elevated ${isList ? "h-12 w-12 sm:h-14 sm:w-14" : "mb-3 sm:mb-4 h-12 w-12 sm:h-14 sm:w-14"}`} />
+      <div className="flex-1 space-y-3 min-w-0">
         <div className="h-5 w-2/3 rounded-lg bg-surface-elevated" />
         <div className="h-4 w-1/2 rounded-lg bg-surface-elevated" />
         <div className="flex gap-2">
@@ -664,6 +675,18 @@ export default function FindJobs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, sortBy, filters, urlKeyword, urlCategory, urlMode, urlCity]);
 
+  /* ── Lock body scroll when mobile drawer is open ── */
+  useEffect(() => {
+    if (mobileFilters) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileFilters]);
+
   /* ── Debounced fetch for search input typing ── */
   const handleSearchInputChange = useCallback(
     (field, value) => {
@@ -774,18 +797,18 @@ export default function FindJobs() {
 
       {/* ========== SEARCH STRIP ========== */}
       <section className="relative border-b border-border bg-surface/50 backdrop-blur-md">
-        <div className="section-container py-8 sm:py-10">
+        <div className="section-container py-6 sm:py-10">
           {/* Heading */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-6 text-center"
+            className="mb-5 sm:mb-6 text-center"
           >
-            <h1 className="font-satoshi text-3xl sm:text-4xl md:text-5xl font-extrabold text-heading leading-tight">
+            <h1 className="font-satoshi text-2xl sm:text-4xl md:text-5xl font-extrabold text-heading leading-tight">
               Find Your <span className="gradient-text">Dream Job</span>
             </h1>
-            <p className="mt-3 text-body text-base md:text-lg">
+            <p className="mt-2 sm:mt-3 text-body text-xs sm:text-base md:text-lg">
               {totalElements > 0
                 ? `Discover ${totalElements.toLocaleString()} opportunities from world-class companies`
                 : "Search thousands of opportunities from world-class companies"}
@@ -798,13 +821,13 @@ export default function FindJobs() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row"
+            className="mx-auto flex max-w-4xl flex-col gap-2.5 sm:gap-3 sm:flex-row"
           >
             {/* Title input */}
             <div className="relative flex-1">
               <Search
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted"
+                size={17}
+                className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-muted"
               />
               <input
                 type="text"
@@ -812,13 +835,13 @@ export default function FindJobs() {
                 onChange={(e) => handleSearchInputChange("title", e.target.value)}
                 placeholder="Job title, keyword, or company"
                 aria-label="Search by job title, keyword, or company"
-                className="w-full rounded-xl border border-border bg-surface-elevated py-3.5 pl-11 pr-10 text-sm text-heading placeholder:text-muted outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-surface-elevated"
+                className="w-full rounded-xl border border-border bg-surface-elevated py-3 sm:py-3.5 pl-10 sm:pl-11 pr-9 sm:pr-10 text-xs sm:text-sm text-heading placeholder:text-muted outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-surface-elevated"
               />
               {searchTitle && (
                 <button
                   type="button"
                   onClick={() => handleSearchInputChange("title", "")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-heading p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-heading p-1 cursor-pointer"
                 >
                   <X size={14} />
                 </button>
@@ -828,8 +851,8 @@ export default function FindJobs() {
             {/* Location input */}
             <div className="relative sm:w-64">
               <MapPin
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted"
+                size={17}
+                className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-muted"
               />
               <input
                 type="text"
@@ -837,13 +860,13 @@ export default function FindJobs() {
                 onChange={(e) => handleSearchInputChange("location", e.target.value)}
                 placeholder="City, state, or remote"
                 aria-label="Search by city, state, or remote"
-                className="w-full rounded-xl border border-border bg-surface-elevated py-3.5 pl-11 pr-10 text-sm text-heading placeholder:text-muted outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-surface-elevated"
+                className="w-full rounded-xl border border-border bg-surface-elevated py-3 sm:py-3.5 pl-10 sm:pl-11 pr-9 sm:pr-10 text-xs sm:text-sm text-heading placeholder:text-muted outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-surface-elevated"
               />
               {searchLocation && (
                 <button
                   type="button"
                   onClick={() => handleSearchInputChange("location", "")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-heading p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-heading p-1 cursor-pointer"
                 >
                   <X size={14} />
                 </button>
@@ -854,9 +877,9 @@ export default function FindJobs() {
             <button
               type="submit"
               aria-label="Search jobs"
-              className="gradient-bg-signature flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-sm font-bold text-white shadow-button transition-all duration-300 hover:shadow-[0_0_30px_rgba(99,102,241,0.35)] hover:scale-[1.02] active:scale-[0.98]"
+              className="gradient-bg-signature flex items-center justify-center gap-2 rounded-xl px-7 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white shadow-button transition-all duration-300 hover:shadow-[0_0_30px_rgba(99,102,241,0.35)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer w-full sm:w-auto shrink-0"
             >
-              <Search size={16} />
+              <Search size={15} />
               Search
             </button>
           </motion.form>
@@ -874,8 +897,8 @@ export default function FindJobs() {
               exit={{ opacity: 0, height: 0 }}
               className="mb-4 overflow-hidden"
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-muted">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="mr-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted">
                   Active:
                 </span>
                 {activePills.map((pill) => (
@@ -886,7 +909,7 @@ export default function FindJobs() {
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.2 }}
                     onClick={() => removeActiveFilter(pill.kind, pill.value ?? pill.label)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary-light transition-all hover:border-primary/40 hover:bg-primary/20"
+                    className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-semibold text-indigo-700 dark:text-indigo-300 transition-all hover:bg-indigo-100 dark:hover:bg-primary/25 cursor-pointer"
                   >
                     {pill.label}
                     <X size={12} />
@@ -894,7 +917,7 @@ export default function FindJobs() {
                 ))}
                 <button
                   onClick={clearAll}
-                  className="ml-2 text-xs font-medium text-muted hover:text-heading transition-colors"
+                  className="ml-1 sm:ml-2 text-[11px] sm:text-xs font-medium text-muted hover:text-heading transition-colors cursor-pointer"
                 >
                   Clear all
                 </button>
@@ -904,11 +927,11 @@ export default function FindJobs() {
         </AnimatePresence>
 
         {/* Discovery Feed Mode Toggle */}
-        <div className="mb-6 flex items-center justify-between gap-4 border-b border-border pb-4">
-          <div className="flex flex-col xs:flex-row items-stretch xs:items-center rounded-2xl bg-surface border border-border p-1 w-full sm:w-auto gap-1">
+        <div className="mb-5 sm:mb-6 border-b border-border pb-4">
+          <div className="grid grid-cols-2 sm:inline-flex items-center rounded-2xl bg-surface border border-border p-1 w-full sm:w-auto gap-1">
             <button
               onClick={() => setFeedMode("all")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-center ${
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-center truncate ${
                 feedMode === "all"
                   ? "bg-primary text-white shadow-md shadow-primary/20"
                   : "text-muted hover:text-heading"
@@ -918,13 +941,13 @@ export default function FindJobs() {
             </button>
             <button
               onClick={() => setFeedMode("recommended")}
-              className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer truncate ${
                 feedMode === "recommended"
                   ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20"
                   : "text-muted hover:text-heading"
               }`}
             >
-              <Sparkles size={13} className="text-amber-300 animate-pulse" />
+              <Sparkles size={13} className="text-amber-300 animate-pulse shrink-0" />
               <span>Recommended for You ✨</span>
             </button>
           </div>
@@ -937,16 +960,16 @@ export default function FindJobs() {
         ) : (
           <>
             {/* Results Header */}
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-              <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+            <div className="mb-5 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-3.5">
+              <div className="flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3 w-full sm:w-auto">
                 {/* Mobile filter toggle */}
                 <button
                   onClick={() => setMobileFilters(true)}
                   aria-label="Open filters"
-                  className="lg:hidden inline-flex items-center gap-2 rounded-xl border border-border bg-surface-elevated px-3.5 py-2 text-xs sm:text-sm font-medium text-body transition-all hover:border-primary/30 hover:text-heading shrink-0"
+                  className="lg:hidden inline-flex items-center gap-1.5 sm:gap-2 rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs sm:text-sm font-semibold text-body transition-all hover:border-primary/30 hover:text-heading shrink-0 cursor-pointer"
                 >
-                  <SlidersHorizontal size={15} />
-                  Filters
+                  <SlidersHorizontal size={14} />
+                  <span>Filters</span>
                   {activePills.length > 0 && (
                     <span className="ml-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-primary text-[10px] sm:text-xs font-bold text-white">
                       {activePills.length}
@@ -954,7 +977,31 @@ export default function FindJobs() {
                   )}
                 </button>
 
-                <p className="text-xs sm:text-sm text-body">
+                {/* Sort on Mobile */}
+                <div className="relative sm:hidden flex-1 max-w-[170px]">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                      setPage(0);
+                    }}
+                    aria-label="Sort jobs by"
+                    className="w-full appearance-none rounded-xl border border-border bg-surface-elevated px-3 py-2 pr-7 text-xs text-heading outline-none transition-all focus:border-primary/40 cursor-pointer truncate"
+                    style={{ colorScheme: "auto" }}
+                  >
+                    {SORT_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronRight
+                    size={13}
+                    className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rotate-90 text-muted"
+                  />
+                </div>
+
+                <p className="hidden sm:block text-xs sm:text-sm text-body">
                   {loading ? (
                     "Loading…"
                   ) : (
@@ -973,9 +1020,23 @@ export default function FindJobs() {
                 </p>
               </div>
 
-              <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-                {/* Sort */}
-                <div className="relative flex-1 sm:flex-initial">
+              {/* Subrow for mobile results count */}
+              <div className="sm:hidden flex items-center justify-between text-xs text-body px-0.5">
+                <span>
+                  {loading ? (
+                    "Loading…"
+                  ) : (
+                    <>
+                      Showing <span className="font-semibold text-heading">{jobs.length}</span> of{" "}
+                      <span className="font-semibold text-heading">{totalElements.toLocaleString()}</span> jobs
+                    </>
+                  )}
+                </span>
+              </div>
+
+              <div className="hidden sm:flex items-center justify-end gap-3 w-full sm:w-auto">
+                {/* Desktop Sort */}
+                <div className="relative">
                   <select
                     value={sortBy}
                     onChange={(e) => {
@@ -983,8 +1044,8 @@ export default function FindJobs() {
                       setPage(0);
                     }}
                     aria-label="Sort jobs by"
-                    className="w-full sm:w-auto appearance-none rounded-xl border border-border bg-surface-elevated px-3.5 py-2 sm:px-4 sm:py-2.5 pr-8 sm:pr-9 text-xs sm:text-sm text-heading outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 hover:border-border-hover cursor-pointer"
-                    style={{ colorScheme: "dark" }}
+                    className="appearance-none rounded-xl border border-border bg-surface-elevated px-3.5 py-2 sm:px-4 sm:py-2.5 pr-8 sm:pr-9 text-xs sm:text-sm text-heading outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 hover:border-border-hover cursor-pointer"
+                    style={{ colorScheme: "auto" }}
                   >
                     {SORT_OPTIONS.map((o) => (
                       <option key={o.value} value={o.value}>
@@ -999,11 +1060,11 @@ export default function FindJobs() {
                 </div>
 
                 {/* View toggle */}
-                <div className="hidden sm:flex items-center rounded-xl border border-border bg-surface-elevated p-1">
+                <div className="flex items-center rounded-xl border border-border bg-surface-elevated p-1">
                   <button
                     onClick={() => setView("grid")}
-                    className={`rounded-xl p-2 transition-all duration-200 ${view === "grid"
-                      ? "bg-primary/15 text-primary-light shadow-sm"
+                    className={`rounded-xl p-2 transition-all duration-200 cursor-pointer ${view === "grid"
+                      ? "bg-indigo-50 dark:bg-primary/20 text-indigo-700 dark:text-indigo-300 font-bold shadow-sm"
                       : "text-muted hover:text-heading"
                       }`}
                     aria-label="Grid view"
@@ -1012,8 +1073,8 @@ export default function FindJobs() {
                   </button>
                   <button
                     onClick={() => setView("list")}
-                    className={`rounded-xl p-2 transition-all duration-200 ${view === "list"
-                      ? "bg-primary/15 text-primary-light shadow-sm"
+                    className={`rounded-xl p-2 transition-all duration-200 cursor-pointer ${view === "list"
+                      ? "bg-indigo-50 dark:bg-primary/20 text-indigo-700 dark:text-indigo-300 font-bold shadow-sm"
                       : "text-muted hover:text-heading"
                       }`}
                     aria-label="List view"
@@ -1030,7 +1091,7 @@ export default function FindJobs() {
           <aside className="hidden lg:block w-[260px] shrink-0">
             <div className="sticky top-[96px] rounded-[20px] border border-border bg-surface backdrop-blur-lg p-5 sm:p-6">
               <div className="mb-5 flex items-center gap-2">
-                <SlidersHorizontal size={16} className="text-primary-light" />
+                <SlidersHorizontal size={16} className="text-indigo-600 dark:text-indigo-400" />
                 <h3 className="font-satoshi text-base font-bold text-heading">
                   Filters
                 </h3>
@@ -1084,25 +1145,14 @@ export default function FindJobs() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="flex flex-col items-center justify-center rounded-3xl border border-border bg-surface/80 backdrop-blur-xl px-6 py-20 text-center shadow-xl font-inter text-body"
                 >
-                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary shadow-inner">
-                    <Search size={34} />
-                  </div>
-                  <h3 className="font-satoshi text-2xl font-black text-heading tracking-tight">
-                    No Matching Jobs Found
-                  </h3>
-                  <p className="mt-2.5 max-w-md text-xs sm:text-sm text-muted font-medium leading-relaxed">
-                    We couldn't find any opportunities matching your active filters. Try broadening your keywords, location, or reset filters below.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={clearAll}
-                    className="gradient-bg-signature mt-6 inline-flex items-center gap-2 rounded-2xl px-7 py-3 text-xs font-black uppercase tracking-wider text-white shadow-button hover:shadow-[0_0_35px_rgba(99,102,241,0.5)] hover:scale-105 transition-all duration-300 cursor-pointer"
-                  >
-                    <Sparkles size={15} className="text-amber-300 fill-amber-300/20 animate-pulse" />
-                    Reset Filters & Explore All Jobs
-                  </button>
+                  <EmptyState
+                    icon={Briefcase}
+                    title="No Matching Jobs Found"
+                    description="We couldn't find any opportunities matching your active filters. Try broadening your keywords, location, or reset filters below."
+                    actionLabel="Reset Filters & Explore All Jobs"
+                    onAction={clearAll}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1113,60 +1163,88 @@ export default function FindJobs() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="mt-8 flex items-center justify-center gap-1.5"
+                className="mt-8"
               >
-                {/* Previous */}
-                <button
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  disabled={page === 0}
-                  aria-label="Previous page"
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-body transition-all hover:border-primary/30 hover:text-heading disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border disabled:hover:text-body"
-                >
-                  <ChevronLeft size={14} />
-                  Prev
-                </button>
+                {/* Mobile compact pagination */}
+                <div className="flex sm:hidden items-center justify-between w-full max-w-xs mx-auto gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                    aria-label="Previous page"
+                    className="inline-flex items-center gap-1 rounded-xl border border-border bg-surface-elevated px-3.5 py-2 text-xs font-semibold text-body transition-all hover:border-primary/30 hover:text-heading disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <ChevronLeft size={14} />
+                    Prev
+                  </button>
 
-                {/* Page Numbers */}
-                <div className="flex items-center gap-1">
-                  {getPageNumbers().map((p, i) =>
-                    p === "..." ? (
-                      <span key={`dots-${i}`} className="px-2 text-sm text-muted">
-                        …
-                      </span>
-                    ) : (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p - 1)} // convert 1-indexed display → 0-indexed
-                        className={`h-9 w-9 rounded-xl text-sm font-medium transition-all duration-200 ${currentPageDisplay === p
-                          ? "gradient-bg-signature text-white shadow-button"
-                          : "border border-border bg-surface-elevated text-body hover:border-primary/30 hover:text-heading"
-                          }`}
-                      >
-                        {p}
-                      </button>
-                    )
-                  )}
+                  <span className="text-xs font-bold text-heading px-2.5 py-1.5 rounded-xl bg-surface border border-border">
+                    {currentPageDisplay} / {totalPages}
+                  </span>
+
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    disabled={page >= totalPages - 1}
+                    aria-label="Next page"
+                    className="inline-flex items-center gap-1 rounded-xl border border-border bg-surface-elevated px-3.5 py-2 text-xs font-semibold text-body transition-all hover:border-primary/30 hover:text-heading disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Next
+                    <ChevronRight size={14} />
+                  </button>
                 </div>
 
-                {/* Next */}
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                  disabled={page >= totalPages - 1}
-                  aria-label="Next page"
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-body transition-all hover:border-primary/30 hover:text-heading disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border disabled:hover:text-body"
-                >
-                  Next
-                  <ChevronRight size={14} />
-                </button>
-              </motion.div>
-            )}
+                {/* Desktop full pagination */}
+                <div className="hidden sm:flex items-center justify-center gap-1.5">
+                  {/* Previous */}
+                  <button
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                    aria-label="Previous page"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-body transition-all hover:border-primary/30 hover:text-heading disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border disabled:hover:text-body cursor-pointer"
+                  >
+                    <ChevronLeft size={14} />
+                    Prev
+                  </button>
 
-            {/* Page info */}
-            {!loading && totalPages > 1 && (
-              <p className="mt-3 text-center text-xs text-muted">
-                Page {currentPageDisplay} of {totalPages} ·{" "}
-                {totalElements.toLocaleString()} total jobs
-              </p>
+                  {/* Page Numbers */}
+                  <div className="flex items-center gap-1">
+                    {getPageNumbers().map((p, i) =>
+                      p === "..." ? (
+                        <span key={`dots-${i}`} className="px-2 text-sm text-muted">
+                          …
+                        </span>
+                      ) : (
+                        <button
+                          key={p}
+                          onClick={() => setPage(p - 1)} // convert 1-indexed display → 0-indexed
+                          className={`h-9 w-9 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                            currentPageDisplay === p
+                              ? "gradient-bg-signature text-white shadow-button"
+                              : "border border-border bg-surface-elevated text-body hover:border-primary/30 hover:text-heading"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      )
+                    )}
+                  </div>
+
+                  {/* Next */}
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    disabled={page >= totalPages - 1}
+                    aria-label="Next page"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-body transition-all hover:border-primary/30 hover:text-heading disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-border disabled:hover:text-body cursor-pointer"
+                  >
+                    Next
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+
+                {/* Page info */}
+                <p className="mt-3 text-center text-xs text-muted">
+                  Page {currentPageDisplay} of {totalPages} · {totalElements.toLocaleString()} total jobs
+                </p>
+              </motion.div>
             )}
           </div>
         </div>
@@ -1193,39 +1271,44 @@ export default function FindJobs() {
               initial="hidden"
               animate="show"
               exit="exit"
-              className="fixed inset-y-0 left-0 z-50 w-[320px] max-w-[85vw] overflow-y-auto border-r border-border bg-surface/95 backdrop-blur-xl p-6 lg:hidden"
+              className="fixed inset-y-0 left-0 z-50 w-full sm:w-[360px] max-w-[85vw] flex flex-col justify-between border-r border-border bg-surface/98 shadow-2xl backdrop-blur-2xl p-5 sm:p-6 lg:hidden"
             >
               {/* Header */}
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between pb-3 border-b border-border shrink-0">
                 <div className="flex items-center gap-2">
-                  <SlidersHorizontal size={18} className="text-primary-light" />
-                  <h3 className="font-satoshi text-lg font-bold text-heading">
+                  <SlidersHorizontal size={18} className="text-indigo-600 dark:text-indigo-400" />
+                  <h3 className="font-satoshi text-base sm:text-lg font-bold text-heading">
                     Filters
                   </h3>
                 </div>
                 <button
                   onClick={() => setMobileFilters(false)}
                   aria-label="Close filters"
-                  className="rounded-xl p-2 text-muted transition-colors hover:bg-surface-elevated hover:text-heading"
+                  className="rounded-xl p-2 text-muted transition-colors hover:bg-surface-elevated hover:text-heading cursor-pointer"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <FilterSidebarContent
-                filters={filters}
-                onToggleFilter={toggleFilter}
-                onSetSalary={setSalary}
-                onClearAll={clearAll}
-              />
+              {/* Scrollable Filters Body */}
+              <div className="flex-1 overflow-y-auto pr-1 my-1">
+                <FilterSidebarContent
+                  filters={filters}
+                  onToggleFilter={toggleFilter}
+                  onSetSalary={setSalary}
+                  onClearAll={clearAll}
+                />
+              </div>
 
-              {/* Apply button */}
-              <button
-                onClick={() => setMobileFilters(false)}
-                className="gradient-bg-signature mt-6 w-full rounded-xl py-3 text-sm font-bold text-white shadow-button transition-all hover:shadow-[0_0_30px_rgba(99,102,241,0.35)]"
-              >
-                Show {totalElements.toLocaleString()} results
-              </button>
+              {/* Sticky Bottom Actions */}
+              <div className="pt-3 border-t border-border shrink-0 space-y-2">
+                <button
+                  onClick={() => setMobileFilters(false)}
+                  className="gradient-bg-signature w-full rounded-xl py-3 text-sm font-bold text-white shadow-button transition-all hover:shadow-[0_0_30px_rgba(99,102,241,0.35)] cursor-pointer"
+                >
+                  Show {totalElements.toLocaleString()} results
+                </button>
+              </div>
             </motion.div>
           </>
         )}

@@ -21,11 +21,14 @@ function Layout() {
     location.pathname === "/register" ||
     location.pathname === "/reset-password";
 
-  const hideUserHeaderFooter = isRecruiterRoute || isAuthRoute;
+  const isMessagesRoute = location.pathname.startsWith("/messages");
 
+  const hideUserHeader = isRecruiterRoute || isAuthRoute;
+  const hideUserFooter = isRecruiterRoute || isAuthRoute || isMessagesRoute;
+  const hideChatbot = isAuthRoute || isRecruiterRoute || isMessagesRoute;
 
   return (
-    <div className="min-h-screen w-full bg-background font-inter text-body">
+    <div className="min-h-screen w-full bg-background font-inter text-body flex flex-col">
       {/* Accessibility */}
       <a href="#main-content" className="skip-link">
         Skip to main content
@@ -33,19 +36,19 @@ function Layout() {
 
       <ScrollToTop />
 
-      {/* Header — hidden for Employers, Auth pages, and Recruiter routes */}
-      {!hideUserHeaderFooter && <Header />}
+      {/* Header — hidden for Studio/Auth routes, visible on public & messages */}
+      {!hideUserHeader && <Header />}
 
       {/* Main Page Content */}
-      <main id="main-content" className="relative w-full">
+      <main id="main-content" className="relative w-full flex-1 flex flex-col">
         <Outlet />
       </main>
 
-      {/* Global Floating AI Career Chatbot */}
-      {!isAuthRoute && <FloatingAIChatbot />}
+      {/* Global Floating AI Career Chatbot — hidden on messages to avoid blocking chat input */}
+      {!hideChatbot && <FloatingAIChatbot />}
 
-      {/* Footer — hidden for Employers, Auth pages, and Recruiter routes */}
-      {!hideUserHeaderFooter && <Footer />}
+      {/* Footer — hidden on Auth, Studio, and Messages full-screen chat views */}
+      {!hideUserFooter && <Footer />}
     </div>
   );
 }

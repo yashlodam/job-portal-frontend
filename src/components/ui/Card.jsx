@@ -1,18 +1,19 @@
 /**
  * src/components/ui/Card.jsx
- * Master 3D Glassmorphism Card system for the entire application.
+ * Semantic token-based card primitives. Works in both light and dark themes.
  */
 import React from "react";
 
-export function Card({ children, className = "", hover = true, glow = false, onClick, ...props }) {
+export function Card({ children, className = "", hover = false, glow = false, ...props }) {
   return (
     <div
-      onClick={onClick}
-      className={`rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm transition-all duration-300 dark:border-white/10 dark:bg-[#090d16]/90 dark:text-slate-100 dark:shadow-xl p-6 ${
-        hover
-          ? "hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/50 dark:hover:bg-[#0c111f] dark:hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)] hover:scale-[1.01]"
-          : ""
-      } ${glow ? "shadow-[0_0_35px_rgba(99,102,241,0.2)] border-indigo-500/40" : ""} ${className}`}
+      className={`
+        bg-surface border border-border rounded-xl
+        transition-all duration-300
+        ${hover ? "hover:-translate-y-0.5 hover:border-border-hover hover:shadow-card" : ""}
+        ${glow ? "hover:shadow-glow-primary" : ""}
+        ${className}
+      `}
       {...props}
     >
       {children}
@@ -20,22 +21,44 @@ export function Card({ children, className = "", hover = true, glow = false, onC
   );
 }
 
-export function CardHeader({ children, className = "" }) {
-  return <div className={`flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10 ${className}`}>{children}</div>;
+export function CardHeader({ children, className = "", ...props }) {
+  return (
+    <div className={`px-5 py-4 border-b border-border ${className}`} {...props}>
+      {children}
+    </div>
+  );
 }
 
-export function CardTitle({ children, className = "" }) {
-  return <h3 className={`text-lg font-black text-slate-900 dark:text-white font-satoshi ${className}`}>{children}</h3>;
+export function CardTitle({ children, className = "", ...props }) {
+  return (
+    <h3 className={`text-base font-semibold text-heading ${className}`} {...props}>
+      {children}
+    </h3>
+  );
 }
 
-export function CardDescription({ children, className = "" }) {
-  return <p className={`text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium ${className}`}>{children}</p>;
+export function CardDescription({ children, className = "", ...props }) {
+  return (
+    <p className={`text-sm text-muted mt-0.5 ${className}`} {...props}>
+      {children}
+    </p>
+  );
 }
 
-export function CardContent({ children, className = "" }) {
-  return <div className={`pt-4 ${className}`}>{children}</div>;
+export function CardContent({ children, className = "", ...props }) {
+  return (
+    <div className={`px-5 py-4 ${className}`} {...props}>
+      {children}
+    </div>
+  );
 }
 
-export function CardFooter({ children, className = "" }) {
-  return <div className={`pt-4 mt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-between ${className}`}>{children}</div>;
+export function CardFooter({ children, className = "", ...props }) {
+  return (
+    <div className={`px-5 py-4 border-t border-border flex items-center gap-3 ${className}`} {...props}>
+      {children}
+    </div>
+  );
 }
+
+export default Card;

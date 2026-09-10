@@ -312,7 +312,7 @@ export default function RecruiterJobsPage() {
       {/* Main Jobs Display */}
       {filteredJobs.length === 0 ? (
         <Card className="p-12 text-center space-y-4 border-border bg-surface shadow-2xl">
-          <AlertCircle className="h-12 w-12 text-primary-light mx-auto opacity-60" />
+          <AlertCircle className="h-12 w-12 text-indigo-500 dark:text-indigo-400 mx-auto opacity-70" />
           <h3 className="text-lg font-black text-heading font-satoshi">No Posted Jobs Found</h3>
           <p className="text-xs text-body max-w-sm mx-auto font-medium">
             No active jobs match your search keywords or active filter criteria. Click below to create a new job post.
@@ -335,7 +335,7 @@ export default function RecruiterJobsPage() {
               <div className="space-y-4">
                 {/* Status Header */}
                 <div className="flex items-start justify-between gap-3">
-                  <span className="rounded-xl bg-primary/10 border border-primary/20 px-2.5 py-1 text-[11px] font-extrabold text-primary-light">
+                  <span className="rounded-xl bg-indigo-50 dark:bg-primary/15 border border-indigo-200 dark:border-primary/30 px-2.5 py-1 text-[11px] font-extrabold text-indigo-700 dark:text-indigo-300">
                     {job.category || job.department || "Engineering"}
                   </span>
                   <StatusChip status={job.status || job.jobStatus || "ACTIVE"} />
@@ -345,14 +345,14 @@ export default function RecruiterJobsPage() {
                 <div>
                   <Link
                     to={`/jobs/${job.id}`}
-                    className="text-base font-black text-heading group-hover:text-primary-light transition line-clamp-1"
+                    className="text-base font-black text-heading group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition line-clamp-1"
                   >
                     {job.title || job.jobTitle}
                   </Link>
                   <p className="text-xs text-muted font-medium mt-1 flex items-center gap-2">
-                    <span className="flex items-center gap-1"><MapPin size={13} className="text-primary-light" /> {job.workingMode || job.location || "Remote"}</span>
+                    <span className="flex items-center gap-1"><MapPin size={13} className="text-indigo-600 dark:text-indigo-400" /> {job.workingMode || job.location || "Remote"}</span>
                     <span>•</span>
-                    <span className="flex items-center gap-1"><Clock size={13} className="text-primary-light" /> {job.jobType || "Full Time"}</span>
+                    <span className="flex items-center gap-1"><Clock size={13} className="text-indigo-600 dark:text-indigo-400" /> {job.jobType || "Full Time"}</span>
                   </p>
                 </div>
 
@@ -362,7 +362,7 @@ export default function RecruiterJobsPage() {
                     {job.salaryMin ? `₹${job.salaryMin.toLocaleString()} - ₹${job.salaryMax?.toLocaleString()}` : "Market Standard Salary"}
                   </span>
 
-                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-primary-light bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-primary/15 px-2.5 py-0.5 rounded-full border border-indigo-200 dark:border-primary/30">
                     <Users size={12} /> {job.applicantsCount ?? job.applicationsCount ?? job.totalApplicants ?? job.totalApplications ?? (Array.isArray(job.applications) ? job.applications.length : 0)} Applicants
                   </span>
                 </div>
@@ -380,7 +380,7 @@ export default function RecruiterJobsPage() {
                   <button
                     type="button"
                     onClick={() => handleOpenEditModal(job)}
-                    className="inline-flex items-center gap-1 rounded-xl bg-primary/15 border border-primary/30 px-2.5 py-1.5 text-xs font-bold text-primary-light hover:bg-primary/25 transition cursor-pointer"
+                    className="inline-flex items-center gap-1 rounded-xl bg-indigo-50 dark:bg-primary/15 border border-indigo-200 dark:border-primary/30 px-2.5 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-primary/25 transition cursor-pointer"
                   >
                     <Edit3 size={14} /> Edit
                   </button>
@@ -416,7 +416,7 @@ export default function RecruiterJobsPage() {
                 {filteredJobs.map((job) => (
                   <tr key={job.id} className="hover:bg-surface-hover transition">
                     <td className="p-4">
-                      <Link to={`/jobs/${job.id}`} className="font-extrabold text-heading hover:text-primary-light text-sm font-satoshi">
+                      <Link to={`/jobs/${job.id}`} className="font-extrabold text-heading hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-satoshi">
                         {job.title || job.jobTitle}
                       </Link>
                       <p className="text-[11px] text-muted mt-0.5">Job #{job.id}</p>
@@ -424,20 +424,20 @@ export default function RecruiterJobsPage() {
                     <td className="p-4 text-body font-semibold">{job.category || job.department || "Engineering"}</td>
                     <td className="p-4 text-body font-semibold">{job.workingMode || "Remote"}</td>
                     <td className="p-4">
-                      <span className="inline-flex items-center gap-1 text-xs font-extrabold text-primary-light bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20 font-satoshi">
+                      <span className="inline-flex items-center gap-1 text-xs font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-primary/15 px-2.5 py-0.5 rounded-full border border-indigo-200 dark:border-primary/30 font-satoshi">
                         {job.applicantsCount ?? job.applicationsCount ?? job.totalApplicants ?? job.totalApplications ?? (Array.isArray(job.applications) ? job.applications.length : 0)}
                       </span>
                     </td>
                     <td className="p-4"><StatusChip status={job.status || job.jobStatus || "ACTIVE"} /></td>
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link to={`/jobs/${job.id}`} className="p-2 text-muted hover:text-primary-light hover:bg-surface-hover rounded-xl transition" title="View Job Details">
+                        <Link to={`/jobs/${job.id}`} className="p-2 text-muted hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-surface-hover rounded-xl transition" title="View Job Details">
                           <Eye size={16} />
                         </Link>
                         <button
                           type="button"
                           onClick={() => handleOpenEditModal(job)}
-                          className="p-2 text-primary-light hover:text-primary hover:bg-primary/10 rounded-xl transition cursor-pointer"
+                          className="p-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-200 hover:bg-indigo-50 dark:hover:bg-primary/15 rounded-xl transition cursor-pointer"
                           title="Edit Job"
                         >
                           <Edit3 size={16} />
@@ -470,7 +470,7 @@ export default function RecruiterJobsPage() {
           <form onSubmit={handleSaveEditJob} className="space-y-5 text-sm font-satoshi text-body">
             {/* Job Title */}
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-primary-light mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-heading mb-1.5">
                 Job Title <span className="text-rose-500">*</span>
               </label>
               <input
@@ -486,7 +486,7 @@ export default function RecruiterJobsPage() {
             {/* Department & Location */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-primary-light mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-heading mb-1.5">
                   Category / Department <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -499,7 +499,7 @@ export default function RecruiterJobsPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-primary-light mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-heading mb-1.5">
                   Location (City, State, Country) <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -516,7 +516,7 @@ export default function RecruiterJobsPage() {
             {/* Job Type, Work Mode, Experience Level */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-primary-light mb-1.5">Job Type</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-heading mb-1.5">Job Type</label>
                 <select
                   value={editForm.jobType}
                   onChange={(e) => setEditForm({ ...editForm, jobType: e.target.value })}
@@ -532,7 +532,7 @@ export default function RecruiterJobsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-primary-light mb-1.5">Work Mode</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-heading mb-1.5">Work Mode</label>
                 <select
                   value={editForm.workingMode}
                   onChange={(e) => setEditForm({ ...editForm, workingMode: e.target.value })}
@@ -546,7 +546,7 @@ export default function RecruiterJobsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-primary-light mb-1.5">Experience Level</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-heading mb-1.5">Experience Level</label>
                 <select
                   value={editForm.experienceLevel}
                   onChange={(e) => setEditForm({ ...editForm, experienceLevel: e.target.value })}
@@ -564,7 +564,7 @@ export default function RecruiterJobsPage() {
             {/* Salary Range */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-primary-light mb-1.5">Minimum Salary (₹)</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-heading mb-1.5">Minimum Salary (₹)</label>
                 <input
                   type="number"
                   value={editForm.salaryMin}
@@ -574,7 +574,7 @@ export default function RecruiterJobsPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-primary-light mb-1.5">Maximum Salary (₹)</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-heading mb-1.5">Maximum Salary (₹)</label>
                 <input
                   type="number"
                   value={editForm.salaryMax}
@@ -587,7 +587,7 @@ export default function RecruiterJobsPage() {
 
             {/* Skills */}
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-primary-light mb-1.5">Required Skills (comma-separated)</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-heading mb-1.5">Required Skills (comma-separated)</label>
               <input
                 type="text"
                 value={editForm.skillsInput}
@@ -599,7 +599,7 @@ export default function RecruiterJobsPage() {
 
             {/* Job Description */}
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-primary-light mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-heading mb-1.5">
                 Job Description <span className="text-rose-500">*</span>
               </label>
               <textarea

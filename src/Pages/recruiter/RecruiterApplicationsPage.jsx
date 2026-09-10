@@ -85,6 +85,7 @@ export default function RecruiterApplicationsPage() {
 
   const [selectedJobId, setSelectedJobId] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [matchTier, setMatchTier] = useState("all"); // 'all' | 'top' (>=80%) | 'moderate' (60-79%) | 'low' (<60%)
   const [sortBy, setSortBy] = useState("ma.matchPercentage,desc");
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -288,6 +289,15 @@ export default function RecruiterApplicationsPage() {
     { id: "REJECTED", label: "Rejected", count: sortedApplications.filter((a) => a.status === "REJECTED").length },
   ];
 
+  const matchTierCounts = useMemo(() => {
+    return {
+      all: sortedApplications.length,
+      top: sortedApplications.filter((a) => a.matchPercentage !== null && a.matchPercentage !== undefined && a.matchPercentage >= 80).length,
+      moderate: sortedApplications.filter((a) => a.matchPercentage !== null && a.matchPercentage !== undefined && a.matchPercentage >= 60 && a.matchPercentage < 80).length,
+      low: sortedApplications.filter((a) => a.matchPercentage !== null && a.matchPercentage !== undefined && a.matchPercentage < 60).length,
+    };
+  }, [sortedApplications]);
+
   const filtered = sortedApplications.filter((app) => {
     const candidateName = app.candidateName || app.applicantName || app.user?.name || "";
     const email = app.applicantEmail || app.email || app.user?.email || "";
@@ -299,8 +309,18 @@ export default function RecruiterApplicationsPage() {
 
     const searchableText = `${candidateName} ${email} ${jobTitle} ${status} ${resume} ${skills} ${location}`.toLowerCase();
     const matchesSearch = searchableText.includes(searchQuery.toLowerCase().trim());
-    if (activeTab !== "all") return matchesSearch && (app.status === activeTab || (activeTab === "INTERVIEWING" && app.status === "INTERVIEW"));
-    return matchesSearch;
+    if (!matchesSearch) return false;
+
+    if (activeTab !== "all" && !(app.status === activeTab || (activeTab === "INTERVIEWING" && app.status === "INTERVIEW"))) {
+      return false;
+    }
+
+    const score = app.matchPercentage !== null && app.matchPercentage !== undefined ? Number(app.matchPercentage) : 0;
+    if (matchTier === "top" && score < 80) return false;
+    if (matchTier === "moderate" && (score < 60 || score >= 80)) return false;
+    if (matchTier === "low" && score >= 60) return false;
+
+    return true;
   });
 
   return (
@@ -374,6 +394,66 @@ export default function RecruiterApplicationsPage() {
               <X size={14} />
             </button>
           )}
+        </div>
+
+        {/* Match Tier Quick-Filter Chips */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+          <span className="text-[11px] font-black uppercase tracking-wider text-muted flex items-center gap-1.5">
+            <Sparkles size={12} className="text-amber-500" /> Match Tier:
+          </span>
+          <button
+            type="button"
+            onClick={() => setMatchTier("all")}
+            className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer border ${
+              matchTier === "all"
+                ? "bg-indigo-600 !text-white border-indigo-500 shadow-sm"
+                : "bg-surface-elevated hover:bg-surface-hover text-body border-border"
+            }`}
+          >
+            All Candidates ({matchTierCounts.all})
+          </button>
+          <button
+            type="button"
+            onClick={() => setMatchTier("top")}
+            className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer border flex items-center gap-1.5 ${
+              matchTier === "top"
+                ? "bg-emerald-600 !text-white border-emerald-500 shadow-sm"
+                : "bg-surface-elevated hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-border"
+            }`}
+          >
+            <span>🎯 Top Fit (≥80%)</span>
+            <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[10px] font-black">
+              {matchTierCounts.top}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMatchTier("moderate")}
+            className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer border flex items-center gap-1.5 ${
+              matchTier === "moderate"
+                ? "bg-amber-600 !text-white border-amber-500 shadow-sm"
+                : "bg-surface-elevated hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-border"
+            }`}
+          >
+            <span>⚡ Moderate Fit (60–79%)</span>
+            <span className="rounded-full bg-amber-500/20 px-1.5 py-0.2 text-[10px] font-black">
+              {matchTierCounts.moderate}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMatchTier("low")}
+            className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer border flex items-center gap-1.5 ${
+              matchTier === "low"
+                ? "bg-rose-600 !text-white border-rose-500 shadow-sm"
+                : "bg-surface-elevated hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border-border"
+            }`}
+          >
+            <span>⚠️ Low Match (&lt;60%)</span>
+            <span className="rounded-full bg-rose-500/20 px-1.5 py-0.2 text-[10px] font-black">
+              {matchTierCounts.low}
+            </span>
+          </button>
         </div>
       </Card>
 

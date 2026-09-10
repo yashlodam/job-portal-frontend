@@ -204,7 +204,7 @@ const DreamJob = memo(() => {
             {/* High-Impact Editorial Headline */}
             <motion.h1
               variants={fadeUp}
-              className={`text-4xl sm:text-5xl lg:text-6xl xl:text-[66px] font-black leading-[1.08] tracking-tight font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}
+              className={`text-3xl sm:text-5xl lg:text-6xl xl:text-[66px] font-black leading-[1.12] sm:leading-[1.08] tracking-tight font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}
             >
               Your next role,{" "}
               <span
@@ -221,7 +221,7 @@ const DreamJob = memo(() => {
             {/* Explanatory Subtitle */}
             <motion.p
               variants={fadeUp}
-              className={`max-w-xl text-sm sm:text-base leading-relaxed font-medium ${isLight ? "text-slate-600" : "text-slate-300"}`}
+              className={`max-w-xl text-xs sm:text-base leading-relaxed font-medium ${isLight ? "text-slate-600" : "text-slate-300"}`}
             >
               Explore verified engineering, product, and AI positions. Evaluate your match fit, optimize your resume for screening, and connect directly with hiring teams.
             </motion.p>
@@ -230,7 +230,7 @@ const DreamJob = memo(() => {
             <motion.div variants={fadeUp} className="w-full max-w-2xl pt-1">
               
               {/* Quick Category Filter Pills */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2 mb-3">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1 sm:gap-2 mb-3">
                 {QUICK_FILTERS.map((f) => {
                   const Icon = f.icon;
                   const isSelected = activeFilter === f.id;
@@ -240,7 +240,7 @@ const DreamJob = memo(() => {
                       key={f.id}
                       type="button"
                       onClick={() => handleFilterClick(f)}
-                      className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 cursor-pointer ${
+                      className={`inline-flex items-center gap-1 sm:gap-1.5 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold transition-all duration-200 cursor-pointer ${
                         isSelected
                           ? "!bg-indigo-600 !text-white shadow-md shadow-indigo-600/30 border border-indigo-500"
                           : isLight
@@ -249,7 +249,7 @@ const DreamJob = memo(() => {
                       }`}
                       style={isSelected ? { backgroundColor: "#4F46E5", color: "#FFFFFF" } : {}}
                     >
-                      <Icon size={13} style={isSelected ? { color: "#FFFFFF" } : {}} className={isSelected ? "!text-white" : isLight ? "text-indigo-600" : "text-indigo-400"} />
+                      <Icon size={12} style={isSelected ? { color: "#FFFFFF" } : {}} className={isSelected ? "!text-white" : isLight ? "text-indigo-600" : "text-indigo-400"} />
                       <span style={isSelected ? { color: "#FFFFFF" } : {}} className={isSelected ? "!text-white" : ""}>{f.label}</span>
                     </button>
                   );
@@ -339,39 +339,19 @@ const DreamJob = memo(() => {
               variants={fadeUp}
               className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-2"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex -space-x-2 overflow-hidden">
-                  {["AM", "RK", "SK"].map((initials) => (
-                    <div
-                      key={initials}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-[10px] font-black text-white ring-2 ring-white shadow-sm"
-                    >
-                      {initials}
-                    </div>
-                  ))}
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-black text-white ring-2 ring-white shadow-sm">
-                    +50K
-                  </span>
-                </div>
-                
-                <div className="text-left">
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={12} className="text-amber-400 fill-amber-400 drop-shadow-xs" />
-                    ))}
-                    <span className={`text-xs font-black ml-1 font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}>4.9 / 5.0</span>
-                  </div>
-                  <p className={`text-[11px] font-semibold ${isLight ? "text-slate-600" : "text-slate-400"}`}>
-                    Trusted by 50,000+ tech candidates
-                  </p>
-                </div>
-              </div>
-
-              <div className={`hidden sm:block h-6 w-px ${isLight ? "bg-slate-200" : "bg-white/10"}`} />
-
               <div className={`flex items-center gap-2 text-xs font-bold ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                 <ShieldCheck size={16} className="text-emerald-500 shrink-0" />
-                <span>100% Verified Employers</span>
+                <span>Employer-verified listings</span>
+              </div>
+              <div className={`hidden sm:block h-6 w-px ${isLight ? "bg-slate-200" : "bg-white/10"}`} />
+              <div className={`flex items-center gap-2 text-xs font-bold ${isLight ? "text-slate-700" : "text-slate-300"}`}>
+                <Zap size={16} className="text-indigo-500 shrink-0" />
+                <span>AI-matched to your skills</span>
+              </div>
+              <div className={`hidden sm:block h-6 w-px ${isLight ? "bg-slate-200" : "bg-white/10"}`} />
+              <div className={`flex items-center gap-2 text-xs font-bold ${isLight ? "text-slate-700" : "text-slate-300"}`}>
+                <MessageSquare size={16} className="text-cyan-500 shrink-0" />
+                <span>Direct recruiter messaging</span>
               </div>
             </motion.div>
           </motion.div>

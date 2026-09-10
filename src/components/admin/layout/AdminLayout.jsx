@@ -57,16 +57,14 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
     <div className="flex h-full flex-col justify-between p-4">
       <div>
         {/* Logo & Brand */}
-        <div className={`flex items-center justify-between pb-6 border-b px-2 ${
-          isLight ? "border-slate-200" : "border-white/10"
-        }`}>
+        <div className="flex items-center justify-between pb-6 border-b border-border px-2">
           <Link to="/admin/dashboard" className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-pink-600 shadow-lg shadow-purple-500/30">
               <ShieldCheck className="h-5 w-5 text-white" />
             </div>
             {!collapsed && (
               <div className="flex flex-col">
-                <span className={`text-lg font-black font-satoshi tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                <span className="text-lg font-black font-satoshi tracking-tight text-heading">
                   JobPortal <span className="text-purple-600 dark:text-purple-400">Admin</span>
                 </span>
                 <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">
@@ -79,11 +77,7 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
           {/* Desktop Collapse Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className={`hidden md:flex h-7 w-7 items-center justify-center rounded-xl border transition cursor-pointer ${
-              isLight
-                ? "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
-            }`}
+            className="hidden md:flex h-7 w-7 items-center justify-center rounded-xl border border-border bg-surface text-muted hover:bg-surface-hover hover:text-heading transition cursor-pointer"
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
@@ -91,9 +85,7 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
           {/* Mobile Close Button */}
           <button
             onClick={() => setMobileOpen(false)}
-            className={`flex md:hidden h-8 w-8 items-center justify-center rounded-xl transition ${
-              isLight ? "bg-slate-100 text-slate-600 hover:text-slate-900" : "bg-white/5 text-white/60 hover:text-white"
-            }`}
+            className="flex md:hidden h-8 w-8 items-center justify-center rounded-xl bg-surface text-muted hover:bg-surface-hover hover:text-heading transition"
           >
             <X className="h-5 w-5" />
           </button>
@@ -113,31 +105,19 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
                 title={collapsed ? item.name : undefined}
                 className={`group relative flex items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-semibold transition-all duration-200 cursor-pointer ${
                   active
-                    ? isLight
-                      ? "bg-purple-50 text-purple-700 border border-purple-200 font-bold"
-                      : "bg-purple-500/15 text-white border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.15)] font-bold"
-                    : isLight
-                    ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                    ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 font-bold"
+                    : "text-muted hover:bg-surface hover:text-heading"
                 }`}
               >
                 <Icon className={`h-4 w-4 transition-colors ${
                   active
-                    ? isLight
-                      ? "text-purple-600"
-                      : "text-purple-400"
-                    : isLight
-                    ? "text-slate-500 group-hover:text-slate-900"
-                    : "text-white/50 group-hover:text-white"
+                    ? "text-purple-600 dark:text-purple-400"
+                    : "text-muted group-hover:text-heading"
                 }`} />
                 {!collapsed && <span className="truncate">{item.name}</span>}
 
                 {!collapsed && item.badge && (
-                  <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-extrabold border ${
-                    isLight
-                      ? "bg-purple-100 text-purple-700 border-purple-200"
-                      : "bg-purple-500/20 text-purple-300 border-purple-500/30"
-                  }`}>
+                  <span className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-extrabold border bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20">
                     {item.badge}
                   </span>
                 )}
@@ -156,17 +136,15 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
       </div>
 
       {/* Admin Identity & Logout */}
-      <div className={`space-y-2 pt-2 border-t ${isLight ? "border-slate-200" : "border-white/10"}`}>
+      <div className="space-y-2 pt-2 border-t border-border">
         {!collapsed && (
-          <div className={`rounded-2xl border p-3 backdrop-blur-md ${
-            isLight ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/[0.03]"
-          }`}>
+          <div className="rounded-2xl border border-border bg-surface p-3 backdrop-blur-md">
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold text-xs shadow">
                 A
               </div>
               <div className="min-w-0 flex-1">
-                <p className={`truncate text-xs font-extrabold font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}>
+                <p className="truncate text-xs font-extrabold font-satoshi text-heading">
                   {user?.name || "System Admin"}
                 </p>
                 <p className="truncate text-[10px] text-purple-600 dark:text-purple-400 font-semibold">
@@ -198,9 +176,7 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
     <div className="min-h-screen bg-background font-inter text-body flex">
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col border-r backdrop-blur-2xl transition-all duration-300 z-40 fixed top-0 left-0 h-screen ${
-          isLight ? "border-slate-200 bg-white/95" : "border-white/10 bg-[#070b12]/95"
-        } ${collapsed ? "w-20" : "w-64"}`}
+        className={`hidden md:flex flex-col border-r border-border bg-background/95 backdrop-blur-2xl transition-all duration-300 z-40 fixed top-0 left-0 h-screen ${collapsed ? "w-20" : "w-64"}`}
       >
         {SidebarContent}
       </aside>
@@ -221,9 +197,7 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className={`relative w-72 h-full border-r z-10 ${
-                isLight ? "border-slate-200 bg-white" : "border-white/10 bg-[#070b12]"
-              }`}
+              className="relative w-72 h-full border-r border-border bg-surface z-10"
             >
               {SidebarContent}
             </motion.aside>
@@ -234,23 +208,15 @@ export default function AdminLayout({ title, subtitle, breadcrumbs = [], action,
       {/* Main Container */}
       <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${collapsed ? "md:ml-20" : "md:ml-64"}`}>
         {/* Admin Top Navbar */}
-        <header className={`sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b px-4 sm:px-6 backdrop-blur-2xl ${
-          isLight ? "bg-white/95 border-slate-200" : "bg-[#070b12]/80 border-white/10"
-        }`}>
+        <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b border-border bg-background/80 backdrop-blur-2xl px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className={`flex md:hidden h-10 w-10 items-center justify-center rounded-xl border transition cursor-pointer ${
-                isLight
-                  ? "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                  : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
+              className="flex md:hidden h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface text-muted hover:bg-surface-hover hover:text-heading transition cursor-pointer"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <span className={`hidden sm:inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border ${
-              isLight ? "bg-purple-50 text-purple-700 border-purple-200" : "bg-purple-500/10 border-purple-500/20 text-purple-300"
-            }`}>
+            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-300">
               <ShieldAlert className="h-3.5 w-3.5" /> Platform Admin Portal
             </span>
           </div>

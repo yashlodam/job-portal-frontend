@@ -191,7 +191,7 @@ export default function MessagesPage() {
 
   const toast = useToast();
   const dispatch = useAppDispatch();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentUser = useAppSelector((state) => state.auth.profile);
   const currentUserId = currentUser?.id;
 
@@ -217,6 +217,7 @@ export default function MessagesPage() {
   const [filter, setFilter] = useState("all"); // "all" | "recruiters" | "unread"
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
+  const [selectedMsgId, setSelectedMsgId] = useState(null);
   const [otherTyping, setOtherTyping] = useState(false);
   const [otherOnline, setOtherOnline] = useState(false);
 
@@ -413,9 +414,41 @@ export default function MessagesPage() {
     [chat, currentUserId]
   );
 
+  // Sync mobile chat view when convId query param changes
+  useEffect(() => {
+    if (urlConvIdNum) {
+      setActiveConvId(urlConvIdNum);
+      setShowMobileChat(true);
+    }
+  }, [urlConvIdNum]);
+
+  // Handle mobile browser / device back button
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.get("convId")) {
+        setShowMobileChat(false);
+        setShowInfoPanel(false);
+        setSelectedMsgId(null);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const handleSelectConv = (convId) => {
     setActiveConvId(convId);
     setShowMobileChat(true);
+    setShowInfoPanel(false);
+    setSelectedMsgId(null);
+    setSearchParams({ convId: String(convId) }, { replace: false });
+  };
+
+  const handleBackToConversations = () => {
+    setShowMobileChat(false);
+    setShowInfoPanel(false);
+    setSelectedMsgId(null);
+    setSearchParams({}, { replace: false });
   };
 
   const handleSend = (textToSend) => {
@@ -514,12 +547,12 @@ export default function MessagesPage() {
   ).length;
 
   return (
-    <div className={`h-[calc(100dvh-68px)] w-full font-inter flex flex-col overflow-hidden transition-colors ${
+    <div className={`h-[calc(100dvh-64px)] sm:h-[calc(100dvh-68px)] lg:h-[calc(100dvh-72px)] w-full font-inter flex flex-col overflow-hidden transition-colors ${
       isLight ? "bg-slate-100 text-slate-900" : "bg-background text-slate-100"
     }`}>
       {/* ── Main Container ── */}
-      <div className={`flex-1 flex w-full max-w-[1600px] mx-auto overflow-hidden shadow-2xl border-t ${
-        isLight ? "bg-white border-slate-200" : "bg-surface border-border"
+      <div className={`flex-1 flex w-full max-w-[1600px] mx-auto overflow-hidden sm:shadow-2xl sm:border-t ${
+        isLight ? "bg-white sm:border-slate-200" : "bg-surface sm:border-border"
       }`}>
 
         {/* ────────────────────────────────────────────────────────────────────
@@ -531,28 +564,28 @@ export default function MessagesPage() {
           } ${showMobileChat ? "hidden md:flex" : "flex"}`}
         >
           {/* Header */}
-          <div className={`h-16 px-4 flex items-center justify-between border-b shrink-0 ${
+          <div className={`h-14 sm:h-16 px-3.5 sm:px-4 flex items-center justify-between border-b shrink-0 ${
             isLight ? "bg-slate-50/90 border-slate-200" : "bg-surface-elevated/95 border-border"
           }`}>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center font-extrabold text-white shadow-lg">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center font-extrabold text-white shadow-lg shrink-0">
                 {getInitial(currentUser?.name)}
               </div>
-              <div>
-                <span className={`font-extrabold text-sm font-satoshi block leading-tight ${
+              <div className="min-w-0">
+                <span className={`font-extrabold text-xs sm:text-sm font-satoshi block leading-tight truncate ${
                   isLight ? "text-slate-900" : "text-white"
                 }`}>
                   Inbox & Messages
                 </span>
                 {chat.connected ? (
-                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5 mt-0.5">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Live Realtime
+                  <span className="text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5 mt-0.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" /> Live Realtime
                   </span>
                 ) : (
-                  <span className={`text-[11px] flex items-center gap-1.5 mt-0.5 ${
+                  <span className={`text-[10px] sm:text-[11px] flex items-center gap-1.5 mt-0.5 ${
                     isLight ? "text-slate-500" : "text-slate-400"
                   }`}>
-                    <WifiOff size={10} /> Offline Mode
+                    <WifiOff size={10} className="shrink-0" /> Offline Mode
                   </span>
                 )}
               </div>
@@ -563,7 +596,8 @@ export default function MessagesPage() {
                 type="button"
                 onClick={loadAllConversations}
                 title="Refresh Conversations"
-                className={`p-2 rounded-xl border transition cursor-pointer ${
+                aria-label="Refresh conversations"
+                className={`h-9 w-9 flex items-center justify-center rounded-xl border transition cursor-pointer active:scale-95 ${
                   isLight
                     ? "border-slate-200 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100 shadow-xs"
                     : "border-border bg-surface-elevated/40 text-slate-300 hover:text-white hover:bg-surface-elevated"
@@ -575,11 +609,11 @@ export default function MessagesPage() {
           </div>
 
           {/* Search + Filter Tabs */}
-          <div className={`p-3.5 border-b space-y-3 ${
+          <div className={`p-3 sm:p-3.5 border-b space-y-2.5 sm:space-y-3 ${
             isLight ? "bg-slate-50/50 border-slate-200" : "bg-surface border-border"
           }`}>
             <div className="relative">
-              <Search size={15} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
+              <Search size={15} className={`absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none ${
                 isLight ? "text-slate-400" : "text-slate-400"
               }`} />
               <input
@@ -587,7 +621,7 @@ export default function MessagesPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search recruiters, companies, messages…"
-                className={`w-full rounded-xl border pl-10 pr-4 py-2.5 text-xs outline-none font-medium transition ${
+                className={`w-full rounded-xl border pl-10 pr-9 py-2.5 text-base sm:text-xs outline-none font-medium transition ${
                   isLight
                     ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 shadow-xs"
                     : "border-white/10 bg-white/5 text-white placeholder-slate-400 focus:border-indigo-500/60"
@@ -597,21 +631,22 @@ export default function MessagesPage() {
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                  aria-label="Clear search"
+                  className={`absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-lg ${
                     isLight ? "text-slate-400 hover:text-slate-700" : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  <X size={13} />
+                  <X size={14} />
                 </button>
               )}
             </div>
 
             {/* Filter Pills */}
-            <div className="flex items-center gap-1.5 text-xs font-bold font-satoshi overflow-x-auto pb-0.5">
+            <div className="flex items-center gap-1.5 text-xs font-bold font-satoshi overflow-x-auto no-scrollbar pb-0.5">
               <button
                 type="button"
                 onClick={() => setFilter("all")}
-                className={`px-3 py-1.5 rounded-xl transition cursor-pointer shrink-0 ${
+                className={`px-3 py-1.5 rounded-xl transition cursor-pointer shrink-0 active:scale-95 ${
                   filter === "all"
                     ? "bg-indigo-600 text-white shadow-md"
                     : isLight
@@ -625,7 +660,7 @@ export default function MessagesPage() {
               <button
                 type="button"
                 onClick={() => setFilter("recruiters")}
-                className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95 ${
                   filter === "recruiters"
                     ? "bg-indigo-600 text-white shadow-md"
                     : isLight
@@ -651,7 +686,7 @@ export default function MessagesPage() {
               <button
                 type="button"
                 onClick={() => setFilter("unread")}
-                className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95 ${
                   filter === "unread"
                     ? "bg-indigo-600 text-white shadow-md"
                     : isLight
@@ -788,15 +823,30 @@ export default function MessagesPage() {
 
           {!activeConv ? (
             /* Empty State */
-            <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-4 z-10">
-              <div className={`h-20 w-20 rounded-3xl flex items-center justify-center shadow-xl border ${
+            <div className="flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6 gap-4 z-10">
+              {showMobileChat && (
+                <div className="md:hidden w-full flex justify-start mb-2">
+                  <button
+                    type="button"
+                    onClick={handleBackToConversations}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition cursor-pointer active:scale-95 ${
+                      isLight
+                        ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-xs"
+                        : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+                    }`}
+                  >
+                    <ArrowLeft size={16} /> Back to Messages
+                  </button>
+                </div>
+              )}
+              <div className={`h-16 w-16 sm:h-20 sm:w-20 rounded-3xl flex items-center justify-center shadow-xl border ${
                 isLight
                   ? "bg-indigo-50 border-indigo-200 text-indigo-600"
                   : "bg-indigo-600/10 border-indigo-500/20 text-indigo-400"
               }`}>
-                <MessageSquare size={36} />
+                <MessageSquare size={32} className="sm:w-9 sm:h-9" />
               </div>
-              <h2 className={`text-xl font-black font-satoshi ${
+              <h2 className={`text-lg sm:text-xl font-black font-satoshi ${
                 isLight ? "text-slate-900" : "text-white"
               }`}>
                 Professional Candidate Messaging
@@ -818,15 +868,15 @@ export default function MessagesPage() {
           ) : (
             <>
               {/* Top Chat Header */}
-              <div className={`h-16 px-4 sm:px-6 flex items-center justify-between border-b z-10 shrink-0 backdrop-blur-md ${
+              <div className={`h-14 sm:h-16 px-3 sm:px-6 flex items-center justify-between border-b z-10 shrink-0 backdrop-blur-md ${
                 isLight ? "bg-white/95 border-slate-200" : "bg-surface-elevated/95 border-border"
               }`}>
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-2">
                   {/* Mobile Back Button */}
                   <button
                     type="button"
-                    onClick={() => setShowMobileChat(false)}
-                    className={`md:hidden flex h-9 w-9 items-center justify-center rounded-xl transition ${
+                    onClick={handleBackToConversations}
+                    className={`md:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition cursor-pointer active:scale-95 ${
                       isLight
                         ? "bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200"
                         : "bg-white/5 text-slate-300 hover:text-white hover:bg-white/10"
@@ -844,9 +894,9 @@ export default function MessagesPage() {
                   />
 
                   {/* Header Titles & Role */}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className={`text-sm font-black truncate font-satoshi ${
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <h3 className={`text-xs sm:text-sm font-black truncate font-satoshi ${
                         isLight ? "text-slate-900" : "text-white"
                       }`}>
                         {otherParticipant?.name || "User"}
@@ -854,19 +904,21 @@ export default function MessagesPage() {
                       {otherParticipant.isRecruiter && (
                         <ShieldCheck size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" title="Verified Recruiter" />
                       )}
-                      <RoleBadge
-                        isRecruiter={otherParticipant.isRecruiter}
-                        companyName={otherParticipant.companyName}
-                        compact={true}
-                      />
+                      <div className="hidden sm:inline-flex shrink-0">
+                        <RoleBadge
+                          isRecruiter={otherParticipant.isRecruiter}
+                          companyName={otherParticipant.companyName}
+                          compact={true}
+                        />
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-0.5 text-[11px] truncate">
+                    <div className="flex items-center gap-2 mt-0.5 text-[10px] sm:text-[11px] truncate">
                       {otherTyping ? (
                         <span className="text-emerald-600 dark:text-emerald-400 font-bold animate-pulse">typing message…</span>
                       ) : otherOnline || otherParticipant?.online ? (
                         <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Active now
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" /> Active now
                         </span>
                       ) : otherParticipant?.lastSeenAt ? (
                         <span className={isLight ? "text-slate-500" : "text-slate-400"}>
@@ -884,7 +936,8 @@ export default function MessagesPage() {
                   <button
                     type="button"
                     onClick={() => setShowInfoPanel(!showInfoPanel)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                    aria-label="Toggle details panel"
+                    className={`flex h-9 px-2.5 sm:px-3 items-center gap-1.5 rounded-xl border text-xs font-bold transition cursor-pointer active:scale-95 ${
                       showInfoPanel
                         ? "bg-indigo-600 border-indigo-500 text-white shadow-md"
                         : isLight
@@ -892,7 +945,7 @@ export default function MessagesPage() {
                         : "bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/10"
                     }`}
                   >
-                    <Info size={14} className={showInfoPanel ? "text-white" : isLight ? "text-indigo-600" : "text-indigo-400"} />
+                    <Info size={15} className={showInfoPanel ? "text-white" : isLight ? "text-indigo-600" : "text-indigo-400"} />
                     <span className="hidden sm:inline">Details</span>
                   </button>
                 </div>
@@ -961,10 +1014,11 @@ export default function MessagesPage() {
                           <div
                             key={msg.id}
                             className={`flex flex-col group ${isMe ? "items-end" : "items-start"}`}
+                            onClick={() => setSelectedMsgId((prev) => (prev === msg.id ? null : msg.id))}
                           >
                             {/* Message Bubble */}
                             <div
-                              className={`relative max-w-[85%] sm:max-w-md rounded-2xl px-4 py-2.5 text-xs leading-relaxed shadow-sm transition-all ${
+                              className={`relative max-w-[86%] sm:max-w-[78%] md:max-w-md rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs leading-relaxed shadow-xs transition-all break-words [overflow-wrap:anywhere] ${
                                 isMe
                                   ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-tr-none font-medium shadow-md"
                                   : isLight
@@ -972,7 +1026,7 @@ export default function MessagesPage() {
                                   : "bg-surface-elevated border border-border text-slate-100 rounded-tl-none font-medium shadow-md"
                               } ${isDeleted ? "opacity-60 italic" : ""}`}
                             >
-                              <p className="whitespace-pre-wrap break-words">
+                              <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
                                 {isDeleted
                                   ? "This message was deleted."
                                   : msg.displayContent || msg.content}
@@ -1000,17 +1054,23 @@ export default function MessagesPage() {
                                 )}
                               </div>
 
-                              {/* Hover Delete Button */}
+                              {/* Delete Button — accessible via hover on desktop OR tap on mobile */}
                               {isMe && !isDeleted && !isOptimistic && (
                                 <button
                                   type="button"
-                                  onClick={() => handleDelete(msg)}
-                                  className={`absolute -top-2 -left-7 opacity-0 group-hover:opacity-100 p-1.5 rounded-full border transition cursor-pointer shadow-xs ${
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(msg);
+                                  }}
+                                  className={`absolute -top-2.5 -left-7 ${
+                                    selectedMsgId === msg.id ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100"
+                                  } p-1.5 rounded-full border transition-all cursor-pointer shadow-xs active:scale-90 ${
                                     isLight
                                       ? "bg-white border-slate-200 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
                                       : "bg-surface-elevated border-border text-rose-400 hover:text-rose-300 hover:bg-surface-elevated/80"
                                   }`}
                                   title="Delete message"
+                                  aria-label="Delete message"
                                 >
                                   <Trash2 size={11} />
                                 </button>
@@ -1030,7 +1090,7 @@ export default function MessagesPage() {
                           exit={{ opacity: 0, y: 6 }}
                           className="flex items-center gap-2"
                         >
-                          <div className={`rounded-2xl rounded-tl-none px-4 py-2.5 flex items-center gap-1.5 border shadow-sm ${
+                          <div className={`rounded-2xl rounded-tl-none px-3.5 sm:px-4 py-2 sm:py-2.5 flex items-center gap-1.5 border shadow-sm ${
                             isLight
                               ? "bg-white border-slate-200"
                               : "bg-surface-elevated border-border"
@@ -1050,7 +1110,7 @@ export default function MessagesPage() {
                   </div>
 
                   {/* Quick Reply Chips */}
-                  <div className={`px-4 py-2 flex items-center gap-2 overflow-x-auto border-t shrink-0 backdrop-blur-sm ${
+                  <div className={`px-3 sm:px-4 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar border-t shrink-0 backdrop-blur-sm ${
                     isLight
                       ? "bg-white/95 border-slate-200"
                       : "bg-surface/70 border-border"
@@ -1058,14 +1118,15 @@ export default function MessagesPage() {
                     <span className={`text-[11px] font-extrabold flex items-center gap-1 shrink-0 font-satoshi ${
                       isLight ? "text-indigo-700" : "text-indigo-400"
                     }`}>
-                      <Sparkles size={13} className="text-amber-500" /> Quick Reply:
+                      <Sparkles size={13} className="text-amber-500" />
+                      <span className="hidden sm:inline">Quick Reply:</span>
                     </span>
                     {CANDIDATE_QUICK_REPLIES.map((reply) => (
                       <button
                         key={reply}
                         type="button"
                         onClick={() => handleSend(reply)}
-                        className={`shrink-0 rounded-xl border px-3 py-1.5 text-[11px] font-medium transition cursor-pointer ${
+                        className={`shrink-0 rounded-xl border px-3 py-1.5 text-[11px] font-semibold transition-all active:scale-95 cursor-pointer whitespace-nowrap ${
                           isLight
                             ? "border-slate-200 bg-slate-50 text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 shadow-xs"
                             : "border-white/10 bg-white/5 text-slate-300 hover:bg-indigo-600/20 hover:border-indigo-500/40 hover:text-white"
@@ -1095,11 +1156,11 @@ export default function MessagesPage() {
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: "100%", opacity: 0 }}
                         transition={{ type: "spring", stiffness: 320, damping: 32 }}
-                        className={`fixed inset-y-0 right-0 z-50 w-full xs:w-[320px] md:relative md:inset-auto md:w-[320px] shrink-0 border-l flex flex-col overflow-y-auto shadow-2xl ${
+                        className={`fixed inset-y-0 right-0 z-50 w-full max-w-[340px] md:relative md:inset-auto md:w-[320px] shrink-0 border-l flex flex-col overflow-y-auto shadow-2xl pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] ${
                           isLight ? "bg-white border-slate-200" : "bg-surface border-border"
                         }`}
                       >
-                        <div className="p-5 space-y-5">
+                        <div className="p-4 sm:p-5 space-y-4 sm:space-y-5">
                           {/* Close button on panel */}
                           <div className={`flex items-center justify-between pb-3 border-b ${
                             isLight ? "border-slate-200" : "border-white/10"
@@ -1112,11 +1173,12 @@ export default function MessagesPage() {
                             <button
                               type="button"
                               onClick={() => setShowInfoPanel(false)}
-                              className={`p-1 rounded-lg transition cursor-pointer ${
+                              aria-label="Close recruiter details"
+                              className={`p-1.5 rounded-xl transition cursor-pointer active:scale-95 ${
                                 isLight ? "text-slate-400 hover:text-slate-800 hover:bg-slate-100" : "text-slate-400 hover:text-white hover:bg-white/5"
                               }`}
                             >
-                              <X size={16} />
+                              <X size={18} />
                             </button>
                           </div>
 
@@ -1231,7 +1293,7 @@ export default function MessagesPage() {
               </div>
 
               {/* Bottom Input Bar */}
-              <div className={`h-16 px-4 flex items-center gap-2.5 border-t z-10 shrink-0 ${
+              <div className={`px-3 sm:px-4 py-2 sm:py-2.5 flex items-center gap-2 border-t z-10 shrink-0 pb-[max(0.6rem,env(safe-area-inset-bottom))] ${
                 isLight ? "bg-white/95 border-slate-200" : "bg-surface-elevated/95 border-border"
               }`}>
                 <input
@@ -1239,9 +1301,10 @@ export default function MessagesPage() {
                   value={inputText}
                   onChange={handleInputChange}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                  placeholder={otherParticipant?.name ? `Type a message to ${otherParticipant.name}…` : "Type your message…"}
+                  placeholder={otherParticipant?.name ? `Message ${otherParticipant.name.split(" ")[0]}…` : "Type a message…"}
                   maxLength={5000}
-                  className={`flex-1 rounded-xl border px-4 py-2.5 text-xs outline-none font-medium transition ${
+                  enterKeyHint="send"
+                  className={`flex-1 rounded-xl border px-3.5 py-2.5 sm:px-4 sm:py-2 text-base sm:text-xs outline-none font-medium transition min-h-[42px] ${
                     isLight
                       ? "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 shadow-xs"
                       : "border-white/10 bg-white/5 text-white placeholder-slate-400 focus:border-indigo-500/60"
@@ -1252,7 +1315,7 @@ export default function MessagesPage() {
                   type="button"
                   onClick={() => handleSend()}
                   disabled={!inputText.trim()}
-                  className="h-10 w-10 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 cursor-pointer shrink-0"
+                  className="h-10 w-10 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md transition-all active:scale-90 hover:scale-105 disabled:opacity-40 disabled:hover:scale-100 cursor-pointer shrink-0"
                   aria-label="Send message"
                 >
                   <Send size={16} />

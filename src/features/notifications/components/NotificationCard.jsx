@@ -41,6 +41,137 @@ function formatTimestamp(dateStr) {
   return date.format("MMM D, YYYY");
 }
 
+import { useAppSelector } from "../../../State/Store";
+
+export function resolveNotificationLink(notification, isRecruiter = false, isAdmin = false) {
+  const { type, actionUrl, referenceId } = notification || {};
+
+  // 1. If explicit actionUrl provided, sanitize / normalize known legacy routes
+  if (actionUrl) {
+    if (actionUrl.startsWith("http://") || actionUrl.startsWith("https://")) {
+      return actionUrl;
+    }
+
+    const url = actionUrl.trim();
+
+    // Fix legacy recruiter application links: /recruiter/jobs/:id/applications -> /recruiter/applications
+    if (url.includes("/recruiter/jobs/") && url.includes("/applications")) {
+      return "/recruiter/applications";
+    }
+
+    // Fix legacy candidate application links: /applications or /applications/:id -> /my-jobs/applied
+    if (url.startsWith("/applications")) {
+      return isRecruiter ? "/recruiter/applications" : "/my-jobs/applied";
+    }
+
+    // Fix legacy jobs route: /jobs -> /find-jobs (keep /jobs/:id if valid id exists)
+    if (url === "/jobs" || url === "/jobs/") {
+      return isRecruiter ? "/recruiter/jobs" : "/find-jobs";
+    }
+
+    // Fix legacy verification status: /recruiter/verification/status -> /recruiter/verification
+    if (url.startsWith("/recruiter/verification/status")) {
+      return "/recruiter/verification";
+    }
+
+    // Fix legacy settings link: /settings/security -> /settings or /recruiter/settings
+    if (url.startsWith("/settings/security")) {
+      return isRecruiter ? "/recruiter/settings" : "/settings";
+    }
+
+    // Fix legacy support link: /support -> /about
+    if (url === "/support" || url === "/support/") {
+      return "/about";
+    }
+
+    // Fix messages routing based on user role
+    if (url.startsWith("/messages")) {
+      return isRecruiter ? "/recruiter/messages" : "/messages";
+    }
+
+    return url;
+  }
+
+  // 2. Derive target URL from NotificationType and referenceId
+  switch (type) {
+    // Applications
+    case "APPLICATION_RECEIVED":
+    case "APPLICATION_WITHDRAWN":
+      return isRecruiter ? "/recruiter/applications" : "/my-jobs/applied";
+
+    case "APPLICATION_SUBMITTED":
+    case "APPLICATION_SHORTLISTED":
+    case "APPLICATION_REJECTED":
+    case "APPLICATION_STATUS_UPDATED":
+      return isRecruiter ? "/recruiter/applications" : "/my-jobs/applied";
+
+    // Interviews
+    case "INTERVIEW_SCHEDULED":
+    case "INTERVIEW_REMINDER":
+    case "INTERVIEW_COMPLETED":
+      return isRecruiter ? "/recruiter/interviews" : "/my-jobs/interviews";
+
+    // Offers
+    case "OFFER_RECEIVED":
+    case "OFFER_ACCEPTED":
+    case "OFFER_REJECTED":
+      return isRecruiter ? "/recruiter/applications" : "/my-jobs/offers";
+
+    // Jobs
+    case "FEATURED_JOB":
+    case "NEW_JOB":
+    case "JOB_MATCH":
+    case "JOB_REOPENED":
+      if (referenceId) return `/jobs/${referenceId}`;
+      return isRecruiter ? "/recruiter/jobs" : "/find-jobs";
+
+    case "JOB_EXPIRED":
+      return isRecruiter ? "/recruiter/jobs" : "/find-jobs";
+
+    case "AI_JOB_RECOMMENDATION":
+      return isRecruiter ? "/recruiter/jobs" : "/my-jobs/recommended";
+
+    // Resume / Candidates
+    case "RESUME_ANALYZED":
+      return isRecruiter ? "/recruiter/candidates" : "/resume-analyzer";
+
+    // Company
+    case "COMPANY_UPDATE":
+    case "COMPANY_VERIFIED":
+      if (isRecruiter) return "/recruiter/company";
+      return referenceId ? `/company/${referenceId}` : "/find-jobs";
+
+    // Messages
+    case "MESSAGE_RECEIVED":
+      return isRecruiter ? "/recruiter/messages" : "/messages";
+
+    // Recruiter Verification
+    case "VERIFICATION_SUBMITTED":
+    case "RECRUITER_REJECTED":
+    case "RECRUITER_SUSPENDED":
+      return isAdmin ? "/admin/recruiters" : "/recruiter/verification";
+
+    case "RECRUITER_APPROVED":
+      return isAdmin ? "/admin/recruiters" : "/recruiter/dashboard";
+
+    // Profile & Account
+    case "PROFILE_COMPLETED":
+    case "PROFILE_INCOMPLETE":
+      return isRecruiter ? "/recruiter/settings" : "/profile";
+
+    case "ACCOUNT":
+      if (isAdmin) return "/admin/users";
+      return isRecruiter ? "/recruiter/settings" : "/profile";
+
+    case "SECURITY":
+      return isRecruiter ? "/recruiter/settings" : "/settings";
+
+    case "SYSTEM":
+    default:
+      return "/notifications";
+  }
+}
+
 export default function NotificationCard({
   notification,
   onCloseDropdown,
@@ -49,7 +180,12 @@ export default function NotificationCard({
   onToggleSelect,
 }) {
   const navigate = useNavigate();
+  const user = useAppSelector((state) => state.auth.profile);
   const { markAsRead, archiveNotification, deleteNotification } = useNotificationActions();
+
+  const accountType = (user?.accountType || user?.role || "").toUpperCase();
+  const isRecruiter = accountType === "EMPLOYER" || accountType === "RECRUITER";
+  const isAdmin = accountType === "ADMIN";
 
   const {
     id,
@@ -63,6 +199,9 @@ export default function NotificationCard({
     archived,
     createdAt,
   } = notification;
+
+  // Compute bulletproof destination URL
+  const targetUrl = resolveNotificationLink(notification, isRecruiter, isAdmin);
 
   // Priority border accent
   const priorityBorderClass = {
@@ -81,17 +220,7 @@ export default function NotificationCard({
       markAsRead(id);
     }
 
-    let targetUrl = actionUrl;
-    if (!targetUrl) {
-      if (type === "VERIFICATION_SUBMITTED" || type === "RECRUITER_REJECTED" || type === "RECRUITER_SUSPENDED") {
-        targetUrl = "/recruiter/verification";
-      } else if (type === "RECRUITER_APPROVED") {
-        targetUrl = "/recruiter/dashboard";
-      }
-    }
-
     if (targetUrl) {
-      // Check if external or internal
       if (targetUrl.startsWith("http://") || targetUrl.startsWith("https://")) {
         window.open(targetUrl, "_blank", "noopener,noreferrer");
       } else {
@@ -164,10 +293,18 @@ export default function NotificationCard({
         </p>
 
         {/* Action Chip / Deep Link */}
-        {actionUrl && (
-          <div className="mt-2.5 flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline transition-colors">
-            <span>View details</span>
-            <ExternalLink className="h-3 w-3" />
+        {targetUrl && (
+          <div className="mt-2.5 flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:underline transition-colors">
+            <span>
+              {type?.includes("APPLICATION") ? "View applications" :
+               type?.includes("INTERVIEW") ? "View interview schedule" :
+               type?.includes("OFFER") ? "View offer" :
+               type?.includes("JOB") ? "View job" :
+               type?.includes("MESSAGE") ? "Open messages" :
+               type?.includes("RESUME") ? "View analysis" :
+               type?.includes("VERIFICATION") ? "Check status" : "View details"}
+            </span>
+            <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
           </div>
         )}
       </div>

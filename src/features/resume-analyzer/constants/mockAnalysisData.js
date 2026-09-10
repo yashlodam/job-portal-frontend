@@ -1,6 +1,7 @@
 /**
  * src/features/resume-analyzer/constants/mockAnalysisData.js
  * Comprehensive realistic mock data matching backend Spring Boot ResumeAnalysisResponse DTO.
+ * NOTE: This mock data should ONLY be used as a fallback when the real API fails.
  */
 
 export const INITIAL_MOCK_ANALYSIS = {

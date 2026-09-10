@@ -91,7 +91,7 @@ export default function Footer() {
 
   return (
     <footer className={`relative border-t font-satoshi overflow-hidden transition-colors duration-300 ${
-      isLight ? "bg-white border-slate-200 text-slate-700" : "bg-[#05070d] border-white/10 text-slate-300"
+      isLight ? "bg-surface border-border text-body" : "bg-surface border-border text-body"
     }`} role="contentinfo">
       {/* Top Gradient Glow Accent */}
       <div className="pointer-events-none absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
@@ -153,8 +153,8 @@ export default function Footer() {
                     required
                     className={`flex-1 rounded-2xl border px-4 py-2.5 text-xs outline-none transition font-medium ${
                       isLight
-                        ? "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500"
-                        : "border-white/15 bg-[#090d16]/90 text-white placeholder-slate-500 focus:border-indigo-500/80"
+                        ? "border-border bg-surface-elevated text-heading placeholder-muted focus:border-indigo-500"
+                        : "border-border bg-surface-elevated text-heading placeholder-muted focus:border-indigo-500"
                     }`}
                   />
                   <button

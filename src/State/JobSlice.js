@@ -638,7 +638,8 @@ const jobSlice = createSlice({
       .addCase(getLatestJobs.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.latestJobs = action.payload?.data ?? [];
+        const raw = action.payload?.data ?? action.payload ?? [];
+        state.latestJobs = Array.isArray(raw) ? raw : (raw.content ?? []);
       })
       .addCase(getLatestJobs.rejected, setRejected)
 
@@ -647,8 +648,10 @@ const jobSlice = createSlice({
       .addCase(getFeaturedJobs.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.featuredJobs = action.payload?.data ?? [];
-        state.pagination = extractPagination(action.payload);
+        const raw = action.payload?.data ?? action.payload ?? {};
+        const content = raw.content ?? (Array.isArray(raw) ? raw : []);
+        state.featuredJobs = content;
+        state.pagination = extractPagination(raw);
       })
       .addCase(getFeaturedJobs.rejected, setRejected)
 

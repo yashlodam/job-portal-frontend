@@ -221,7 +221,7 @@ export default function PendingRecruiterDashboard() {
 
               <div className="p-3.5 rounded-2xl bg-surface-elevated border border-border space-y-1">
                 <span className="text-muted block">Official Website:</span>
-                <p className="font-medium text-primary-light truncate">
+                <p className="font-medium text-indigo-600 dark:text-indigo-400 truncate">
                   {verificationData?.companyWebsite ? (
                     <a
                       href={verificationData.companyWebsite}

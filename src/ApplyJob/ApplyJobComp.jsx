@@ -277,7 +277,7 @@ export default function ApplyJobComp() {
         </h2>
 
         <p className="text-sm text-muted max-w-md mx-auto leading-relaxed">
-          Your application for <span className="text-primary-light font-bold">{activeJob.jobTitle || activeJob.title}</span> at{" "}
+          Your application for <span className="text-indigo-600 dark:text-indigo-400 font-bold">{activeJob.jobTitle || activeJob.title}</span> at{" "}
           <span className="text-heading font-bold">{activeJob.companyName || activeJob.company}</span> has been sent successfully.
         </p>
 
@@ -323,7 +323,7 @@ export default function ApplyJobComp() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary-light font-satoshi">
+            <p className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 font-satoshi">
               {activeJob.companyName || activeJob.company}
             </p>
             <h2 className="mt-0.5 text-xl sm:text-2xl font-black text-heading font-satoshi leading-tight">
@@ -331,7 +331,7 @@ export default function ApplyJobComp() {
             </h2>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
               <span className="inline-flex items-center gap-1 text-xs text-muted font-medium">
-                <IconMapPin size={13} className="text-primary-light" />
+                <IconMapPin size={13} className="text-indigo-600 dark:text-indigo-400" />
                 {[activeJob.city, activeJob.state].filter(Boolean).join(", ") || activeJob.location || "Remote"}
               </span>
               <span className="inline-flex items-center gap-1 text-xs text-muted font-medium">
@@ -358,7 +358,7 @@ export default function ApplyJobComp() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-primary/15">
             <div className="flex items-center gap-2">
               <IconShield className="h-4 w-4 text-primary shrink-0" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-primary-light font-satoshi">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 font-satoshi">
                 Applicant Verified Profile
               </h3>
             </div>

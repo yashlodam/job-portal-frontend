@@ -91,50 +91,34 @@ export default function CareerHubPage() {
   ];
 
   return (
-    <div className={`min-h-screen py-10 px-4 sm:px-6 lg:px-8 font-satoshi relative overflow-hidden transition-colors duration-300 ${
-      isLight ? "bg-[#F8FAFC] text-slate-800" : "bg-[#04060b] text-white"
-    }`}>
+    <div className="min-h-screen bg-background py-10 px-4 sm:px-6 lg:px-8 font-satoshi relative overflow-hidden transition-colors duration-300 text-body">
       {/* Executive Ambient Background Glows */}
       <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[900px] rounded-full blur-[180px] bg-gradient-to-tr from-indigo-600/10 via-purple-600/5 to-pink-600/5" />
 
       <div className="max-w-7xl mx-auto space-y-10 relative z-10">
         
         {/* Page Header */}
-        <div className={`flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b ${
-          isLight ? "border-slate-200" : "border-white/10"
-        }`}>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
           <div className="space-y-3">
             <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-black uppercase tracking-widest font-satoshi shadow-sm ${
               isLight ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
             }`}>
               <Cpu className="h-4 w-4 animate-pulse" /> JobPortal Neural AI Engine v4.8 Active
             </div>
-            <h1 className={`text-3xl sm:text-5xl font-black font-satoshi tracking-tight leading-tight ${
-              isLight ? "text-slate-900" : "text-white"
-            }`}>
+            <h1 className="text-3xl sm:text-5xl font-black font-satoshi tracking-tight leading-tight text-heading">
               AI Career <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">Command Center</span>
             </h1>
-            <p className={`text-sm sm:text-base max-w-2xl font-medium leading-relaxed ${
-              isLight ? "text-slate-600" : "text-slate-300"
-            }`}>
+            <p className="text-sm sm:text-base max-w-2xl font-medium leading-relaxed text-muted">
               Accelerate your engineering trajectory with real-time ATS document audits, AI interview coaching, live skill verification, and market compensation benchmarks.
             </p>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <div className={`flex items-center gap-2.5 rounded-2xl border px-4 py-2.5 text-xs font-extrabold font-satoshi shadow-md ${
-              isLight ? "border-slate-200 bg-white text-slate-700" : "bg-white/[0.03] border-white/10 text-slate-200"
-            }`}>
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>ATS Compliance 99.4%</span>
-            </div>
           </div>
         </div>
 
         {/* Navigation Pill Tabs */}
-        <div className={`flex items-center gap-3 overflow-x-auto pb-3 scrollbar-none border-b font-satoshi ${
-          isLight ? "border-slate-200" : "border-white/10"
-        }`}>
+        <div className="flex items-center gap-3 overflow-x-auto pb-3 scrollbar-none border-b font-satoshi border-border">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -145,12 +129,10 @@ export default function CareerHubPage() {
                 className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-300 shrink-0 cursor-pointer ${
                   isActive
                     ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 !text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] scale-105"
-                    : isLight
-                      ? "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-xs"
-                      : "bg-white/[0.03] border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white"
+                    : "bg-surface border border-border text-muted hover:bg-surface-elevated hover:text-heading shadow-sm"
                 }`}
               >
-                <Icon size={18} className={isActive ? "!text-white" : isLight ? "text-slate-500" : "text-slate-400"} />
+                <Icon size={18} className={isActive ? "!text-white" : "text-muted"} />
                 <span className={isActive ? "!text-white" : ""}>{tab.label}</span>
                 {tab.badge && (
                   <span

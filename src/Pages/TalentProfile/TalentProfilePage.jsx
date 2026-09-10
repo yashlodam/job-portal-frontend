@@ -79,7 +79,7 @@ function TalentProfilePage() {
   }, [id]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background font-['Poppins']">
+    <main className="relative min-h-screen overflow-hidden bg-background font-inter">
       {/* Background Glow */}
       <div
         aria-hidden="true"

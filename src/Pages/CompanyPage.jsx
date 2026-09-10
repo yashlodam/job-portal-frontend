@@ -56,10 +56,10 @@ const stagger = {
 };
 
 const modeColor = {
-  REMOTE: "text-accent bg-accent/10 border-accent/20",
-  HYBRID: "text-violet-light bg-violet/10 border-violet/20",
-  ON_SITE: "text-accent-warm bg-accent-warm/10 border-accent-warm/20",
-  ONSITE: "text-accent-warm bg-accent-warm/10 border-accent-warm/20",
+  REMOTE: "text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/20",
+  HYBRID: "text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-500/10 border-purple-200 dark:border-purple-500/20",
+  ON_SITE: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20",
+  ONSITE: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20",
 };
 
 /* ─── Benefit icon map ─── */
@@ -89,9 +89,10 @@ function parseBenefits(str) {
 function formatSalary(min, max) {
   if (!min && !max) return null;
   const fmt = (n) => {
-    if (n >= 100000) return `₹${(n / 100000).toFixed(0)}L`;
-    if (n >= 1000) return `₹${(n / 1000).toFixed(0)}K`;
-    return `₹${n}`;
+    if (n >= 10000000) return `${(n / 10000000).toFixed(1)}Cr`;
+    if (n >= 100000) return `${(n / 100000).toFixed(0)}L`;
+    if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
+    return `${n}`;
   };
   if (min && max) return `${fmt(min)} – ${fmt(max)}`;
   if (min) return `From ${fmt(min)}`;
@@ -162,14 +163,14 @@ function JobRow({ job }) {
         className="group flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border border-border bg-surface p-5 sm:p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-glow-primary hover:bg-surface-elevated/60"
       >
         {/* Icon */}
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-          <IconBriefcase size={20} className="text-primary-light" />
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 text-indigo-600 dark:text-indigo-400">
+          <IconBriefcase size={20} />
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-satoshi text-base font-bold text-heading group-hover:text-primary-light transition-colors">
+            <h3 className="font-satoshi text-base font-bold text-heading group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               {job.title ?? job.jobTitle}
             </h3>
             {job.jobType && (
@@ -187,7 +188,7 @@ function JobRow({ job }) {
           <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
             {(job.city || job.state || job.country) && (
               <span className="inline-flex items-center gap-1 text-xs text-muted">
-                <IconMapPin size={12} className="text-primary-light" />
+                <IconMapPin size={12} className="text-indigo-600 dark:text-indigo-400" />
                 {[job.city, job.state, job.country].filter(Boolean).join(", ")}
               </span>
             )}
@@ -197,7 +198,7 @@ function JobRow({ job }) {
               </span>
             )}
             {job.experienceLevel && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary-light">
+              <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
                 <IconBriefcase size={11} /> {job.experienceLevel.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
               </span>
             )}
@@ -211,7 +212,7 @@ function JobRow({ job }) {
           {job.skills?.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {job.skills.slice(0, 4).map((s) => (
-                <span key={s} className="rounded-full bg-primary/[0.08] px-2.5 py-0.5 text-xs font-medium text-primary-light/80">
+                <span key={s} className="rounded-full border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
                   {s}
                 </span>
               ))}
@@ -223,7 +224,8 @@ function JobRow({ job }) {
         <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 shrink-0">
           {salary ? (
             <span className="inline-flex items-center gap-0.5 text-sm font-bold text-heading">
-              <IconCurrencyRupee size={14} className="text-accent" />{salary.replace("₹", "")}
+              <IconCurrencyRupee size={14} className="text-emerald-600 dark:text-emerald-400" />
+              {salary}
             </span>
           ) : (
             <span className="text-xs text-muted">Salary TBD</span>
@@ -260,8 +262,8 @@ function LoadingSkeleton() {
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col items-center gap-4 relative z-10"
       >
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-          <IconLoader2 size={32} className="text-primary-light animate-spin" />
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10">
+          <IconLoader2 size={32} className="text-indigo-600 dark:text-indigo-400 animate-spin" />
         </div>
         <p className="text-sm text-muted font-medium">Loading company profile…</p>
       </motion.div>
@@ -343,15 +345,15 @@ export default function CompanyPage() {
 
           <div className="relative section-container pt-8 pb-0">
             {/* Back + Actions */}
-            <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center justify-between mb-6 sm:mb-10 gap-3">
               <motion.button
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4 }}
                 onClick={() => navigate(-1)}
-                className="group inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-heading backdrop-blur hover:bg-white/10 transition-all cursor-pointer"
+                className="group inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur hover:bg-white/15 transition-all cursor-pointer"
               >
-                <IconArrowLeft size={16} className="text-muted group-hover:text-primary-light transition-colors group-hover:-translate-x-0.5" />
+                <IconArrowLeft size={16} className="text-white/60 group-hover:text-white transition-colors group-hover:-translate-x-0.5" />
                 Back
               </motion.button>
 
@@ -373,8 +375,8 @@ export default function CompanyPage() {
                   }}
                   className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all cursor-pointer backdrop-blur ${
                     saved
-                      ? "border-primary/40 bg-primary/15 text-primary-light"
-                      : "border-white/10 bg-white/5 text-heading hover:bg-white/10"
+                      ? "border-primary/40 bg-primary/25 text-white"
+                      : "border-white/10 bg-white/5 text-white hover:bg-white/15"
                   }`}
                 >
                   <IconBookmark size={15} />
@@ -385,7 +387,7 @@ export default function CompanyPage() {
                     navigator.clipboard.writeText(window.location.href);
                     toast.success("Company profile link copied to clipboard!");
                   }}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-heading hover:bg-white/10 transition-all cursor-pointer backdrop-blur"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/15 transition-all cursor-pointer backdrop-blur"
                 >
                   <IconShare size={15} />
                   Share
@@ -478,12 +480,12 @@ export default function CompanyPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-white/10 border-t border-white/10"
+              className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-px bg-white/5 sm:bg-white/10 p-2 sm:p-0 rounded-2xl sm:rounded-none overflow-hidden my-4 sm:my-0 sm:border-t sm:border-white/10"
             >
               {stats.map(({ label, value, icon: Icon }) => (
-                <div key={label} className="flex flex-col items-center justify-center py-5 gap-1 px-2">
-                  <span className="text-lg sm:text-2xl font-extrabold text-white font-satoshi text-center leading-tight">{value}</span>
-                  <span className="inline-flex items-center gap-1.5 text-xs text-white/50 text-center">
+                <div key={label} className="flex flex-col items-center justify-center py-3.5 sm:py-5 gap-1 px-2 rounded-xl sm:rounded-none bg-white/[0.03] sm:bg-transparent">
+                  <span className="text-base sm:text-2xl font-extrabold text-white font-satoshi text-center leading-tight">{value}</span>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-white/60 text-center">
                     <Icon size={12} /> {label}
                   </span>
                 </div>
@@ -533,7 +535,7 @@ export default function CompanyPage() {
                     {company.mission && (
                       <section>
                         <h3 className="text-base font-bold text-heading font-satoshi mb-3 flex items-center gap-2">
-                          <IconTarget size={18} className="text-primary-light" /> Our Mission
+                          <IconTarget size={18} className="text-indigo-600 dark:text-indigo-400" /> Our Mission
                         </h3>
                         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 relative overflow-hidden">
                           <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
@@ -558,8 +560,8 @@ export default function CompanyPage() {
                               key={title}
                               className="rounded-2xl border border-border bg-surface p-5 flex items-start gap-4 hover:border-primary/20 transition-colors"
                             >
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                                <Icon size={18} className="text-primary-light" />
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 text-indigo-600 dark:text-indigo-400">
+                                <Icon size={18} />
                               </div>
                               <div>
                                 <p className="font-semibold text-heading text-sm">{title}</p>
@@ -574,10 +576,10 @@ export default function CompanyPage() {
                     <section>
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-base font-bold text-heading font-satoshi flex items-center gap-2">
-                          <IconBriefcase size={18} className="text-primary-light" />
+                          <IconBriefcase size={18} className="text-indigo-600 dark:text-indigo-400" />
                           Open Positions
                           {companyJobs.length > 0 && (
-                            <span className="ml-1 inline-flex items-center justify-center rounded-full bg-primary/15 border border-primary/25 px-2.5 py-0.5 text-xs font-bold text-primary-light">
+                            <span className="ml-1 inline-flex items-center justify-center rounded-full bg-indigo-50 dark:bg-primary/15 border border-indigo-200 dark:border-primary/25 px-2.5 py-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300">
                               {companyJobs.length}
                             </span>
                           )}
@@ -585,7 +587,7 @@ export default function CompanyPage() {
                         {companyJobs.length > 3 && (
                           <button
                             onClick={() => setTab("Open Roles")}
-                            className="text-xs font-semibold text-primary-light hover:underline"
+                            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
                           >
                             See all {companyJobs.length} roles →
                           </button>
@@ -594,7 +596,7 @@ export default function CompanyPage() {
 
                       {jobsLoading ? (
                         <div className="flex items-center justify-center py-10">
-                          <IconLoader2 size={24} className="text-primary-light animate-spin" />
+                          <IconLoader2 size={24} className="text-indigo-600 dark:text-indigo-400 animate-spin" />
                         </div>
                       ) : companyJobs.length === 0 ? (
                         <EmptyJobs />
@@ -614,7 +616,7 @@ export default function CompanyPage() {
                           <h3 className="text-base font-bold text-heading font-satoshi">Benefits & Perks</h3>
                           <button
                             onClick={() => setTab("Benefits")}
-                            className="text-xs font-semibold text-primary-light hover:underline"
+                            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
                           >
                             See all →
                           </button>
@@ -626,8 +628,8 @@ export default function CompanyPage() {
                               variants={fadeUp}
                               className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4"
                             >
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                                <Icon size={16} className="text-primary-light" />
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 text-indigo-600 dark:text-indigo-400">
+                                <Icon size={16} />
                               </div>
                               <span className="text-sm text-body">{label}</span>
                             </motion.div>
@@ -658,7 +660,7 @@ export default function CompanyPage() {
 
                     {jobsLoading ? (
                       <div className="flex items-center justify-center py-20">
-                        <IconLoader2 size={32} className="text-primary-light animate-spin" />
+                        <IconLoader2 size={32} className="text-indigo-600 dark:text-indigo-400 animate-spin" />
                       </div>
                     ) : companyJobs.length === 0 ? (
                       <EmptyJobs />
@@ -765,8 +767,8 @@ export default function CompanyPage() {
                             variants={fadeUp}
                             className="group rounded-2xl border border-border bg-surface p-6 flex items-start gap-4 hover:border-primary/25 hover:shadow-glow-primary transition-all duration-300"
                           >
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                              <Icon size={22} className="text-primary-light" />
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-100 dark:group-hover:bg-primary/15 transition-colors">
+                              <Icon size={22} />
                             </div>
                             <div>
                               <p className="font-semibold text-heading">{label}</p>
@@ -816,8 +818,8 @@ export default function CompanyPage() {
                             variants={fadeUp}
                             className="group rounded-2xl border border-border bg-surface p-5 flex items-start gap-4 hover:border-primary/25 hover:shadow-glow-primary transition-all duration-300"
                           >
-                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                              <Icon size={20} className="text-primary-light" />
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-100 dark:group-hover:bg-primary/15 transition-colors">
+                              <Icon size={20} />
                             </div>
                             <div>
                               <p className="text-xs text-muted mb-0.5">{label}</p>
@@ -826,7 +828,7 @@ export default function CompanyPage() {
                                   href={href}
                                   target={href.startsWith("http") ? "_blank" : undefined}
                                   rel="noopener noreferrer"
-                                  className="text-sm font-semibold text-heading group-hover:text-primary-light transition-colors break-all"
+                                  className="text-sm font-semibold text-heading group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors break-all"
                                 >
                                   {value}
                                 </a>
@@ -852,7 +854,7 @@ export default function CompanyPage() {
             >
               {/* CTA */}
               <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 text-center">
-                <p className="text-xs font-semibold text-primary-light uppercase tracking-wider mb-1">
+                <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1">
                   {companyJobs.length > 0 ? `${companyJobs.length} Open Positions` : "Hiring Now"}
                 </p>
                 <h3 className="text-lg font-extrabold text-heading font-satoshi mb-1">Ready to join?</h3>
@@ -888,9 +890,9 @@ export default function CompanyPage() {
                   {company.email && (
                     <a
                       href={`mailto:${company.email}`}
-                      className="flex items-center gap-3 text-xs text-muted hover:text-primary-light transition-colors group"
+                      className="flex items-center gap-3 text-xs text-muted hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group"
                     >
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-elevated group-hover:bg-primary/10 transition-colors">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-elevated group-hover:bg-indigo-50 dark:group-hover:bg-primary/10 transition-colors">
                         <IconMail size={14} />
                       </div>
                       <span className="truncate">{company.email}</span>
@@ -899,9 +901,9 @@ export default function CompanyPage() {
                   {company.phone && (
                     <a
                       href={`tel:${company.phone}`}
-                      className="flex items-center gap-3 text-xs text-muted hover:text-primary-light transition-colors group"
+                      className="flex items-center gap-3 text-xs text-muted hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group"
                     >
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-elevated group-hover:bg-primary/10 transition-colors">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-elevated group-hover:bg-indigo-50 dark:group-hover:bg-primary/10 transition-colors">
                         <IconPhone size={14} />
                       </div>
                       <span>{company.phone}</span>
@@ -912,9 +914,9 @@ export default function CompanyPage() {
                       href={company.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 text-xs text-muted hover:text-primary-light transition-colors group"
+                      className="flex items-center gap-3 text-xs text-muted hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group"
                     >
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-elevated group-hover:bg-primary/10 transition-colors">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-elevated group-hover:bg-indigo-50 dark:group-hover:bg-primary/10 transition-colors">
                         <IconWorld size={14} />
                       </div>
                       <span className="truncate">{websiteDisplay}</span>

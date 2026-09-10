@@ -35,7 +35,9 @@ const STEPS = [
     gradient: "from-indigo-500 to-purple-600",
     badge: "ATS Indexed",
     badgeColor: "text-indigo-600 border-indigo-200 bg-indigo-50 dark:text-indigo-400 dark:border-indigo-500/30 dark:bg-indigo-500/10",
-    metrics: "Parses 40+ Tech Formats",
+    metrics: "Structured Profile Indexing",
+    numberColor: "text-indigo-600/30 group-hover:text-indigo-600/60 dark:text-indigo-400/30 dark:group-hover:text-indigo-400/60",
+    stepTextColor: "text-indigo-600 dark:text-indigo-400",
   },
   {
     step: "02",
@@ -44,20 +46,24 @@ const STEPS = [
       "Our matching algorithm compares your profile against live verified job postings, calculating real-time 0–100% Match Scores and highlighting missing high-value skills.",
     icon: Zap,
     gradient: "from-cyan-500 to-blue-600",
-    badge: "98% Accuracy",
+    badge: "Semantic Fit",
     badgeColor: "text-cyan-600 border-cyan-200 bg-cyan-50 dark:text-cyan-400 dark:border-cyan-500/30 dark:bg-cyan-500/10",
     metrics: "Instant Skill Gap Report",
+    numberColor: "text-cyan-600/35 group-hover:text-cyan-600/70 dark:text-cyan-400/30 dark:group-hover:text-cyan-400/60",
+    stepTextColor: "text-cyan-600 dark:text-cyan-400",
   },
   {
     step: "03",
     title: "1-Click Apply & Live Pipeline Tracker",
     description:
-      "Generate tailored cover letters in seconds, apply in 1 click, and monitor your progress across all 8 recruitment pipeline stages with zero ghosting.",
+      "Generate tailored cover letters in seconds, apply in 1 click, and monitor your progress across all recruitment pipeline stages with transparent status updates.",
     icon: CheckCircle2,
     gradient: "from-emerald-500 to-teal-600",
-    badge: "Zero Ghosting",
+    badge: "Transparent Pipeline",
     badgeColor: "text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-500/30 dark:bg-emerald-500/10",
     metrics: "Direct Recruiter Chat",
+    numberColor: "text-emerald-600/35 group-hover:text-emerald-600/70 dark:text-emerald-400/30 dark:group-hover:text-emerald-400/60",
+    stepTextColor: "text-emerald-600 dark:text-emerald-400",
   },
 ];
 
@@ -125,9 +131,9 @@ export default function HowItWorks() {
                 }`}
               >
                 {/* Step Number Watermark */}
-                <span className={`absolute top-4 right-6 text-5xl font-black font-satoshi select-none pointer-events-none transition-colors ${
-                  isLight ? "text-slate-100 group-hover:text-indigo-50" : "text-white/5 group-hover:text-indigo-500/10"
-                }`}>
+                <span
+                  className={`absolute top-4 right-6 text-5xl sm:text-6xl font-black font-satoshi select-none pointer-events-none transition-all duration-300 ${stepItem.numberColor}`}
+                >
                   {stepItem.step}
                 </span>
 
@@ -170,7 +176,7 @@ export default function HowItWorks() {
                     <CheckCircle2 size={14} className="text-emerald-500" />
                     {stepItem.metrics}
                   </span>
-                  <span className={`font-extrabold font-mono text-[11px] ${isLight ? "text-slate-400" : "text-slate-500"}`}>
+                  <span className={`font-extrabold font-mono text-[11px] ${stepItem.stepTextColor}`}>
                     STEP {stepItem.step}
                   </span>
                 </div>

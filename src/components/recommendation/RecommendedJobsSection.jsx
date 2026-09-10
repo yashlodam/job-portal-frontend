@@ -75,9 +75,9 @@ function getMatchColors(percentage) {
     };
   if (percentage >= 70)
     return {
-      bg: "bg-primary/15",
-      text: "text-primary-light",
-      border: "border-primary/30",
+      bg: "bg-indigo-50 dark:bg-primary/15",
+      text: "text-indigo-600 dark:text-indigo-400",
+      border: "border-indigo-200 dark:border-primary/30",
       bar: "bg-primary",
       badgeBg: "bg-primary",
       badgeText: "text-white",
@@ -195,7 +195,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
       {showHeading && (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-4">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-bold text-primary-light mb-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 dark:bg-primary/10 border border-indigo-200 dark:border-primary/20 px-3 py-1 text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-2">
               <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
               <span>Personalized Career Engine</span>
             </div>
@@ -263,7 +263,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
             </div>
             <Link
               to="/profile"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-light self-start sm:self-auto shrink-0"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 self-start sm:self-auto shrink-0"
             >
               <span>Full Profile</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -420,7 +420,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                 {/* Metadata Pills */}
                 <div className="flex flex-wrap items-center gap-2 text-xs text-body">
                   <span className="inline-flex items-center gap-1 rounded-md bg-surface-elevated px-2.5 py-1 border border-border text-muted">
-                    <MapPin className="h-3 w-3 text-primary-light" />
+                    <MapPin className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
                     {job.workingMode === "REMOTE"
                       ? "Remote"
                       : job.city
@@ -461,7 +461,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                     </span>
                     <button
                       onClick={() => setSelectedJob(job)}
-                      className="text-[10px] font-bold text-primary-light hover:text-primary shrink-0 underline ml-1 cursor-pointer"
+                      className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 shrink-0 underline ml-1 cursor-pointer"
                     >
                       Details
                     </button>
@@ -503,7 +503,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                     {job.matchedPreferredSkills.slice(0, 3).map((skill, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1 rounded-lg bg-primary/10 border border-primary/20 px-2 py-0.5 text-[11px] font-medium text-primary-light"
+                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 dark:bg-primary/10 border border-indigo-200 dark:border-primary/20 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300"
                       >
                         <Star className="h-2.5 w-2.5 text-primary" />
                         {skill}
@@ -592,7 +592,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               {/* Modal Header */}
               <div className="flex items-start justify-between border-b border-border pb-4">
                 <div>
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[11px] font-bold text-primary-light mb-1">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 dark:bg-primary/10 border border-indigo-200 dark:border-primary/20 px-2.5 py-0.5 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 mb-1">
                     <Sparkles className="h-3 w-3 text-primary" /> Match Scoring Breakdown
                   </div>
                   <h3 className="text-lg font-bold text-heading font-satoshi leading-tight">
@@ -672,7 +672,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                     {selectedJob.matchedPreferredSkills.map((s, i) => (
                       <span
                         key={i}
-                        className="rounded-lg bg-primary/15 border border-primary/30 px-2.5 py-1 text-xs font-medium text-primary-light"
+                        className="rounded-lg bg-indigo-50 dark:bg-primary/15 border border-indigo-200 dark:border-primary/30 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300"
                       >
                         {s}
                       </span>

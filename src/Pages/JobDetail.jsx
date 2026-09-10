@@ -228,7 +228,7 @@ function ShareModal({ isOpen, onClose, jobTitle }) {
               </span>
               <button
                 onClick={handleCopy}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary-light hover:bg-primary/20 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-3 py-1.5 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-primary/25 transition-colors cursor-pointer"
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />}
                 {copied ? "Copied!" : "Copy"}
@@ -301,7 +301,7 @@ function SimilarJobCard({ job }) {
         </div>
 
         {/* Title */}
-        <h3 className="mt-4 text-lg font-semibold text-heading group-hover:text-primary-light transition-colors">
+        <h3 className="mt-4 text-lg font-semibold text-heading group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
           {title}
         </h3>
 
@@ -327,7 +327,7 @@ function SimilarJobCard({ job }) {
             {tags.slice(0, 4).map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary-light"
+                className="rounded-full border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 px-3 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300"
               >
                 {tag}
               </span>
@@ -530,9 +530,9 @@ function JobDetail() {
             transition={{ duration: 0.4 }}
             className="flex items-center gap-2 text-sm text-muted mb-8"
           >
-            <Link to="/" className="hover:text-primary-light transition-colors">Home</Link>
+            <Link to="/" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Home</Link>
             <ChevronRight size={14} className="text-muted/50" />
-            <Link to="/find-jobs" className="hover:text-primary-light transition-colors">Find Jobs</Link>
+            <Link to="/find-jobs" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Find Jobs</Link>
             <ChevronRight size={14} className="text-muted/50" />
             <span className="text-body truncate max-w-[200px] sm:max-w-none">{jobTitle}</span>
           </motion.nav>
@@ -592,7 +592,7 @@ function JobDetail() {
               <div className="hidden sm:flex items-center gap-3">
                 <button
                   onClick={() => setShareOpen(true)}
-                  className="inline-flex items-center justify-center h-11 w-11 rounded-xl border border-border bg-surface hover:bg-surface-elevated text-muted hover:text-primary-light hover:border-primary/30 transition-all cursor-pointer"
+                  className="inline-flex items-center justify-center h-11 w-11 rounded-xl border border-border bg-surface hover:bg-surface-elevated text-muted hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-primary/30 transition-all cursor-pointer"
                   aria-label="Share job"
                 >
                   <Share2 size={18} />
@@ -601,7 +601,7 @@ function JobDetail() {
                   onClick={handleToggleSave}
                   className={`inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition-all cursor-pointer ${
                     saved
-                      ? "border-primary/30 bg-primary/10 text-primary-light"
+                      ? "border-indigo-300 dark:border-primary/30 bg-indigo-50 dark:bg-primary/10 text-indigo-700 dark:text-indigo-300"
                       : "border-border bg-surface hover:bg-surface-elevated text-muted hover:text-heading hover:border-primary/20"
                   }`}
                 >
@@ -622,7 +622,7 @@ function JobDetail() {
             <div className="mt-5 flex flex-wrap items-center gap-3">
               {(city || state || country) && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
-                  <MapPin size={13} className="text-primary-light" />
+                  <MapPin size={13} className="text-indigo-600 dark:text-indigo-400" />
                   {[city, state, country].filter(Boolean).join(", ")}
                 </span>
               )}
@@ -640,7 +640,7 @@ function JobDetail() {
               )}
               {experienceLevel && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3.5 py-1.5 text-xs font-medium text-body">
-                  <GraduationCap size={13} className="text-primary-light" />
+                  <GraduationCap size={13} className="text-indigo-600 dark:text-indigo-400" />
                   {humanise(experienceLevel)}
                 </span>
               )}
@@ -836,7 +836,7 @@ function JobDetail() {
                             variants={listItem}
                             className="group/perk flex items-start gap-4 rounded-xl border border-border bg-surface-elevated p-4 transition-all duration-300 hover:border-primary/20 hover:shadow-glow-primary"
                           >
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary-light group-hover/perk:bg-primary/15 transition-colors">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 text-indigo-600 dark:text-indigo-400 group-hover/perk:bg-indigo-100 dark:group-hover/perk:bg-primary/20 transition-colors">
                               <Icon size={20} />
                             </div>
                             <div>
@@ -879,7 +879,7 @@ function JobDetail() {
                         <motion.span
                           key={skill}
                           variants={listItem}
-                          className="rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary-light hover:bg-primary/15 hover:border-primary/30 transition-all cursor-default"
+                          className="rounded-full border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-4 py-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-primary/25 hover:border-indigo-300 transition-all cursor-default"
                         >
                           {skill}
                         </motion.span>
@@ -934,7 +934,7 @@ function JobDetail() {
                     onClick={handleToggleSave}
                     className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition-all cursor-pointer ${
                       saved
-                        ? "border-primary/30 bg-primary/10 text-primary-light"
+                        ? "border-indigo-300 dark:border-primary/30 bg-indigo-50 dark:bg-primary/10 text-indigo-700 dark:text-indigo-300"
                         : "border-border text-muted hover:border-primary/20 hover:text-heading"
                     }`}
                   >
@@ -1079,7 +1079,7 @@ function JobDetail() {
                             href={website.startsWith("http") ? website : `https://${website}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-sm font-medium text-primary-light hover:text-primary transition-colors"
+                            className="flex items-center gap-1 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
                           >
                             {website}
                             <ExternalLink size={12} />
@@ -1104,7 +1104,7 @@ function JobDetail() {
                   {/* View All Jobs */}
                   <Link
                     to={`/company/${selectedJob.companyId}`}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface hover:bg-surface-elevated py-2.5 text-sm font-semibold text-muted hover:text-primary-light hover:border-primary/20 transition-all"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface hover:bg-surface-elevated py-2.5 text-sm font-semibold text-muted hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-primary/20 transition-all"
                   >
                     View all jobs from {companyName}
                     <ArrowRight size={14} />
@@ -1131,12 +1131,12 @@ function JobDetail() {
                 viewport={{ once: true }}
                 className="text-center mb-12"
               >
-                <div className="inline-flex items-center gap-3 rounded-full border border-primary/20 bg-primary/10 px-6 py-2">
-                  <span className="h-px w-6 bg-primary/40" />
-                  <span className="text-sm font-semibold uppercase tracking-wider text-primary-light">
+                <div className="inline-flex items-center gap-3 rounded-full border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 px-6 py-2">
+                  <span className="h-px w-6 bg-indigo-300 dark:bg-primary/40" />
+                  <span className="text-sm font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
                     You Might Also Like
                   </span>
-                  <span className="h-px w-6 bg-primary/40" />
+                  <span className="h-px w-6 bg-indigo-300 dark:bg-primary/40" />
                 </div>
                 <h2 className="mt-6 text-3xl sm:text-4xl md:text-5xl font-extrabold text-heading font-satoshi leading-tight">
                   Similar <span className="gradient-text">Jobs</span>
@@ -1174,7 +1174,7 @@ function JobDetail() {
               onClick={handleToggleSave}
               className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all cursor-pointer ${
                 saved
-                  ? "border-primary/30 bg-primary/10 text-primary-light"
+                  ? "border-indigo-300 dark:border-primary/30 bg-indigo-50 dark:bg-primary/10 text-indigo-700 dark:text-indigo-300"
                   : "border-border bg-surface hover:bg-surface-elevated text-muted"
               }`}
               aria-label={saved ? "Unsave job" : "Save job"}

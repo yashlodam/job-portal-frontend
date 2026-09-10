@@ -204,9 +204,9 @@ function RadioGroup({ label, required, options, value, onChange, icons, error })
               onClick={() => onChange(opt)}
               aria-pressed={value === opt}
               aria-label={`Select ${opt}`}
-              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
+              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
                 value === opt
-                  ? "border-primary/50 bg-primary/10 text-primary-light shadow-glow-primary"
+                  ? "border-indigo-300 dark:border-primary/50 bg-indigo-50 dark:bg-primary/20 text-indigo-700 dark:text-indigo-300 shadow-sm"
                   : "border-border bg-surface text-body hover:border-border-hover hover:text-heading"
               }`}
             >
@@ -449,7 +449,7 @@ function StepDescription({ form, setForm, errors, clearError }) {
             type="button"
             onClick={addSkill}
             aria-label="Add skill"
-            className="flex shrink-0 items-center gap-1 h-11 rounded-xl border border-primary/30 bg-primary/10 px-4 text-sm font-medium text-primary-light transition-colors hover:bg-primary/20"
+            className="flex shrink-0 items-center gap-1 h-11 rounded-xl border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-4 text-sm font-semibold text-indigo-700 dark:text-indigo-300 transition-colors hover:bg-indigo-100 dark:hover:bg-primary/25 cursor-pointer"
           >
             <Plus size={16} aria-hidden="true" />
             Add
@@ -460,7 +460,7 @@ function StepDescription({ form, setForm, errors, clearError }) {
             {form.skills.map((skill) => (
               <span
                 key={skill}
-                className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary-light"
+                className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-3 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300"
               >
                 {skill}
                 <button
@@ -506,7 +506,7 @@ function StepDescription({ form, setForm, errors, clearError }) {
             type="button"
             onClick={addPreferredSkill}
             aria-label="Add preferred skill"
-            className="flex shrink-0 items-center gap-1 h-11 rounded-xl border border-primary/30 bg-primary/10 px-4 text-sm font-medium text-primary-light transition-colors hover:bg-primary/20"
+            className="flex shrink-0 items-center gap-1 h-11 rounded-xl border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-4 text-sm font-semibold text-indigo-700 dark:text-indigo-300 transition-colors hover:bg-indigo-100 dark:hover:bg-primary/25 cursor-pointer"
           >
             <Plus size={16} aria-hidden="true" />
             Add
@@ -517,7 +517,7 @@ function StepDescription({ form, setForm, errors, clearError }) {
             {form.preferredSkills.map((skill) => (
               <span
                 key={skill}
-                className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary-light"
+                className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-3 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300"
               >
                 {skill}
                 <button
@@ -582,9 +582,10 @@ function StepCompensation({ form, setForm, errors, clearError }) {
       {/* Salary Range */}
       <div className="grid gap-6 sm:grid-cols-2">
         <InputField
-          label="Minimum Salary ($)"
+          id="input-salary-min"
+          label="Minimum Salary (₹)"
           required
-          placeholder="e.g. 120000"
+          placeholder="e.g. 600000"
           type="number"
           min="0"
           value={form.salaryMin}
@@ -596,9 +597,10 @@ function StepCompensation({ form, setForm, errors, clearError }) {
           }}
         />
         <InputField
-          label="Maximum Salary ($)"
+          id="input-salary-max"
+          label="Maximum Salary (₹)"
           required
-          placeholder="e.g. 180000"
+          placeholder="e.g. 1200000"
           type="number"
           min="0"
           value={form.salaryMax}
@@ -685,9 +687,9 @@ function StepCompensation({ form, setForm, errors, clearError }) {
           type="button"
           onClick={() => setForm({ ...form, featured: !form.featured })}
           aria-pressed={form.featured}
-          className={`rounded-xl border p-4 text-sm font-medium transition-all duration-200 ${
+          className={`rounded-xl border p-4 text-sm font-semibold transition-all duration-200 ${
             form.featured
-              ? "border-primary/50 bg-primary/10 text-primary-light shadow-glow-primary"
+              ? "border-indigo-300 dark:border-primary/50 bg-indigo-50 dark:bg-primary/20 text-indigo-700 dark:text-indigo-300 shadow-sm"
               : "border-border bg-surface text-body hover:border-border-hover hover:text-heading"
           }`}
         >
@@ -697,9 +699,9 @@ function StepCompensation({ form, setForm, errors, clearError }) {
           type="button"
           onClick={() => setForm({ ...form, urgentHiring: !form.urgentHiring })}
           aria-pressed={form.urgentHiring}
-          className={`rounded-xl border p-4 text-sm font-medium transition-all duration-200 ${
+          className={`rounded-xl border p-4 text-sm font-semibold transition-all duration-200 ${
             form.urgentHiring
-              ? "border-primary/50 bg-primary/10 text-primary-light shadow-glow-primary"
+              ? "border-indigo-300 dark:border-primary/50 bg-indigo-50 dark:bg-primary/20 text-indigo-700 dark:text-indigo-300 shadow-sm"
               : "border-border bg-surface text-body hover:border-border-hover hover:text-heading"
           }`}
         >
@@ -709,9 +711,9 @@ function StepCompensation({ form, setForm, errors, clearError }) {
           type="button"
           onClick={() => setForm({ ...form, easyApply: !form.easyApply })}
           aria-pressed={form.easyApply}
-          className={`rounded-xl border p-4 text-sm font-medium transition-all duration-200 ${
+          className={`rounded-xl border p-4 text-sm font-semibold transition-all duration-200 ${
             form.easyApply
-              ? "border-primary/50 bg-primary/10 text-primary-light shadow-glow-primary"
+              ? "border-indigo-300 dark:border-primary/50 bg-indigo-50 dark:bg-primary/20 text-indigo-700 dark:text-indigo-300 shadow-sm"
               : "border-border bg-surface text-body hover:border-border-hover hover:text-heading"
           }`}
         >
@@ -739,9 +741,9 @@ function StepCompensation({ form, setForm, errors, clearError }) {
               onClick={() => toggleBenefit(id)}
               aria-pressed={form.benefits.includes(id)}
               aria-label={`Toggle ${label} benefit`}
-              className={`flex items-center gap-3 rounded-xl border p-4 text-left text-sm font-medium transition-all duration-200 ${
+              className={`flex items-center gap-3 rounded-xl border p-4 text-left text-sm font-semibold transition-all duration-200 ${
                 form.benefits.includes(id)
-                  ? "border-primary/50 bg-primary/10 text-primary-light shadow-glow-primary"
+                  ? "border-indigo-300 dark:border-primary/50 bg-indigo-50 dark:bg-primary/20 text-indigo-700 dark:text-indigo-300 shadow-sm"
                   : "border-border bg-surface text-body hover:border-border-hover hover:text-heading"
               }`}
             >
@@ -794,14 +796,15 @@ function StepPreview({ form, onEdit }) {
     learning: "Learning Budget",
   };
 
+  const currencySymbol = form.currency === "USD" ? "$" : "₹";
   const salaryDisplay =
     form.salaryMin && form.salaryMax
-      ? `$${Number(form.salaryMin).toLocaleString()} – $${Number(form.salaryMax).toLocaleString()}`
+      ? `${currencySymbol}${Number(form.salaryMin).toLocaleString()} – ${currencySymbol}${Number(form.salaryMax).toLocaleString()}`
       : form.salaryMin
-        ? `From $${Number(form.salaryMin).toLocaleString()}`
+        ? `From ${currencySymbol}${Number(form.salaryMin).toLocaleString()}`
         : form.salaryMax
-          ? `Up to $${Number(form.salaryMax).toLocaleString()}`
-          : "Not specified";
+          ? `Up to ${currencySymbol}${Number(form.salaryMax).toLocaleString()}`
+          : "Market Standard Salary";
 
   return (
     <motion.div
@@ -844,13 +847,13 @@ function StepPreview({ form, onEdit }) {
             <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-body">
               {form.category && (
                 <span className="flex items-center gap-1">
-                  <Tag size={14} className="text-primary-light" />
+                  <Tag size={14} className="text-indigo-600 dark:text-indigo-400" />
                   {form.category}
                 </span>
               )}
               {form.location && (
                 <span className="flex items-center gap-1">
-                  <MapPin size={14} className="text-primary-light" />
+                  <MapPin size={14} className="text-indigo-600 dark:text-indigo-400" />
                   {form.location}
                 </span>
               )}
@@ -861,17 +864,17 @@ function StepPreview({ form, onEdit }) {
         {/* Badges */}
         <div className="mt-5 flex flex-wrap gap-2">
           {form.workMode && (
-            <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary-light">
+            <span className="rounded-full border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-3 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
               {form.workMode}
             </span>
           )}
           {form.jobType && (
-            <span className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+            <span className="rounded-full border border-cyan-200 dark:border-cyan-500/30 bg-cyan-50 dark:bg-cyan-500/15 px-3 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-300">
               {form.jobType}
             </span>
           )}
           {form.experienceLevel && (
-            <span className="rounded-full border border-violet/20 bg-violet/10 px-3 py-1 text-xs font-semibold text-violet-light">
+            <span className="rounded-full border border-purple-200 dark:border-purple-500/30 bg-purple-50 dark:bg-purple-500/15 px-3 py-1 text-xs font-semibold text-purple-700 dark:text-purple-300">
               {form.experienceLevel}
             </span>
           )}
@@ -969,7 +972,7 @@ function StepPreview({ form, onEdit }) {
               {form.benefits.map((b) => (
                 <span
                   key={b}
-                  className="rounded-full border border-success/20 bg-success/10 px-3 py-1 text-xs font-semibold text-success-light"
+                  className="rounded-full border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300"
                 >
                   {benefitLabels[b] || b}
                 </span>
@@ -1155,8 +1158,8 @@ const FIELD_FOCUS_ID = {
   qualification: "input-qualification",
   vacancies: "input-vacancies",
   interviewRounds: "input-interview-rounds",
-  salaryMin: "input-minimum-salary-($)",
-  salaryMax: "input-maximum-salary-($)",
+  salaryMin: "input-salary-min",
+  salaryMax: "input-salary-max",
   deadline: "input-deadline",
 };
 
@@ -1278,15 +1281,15 @@ function UploadJob() {
 
   if (!companyLoading && !hasCompany) {
     return (
-      <div className="min-h-screen bg-[#06080F] py-20 px-4 flex items-center justify-center font-satoshi text-white">
-        <div className="max-w-md w-full rounded-[24px] border border-amber-500/30 bg-[#090d16]/95 backdrop-blur-2xl p-8 text-center shadow-[0_0_50px_rgba(245,158,11,0.15)] space-y-6">
-          <div className="h-16 w-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto text-amber-400 shadow-lg">
+      <div className="min-h-screen bg-background py-20 px-4 flex items-center justify-center font-satoshi text-heading transition-colors">
+        <div className="max-w-md w-full rounded-[24px] border border-border bg-surface backdrop-blur-2xl p-8 text-center shadow-2xl space-y-6">
+          <div className="h-16 w-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto text-amber-500 dark:text-amber-400 shadow-lg">
             <Building2 size={32} />
           </div>
           
           <div>
-            <h2 className="text-2xl font-black text-white">Company Profile Required</h2>
-            <p className="text-xs text-slate-300 mt-2.5 leading-relaxed font-medium">
+            <h2 className="text-2xl font-black text-heading">Company Profile Required</h2>
+            <p className="text-xs text-body mt-2.5 leading-relaxed font-medium">
               You must create and set up your official company details before you can post new job vacancies on JobPortal AI.
             </p>
           </div>
@@ -1364,7 +1367,7 @@ function UploadJob() {
       const u = String(val).toUpperCase().trim().replace(/\s+/g, "_");
       if (u.includes("REMOTE")) return "REMOTE";
       if (u.includes("HYBRID")) return "HYBRID";
-      if (u.includes("SITE") || u.includes("OFFICE")) return "ON_SITE";
+      if (u.includes("SITE") || u.includes("OFFICE")) return "ONSITE";
       return "REMOTE";
     };
 
@@ -1476,12 +1479,12 @@ function UploadJob() {
             transition={{ duration: 0.5 }}
             className="text-center"
           >
-            <div className="inline-flex items-center gap-3 rounded-full border border-primary/20 bg-primary/10 px-6 py-2">
-              <span className="h-px w-6 bg-primary/40" />
-              <span className="text-sm font-semibold uppercase tracking-wider text-primary-light">
+            <div className="inline-flex items-center gap-3 rounded-full border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-6 py-2 shadow-sm">
+              <span className="h-px w-6 bg-indigo-400 dark:bg-primary/40" />
+              <span className="text-sm font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
                 Post a Job
               </span>
-              <span className="h-px w-6 bg-primary/40" />
+              <span className="h-px w-6 bg-indigo-400 dark:bg-primary/40" />
             </div>
             <h1 className="mt-5 text-3xl font-extrabold text-heading font-satoshi sm:text-4xl">
               Create a new <span className="gradient-text">job posting</span>
@@ -1522,7 +1525,7 @@ function UploadJob() {
                           isCompleted
                             ? "border-primary bg-primary text-white shadow-button"
                             : isActive
-                              ? "border-primary bg-primary/20 text-primary-light shadow-glow-primary"
+                              ? "border-primary bg-indigo-50 dark:bg-primary/20 text-indigo-700 dark:text-indigo-300 shadow-glow-primary"
                               : "border-border bg-surface text-muted"
                         }`}
                       >
@@ -1533,9 +1536,9 @@ function UploadJob() {
                         )}
                       </div>
                       <span
-                        className={`mt-2 hidden text-xs font-medium sm:block ${
+                        className={`mt-2 hidden text-xs font-bold sm:block ${
                           isActive
-                            ? "text-primary-light"
+                            ? "text-indigo-700 dark:text-indigo-300 font-extrabold"
                             : isCompleted
                               ? "text-heading"
                               : "text-muted"

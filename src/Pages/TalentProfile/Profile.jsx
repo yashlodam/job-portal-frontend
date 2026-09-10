@@ -145,7 +145,7 @@ function Profile(profile) {
                 shadow-button
                 transition-all
                 duration-300
-                hover:bg-primary-light
+                hover:bg-primary-hover
                 cursor-pointer
                 disabled:opacity-60
                 disabled:cursor-not-allowed
@@ -162,7 +162,7 @@ function Profile(profile) {
           <IconBriefcase size={18} className="shrink-0 text-muted" />
           <span className="font-bold text-heading">{profile.role}</span>
           <span className="text-muted">•</span>
-          <span className="font-semibold text-primary-light">{profile.company}</span>
+          <span className="font-semibold text-indigo-600 dark:text-indigo-400">{profile.company}</span>
         </div>
 
         {/* Location & Availability Badges */}
@@ -219,13 +219,13 @@ function Profile(profile) {
                   items-center
                   rounded-lg
                   border
-                  border-primary/20
-                  bg-primary/10
+                  border-indigo-200 dark:border-primary/20
+                  bg-indigo-50 dark:bg-primary/10
                   px-3.5
                   py-1.5
                   text-xs sm:text-sm
                   font-semibold
-                  text-primary-light
+                  text-indigo-700 dark:text-indigo-300
                 "
               >
                 {typeof skill === "string" ? skill : skill.name}
@@ -257,7 +257,7 @@ function Profile(profile) {
                       <h3 className="font-satoshi text-base font-bold text-heading">
                         {item.role || item.jobTitle || item.title}
                       </h3>
-                      <p className="mt-0.5 text-xs font-semibold text-primary-light">
+                      <p className="mt-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
                         {item.company || item.companyName}
                       </p>
                     </div>
@@ -293,7 +293,7 @@ function Profile(profile) {
           <div className="space-y-6">
             {educations.map((item, index) => (
               <div key={item.id || index} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-surface">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary-light">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 text-indigo-600 dark:text-indigo-400">
                   <IconSchool size={22} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -302,7 +302,7 @@ function Profile(profile) {
                       <h3 className="font-satoshi text-base font-bold text-heading">
                         {item.degree || item.title}
                       </h3>
-                      <p className="mt-0.5 text-xs font-semibold text-primary-light">
+                      <p className="mt-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
                         {item.institution || item.college || item.school}
                       </p>
                     </div>
@@ -336,7 +336,7 @@ function Profile(profile) {
           <div className="space-y-4">
             {certifications.map((cert, index) => (
               <div key={cert.id || index} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-surface">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary-light">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 text-indigo-600 dark:text-indigo-400">
                   <IconCertificate size={22} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -345,7 +345,7 @@ function Profile(profile) {
                       <h3 className="font-satoshi text-base font-bold text-heading">
                         {cert.name || cert.title}
                       </h3>
-                      <p className="mt-0.5 text-xs font-semibold text-primary-light">
+                      <p className="mt-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
                         {cert.issuer || cert.organization}
                       </p>
                     </div>

@@ -266,11 +266,15 @@ html.light .auth-hero-panel [class*="text-slate-400"] {
 html.light .text-white-force,
 html.light .text-white-force *,
 html.light .btn-primary,
+html.light .btn-primary *,
 html.light [class*="gradient-bg-signature"],
-html.light span[class*="bg-indigo-600"],
-html.light span[class*="bg-primary"],
+html.light [class*="gradient-bg-signature"] *,
 html.light .badge-indigo-solid,
-html.light .badge-indigo-solid * {
+html.light .badge-indigo-solid *,
+html.light span.bg-indigo-600,
+html.light span.bg-primary,
+html.light button.bg-indigo-600,
+html.light button.bg-primary {
   color: #FFFFFF !important;
 }
 
@@ -816,15 +820,14 @@ button {
 
 /* Secondary */
 .btn-secondary {
-  background: rgba(13, 17, 23, 0.60);
+  background: var(--color-surface-elevated);
   color: var(--color-heading);
   border: 1px solid var(--color-border);
-  backdrop-filter: blur(12px);
 }
 
 .btn-secondary:hover {
   border-color: rgba(99, 102, 241, 0.30);
-  background: var(--color-surface-elevated);
+  background: var(--color-surface-hover);
 }
 
 .btn-secondary:active {
@@ -1255,4 +1258,166 @@ textarea::placeholder,
 .mantine-PasswordInput-input::placeholder {
   color: #94A3B8 !important;
   opacity: 1 !important;
+}
+
+/* ============================================================
+   Page Shell & Surface Utilities
+   Use these instead of hardcoded dark hex in components.
+   Automatically adapts to light / dark theme via CSS vars.
+   ============================================================ */
+
+/* Full-page background */
+.page-bg {
+  background-color: var(--bg-app);
+  color: var(--text-body);
+}
+
+/* Card / panel surface */
+.surface {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Elevated surface (modals, popovers) */
+.surface-elevated {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Hover surface */
+.surface-hover {
+  background-color: var(--bg-hover);
+}
+
+/* ============================================================
+   Glass utilities — theme-aware (dark: translucent; light: white)
+   ============================================================ */
+
+.glass-card {
+  background: var(--bg-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+/* ============================================================
+   Status / Application pipeline chip colors
+   Works in both light and dark because uses fixed semantic colors
+   ============================================================ */
+
+.status-applied    { background: rgba(59, 130, 246, 0.10); color: var(--status-info); }
+.status-reviewing  { background: rgba(245, 158, 11, 0.10); color: var(--status-warning); }
+.status-shortlist  { background: rgba(99, 102, 241, 0.10); color: #818CF8; }
+.status-interview  { background: rgba(139, 92, 246, 0.10); color: #A78BFA; }
+.status-selected   { background: rgba(16, 185, 129, 0.12); color: var(--status-success); }
+.status-offered    { background: rgba(16, 185, 129, 0.12); color: var(--status-success); }
+.status-rejected   { background: rgba(239, 68, 68, 0.10); color: var(--status-error); }
+.status-withdrawn  { background: rgba(100, 116, 139, 0.10); color: var(--text-muted); }
+
+/* ============================================================
+   Divider
+   ============================================================ */
+
+.divider {
+  height: 1px;
+  background-color: var(--border-subtle);
+  border: none;
+  margin: 0;
+}
+
+/* ============================================================
+   Sidebar nav item — active / hover states
+   ============================================================ */
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-xs);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-body);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-heading);
+}
+
+.nav-item.active {
+  background: rgba(99, 102, 241, 0.10);
+  color: #818CF8;
+  font-weight: 600;
+}
+
+.nav-item.active:hover {
+  background: rgba(99, 102, 241, 0.14);
+}
+
+/* ============================================================
+   Stat card — for dashboards
+   ============================================================ */
+
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card-token);
+}
+
+/* ============================================================
+   Table utilities — theme-aware
+   ============================================================ */
+
+.table-base {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table-base th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.table-base td {
+  padding: 14px 16px;
+  color: var(--text-body);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.table-base tr:last-child td {
+  border-bottom: none;
+}
+
+.table-base tr:hover td {
+  background: var(--bg-hover);
+}
+
+/* ============================================================
+   No-scrollbar utility — for smooth mobile horizontal scrolling
+   ============================================================ */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

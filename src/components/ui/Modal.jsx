@@ -37,7 +37,7 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-xl"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
           />
 
           <motion.div
@@ -47,15 +47,15 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }) {
             role="dialog"
             aria-modal="true"
             aria-label={title || "Dialog"}
-            className={`relative w-full ${sizes[size]} max-h-[90vh] flex flex-col rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-white/15 dark:bg-[#090d16]/95 dark:text-slate-200 backdrop-blur-2xl p-6 sm:p-7 z-10 overflow-hidden font-inter`}
+            className={`relative w-full ${sizes[size]} max-h-[90vh] flex flex-col rounded-3xl border border-border bg-surface-elevated text-body shadow-2xl p-6 sm:p-7 z-10 overflow-hidden font-inter`}
           >
             {title && (
-              <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10">
-                <h3 className="text-xl font-black text-slate-900 dark:text-white font-satoshi tracking-tight">{title}</h3>
+              <div className="flex items-center justify-between pb-4 border-b border-border bg-surface-elevated">
+                <h3 className="text-xl font-black text-heading font-satoshi tracking-tight">{title}</h3>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-2xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white transition cursor-pointer"
+                  className="rounded-2xl p-2 text-muted hover:bg-surface hover:text-heading transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -89,7 +89,7 @@ export function Drawer({ isOpen, onClose, title, children, position = "right" })
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-xl"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
           />
 
           <motion.div
@@ -100,14 +100,14 @@ export function Drawer({ isOpen, onClose, title, children, position = "right" })
             role="dialog"
             aria-modal="true"
             aria-label={title || "Drawer"}
-            className={`relative ml-auto h-full w-full max-w-xl flex flex-col border-l border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-white/15 dark:bg-[#090d16]/95 dark:text-slate-200 backdrop-blur-2xl p-6 sm:p-7 z-10 overflow-hidden font-inter`}
+            className={`relative ml-auto h-full w-full max-w-xl flex flex-col border-l border-border bg-surface-elevated text-body shadow-2xl p-6 sm:p-7 z-10 overflow-hidden font-inter`}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10">
-              <h3 className="text-xl font-black text-slate-900 dark:text-white font-satoshi tracking-tight">{title}</h3>
+            <div className="flex items-center justify-between pb-4 border-b border-border bg-surface-elevated">
+              <h3 className="text-xl font-black text-heading font-satoshi tracking-tight">{title}</h3>
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-2xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white transition cursor-pointer"
+                className="rounded-2xl p-2 text-muted hover:bg-surface hover:text-heading transition cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>

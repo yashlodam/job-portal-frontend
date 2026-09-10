@@ -83,13 +83,18 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-[#070b12] text-white p-6 font-inter">
+        <div
+          style={{ backgroundColor: 'var(--bg-app, #070b12)', color: 'var(--text-heading, #F8FAFC)' }}
+          className="min-h-screen flex items-center justify-center p-6 font-inter"
+        >
           <div className="text-center max-w-md space-y-4">
             <div className="h-12 w-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400 text-xl font-bold">
               !
             </div>
-            <h2 className="text-xl font-black font-satoshi">Something went wrong</h2>
-            <p className="text-xs text-slate-400">
+            <h2 className="text-xl font-black font-satoshi" style={{ color: 'var(--text-heading)' }}>
+              Something went wrong
+            </h2>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               An unexpected error occurred. Please refresh the page to continue.
             </p>
             <button
@@ -112,7 +117,7 @@ class ErrorBoundary extends React.Component {
 
 function PageLoader() {
   return (
-    <div className="min-h-[50vh] flex items-center justify-center">
+    <div className="min-h-[50vh] flex items-center justify-center" style={{ backgroundColor: 'var(--bg-app)' }}>
       <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
     </div>
   );
@@ -120,6 +125,7 @@ function PageLoader() {
 
 /* ──────────────────────────────────────────────
    Startup Auth Restoration Loader
+   Always rendered in dark — intentional branding moment
    ────────────────────────────────────────────── */
 
 function AuthRestoreLoader() {
@@ -137,21 +143,26 @@ function AuthRestoreLoader() {
         gap: '16px',
       }}
     >
-      <div className="relative flex items-center justify-center">
-        <div
-          className="h-10 w-10 rounded-full border-2 border-transparent animate-spin"
-          style={{ borderTopColor: '#6366F1', borderRightColor: '#818CF8' }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        {/* Wordmark */}
+        <div className="flex items-center gap-2 mb-2">
+          <div className="h-8 w-8 rounded-xl bg-indigo-600 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
+              <path d="M8 5L11 6.75V10.25L8 12L5 10.25V6.75L8 5Z" fill="white" fillOpacity="0.3"/>
+            </svg>
+          </div>
+          <span className="text-white font-black font-satoshi text-lg tracking-tight">JobPortal AI</span>
+        </div>
+        {/* Spinner */}
+        <div className="relative flex items-center justify-center">
           <div
-            className="h-2.5 w-2.5 rounded-full animate-pulse"
-            style={{ background: '#6366F1' }}
+            className="h-8 w-8 rounded-full border-2 border-transparent animate-spin"
+            style={{ borderTopColor: '#6366F1', borderRightColor: '#818CF8' }}
           />
         </div>
+        <p className="text-xs font-medium text-slate-500 font-satoshi">Loading your workspace…</p>
       </div>
-      <p className="text-sm font-medium text-slate-400 font-satoshi">
-        Connecting to JobPortal AI…
-      </p>
     </div>
   );
 }
@@ -217,11 +228,12 @@ function App() {
               <Route element={<RecruiterRoute />}>
                 <Route element={<Layout />}>
                   {/* Recruiter Core — accessible to all verified/pending recruiters */}
-                  <Route path="/dashboard"               element={<RecruiterDashboardPage />} />
-                  <Route path="/recruiter/dashboard"     element={<RecruiterDashboardPage />} />
-                  <Route path="/recruiter/verification"  element={<RecruiterVerificationPage />} />
-                  <Route path="/recruiter/company"       element={<RecruiterCompanyPage />} />
-                  <Route path="/recruiter/settings"      element={<RecruiterSettingsPage />} />
+                  <Route path="/dashboard"                      element={<RecruiterDashboardPage />} />
+                  <Route path="/recruiter/dashboard"            element={<RecruiterDashboardPage />} />
+                  <Route path="/recruiter/verification"         element={<RecruiterVerificationPage />} />
+                  <Route path="/recruiter/verification/status"  element={<RecruiterVerificationPage />} />
+                  <Route path="/recruiter/company"              element={<RecruiterCompanyPage />} />
+                  <Route path="/recruiter/settings"             element={<RecruiterSettingsPage />} />
 
                   {/* Recruiter Full Privileges — also requires APPROVED status */}
                   <Route element={<RecruiterVerificationGuard />}>
@@ -231,11 +243,13 @@ function App() {
                     <Route path="/recruiter/jobs/featured"            element={<RecruiterJobsPage />} />
                     <Route path="/recruiter/jobs/archived"            element={<RecruiterJobsPage />} />
                     <Route path="/recruiter/applications"             element={<RecruiterApplicationsPage />} />
+                    <Route path="/recruiter/jobs/:id/applications"    element={<RecruiterApplicationsPage />} />
                     <Route path="/recruiter/candidates/applications"  element={<RecruiterApplicationsPage />} />
                     <Route path="/recruiter/candidates"               element={<RecruiterCandidatesPage />} />
                     <Route path="/recruiter/interviews"               element={<RecruiterInterviewsPage />} />
                     <Route path="/recruiter/analytics"                element={<RecruiterAnalyticsPage />} />
                     <Route path="/recruiter/messages"                 element={<RecruiterMessagesPage />} />
+                    <Route path="/recruiter/messages/:conversationId" element={<RecruiterMessagesPage />} />
                   </Route>
                 </Route>
               </Route>
@@ -247,8 +261,10 @@ function App() {
               <Route element={<Layout />}>
                 <Route path="/"            element={<Home />} />
                 <Route path="/find-jobs"   element={<FindJobs />} />
+                <Route path="/jobs"        element={<FindJobs />} />
                 <Route path="/jobs/:id"    element={<JobDetail />} />
                 <Route path="/about"       element={<About />} />
+                <Route path="/support"     element={<About />} />
                 <Route path="/company/:id" element={<CompanyPage />} />
               </Route>
 
@@ -274,6 +290,8 @@ function App() {
                   <Route path="/my-jobs/interviews"      element={<MyJobsPage />} />
                   <Route path="/my-jobs/offers"          element={<MyJobsPage />} />
                   <Route path="/my-jobs/:tab"            element={<MyJobsPage />} />
+                  <Route path="/applications"            element={<MyJobsPage />} />
+                  <Route path="/applications/:id"        element={<MyJobsPage />} />
 
                   {/* Career Hub & AI Suite */}
                   <Route path="/career-hub"                 element={<CareerHubPage />} />
@@ -292,10 +310,12 @@ function App() {
                   <Route path="/salary-insights"            element={<CareerHubPage />} />
 
                   {/* Profile, Notifications, Messages & Settings */}
-                  <Route path="/profile"        element={<ProfilePage />} />
-                  <Route path="/notifications"  element={<NotificationsPage />} />
-                  <Route path="/messages"       element={<MessagesPage />} />
-                  <Route path="/settings"       element={<SettingsPage />} />
+                  <Route path="/profile"                  element={<ProfilePage />} />
+                  <Route path="/notifications"            element={<NotificationsPage />} />
+                  <Route path="/messages"                 element={<MessagesPage />} />
+                  <Route path="/messages/:conversationId" element={<MessagesPage />} />
+                  <Route path="/settings"                 element={<SettingsPage />} />
+                  <Route path="/settings/security"        element={<SettingsPage />} />
 
                   <Route path="*" element={<NotFound />} />
                 </Route>

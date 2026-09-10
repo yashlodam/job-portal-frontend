@@ -26,12 +26,14 @@ import { useAppDispatch, useAppSelector } from "../../State/Store";
 import { fetchAdminRecruiters } from "../../State/verificationSlice";
 import { getAllJobs } from "../../State/JobSlice";
 import { getAllCompanies } from "../../State/CompanySlice";
+import { LoadingSkeleton } from "../../components/ui/LoadingSkeleton";
+import EmptyState from "../../components/ui/EmptyState";
 
 export default function AdminDashboardPage() {
   const dispatch = useAppDispatch();
   const { adminRecruiters, adminLoading } = useAppSelector((state) => state.verification);
-  const { allJobs = [] } = useAppSelector((state) => state.job);
-  const { companies = [] } = useAppSelector((state) => state.company);
+  const { allJobs = [], loading: jobsLoading } = useAppSelector((state) => state.job);
+  const { companies = [], loading: companiesLoading } = useAppSelector((state) => state.company);
 
   useEffect(() => {
     dispatch(fetchAdminRecruiters({ page: 0, size: 50 }));
@@ -55,6 +57,20 @@ export default function AdminDashboardPage() {
   const approvedCount = approvedList.length;
   const totalJobsCount = Array.isArray(allJobs) ? allJobs.length : 0;
   const totalCompaniesCount = Array.isArray(companies) ? companies.length : 0;
+
+  const isLoading = adminLoading || jobsLoading || companiesLoading;
+
+  if (isLoading) {
+    return (
+      <AdminLayout
+        title="Platform Operations & Verification Console"
+        subtitle="Real-time control center for employer compliance, candidate pipeline, and platform operations."
+        breadcrumbs={[{ label: "Admin Console", to: "/admin/dashboard" }]}
+      >
+        <LoadingSkeleton type="dashboard" count={4} />
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout
@@ -155,10 +171,12 @@ export default function AdminDashboardPage() {
 
           <div className="divide-y divide-border pt-2">
             {pendingList.length === 0 ? (
-              <div className="py-10 text-center space-y-2">
-                <CheckCircle2 size={32} className="text-emerald-500 mx-auto opacity-80" />
-                <p className="text-sm font-bold text-heading font-satoshi">Verification Queue is Clear</p>
-                <p className="text-xs text-muted">All submitted recruiter accounts have been reviewed.</p>
+              <div className="py-10">
+                <EmptyState
+                  icon={CheckCircle2}
+                  title="Verification Queue is Clear"
+                  description="All submitted recruiter accounts have been reviewed."
+                />
               </div>
             ) : (
               pendingList.slice(0, 5).map((rec, idx) => (
@@ -213,10 +231,12 @@ export default function AdminDashboardPage() {
 
           <div className="divide-y divide-border pt-2">
             {allJobs.length === 0 ? (
-              <div className="py-10 text-center space-y-2">
-                <Briefcase size={32} className="text-muted mx-auto opacity-50" />
-                <p className="text-sm font-bold text-heading font-satoshi">No Live Jobs Found</p>
-                <p className="text-xs text-muted">No jobs have been posted on the platform yet.</p>
+              <div className="py-10">
+                <EmptyState
+                  icon={Briefcase}
+                  title="No Live Jobs Found"
+                  description="No jobs have been posted on the platform yet."
+                />
               </div>
             ) : (
               allJobs.slice(0, 5).map((job, idx) => (

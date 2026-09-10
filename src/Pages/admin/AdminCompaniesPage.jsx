@@ -20,6 +20,8 @@ import {
 import { Card } from "../../components/ui/Card";
 import { StatusChip } from "../../components/ui/Badge";
 import { Modal } from "../../components/ui/Modal";
+import { LoadingSkeleton } from "../../components/ui/LoadingSkeleton";
+import EmptyState from "../../components/ui/EmptyState";
 import { useAppDispatch, useAppSelector } from "../../State/Store";
 import { getAllCompanies } from "../../State/CompanySlice";
 import {
@@ -101,16 +103,13 @@ export default function AdminCompaniesPage() {
 
         {/* Table */}
         {loading ? (
-          <div className="rounded-2xl border border-border bg-surface p-12 text-center shadow-sm">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            <p className="mt-3 text-xs font-semibold text-muted font-satoshi">Loading companies directory…</p>
-          </div>
+          <LoadingSkeleton type="table" rows={6} />
         ) : filteredCompanies.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-surface p-12 text-center space-y-2 shadow-sm">
-            <Building2 size={36} className="text-muted mx-auto opacity-60" />
-            <h4 className="text-sm font-bold text-heading font-satoshi">No Companies Found</h4>
-            <p className="text-xs text-muted max-w-sm mx-auto">No registered companies matched your search criteria.</p>
-          </div>
+          <EmptyState
+            icon={Building2}
+            title="No Companies Found"
+            description="No registered companies matched your search criteria."
+          />
         ) : (
           <div className="space-y-4">
             <Table>

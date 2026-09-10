@@ -112,7 +112,7 @@ function NotFound() {
             className="mx-auto my-6 flex items-center justify-center gap-3"
           >
             <div className="h-px w-16 bg-gradient-to-r from-transparent to-primary/40" />
-            <Sparkles size={18} className="text-primary-light" />
+            <Sparkles size={18} className="text-indigo-600 dark:text-indigo-400" />
             <div className="h-px w-16 bg-gradient-to-l from-transparent to-primary/40" />
           </motion.div>
 
@@ -173,7 +173,7 @@ function NotFound() {
             <button
               type="button"
               onClick={() => window.history.back()}
-              className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-primary-light"
+              className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
             >
               <ArrowLeft size={14} />
               Go back to previous page

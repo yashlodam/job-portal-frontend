@@ -162,6 +162,7 @@ const ADMIN_NAV_LINKS = [
 // gets recreated (and re-evaluated) on every render.
 const NAV_LINKS_BY_ROLE = {
   RECRUITER: RECRUITER_NAV_LINKS,
+  EMPLOYER: RECRUITER_NAV_LINKS,
   ADMIN: ADMIN_NAV_LINKS,
   JOB_SEEKER: USER_NAV_LINKS,
 };
@@ -170,6 +171,7 @@ const NAV_LINKS_BY_ROLE = {
 // a monitoring surface, not an action surface.
 const PRIMARY_CTA_BY_ROLE = {
   RECRUITER: { label: "Post a Job", url: "/upload-job", icon: Plus },
+  EMPLOYER: { label: "Post a Job", url: "/upload-job", icon: Plus },
   JOB_SEEKER: { label: "Find Jobs", url: "/find-jobs", icon: Search },
 };
 
@@ -308,20 +310,13 @@ function Header() {
   const mobileNavRef = useRef(null);
   const toggleBtnRef = useRef(null);
 
-  const role = user?.role;
-  const accountType = user?.accountType;
-
-  const isEmployer =
-    accountType === "EMPLOYER" ||
-    role === "EMPLOYER" ||
-    accountType === "RECRUITER" ||
-    role === "RECRUITER" ||
+  // Only hide global header when within dedicated studio/admin routes that have their own sidebar/navbar
+  const isDedicatedStudioRoute =
     location.pathname.startsWith("/recruiter") ||
-    location.pathname.startsWith("/dashboard");
+    location.pathname.startsWith("/dashboard") ||
+    location.pathname.startsWith("/admin");
 
-  const isAdminSection = location.pathname.startsWith("/admin");
-
-  if (isEmployer || isAdminSection) {
+  if (isDedicatedStudioRoute) {
     return null;
   }
 
@@ -403,8 +398,11 @@ function Header() {
 
   // Memoized so these aren't recomputed on unrelated re-renders
   // (e.g. the scroll-driven `scrolled` state changing).
-  const navLinks = useMemo(() => getNavLinksForRole(role), [role]);
-  const primaryCta = PRIMARY_CTA_BY_ROLE[role];
+  const role = user?.role;
+  const accountType = user?.accountType;
+  const effectiveRole = (role || accountType || "JOB_SEEKER").toUpperCase();
+  const navLinks = useMemo(() => getNavLinksForRole(effectiveRole), [effectiveRole]);
+  const primaryCta = PRIMARY_CTA_BY_ROLE[effectiveRole] ?? PRIMARY_CTA_BY_ROLE.JOB_SEEKER;
 
   const reduxProfile = useAppSelector(selectProfile);
   const profileImageSrc = resolveImageUrl(reduxProfile?.profileImage, "uploads");
@@ -419,7 +417,7 @@ function Header() {
           Essential once a header carries this much nav + interactive chrome. */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-[#161B22] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-heading border border-border"
       >
         Skip to main content
       </a>
@@ -430,11 +428,11 @@ function Header() {
         className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
           scrolled
             ? theme === "light"
-              ? "border-slate-200 bg-white/95 shadow-[0_4px_32px_rgba(0,0,0,0.08)] backdrop-blur-2xl"
-              : "border-white/[0.08] bg-[#05070d]/95 shadow-[0_4px_32px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
+              ? "border-border bg-surface/95 shadow-md backdrop-blur-2xl"
+              : "border-border bg-surface/95 shadow-lg backdrop-blur-2xl"
             : theme === "light"
-              ? "border-slate-100 bg-white/90 backdrop-blur-xl"
-              : "border-white/[0.05] bg-[#05070d]/80 backdrop-blur-xl"
+              ? "border-border bg-surface/90 backdrop-blur-xl"
+              : "border-border bg-surface/80 backdrop-blur-xl"
         }`}
       >
         {/* Top gradient accent line */}
@@ -553,8 +551,8 @@ function Header() {
                       <div className="invisible absolute left-1/2 -translate-x-1/2 top-full z-50 w-88 sm:w-96 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
                         <div className={`overflow-hidden rounded-3xl border p-3 backdrop-blur-2xl ${
                           theme === "light"
-                            ? "bg-white/95 border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
-                            : "bg-[#090d16]/98 border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.8)]"
+                            ? "bg-surface-elevated border-border shadow-lg"
+                            : "bg-surface-elevated border-border shadow-xl"
                         }`}>
                           <div className="space-y-1.5">
                             {item.children.map((child) => {
@@ -662,7 +660,7 @@ function Header() {
             />
 
             {/* Messages — distinct from notifications; hidden for admins */}
-            {role !== "ADMIN" && (
+            {effectiveRole !== "ADMIN" && (
               <IconButton
                 icon={MessageSquare}
                 label="Messages"
@@ -784,8 +782,8 @@ function Header() {
               exit="exit"
               className={`overflow-hidden border-t md:hidden transition-colors duration-200 ${
                 theme === "light"
-                  ? "border-slate-200/90 bg-white/98 text-slate-900 shadow-2xl backdrop-blur-2xl"
-                  : "border-white/10 bg-[#080d1a]/98 text-slate-100 shadow-2xl backdrop-blur-2xl"
+                  ? "border-border bg-surface text-heading shadow-2xl backdrop-blur-2xl"
+                  : "border-border bg-surface text-body shadow-2xl backdrop-blur-2xl"
               }`}
             >
               <div
@@ -808,7 +806,7 @@ function Header() {
                 )}
 
                 {/* Mobile Direct Messages Quick Link */}
-                {role !== "ADMIN" && (
+                {effectiveRole !== "ADMIN" && (
                   <Link
                     to="/messages"
                     onClick={() => setMobileOpen(false)}
@@ -1089,8 +1087,8 @@ function Header() {
                   <div
                     className={`mt-4 rounded-3xl border p-4 shadow-lg space-y-3.5 backdrop-blur-xl ${
                       theme === "light"
-                        ? "border-slate-200/90 bg-slate-50/90"
-                        : "border-white/10 bg-[#090d18]/95"
+                        ? "border-border bg-surface-elevated"
+                        : "border-border bg-surface-elevated"
                     }`}
                   >
                     <Link

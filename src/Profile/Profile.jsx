@@ -315,7 +315,7 @@ export const AVAILABILITY_OPTIONS = [
   {
     label: "Employed",
     value: "EMPLOYED",
-    color: "bg-primary/15 border-primary/30 text-primary-light",
+    color: "bg-indigo-50 dark:bg-primary/15 border-indigo-200 dark:border-primary/30 text-indigo-700 dark:text-indigo-300",
   },
   {
     label: "Not Looking",
@@ -1626,7 +1626,7 @@ function Profile() {
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-violet/20">
-                    <IconUser size={44} className="text-primary-light/60" stroke={1.5} />
+                    <IconUser size={44} className="text-indigo-600 dark:text-indigo-400" stroke={1.5} />
                   </div>
                 )}
               </div>
@@ -1739,7 +1739,7 @@ function Profile() {
                     <IconBriefcase size={15} className="shrink-0 text-muted" />
                     {data.jobTitle && <span className="font-medium">{data.jobTitle}</span>}
                     {data.jobTitle && data.company && <span className="text-muted">at</span>}
-                    {data.company && <span className="font-semibold text-primary-light">{data.company}</span>}
+                    {data.company && <span className="font-semibold text-indigo-600 dark:text-indigo-400">{data.company}</span>}
                   </div>
                 )}
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
@@ -1894,11 +1894,11 @@ function Profile() {
               const label = typeof skill === "object" ? skill.name ?? skill.skill : skill;
               const key = typeof skill === "object" ? skill.id ?? skill.skill : skill;
               return (
-                <span key={key} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-sm font-medium text-primary-light transition-all duration-300 hover:border-primary/40 hover:bg-primary/15">
+                <span key={key} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-indigo-700 dark:text-indigo-300 transition-all duration-300 hover:border-indigo-300 dark:hover:border-primary/40 hover:bg-indigo-100 dark:hover:bg-primary/15">
                   {label}
                   {skillsSection.editing && (
                     <button type="button" aria-label={`Remove ${label}`} onClick={() => removeSkillLocal(skill)}
-                      className="ml-0.5 rounded text-primary-light/60 hover:text-danger transition-colors">
+                      className="ml-0.5 rounded text-indigo-500/80 dark:text-indigo-400/80 hover:text-danger transition-colors">
                       <IconX size={13} />
                     </button>
                   )}
@@ -1922,8 +1922,8 @@ function Profile() {
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkillLocal(); } }}
                 />
                 <ActionIcon variant="light" radius="xl" size="lg" aria-label="Add skill"
-                  className="!bg-primary/10 hover:!bg-primary/20 border border-primary/20 shrink-0" onClick={addSkillLocal}>
-                  <IconPlus size={18} className="text-primary-light" />
+                  className="!bg-indigo-50 dark:!bg-primary/10 hover:!bg-indigo-100 dark:hover:!bg-primary/20 border border-indigo-200 dark:border-primary/20 shrink-0" onClick={addSkillLocal}>
+                  <IconPlus size={18} className="text-indigo-600 dark:text-indigo-400" />
                 </ActionIcon>
               </div>
             </Field>
@@ -2022,7 +2022,7 @@ function Profile() {
                         <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg leading-snug">
                           {item.title || "Untitled role"}
                         </h3>
-                        <p className="mt-0.5 text-sm font-medium text-primary-light">{item.company}</p>
+                        <p className="mt-0.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400">{item.company}</p>
                       </div>
                       <span className="shrink-0 text-xs font-medium text-muted bg-surface-elevated border border-white/[0.06] rounded-lg px-2.5 py-1">
                         {item.startDate ? dayjs(item.startDate).format("MMM YYYY") : "Start"} — {item.endDate ? dayjs(item.endDate).format("MMM YYYY") : "Present"}
@@ -2066,7 +2066,7 @@ function Profile() {
         <div className="space-y-6">
           {data.education.map((item) => (
             <div key={item._id} className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary-light">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-indigo-200 dark:border-primary/20 bg-indigo-50 dark:bg-primary/10 text-indigo-600 dark:text-indigo-400">
                 <IconSchool size={22} stroke={1.6} />
               </div>
               <div className="min-w-0 flex-1">
@@ -2128,7 +2128,7 @@ function Profile() {
                         <h3 className="font-satoshi text-base font-semibold text-heading sm:text-lg leading-snug">
                           {item.degree || "Untitled degree"}
                         </h3>
-                        <p className="mt-0.5 text-sm font-medium text-primary-light">{item.collegeName}</p>
+                        <p className="mt-0.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400">{item.collegeName}</p>
                       </div>
                       <span className="shrink-0 text-xs font-medium text-muted bg-surface-elevated border border-white/[0.06] rounded-lg px-2.5 py-1">
                         {item.startDate ? dayjs(item.startDate).format("MMM YYYY") : ""} {item.endDate ? `— ${dayjs(item.endDate).format("MMM YYYY")}` : item.startDate ? "— Present" : ""}
@@ -2240,7 +2240,7 @@ function Profile() {
                     {cert.certificateId && <p className="mt-1.5 text-xs text-muted font-mono">ID: {cert.certificateId}</p>}
                     {cert.certificateUrl && (
                       <a href={cert.certificateUrl} target="_blank" rel="noreferrer"
-                        className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-light hover:text-primary transition-colors"
+                        className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
                         aria-label={`View credential for ${cert.title} (opens in new tab)`}>
                         Show credential
                         <IconExternalLink size={14} stroke={1.8} />
@@ -2438,8 +2438,8 @@ function Profile() {
       })}
     </div>
   ) : (
-    <div className="rounded-2xl border-2 border-dashed border-white/10 py-10 text-center">
-      <IconFileCv size={42} className="mx-auto mb-3 text-primary-light" />
+    <div className="rounded-2xl border-2 border-dashed border-border py-10 text-center">
+      <IconFileCv size={42} className="mx-auto mb-3 text-indigo-600 dark:text-indigo-400" />
       <h3 className="font-semibold text-heading">No Resumes Uploaded</h3>
       <p className="mt-1 text-sm text-muted">Upload your resume to apply for open positions with 1 click.</p>
       <button

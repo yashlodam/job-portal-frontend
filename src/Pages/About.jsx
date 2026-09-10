@@ -80,10 +80,10 @@ function AnimatedCounter({ end, suffix = "", duration = 1800 }) {
 }
 
 const PLATFORM_STATS = [
-  { icon: Briefcase, value: 15, suffix: "K+", label: "Active Roles Curated" },
-  { icon: Globe, value: 3200, suffix: "+", label: "Verified Employers" },
-  { icon: Zap, value: 98, suffix: "%", label: "AI Match Precision" },
-  { icon: TrendingUp, value: 14, suffix: " Days", label: "Avg. Hiring Timeline" },
+  { icon: Briefcase, value: "AI Match", label: "Semantic Skill Fit Scoring" },
+  { icon: Globe, value: "8 Stages", label: "Transparent Pipeline Tracking" },
+  { icon: Zap, value: "Real-time", label: "ATS Resume Health Analysis" },
+  { icon: TrendingUp, value: "Spring + React", label: "Enterprise Architecture" },
 ];
 
 const CORE_PILLARS = [
@@ -97,9 +97,9 @@ const CORE_PILLARS = [
   },
   {
     icon: Zap,
-    title: "Zero-Ghosting Transparency",
+    title: "Transparent Pipeline Tracking",
     description:
-      "Every applicant can track their progress across 8 real-time recruitment stages with guaranteed feedback and direct messaging to recruiters.",
+      "Every applicant can track their progress across recruitment stages with clear status updates and direct messaging to verified recruiters.",
     from: "#06B6D4",
     to: "#3B82F6",
   },
@@ -224,8 +224,12 @@ export default function About() {
               }`}>
                 <stat.icon size={22} />
               </div>
-              <div className={`text-2xl sm:text-3xl font-black font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}>
-                <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+              <div className={`text-xl sm:text-2xl font-black font-satoshi tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                {typeof stat.value === "number" ? (
+                  <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+                ) : (
+                  stat.value
+                )}
               </div>
               <p className={`mt-1 text-xs font-semibold ${isLight ? "text-slate-500" : "text-slate-400"}`}>{stat.label}</p>
             </motion.div>

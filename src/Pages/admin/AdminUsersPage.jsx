@@ -20,6 +20,8 @@ import { StatusChip } from "../../components/ui/Badge";
 import { Tabs } from "../../components/ui/Tabs";
 import { Modal } from "../../components/ui/Modal";
 import { useToast } from "../../components/ui/ToastNotification";
+import { LoadingSkeleton } from "../../components/ui/LoadingSkeleton";
+import EmptyState from "../../components/ui/EmptyState";
 import { useAppSelector } from "../../State/Store";
 import { getAdminUsersApi, deleteUserApi } from "../../api/adminApi";
 import { searchTalent } from "../../api/talentApi";
@@ -283,16 +285,13 @@ export default function AdminUsersPage() {
 
         {/* Users Table */}
         {loading ? (
-          <div className="rounded-2xl border border-border bg-surface p-12 text-center shadow-sm">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-            <p className="mt-3 text-xs font-semibold text-muted font-satoshi">Loading complete users directory…</p>
-          </div>
+          <LoadingSkeleton type="table" rows={6} />
         ) : filteredUsers.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-surface p-12 text-center space-y-2 shadow-sm">
-            <Users size={36} className="text-muted mx-auto opacity-60" />
-            <h4 className="text-sm font-bold text-heading font-satoshi">No Users Found</h4>
-            <p className="text-xs text-muted max-w-sm mx-auto">No accounts matched your filter or search query.</p>
-          </div>
+          <EmptyState
+            icon={Users}
+            title="No Users Found"
+            description="No accounts matched your filter or search query."
+          />
         ) : (
           <Table>
             <TableHeader>

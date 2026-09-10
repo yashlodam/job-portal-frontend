@@ -127,6 +127,9 @@ export default function SalaryInsights() {
           }
           subtitle="Comparative compensation benchmark estimates across software engineering, AI, and product roles in India and Remote."
         />
+        <p className={`text-xs mt-1 text-center max-w-2xl mx-auto ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
+          Sample data for illustration purposes. Actual compensation varies by experience, location, and company.
+        </p>
 
         {/* Role Selector Tabs */}
         <div className="mt-10 sm:mt-12 flex flex-wrap items-center justify-center gap-2 max-w-4xl mx-auto">

@@ -53,6 +53,12 @@ export default function LiveInterviewPage({ onEvaluateComplete }) {
   };
 
   const handleEvaluateSubmit = async () => {
+    const hasAnyAnswer = Object.values(answers || {}).some(a => a?.trim().length > 0);
+    if (!hasAnyAnswer) {
+      toast.error("Please provide at least one answer before evaluating.");
+      return;
+    }
+
     try {
       toast.info("AI Neural Evaluator is scoring your answers...", 4000);
       await evaluateInterview().unwrap();

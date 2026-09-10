@@ -330,7 +330,7 @@ export default function RecruiterInterviewsPage() {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
           <StatCard label="Total"      value={stats.totalScheduled} icon={Calendar}    color="border-border text-heading" />
-          <StatCard label="Upcoming"   value={stats.upcoming}       icon={TrendingUp}  color="border-primary/30 text-primary-light" />
+          <StatCard label="Upcoming"   value={stats.upcoming}       icon={TrendingUp}  color="border-indigo-500/30 text-indigo-600 dark:text-indigo-400" />
           <StatCard label="Today"      value={stats.todaysCount}    icon={Clock}       color="border-cyan-500/30 text-cyan-500 dark:text-cyan-400" />
           <StatCard label="Completed"  value={stats.completed}      icon={CheckCircle2}color="border-emerald-500/30 text-emerald-500 dark:text-emerald-400" />
           <StatCard label="Cancelled"  value={stats.cancelled}      icon={XCircle}     color="border-rose-500/30 text-rose-500 dark:text-rose-400" />
@@ -429,7 +429,7 @@ export default function RecruiterInterviewsPage() {
 
                   {/* Interview details */}
                   <div className="mt-4 pt-3 border-t border-border space-y-2 text-xs">
-                    <div className="flex items-center gap-2 text-primary-light font-semibold">
+                    <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold">
                       <Calendar className="h-3.5 w-3.5" />
                       {formatInterviewDate(item.scheduledAt)}
                     </div>
@@ -486,7 +486,7 @@ export default function RecruiterInterviewsPage() {
                       href={item.meetingLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary-light hover:underline transition"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 dark:border-primary/30 bg-indigo-50 dark:bg-primary/15 px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:underline transition"
                     >
                       <ExternalLink className="h-3.5 w-3.5" /> Meeting Link
                     </a>
