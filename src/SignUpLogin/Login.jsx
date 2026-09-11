@@ -21,6 +21,8 @@ import {
   Sparkles,
   Eye,
   EyeOff,
+  UserCheck,
+  Building2,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppDispatch } from "../State/Store";
@@ -171,22 +173,54 @@ export default function Login({ setIsLogin, role = "APPLICANT", setRole }) {
         </p>
       </motion.div>
 
+      {/* 1-Click Fast Demo Credentials for Mobile & Testers */}
+      <motion.div variants={itemVariants} className="mt-4 p-3 rounded-2xl bg-surface-elevated/70 border border-border">
+        <div className="flex items-center justify-between text-[11px] font-bold text-muted mb-2">
+          <span>⚡ Fast Demo Sign In:</span>
+          <span className="text-[10px] text-primary font-black">1-Tap Autofill</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              handleChange("email", "yashlodam89@gmail.com");
+              handleChange("password", "Yash@123");
+            }}
+            className="flex items-center justify-center gap-1.5 h-10 px-2 rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-500/20 active:scale-95 transition cursor-pointer"
+          >
+            <UserCheck size={14} className="shrink-0" />
+            <span className="truncate">Job Seeker</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              handleChange("email", "hr@techcorp.com");
+              handleChange("password", "Recruiter@123");
+            }}
+            className="flex items-center justify-center gap-1.5 h-10 px-2 rounded-xl border border-purple-500/20 bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-bold hover:bg-purple-500/20 active:scale-95 transition cursor-pointer"
+          >
+            <Building2 size={14} className="shrink-0" />
+            <span className="truncate">Recruiter</span>
+          </button>
+        </div>
+      </motion.div>
+
       {/* Form */}
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         {/* Email Address */}
         <motion.div variants={itemVariants}>
           <label className="block text-xs font-bold text-heading mb-1.5 font-satoshi">
             Email Address <span className="text-rose-500">*</span>
           </label>
           <div className="relative flex items-center group">
-            <Mail size={16} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
+            <Mail size={17} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
             <input
               type="email"
               autoComplete="email"
               value={formData.email}
               onChange={(e) => handleChange("email", e.target.value)}
               placeholder="you@company.com"
-              className={`w-full rounded-2xl border bg-surface-elevated pl-10 pr-4 py-2.5 text-xs text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
+              className={`w-full h-11 sm:h-12 rounded-2xl border bg-surface-elevated pl-10 pr-4 text-xs sm:text-sm text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
                 errors.email ? "border-rose-500/80 bg-rose-500/5" : "border-border"
               }`}
             />
@@ -211,29 +245,30 @@ export default function Login({ setIsLogin, role = "APPLICANT", setRole }) {
             <button
               type="button"
               onClick={() => navigate("/reset-password")}
-              className="text-[11px] font-bold text-primary hover:underline transition cursor-pointer"
+              className="text-[11px] font-bold text-primary hover:underline transition cursor-pointer p-0.5"
             >
               Forgot password?
             </button>
           </div>
           <div className="relative flex items-center group">
-            <Lock size={16} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
+            <Lock size={17} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
             <input
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               value={formData.password}
               onChange={(e) => handleChange("password", e.target.value)}
               placeholder="Enter your password"
-              className={`w-full rounded-2xl border bg-surface-elevated pl-10 pr-10 py-2.5 text-xs text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
+              className={`w-full h-11 sm:h-12 rounded-2xl border bg-surface-elevated pl-10 pr-11 text-xs sm:text-sm text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
                 errors.password ? "border-rose-500/80 bg-rose-500/5" : "border-border"
               }`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 text-muted hover:text-heading transition cursor-pointer p-1"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-1.5 h-9 w-9 flex items-center justify-center rounded-xl text-muted hover:text-heading hover:bg-surface transition cursor-pointer active:scale-90"
             >
-              {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
           {errors.password && (
@@ -249,7 +284,7 @@ export default function Login({ setIsLogin, role = "APPLICANT", setRole }) {
 
         {/* Remember Me */}
         <motion.div variants={itemVariants} className="flex items-center pt-0.5">
-          <label className="flex items-center gap-2 text-xs font-semibold text-body cursor-pointer select-none">
+          <label className="flex items-center gap-2.5 text-xs font-semibold text-body cursor-pointer select-none py-1">
             <input
               type="checkbox"
               checked={rememberMe}
@@ -267,7 +302,7 @@ export default function Login({ setIsLogin, role = "APPLICANT", setRole }) {
             disabled={loading}
             whileHover={{ scale: 1.015, boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.4)" }}
             whileTap={{ scale: 0.985 }}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 py-3.5 px-4 text-xs font-extrabold text-white shadow-lg shadow-indigo-500/25 hover:opacity-95 transition-all cursor-pointer mt-2 disabled:opacity-50 font-satoshi relative overflow-hidden group"
+            className="w-full h-12 min-h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-indigo-500/25 hover:opacity-95 transition-all cursor-pointer mt-2 disabled:opacity-50 font-satoshi relative overflow-hidden group active:scale-[0.98]"
           >
             {/* Shimmer sweep effect */}
             <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
@@ -280,7 +315,7 @@ export default function Login({ setIsLogin, role = "APPLICANT", setRole }) {
             ) : (
               <>
                 <span>Sign In to JobPortal AI</span>
-                <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+                <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
               </>
             )}
           </motion.button>

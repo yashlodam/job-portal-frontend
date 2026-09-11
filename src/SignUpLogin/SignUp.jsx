@@ -272,14 +272,14 @@ export default function SignUp({ setIsLogin, role = "APPLICANT", setRole }) {
             Full Name <span className="text-rose-500">*</span>
           </label>
           <div className="relative flex items-center group">
-            <User size={15} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
+            <User size={16} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
             <input
               type="text"
               autoComplete="name"
               value={formData.name}
               onChange={(e) => handleChange("name", e.target.value)}
               placeholder="e.g. Alex Rivera"
-              className={`w-full rounded-2xl border bg-surface-elevated pl-10 pr-4 py-2 text-xs text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
+              className={`w-full h-11 rounded-2xl border bg-surface-elevated pl-10 pr-4 text-xs sm:text-sm text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
                 errors.name ? "border-rose-500/80 bg-rose-500/5" : "border-border"
               }`}
             />
@@ -301,14 +301,14 @@ export default function SignUp({ setIsLogin, role = "APPLICANT", setRole }) {
             Work or Personal Email <span className="text-rose-500">*</span>
           </label>
           <div className="relative flex items-center group">
-            <Mail size={15} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
+            <Mail size={16} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
             <input
               type="email"
               autoComplete="email"
               value={formData.email}
               onChange={(e) => handleChange("email", e.target.value)}
               placeholder="alex@company.com"
-              className={`w-full rounded-2xl border bg-surface-elevated pl-10 pr-4 py-2 text-xs text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
+              className={`w-full h-11 rounded-2xl border bg-surface-elevated pl-10 pr-4 text-xs sm:text-sm text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
                 errors.email ? "border-rose-500/80 bg-rose-500/5" : "border-border"
               }`}
             />
@@ -332,23 +332,24 @@ export default function SignUp({ setIsLogin, role = "APPLICANT", setRole }) {
               Password <span className="text-rose-500">*</span>
             </label>
             <div className="relative flex items-center group">
-              <Lock size={15} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
+              <Lock size={16} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
               <input
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
                 value={formData.password}
                 onChange={(e) => handleChange("password", e.target.value)}
                 placeholder="Min 6 characters"
-                className={`w-full rounded-2xl border bg-surface-elevated pl-10 pr-9 py-2 text-xs text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
+                className={`w-full h-11 rounded-2xl border bg-surface-elevated pl-10 pr-10 text-xs sm:text-sm text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
                   errors.password ? "border-rose-500/80 bg-rose-500/5" : "border-border"
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2.5 text-muted hover:text-heading transition cursor-pointer p-1"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-1.5 h-8 w-8 flex items-center justify-center rounded-xl text-muted hover:text-heading hover:bg-surface transition cursor-pointer active:scale-90"
               >
-                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
             {errors.password && (
@@ -379,14 +380,14 @@ export default function SignUp({ setIsLogin, role = "APPLICANT", setRole }) {
               )}
             </div>
             <div className="relative flex items-center group">
-              <Lock size={15} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
+              <Lock size={16} className="absolute left-3.5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 autoComplete="new-password"
                 value={formData.confirmPassword}
                 onChange={(e) => handleChange("confirmPassword", e.target.value)}
                 placeholder="Re-enter password"
-                className={`w-full rounded-2xl border bg-surface-elevated pl-10 pr-9 py-2 text-xs text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
+                className={`w-full h-11 rounded-2xl border bg-surface-elevated pl-10 pr-10 text-xs sm:text-sm text-heading placeholder-muted outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/20 ${
                   errors.confirmPassword
                     ? "border-rose-500/80 bg-rose-500/5"
                     : passwordsMatch === true
@@ -397,9 +398,10 @@ export default function SignUp({ setIsLogin, role = "APPLICANT", setRole }) {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-2.5 text-muted hover:text-heading transition cursor-pointer p-1"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                className="absolute right-1.5 h-8 w-8 flex items-center justify-center rounded-xl text-muted hover:text-heading hover:bg-surface transition cursor-pointer active:scale-90"
               >
-                {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
             {errors.confirmPassword && (
@@ -446,12 +448,12 @@ export default function SignUp({ setIsLogin, role = "APPLICANT", setRole }) {
 
         {/* Terms and Privacy Checkbox */}
         <motion.div variants={itemVariants} className="pt-1">
-          <label className="flex items-start gap-2 text-xs text-muted cursor-pointer select-none">
+          <label className="flex items-start gap-2.5 text-xs text-muted cursor-pointer select-none py-1">
             <input
               type="checkbox"
               checked={accepted}
               onChange={(e) => setAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-border bg-surface-elevated text-primary focus:ring-primary/30 cursor-pointer"
+              className="mt-0.5 h-4 w-4 rounded border-border bg-surface-elevated text-primary focus:ring-primary/30 cursor-pointer shrink-0"
             />
             <span className="leading-snug">
               I agree to the{" "}
@@ -477,7 +479,7 @@ export default function SignUp({ setIsLogin, role = "APPLICANT", setRole }) {
             disabled={loading}
             whileHover={{ scale: 1.015, boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.4)" }}
             whileTap={{ scale: 0.985 }}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 py-3 px-4 text-xs font-extrabold text-white shadow-lg shadow-indigo-500/25 hover:opacity-95 transition-all cursor-pointer mt-2 disabled:opacity-50 font-satoshi relative overflow-hidden group"
+            className="w-full h-12 min-h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 text-xs sm:text-sm font-extrabold text-white shadow-lg shadow-indigo-500/25 hover:opacity-95 transition-all cursor-pointer mt-2 disabled:opacity-50 font-satoshi relative overflow-hidden group active:scale-[0.98]"
           >
             {/* Shimmer sweep effect */}
             <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />

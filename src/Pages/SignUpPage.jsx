@@ -238,36 +238,36 @@ export default function SignUpPage({ defaultIsLogin = true }) {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative z-20 flex items-center justify-between px-6 sm:px-12 py-4 border-b border-border/80 bg-surface/70 backdrop-blur-xl"
+        className="relative z-20 flex items-center justify-between px-3.5 sm:px-12 py-3 sm:py-4 border-b border-border/80 bg-surface/70 backdrop-blur-xl"
       >
         {/* Brand Logo */}
         <div
           onClick={handleBrandClick}
-          className="flex items-center gap-3 cursor-pointer group select-none"
+          className="flex items-center gap-2 sm:gap-3 cursor-pointer group select-none"
         >
           <motion.div
             whileHover={{ scale: 1.08, rotate: 3 }}
             whileTap={{ scale: 0.95 }}
-            className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 shadow-md shadow-indigo-500/25 transition-all"
+            className="relative flex h-8.5 w-8.5 sm:h-10 sm:w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-600 shadow-md shadow-indigo-500/25 transition-all shrink-0"
           >
-            <Sparkles className="h-5 w-5 text-white" />
-            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 border-2 border-surface animate-pulse" />
+            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-emerald-400 border-2 border-surface animate-pulse" />
           </motion.div>
           <div>
-            <span className="text-xl font-black tracking-tight text-heading font-satoshi flex items-center gap-1">
+            <span className="text-lg sm:text-xl font-black tracking-tight text-heading font-satoshi flex items-center gap-1">
               JobPortal
               <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                 AI
               </span>
             </span>
-            <span className="text-[10px] font-bold text-muted uppercase tracking-widest block -mt-1 font-mono">
+            <span className="text-[9px] sm:text-[10px] font-bold text-muted uppercase tracking-widest block -mt-1 font-mono">
               Career Platform
             </span>
           </div>
         </div>
 
         {/* Right Controls: Explore Jobs + Theme Toggle + Mode Switcher */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           <Link
             to="/find-jobs"
             className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3.5 py-1.5 text-xs font-bold text-body hover:text-heading hover:bg-surface-hover hover:border-primary/50 transition-all cursor-pointer shadow-xs"
@@ -292,7 +292,7 @@ export default function SignUpPage({ defaultIsLogin = true }) {
             <button
               type="button"
               onClick={() => setIsLogin(true)}
-              className={`relative rounded-xl px-3.5 py-1 text-xs font-bold transition-all cursor-pointer ${
+              className={`relative rounded-xl px-2.5 sm:px-3.5 py-1 text-xs font-bold transition-all cursor-pointer ${
                 isLogin
                   ? "bg-primary text-white shadow-sm"
                   : "text-muted hover:text-heading"
@@ -303,7 +303,7 @@ export default function SignUpPage({ defaultIsLogin = true }) {
             <button
               type="button"
               onClick={() => setIsLogin(false)}
-              className={`relative rounded-xl px-3.5 py-1 text-xs font-bold transition-all cursor-pointer ${
+              className={`relative rounded-xl px-2.5 sm:px-3.5 py-1 text-xs font-bold transition-all cursor-pointer ${
                 !isLogin
                   ? "bg-primary text-white shadow-sm"
                   : "text-muted hover:text-heading"
@@ -316,7 +316,7 @@ export default function SignUpPage({ defaultIsLogin = true }) {
       </motion.header>
 
       {/* ── Main Auth Content ── */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative z-10">
+      <main className="flex-1 flex items-center justify-center p-3 sm:p-8 lg:p-12 relative z-10">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* ── LEFT SHOWCASE PANEL ── */}
           <motion.div
@@ -381,7 +381,7 @@ export default function SignUpPage({ defaultIsLogin = true }) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 layout
-                className="rounded-3xl border border-border bg-surface/90 p-6 sm:p-8 shadow-2xl backdrop-blur-2xl relative overflow-hidden hover:border-primary/30 transition-all duration-300"
+                className="rounded-3xl border border-border bg-surface/90 p-4 sm:p-8 shadow-2xl backdrop-blur-2xl relative overflow-hidden hover:border-primary/30 transition-all duration-300"
               >
                 {/* Decorative Top Card Glow */}
                 <div className="absolute -top-20 left-1/2 -translate-x-1/2 h-28 w-60 rounded-full bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 blur-xl pointer-events-none" />
@@ -417,7 +417,7 @@ export default function SignUpPage({ defaultIsLogin = true }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="mt-5 flex flex-wrap items-center justify-center gap-4 text-[11px] font-semibold text-muted"
+                className="mt-4 sm:mt-5 flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[10px] sm:text-[11px] font-semibold text-muted px-2"
               >
                 <span className="flex items-center gap-1.5">
                   <Lock size={12} className="text-emerald-500" />

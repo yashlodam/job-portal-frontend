@@ -54,12 +54,12 @@ export default function CareerHubPage() {
   const isLight = theme === "light";
 
   const getActiveTab = (path) => {
-    if (path.includes("analyzer")) return "analyzer";
+    if (path.includes("builder")) return "builder";
     if (path.includes("interview")) return "interview";
     if (path.includes("assessments")) return "assessments";
     if (path.includes("roadmaps")) return "roadmaps";
     if (path.includes("salary")) return "salary";
-    return "builder";
+    return "analyzer"; // Default #1 priority: AI Resume Analyzer
   };
 
   const [activeTab, setActiveTab] = useState(getActiveTab(location.pathname));
@@ -71,8 +71,8 @@ export default function CareerHubPage() {
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
     const routes = {
-      builder: "/career-hub/resume-builder",
       analyzer: "/career-hub/resume-analyzer",
+      builder: "/career-hub/resume-builder",
       interview: "/career-hub/interview-coach",
       assessments: "/career-hub/assessments",
       roadmaps: "/career-hub/roadmaps",
@@ -82,8 +82,8 @@ export default function CareerHubPage() {
   };
 
   const tabs = [
+    { id: "analyzer", label: "AI Resume Analyzer", icon: Sparkles, badge: "PRIORITY #1" },
     { id: "builder", label: "AI Resume Studio", icon: FileText, badge: "PRO" },
-    { id: "analyzer", label: "ATS Document Auditor", icon: Sparkles, badge: "AI 4.8" },
     { id: "interview", label: "Mock Interview Simulator", icon: Video, badge: "LIVE" },
     { id: "assessments", label: "Skill Assessments & Certifications", icon: Award },
     { id: "roadmaps", label: "Role Progression Trees", icon: Compass },
@@ -117,8 +117,8 @@ export default function CareerHubPage() {
           </div>
         </div>
 
-        {/* Navigation Pill Tabs */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-3 scrollbar-none border-b font-satoshi border-border">
+        {/* Navigation Pill Tabs - Mobile Momentum Scrolling & Touch Optimized */}
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-3 touch-scroll-x no-scrollbar border-b font-satoshi border-border -mx-4 px-4 sm:mx-0 sm:px-0">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -126,14 +126,14 @@ export default function CareerHubPage() {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-300 shrink-0 cursor-pointer ${
+                className={`flex items-center gap-2 sm:gap-2.5 px-3.5 py-2.5 sm:px-5 sm:py-3 min-h-[44px] rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-200 shrink-0 cursor-pointer active:scale-95 ${
                   isActive
-                    ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 !text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] scale-105"
-                    : "bg-surface border border-border text-muted hover:bg-surface-elevated hover:text-heading shadow-sm"
+                    ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 !text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+                    : "bg-surface border border-border text-muted hover:bg-surface-elevated hover:text-heading shadow-xs"
                 }`}
               >
-                <Icon size={18} className={isActive ? "!text-white" : "text-muted"} />
-                <span className={isActive ? "!text-white" : ""}>{tab.label}</span>
+                <Icon size={17} className={isActive ? "!text-white" : "text-muted"} />
+                <span className={`whitespace-nowrap ${isActive ? "!text-white" : ""}`}>{tab.label}</span>
                 {tab.badge && (
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
