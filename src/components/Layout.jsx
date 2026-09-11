@@ -4,6 +4,7 @@ import Header from "../Header/Header";
 import Footer from "../LandingPage/Footer";
 import ScrollToTop from "./ScrollToTop";
 import FloatingAIChatbot from "./FloatingAIChatbot";
+import MobileBottomNavbar from "./MobileBottomNavbar";
 
 function Layout() {
   const location = useLocation();
@@ -40,12 +41,15 @@ function Layout() {
       {!hideUserHeader && <Header />}
 
       {/* Main Page Content */}
-      <main id="main-content" className="relative w-full flex-1 flex flex-col">
+      <main id="main-content" className="relative w-full flex-1 flex flex-col pb-16 md:pb-0">
         <Outlet />
       </main>
 
       {/* Global Floating AI Career Chatbot — hidden on messages to avoid blocking chat input */}
       {!hideChatbot && <FloatingAIChatbot />}
+
+      {/* Professional Mobile Bottom Navigation Bar */}
+      <MobileBottomNavbar />
 
       {/* Footer — hidden on Auth, Studio, and Messages full-screen chat views */}
       {!hideUserFooter && <Footer />}

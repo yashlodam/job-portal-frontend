@@ -14,11 +14,28 @@
     <meta name="application-name" content="JobPortal AI" />
 
     <!-- Theme & Mobile Integration -->
-    <meta name="theme-color" content="#06080F" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#F8FAFC" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="apple-mobile-web-app-title" content="JobPortal AI" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem("jp_theme");
+          if (saved === "dark") {
+            document.documentElement.classList.add("dark");
+            document.documentElement.classList.remove("light");
+          } else {
+            document.documentElement.classList.add("light");
+            document.documentElement.classList.remove("dark");
+          }
+        } catch (e) {
+          document.documentElement.classList.add("light");
+        }
+      })();
+    </script>
 
     <!-- Favicon & Web App Manifest -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

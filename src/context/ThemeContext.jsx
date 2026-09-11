@@ -8,16 +8,17 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext({
-  theme: "dark",
+  theme: "light",
   toggleTheme: () => {},
 });
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     try {
-      return localStorage.getItem("jp_theme") === "light" ? "light" : "dark";
+      const saved = localStorage.getItem("jp_theme");
+      return saved === "dark" ? "dark" : "light";
     } catch {
-      return "dark";
+      return "light";
     }
   });
 

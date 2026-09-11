@@ -590,9 +590,7 @@ export default function FloatingAIChatbot() {
 
   return (
     <aside
-      className={`fixed right-3 sm:right-8 z-50 font-inter pointer-events-none transition-all duration-300 ${
-        hasStickyBottomBar ? "bottom-20 sm:bottom-10" : "bottom-5 sm:bottom-10"
-      }`}
+      className="fixed right-3 sm:right-8 bottom-20 sm:bottom-10 z-50 font-inter pointer-events-none transition-all duration-300"
       aria-label="JobPortal AI Career Copilot"
     >
       <div className="relative pointer-events-auto flex flex-col items-end">
