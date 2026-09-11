@@ -221,6 +221,18 @@ function FindTalent() {
     setSelectedLocation("All Locations");
   };
 
+  /* ── Lock body scroll when mobile drawer is open ── */
+  useEffect(() => {
+    if (mobileFiltersOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileFiltersOpen]);
+
   useEffect(() => {
     let isMounted = true;
     const fetchTalentsFromBackend = async () => {
@@ -479,18 +491,18 @@ function FindTalent() {
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 250 }}
-                className="fixed inset-y-0 left-0 z-50 w-80 overflow-y-auto border-r border-border bg-surface p-6 shadow-2xl lg:hidden flex flex-col justify-between"
+                className="fixed inset-y-0 left-0 z-50 w-full sm:w-80 max-w-[85vw] overflow-y-auto border-r border-border bg-surface p-5 sm:p-6 shadow-2xl lg:hidden flex flex-col justify-between"
               >
                 <div>
-                  <div className="mb-6 flex items-center justify-between pb-3 border-b border-border">
-                    <h3 className="text-base font-black text-heading flex items-center gap-2">
+                  <div className="mb-5 sm:mb-6 flex items-center justify-between pb-3 border-b border-border">
+                    <h3 className="text-sm sm:text-base font-black text-heading flex items-center gap-2">
                       <SlidersHorizontal size={18} className="text-indigo-500" />
                       Filter Candidates
                     </h3>
                     <button
                       type="button"
                       onClick={() => setMobileFiltersOpen(false)}
-                      className="rounded-lg p-2 text-muted hover:text-heading"
+                      className="rounded-lg p-2 text-muted hover:text-heading cursor-pointer"
                     >
                       <X size={20} />
                     </button>
@@ -500,7 +512,7 @@ function FindTalent() {
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen(false)}
-                  className="mt-6 w-full rounded-xl bg-indigo-600 py-3 text-xs font-bold !text-white shadow-lg"
+                  className="mt-6 w-full rounded-xl bg-indigo-600 py-3 text-xs font-bold !text-white shadow-lg cursor-pointer"
                 >
                   Show Results ({apiTalentList.length})
                 </button>

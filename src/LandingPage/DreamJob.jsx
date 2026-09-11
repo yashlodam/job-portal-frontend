@@ -9,8 +9,8 @@
  * - Silicon-Valley grade editorial typography with Satoshi hierarchy
  */
 
-import React, { useState, useCallback, memo } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useCallback, memo, useRef, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
   Search,
@@ -31,9 +31,11 @@ import {
   Compass,
   ArrowUpRight,
   Check,
+  X,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAppSelector } from "../State/Store";
+import { useAppDispatch, useAppSelector } from "../State/Store";
+import { fetchSearchSuggestions } from "../State/JobSlice";
 import { useTheme } from "../context/ThemeContext";
 
 /* =========================================================================
@@ -54,6 +56,15 @@ const POPULAR_KEYWORDS = [
   { label: "Java Spring Boot", query: "Java" },
   { label: "DevOps & Cloud", query: "DevOps" },
   { label: "Product UI/UX", query: "UI/UX" },
+];
+
+const POPULAR_LOCATIONS = [
+  "Remote",
+  "Bengaluru, India",
+  "Hyderabad, India",
+  "Pune, India",
+  "Mumbai, India",
+  "Delhi NCR, India",
 ];
 
 const HERO_STATS = [
@@ -134,23 +145,112 @@ const DreamJob = memo(() => {
   const { theme } = useTheme();
   const isLight = theme === "light";
 
+  const dispatch = useAppDispatch();
   const [jobTitle, setJobTitle] = useState("");
   const [location, setLocation] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const suggestionsRef = useRef(null);
+  const locationSuggestionsRef = useRef(null);
+  const debounceRef = useRef(null);
+  const locationDebounceRef = useRef(null);
 
   const { profile } = useAppSelector((state) => state.auth);
   const allJobs = useAppSelector((state) => state.job.allJobs);
+  const suggestions = useAppSelector((state) => state.job.suggestions);
   const liveJobCount =
     Array.isArray(allJobs) && allJobs.length > 0
       ? `${allJobs.length.toLocaleString()} Open Roles`
       : "Open Roles";
 
+  /* ── Filtered locations for location suggestion popover ── */
+  const filteredLocations = useMemo(() => {
+    const fromSuggestions = suggestions?.locations || [];
+    if (!location.trim()) return POPULAR_LOCATIONS;
+    const q = location.toLowerCase().trim();
+    const combined = Array.from(new Set([...fromSuggestions, ...POPULAR_LOCATIONS]));
+    return combined.filter((l) => l.toLowerCase().includes(q));
+  }, [suggestions?.locations, location]);
+
+  /* ── Close suggestions on click outside ── */
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+      if (locationSuggestionsRef.current && !locationSuggestionsRef.current.contains(e.target)) {
+        setShowLocationSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  /* ── Debounced suggestions fetch for input typing ── */
+  const handleJobTitleChange = (val) => {
+    setJobTitle(val);
+    if (val.trim().length >= 2) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        dispatch(fetchSearchSuggestions(val.trim()));
+      }, 300);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  /* ── Location input handler ── */
+  const handleLocationChange = (val) => {
+    setLocation(val);
+    if (val.trim().length >= 1) {
+      clearTimeout(locationDebounceRef.current);
+      locationDebounceRef.current = setTimeout(() => {
+        dispatch(fetchSearchSuggestions(val.trim()));
+      }, 300);
+      setShowLocationSuggestions(true);
+    } else {
+      setShowLocationSuggestions(false);
+    }
+  };
+
+  /* ── Suggestion selection ── */
+  const handleSelectSuggestion = (type, value) => {
+    setShowSuggestions(false);
+    setShowLocationSuggestions(false);
+    clearTimeout(debounceRef.current);
+    clearTimeout(locationDebounceRef.current);
+    if (type === "title" || type === "skill" || type === "company") {
+      setJobTitle(value);
+      const params = new URLSearchParams();
+      params.append("keyword", value);
+      if (location.trim()) {
+        params.append("city", location.trim());
+        params.append("location", location.trim());
+      }
+      navigate(`/find-jobs?${params.toString()}`);
+    } else if (type === "location") {
+      setLocation(value);
+      const params = new URLSearchParams();
+      if (jobTitle.trim()) params.append("keyword", jobTitle.trim());
+      params.append("city", value);
+      params.append("location", value);
+      navigate(`/find-jobs?${params.toString()}`);
+    }
+  };
+
   const handleSearch = useCallback(
     (e) => {
       e?.preventDefault();
+      setShowSuggestions(false);
+      setShowLocationSuggestions(false);
       const params = new URLSearchParams();
       if (jobTitle?.trim()) params.append("keyword", jobTitle.trim());
-      if (location?.trim()) params.append("location", location.trim());
+      if (location?.trim()) {
+        params.append("city", location.trim());
+        params.append("location", location.trim());
+      }
       navigate(`/find-jobs${params.toString() ? `?${params.toString()}` : ""}`);
     },
     [jobTitle, location, navigate]
@@ -227,7 +327,7 @@ const DreamJob = memo(() => {
             </motion.p>
 
             {/* ── COMMAND SEARCH CENTER ── */}
-            <motion.div variants={fadeUp} className="w-full max-w-2xl pt-1">
+            <motion.div variants={fadeUp} className="w-full max-w-3xl lg:max-w-4xl pt-1">
               
               {/* Quick Category Filter Pills */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1 sm:gap-2 mb-3">
@@ -259,56 +359,233 @@ const DreamJob = memo(() => {
               {/* Glassmorphic Search Bar Container */}
               <form
                 onSubmit={handleSearch}
-                className={`relative rounded-3xl border p-2 sm:p-2.5 backdrop-blur-2xl transition duration-300 ${
+                className={`relative z-30 rounded-2xl sm:rounded-3xl border p-2 sm:p-2.5 backdrop-blur-2xl transition-all duration-300 ${
                   isLight
-                    ? "border-slate-200/90 bg-white/95 shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:border-indigo-300 hover:shadow-[0_20px_50px_rgba(99,102,241,0.12)]"
+                    ? "border-slate-200/90 bg-white shadow-[0_12px_40px_rgba(0,0,0,0.06)] hover:border-indigo-300 hover:shadow-[0_20px_50px_rgba(99,102,241,0.12)]"
                     : "border-white/15 bg-[#080d1a]/95 shadow-[0_25px_60px_rgba(0,0,0,0.85)] hover:border-indigo-500/50 hover:shadow-[0_25px_60px_rgba(99,102,241,0.2)]"
                 }`}
               >
-                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-1">
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-1.5">
                   
-                  {/* Job Title / Skill Input */}
-                  <div className={`flex h-12 flex-1 items-center gap-3 rounded-2xl px-4 transition-colors ${isLight ? "bg-slate-50 md:bg-transparent border border-slate-200 md:border-none focus-within:bg-indigo-50/40" : "bg-white/[0.03] md:bg-transparent border border-white/5 md:border-none focus-within:border-indigo-500/40"}`}>
-                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-xs ${isLight ? "bg-indigo-100 text-indigo-600 border border-indigo-200" : "bg-indigo-500/15 border border-indigo-500/30 text-indigo-400"}`}>
-                      <Search size={16} />
+                  {/* Job Title / Skill Input with Autocomplete */}
+                  <div className="relative flex-1 min-w-0 z-30">
+                    <div className={`flex h-12 w-full items-center gap-2.5 sm:gap-3 rounded-xl sm:rounded-2xl px-3 sm:px-3.5 transition-colors ${
+                      isLight
+                        ? "bg-slate-50 md:bg-transparent border border-slate-200 md:border-none focus-within:bg-indigo-50/40"
+                        : "bg-white/[0.03] md:bg-transparent border border-white/5 md:border-none focus-within:border-indigo-500/40"
+                    }`}>
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-xs ${
+                        isLight ? "bg-indigo-100 text-indigo-600 border border-indigo-200" : "bg-indigo-500/15 border border-indigo-500/30 text-indigo-400"
+                      }`}>
+                        <Search size={16} />
+                      </div>
+                      <input
+                        type="text"
+                        value={jobTitle}
+                        onChange={(e) => handleJobTitleChange(e.target.value)}
+                        onFocus={() => {
+                          if (jobTitle.trim().length >= 2) setShowSuggestions(true);
+                        }}
+                        placeholder="Job title, skill, or company…"
+                        className={`w-full min-w-0 bg-transparent text-xs sm:text-sm font-medium outline-none focus:outline-none ${
+                          isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-slate-400"
+                        }`}
+                      />
+                      {jobTitle && (
+                        <button
+                          type="button"
+                          onClick={() => handleJobTitleChange("")}
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 cursor-pointer shrink-0"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
                     </div>
-                    <input
-                      type="text"
-                      value={jobTitle}
-                      onChange={(e) => setJobTitle(e.target.value)}
-                      placeholder="Role, skill, or tech stack…"
-                      className={`w-full bg-transparent text-xs sm:text-sm font-medium outline-none focus:outline-none ${isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-slate-400"}`}
-                    />
+
+                    {/* Autocomplete Suggestions Popover */}
+                    <AnimatePresence>
+                      {showSuggestions &&
+                        (suggestions?.jobTitles?.length > 0 ||
+                          suggestions?.skills?.length > 0 ||
+                          suggestions?.companies?.length > 0 ||
+                          suggestions?.locations?.length > 0) && (
+                          <motion.div
+                            ref={suggestionsRef}
+                            initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                            transition={{ duration: 0.15 }}
+                            className="absolute top-full left-0 right-0 mt-2 z-50 max-h-80 overflow-y-auto rounded-2xl border border-border bg-white dark:bg-[#0f172a] shadow-2xl backdrop-blur-2xl p-2 text-xs divide-y divide-border/60 text-left"
+                          >
+                            {/* Job Titles */}
+                            {suggestions?.jobTitles?.length > 0 && (
+                              <div className="py-1.5 first:pt-0">
+                                <div className="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-muted flex items-center gap-1.5">
+                                  <Briefcase size={12} className="text-indigo-600 dark:text-indigo-400" />
+                                  Job Titles
+                                </div>
+                                {suggestions.jobTitles.map((title) => (
+                                  <button
+                                    key={title}
+                                    type="button"
+                                    onClick={() => handleSelectSuggestion("title", title)}
+                                    className="w-full text-left px-3 py-1.5 rounded-lg text-heading hover:bg-surface-elevated flex items-center justify-between group transition-colors cursor-pointer"
+                                  >
+                                    <span className="truncate">{title}</span>
+                                    <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 text-indigo-600 dark:text-indigo-400 transition-opacity shrink-0" />
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Skills */}
+                            {suggestions?.skills?.length > 0 && (
+                              <div className="py-1.5">
+                                <div className="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-muted flex items-center gap-1.5">
+                                  <Sparkles size={12} className="text-amber-500" />
+                                  Skills & Technologies
+                                </div>
+                                <div className="flex flex-wrap gap-1 px-3 py-1.5">
+                                  {suggestions.skills.map((skill) => (
+                                    <button
+                                      key={skill}
+                                      type="button"
+                                      onClick={() => handleSelectSuggestion("skill", skill)}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-elevated text-heading hover:bg-indigo-50 dark:hover:bg-primary/20 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors cursor-pointer text-[11px] font-medium"
+                                    >
+                                      <span>{skill}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Companies */}
+                            {suggestions?.companies?.length > 0 && (
+                              <div className="py-1.5">
+                                <div className="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-muted flex items-center gap-1.5">
+                                  <Building2 size={12} className="text-cyan-500" />
+                                  Companies
+                                </div>
+                                {suggestions.companies.map((comp) => (
+                                  <button
+                                    key={comp}
+                                    type="button"
+                                    onClick={() => handleSelectSuggestion("company", comp)}
+                                    className="w-full text-left px-3 py-1.5 rounded-lg text-heading hover:bg-surface-elevated flex items-center justify-between group transition-colors cursor-pointer"
+                                  >
+                                    <span className="truncate">{comp}</span>
+                                    <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 text-cyan-500 transition-opacity shrink-0" />
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Locations */}
+                            {suggestions?.locations?.length > 0 && (
+                              <div className="py-1.5">
+                                <div className="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-muted flex items-center gap-1.5">
+                                  <MapPin size={12} className="text-rose-500" />
+                                  Locations
+                                </div>
+                                {suggestions.locations.map((loc) => (
+                                  <button
+                                    key={loc}
+                                    type="button"
+                                    onClick={() => handleSelectSuggestion("location", loc)}
+                                    className="w-full text-left px-3 py-1.5 rounded-lg text-heading hover:bg-surface-elevated flex items-center justify-between group transition-colors cursor-pointer"
+                                  >
+                                    <span className="truncate">{loc}</span>
+                                    <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 text-rose-500 transition-opacity shrink-0" />
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Vertical Divider (Desktop) */}
                   <div className={`hidden md:block h-7 w-px shrink-0 mx-1 ${isLight ? "bg-slate-200" : "bg-white/10"}`} />
 
-                  {/* Location Input */}
-                  <div className={`flex h-12 flex-1 items-center gap-3 rounded-2xl px-4 transition-colors ${isLight ? "bg-slate-50 md:bg-transparent border border-slate-200 md:border-none focus-within:bg-purple-50/40" : "bg-white/[0.03] md:bg-transparent border border-white/5 md:border-none focus-within:border-purple-500/40"}`}>
-                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-xs ${isLight ? "bg-purple-100 text-purple-600 border border-purple-200" : "bg-purple-500/15 border border-purple-500/30 text-purple-400"}`}>
-                      <MapPin size={16} />
+                  {/* Location Input with Autocomplete */}
+                  <div className="relative w-full md:w-56 lg:w-64 shrink-0 z-20">
+                    <div className={`flex h-12 w-full items-center gap-2.5 sm:gap-3 rounded-xl sm:rounded-2xl px-3 sm:px-3.5 transition-colors ${
+                      isLight
+                        ? "bg-slate-50 md:bg-transparent border border-slate-200 md:border-none focus-within:bg-purple-50/40"
+                        : "bg-white/[0.03] md:bg-transparent border border-white/5 md:border-none focus-within:border-purple-500/40"
+                    }`}>
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-xs ${
+                        isLight ? "bg-purple-100 text-purple-600 border border-purple-200" : "bg-purple-500/15 border border-purple-500/30 text-purple-400"
+                      }`}>
+                        <MapPin size={16} />
+                      </div>
+                      <input
+                        type="text"
+                        value={location}
+                        onChange={(e) => handleLocationChange(e.target.value)}
+                        onFocus={() => setShowLocationSuggestions(true)}
+                        placeholder="Location or 'Remote'…"
+                        className={`w-full min-w-0 bg-transparent text-xs sm:text-sm font-medium outline-none focus:outline-none ${
+                          isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-slate-400"
+                        }`}
+                      />
+                      {location && (
+                        <button
+                          type="button"
+                          onClick={() => handleLocationChange("")}
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 cursor-pointer shrink-0"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
                     </div>
-                    <input
-                      type="text"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="City, state, or 'Remote'…"
-                      className={`w-full bg-transparent text-xs sm:text-sm font-medium outline-none focus:outline-none ${isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-slate-400"}`}
-                    />
+
+                    {/* Location Suggestions Popover */}
+                    <AnimatePresence>
+                      {showLocationSuggestions && filteredLocations.length > 0 && (
+                        <motion.div
+                          ref={locationSuggestionsRef}
+                          initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute top-full left-0 right-0 md:w-64 mt-2 z-50 max-h-72 overflow-y-auto rounded-2xl border border-border bg-white dark:bg-[#0f172a] shadow-2xl backdrop-blur-2xl p-2 text-xs text-left"
+                        >
+                          <div className="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-muted flex items-center gap-1.5">
+                            <MapPin size={12} className="text-rose-500" />
+                            Suggested Locations
+                          </div>
+                          <div className="space-y-0.5 mt-1">
+                            {filteredLocations.map((loc) => (
+                              <button
+                                key={loc}
+                                type="button"
+                                onClick={() => handleSelectSuggestion("location", loc)}
+                                className="w-full text-left px-3 py-1.5 rounded-lg text-heading hover:bg-surface-elevated flex items-center justify-between group transition-colors cursor-pointer"
+                              >
+                                <span className="truncate">{loc}</span>
+                                <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 text-rose-500 transition-opacity shrink-0" />
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Search Action Button */}
                   <button
                     type="submit"
-                    className="inline-flex h-12 w-full md:w-auto items-center justify-center gap-2 rounded-2xl px-6 sm:px-7 text-xs sm:text-sm font-extrabold !text-white shadow-[0_10px_28px_rgba(244,63,94,0.35)] hover:shadow-[0_12px_36px_rgba(244,63,94,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shrink-0 font-satoshi"
+                    className="inline-flex h-12 w-full md:w-auto items-center justify-center gap-2 rounded-xl sm:rounded-2xl px-6 lg:px-8 text-xs sm:text-sm font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0 font-satoshi shadow-indigo-600/25 hover:shadow-indigo-600/40"
                     style={{
-                      background: "linear-gradient(to right, #C084FC, #F472B6, #F43F5E)",
+                      background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%)",
                       color: "#FFFFFF",
                     }}
                   >
-                    <Sparkles size={15} style={{ color: "#FFFFFF" }} className="!text-white fill-white/30" />
-                    <span style={{ color: "#FFFFFF" }} className="!text-white font-extrabold">Search Jobs</span>
+                    <Sparkles size={15} style={{ color: "#FFFFFF" }} className="!text-white fill-white/30 shrink-0" />
+                    <span style={{ color: "#FFFFFF" }} className="!text-white font-extrabold tracking-tight">Search Jobs</span>
                   </button>
                 </div>
               </form>

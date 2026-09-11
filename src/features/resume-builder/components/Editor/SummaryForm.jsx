@@ -2,16 +2,17 @@
  * src/features/resume-builder/components/Editor/SummaryForm.jsx
  * Professional summary editor with AI generation.
  * AI result writes directly into currentResume.summary via Redux (appears in textarea immediately).
+ * Enhanced: Shows AI improvement suggestions[] as actionable tip cards below the textarea.
  */
 
 import React, { useEffect, useRef } from "react";
-import { FileText, Sparkles, CheckCircle2 } from "lucide-react";
+import { FileText, Sparkles, CheckCircle2, Lightbulb, ChevronRight } from "lucide-react";
 import { useResumeBuilder } from "../../hooks/useResumeBuilder";
 import { useToast } from "../../../../components/ui/ToastNotification";
 
 export default function SummaryForm({ summary, onChange }) {
   const toast = useToast();
-  const { generateAiSummary, aiLoading, currentResume, aiSuggestion } = useResumeBuilder();
+  const { generateAiSummary, aiLoading, currentResume, aiSuggestion, aiSummaryTips } = useResumeBuilder();
   const prevAiLoadingRef = useRef(false);
 
   // Detect when AI finishes and show a success toast
@@ -78,6 +79,27 @@ export default function SummaryForm({ summary, onChange }) {
           </span>
         </div>
       </div>
+
+      {/* AI Improvement Tips — shown after AI generation */}
+      {aiSummaryTips && aiSummaryTips.length > 0 && !aiLoading && (
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center gap-2 text-xs font-black text-muted uppercase tracking-wider">
+            <Lightbulb size={13} className="text-amber-500 dark:text-amber-400" />
+            AI Improvement Suggestions
+          </div>
+          <div className="space-y-2">
+            {aiSummaryTips.map((tip, idx) => (
+              <div
+                key={idx}
+                className="flex items-start gap-2.5 px-4 py-3 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs text-body font-medium"
+              >
+                <ChevronRight size={13} className="text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
+                <span>{tip}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

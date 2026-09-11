@@ -20,7 +20,7 @@ import { api } from "../config/Api";
 
 export const fetchRecommendations = createAsyncThunk(
   "recommendations/fetchRecommendations",
-  async ({ limit = 10, minMatch = 0 } = {}, { rejectWithValue }) => {
+  async ({ limit = 20, minMatch = 0 } = {}, { rejectWithValue }) => {
     try {
       const { data } = await api.get("/recommendations/jobs", {
         params: { limit, minMatch },
@@ -60,6 +60,12 @@ const recommendationSlice = createSlice({
     clearRecommendationError: (state) => {
       state.error = null;
     },
+    /** Optimistically toggle the saved field for a single job in the list */
+    toggleSavedOptimistic: (state, action) => {
+      const jobId = action.payload;
+      const job = state.recommendations.find((r) => r.id === jobId);
+      if (job) job.saved = !job.saved;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -80,7 +86,7 @@ const recommendationSlice = createSlice({
   },
 });
 
-export const { clearRecommendations, clearRecommendationError } =
+export const { clearRecommendations, clearRecommendationError, toggleSavedOptimistic } =
   recommendationSlice.actions;
 
 export default recommendationSlice.reducer;

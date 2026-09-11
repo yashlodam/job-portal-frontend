@@ -36,6 +36,11 @@ function Home() {
   const { theme } = useTheme();
   const isLight = theme === "light";
 
+  const accountType = (profile?.accountType || profile?.role || "").toUpperCase();
+  const isRecruiter = accountType === "EMPLOYER" || accountType === "RECRUITER";
+  const isAdmin = accountType === "ADMIN";
+  const isCandidate = Boolean(profile && !isRecruiter && !isAdmin);
+
   return (
     <div className={`relative min-h-screen font-inter transition-colors duration-500 overflow-x-hidden ${
       isLight 
@@ -55,13 +60,69 @@ function Home() {
         <DreamJob />
         <Companies />
 
-        {/* Dynamic Personalization Layer: Top Recommended Jobs for Authenticated Seekers */}
-        {profile ? (
+        {/* Dynamic Personalization Layer: Top Recommended Jobs for Candidates / Recruiter Studio / Guest Preview */}
+        {isCandidate ? (
           <section className={`relative py-12 border-b transition-colors ${
             isLight ? "border-slate-200/80 bg-gradient-to-b from-indigo-50/40 via-white/20 to-transparent backdrop-blur-xs" : "border-white/5 bg-gradient-to-b from-indigo-950/20 via-transparent to-transparent"
           }`}>
             <div className="section-container">
-              <RecommendedJobsSection showHeading={true} limit={4} />
+              <RecommendedJobsSection
+                showHeading={true}
+                limit={20}
+                initialDisplayCount={4}
+                stepCount={4}
+                showViewAllButton={true}
+                viewAllLink="/find-jobs?feed=recommended"
+              />
+            </div>
+          </section>
+        ) : isRecruiter ? (
+          <section className={`relative py-10 border-b transition-colors ${
+            isLight ? "border-purple-200/80 bg-gradient-to-r from-purple-50/40 via-white/30 to-indigo-50/40 backdrop-blur-xs" : "border-white/5 bg-gradient-to-r from-purple-950/25 via-transparent to-indigo-950/25"
+          }`}>
+            <div className="section-container">
+              <div className={`flex flex-col md:flex-row items-center justify-between gap-6 rounded-3xl border p-6 sm:p-8 backdrop-blur-xl shadow-xl transition-all ${
+                isLight ? "border-purple-200/80 bg-white/85 shadow-purple-100/50 hover:border-purple-300" : "border-purple-500/20 bg-[#090d16]/80 hover:border-purple-500/40"
+              }`}>
+                <div className="space-y-2 text-center md:text-left">
+                  <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold ${
+                    isLight ? "bg-purple-50 border border-purple-200 text-purple-700" : "bg-purple-500/10 border border-purple-500/20 text-purple-300"
+                  }`}>
+                    <span className="h-2 w-2 rounded-full bg-purple-500 animate-pulse" />
+                    <span>Recruiter Command Studio</span>
+                  </div>
+                  <h3 className={`text-xl sm:text-2xl font-black font-satoshi ${isLight ? "text-slate-900" : "text-white"}`}>
+                    Hire Top Talent Faster with Deterministic ATS Matching
+                  </h3>
+                  <p className={`text-xs sm:text-sm max-w-xl leading-relaxed font-medium ${isLight ? "text-slate-600" : "text-slate-400"}`}>
+                    Post openings with automated skill extraction, review candidate ATS fit percentages, and schedule interviews seamlessly.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
+                  <Link
+                    to="/upload-job"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98] transition"
+                  >
+                    <span>Post a New Job</span>
+                  </Link>
+                  <Link
+                    to="/recruiter/dashboard"
+                    className={`inline-flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-bold transition ${
+                      isLight ? "border-slate-200 bg-white/90 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-xs" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <span>Recruiter Dashboard</span>
+                  </Link>
+                  <Link
+                    to="/find-talent"
+                    className={`inline-flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-bold transition ${
+                      isLight ? "border-slate-200 bg-white/90 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-xs" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <span>Source Candidates</span>
+                  </Link>
+                </div>
+              </div>
             </div>
           </section>
         ) : (
@@ -99,7 +160,7 @@ function Home() {
                       isLight ? "border-slate-200 bg-white/90 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-xs" : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
                     }`}
                   >
-                    Browse All Roles
+                    <span>Browse All Roles</span>
                   </Link>
                 </div>
               </div>

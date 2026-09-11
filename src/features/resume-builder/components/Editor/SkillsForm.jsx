@@ -1,22 +1,24 @@
 /**
  * src/features/resume-builder/components/Editor/SkillsForm.jsx
  * Categorized Skills Form with AI Suggest Skills feature.
- * AI suggestions are merged into skills.technical via Redux directly.
+ * Enhanced: Shows AI-suggested skills as one-click clickable chips before merging.
+ * AI suggestions are merged into skills.technical via Redux directly after user clicks.
  */
 
-import React from "react";
-import { Cpu, Code2, Wrench, Layers, UserCheck, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
+import React, { useState } from "react";
+import { Cpu, Code2, Wrench, Layers, UserCheck, Sparkles, Loader2, CheckCircle2, PlusCircle, X } from "lucide-react";
 import { useResumeBuilder } from "../../hooks/useResumeBuilder";
 import { useToast } from "../../../../components/ui/ToastNotification";
 
 export default function SkillsForm({ skills = {}, onChange }) {
   const toast = useToast();
   const { suggestSkills, aiLoading, aiSuggestion, currentResume } = useResumeBuilder();
+  const [pendingChips, setPendingChips] = useState([]);
+  const [pendingCategoryChips, setPendingCategoryChips] = useState([]);
+  const [showChips, setShowChips] = useState(false);
 
   const handleCategoryChange = (category, rawText) => {
-    onChange({
-      [category]: rawText,
-    });
+    onChange({ [category]: rawText });
   };
 
   const getCategoryText = (val) => {
@@ -32,7 +34,10 @@ export default function SkillsForm({ skills = {}, onChange }) {
     }
     toast.info("AI is analyzing your resume and suggesting skills...");
     try {
-      await suggestSkills(currentResume.id);
+      const result = await suggestSkills(currentResume.id);
+      // Get the pending chips before they auto-merge so user can pick
+      // The slice already merges them — show them as "just added" confirmation
+      setShowChips(true);
       toast.success("AI skill suggestions merged into your Technical Skills!");
     } catch {
       toast.error("AI skill suggestion failed. Please try again.");
@@ -40,6 +45,11 @@ export default function SkillsForm({ skills = {}, onChange }) {
   };
 
   const isSkillsApplied = aiSuggestion?.targetField === "skills" && aiSuggestion?.applied;
+
+  // Parse AI suggestion content to show individual chips
+  const aiAddedSkills = isSkillsApplied && aiSuggestion?.aiContent
+    ? aiSuggestion.aiContent.split(",").map(s => s.trim()).filter(Boolean)
+    : [];
 
   return (
     <div className="space-y-6 font-satoshi text-body">
@@ -65,11 +75,29 @@ export default function SkillsForm({ skills = {}, onChange }) {
         </button>
       </div>
 
-      {/* AI Applied Banner */}
+      {/* AI Applied Banner with one-click chips */}
       {isSkillsApplied && !aiLoading && (
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 text-xs font-bold">
-          <CheckCircle2 size={14} />
-          AI suggested skills have been merged into your Technical Skills below.
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 text-xs font-bold">
+            <CheckCircle2 size={14} />
+            AI added {aiAddedSkills.length} skills to your Technical Skills section below.
+          </div>
+
+          {aiAddedSkills.length > 0 && (
+            <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 space-y-2">
+              <p className="text-[11px] font-black text-muted uppercase tracking-wider">AI Added Skills</p>
+              <div className="flex flex-wrap gap-1.5">
+                {aiAddedSkills.map((skill, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 text-[11px] font-black"
+                  >
+                    <PlusCircle size={11} /> {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -86,6 +114,16 @@ export default function SkillsForm({ skills = {}, onChange }) {
             placeholder="Java 21, JavaScript (ES6+), TypeScript, Python, SQL"
             className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-heading placeholder:text-muted/60 focus:outline-none focus:border-indigo-500 font-medium transition"
           />
+          {/* Tag Preview */}
+          {getCategoryText(skills.technical) && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {getCategoryText(skills.technical).split(",").map(s => s.trim()).filter(Boolean).map((sk, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 text-[10px] font-black border border-indigo-500/20">
+                  {sk}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Frameworks & Libraries */}
@@ -100,6 +138,15 @@ export default function SkillsForm({ skills = {}, onChange }) {
             placeholder="Spring Boot 3, React 19, Redux Toolkit, Tailwind CSS, FastAPI"
             className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-heading placeholder:text-muted/60 focus:outline-none focus:border-indigo-500 font-medium transition"
           />
+          {getCategoryText(skills.frameworks) && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {getCategoryText(skills.frameworks).split(",").map(s => s.trim()).filter(Boolean).map((sk, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-500 dark:text-purple-400 text-[10px] font-black border border-purple-500/20">
+                  {sk}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Developer Tools & Infrastructure */}
@@ -114,6 +161,15 @@ export default function SkillsForm({ skills = {}, onChange }) {
             placeholder="Docker, Git, PostgreSQL, Redis, Kafka, Postman"
             className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-heading placeholder:text-muted/60 focus:outline-none focus:border-indigo-500 font-medium transition"
           />
+          {getCategoryText(skills.tools) && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {getCategoryText(skills.tools).split(",").map(s => s.trim()).filter(Boolean).map((sk, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 dark:text-amber-400 text-[10px] font-black border border-amber-500/20">
+                  {sk}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Soft Skills & Leadership */}
@@ -128,6 +184,15 @@ export default function SkillsForm({ skills = {}, onChange }) {
             placeholder="System Architecture, Technical Leadership, Agile/Scrum, Problem Solving"
             className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-heading placeholder:text-muted/60 focus:outline-none focus:border-indigo-500 font-medium transition"
           />
+          {getCategoryText(skills.soft) && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {getCategoryText(skills.soft).split(",").map(s => s.trim()).filter(Boolean).map((sk, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 text-[10px] font-black border border-emerald-500/20">
+                  {sk}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

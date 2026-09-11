@@ -10,6 +10,7 @@ import MinimalTemplate from "../Templates/MinimalTemplate";
 import SoftwareEngineerTemplate from "../Templates/SoftwareEngineerTemplate";
 import CorporateTemplate from "../Templates/CorporateTemplate";
 import CreativeTemplate from "../Templates/CreativeTemplate";
+import FresherTemplate from "../Templates/FresherTemplate";
 import { BLANK_RESUME_SCHEMA } from "../../constants/resumeTemplates";
 
 export default function A4Sheet({ resume }) {
@@ -28,6 +29,8 @@ export default function A4Sheet({ resume }) {
         return <CorporateTemplate resume={safeResume} />;
       case "creative":
         return <CreativeTemplate resume={safeResume} />;
+      case "fresher":
+        return <FresherTemplate resume={safeResume} />;
       case "professional":
       default:
         return <ProfessionalTemplate resume={safeResume} />;

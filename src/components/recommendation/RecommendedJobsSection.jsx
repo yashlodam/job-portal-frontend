@@ -14,7 +14,7 @@
  *  - matchGrade            → EXCELLENT / GREAT / GOOD / FAIR / LOW
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -40,7 +40,7 @@ import {
   Award,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../State/Store";
-import { fetchRecommendations } from "../../State/recommendationSlice";
+import { fetchRecommendations, toggleSavedOptimistic } from "../../State/recommendationSlice";
 import { saveJobThunk, unsaveJobThunk } from "../../State/savedJobThunk";
 import { updateSkillsThunk } from "../../State/profileThunk";
 import { useToast } from "../ui/ToastNotification";
@@ -131,18 +131,27 @@ function ScoreBar({ label, value, colorClass }) {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-export default function RecommendedJobsSection({ limit = 10, showHeading = true, className = "" }) {
+export default function RecommendedJobsSection({
+  limit = 20,
+  initialDisplayCount = 10,
+  stepCount = 4,
+  showHeading = true,
+  showViewAllButton = true,
+  viewAllLink = "/find-jobs?feed=recommended",
+  className = "",
+}) {
   const dispatch = useAppDispatch();
   const toast = useToast();
 
   const { recommendations, loading } = useAppSelector((s) => s.recommendations);
   const { profile: authUser } = useAppSelector((s) => s.auth);
   const { profile: userProfile } = useAppSelector((s) => s.profile);
-  const { savedJobs } = useAppSelector((s) => s.savedJob);
 
-  const [minMatch, setMinMatch] = useState(0);
+  const [minMatch, setMinMatch]       = useState(0);
+  const [easyApplyOnly, setEasyApply] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [addingSkill, setAddingSkill] = useState(null);
+  const [displayLimit, setDisplayLimit] = useState(initialDisplayCount);
 
   const candidateSkills = (userProfile?.skills || authUser?.skills || []).map((s) =>
     typeof s === "string" ? s.trim() : (s.name || "").trim()
@@ -152,7 +161,15 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
     dispatch(fetchRecommendations({ limit, minMatch }));
   }, [dispatch, limit, minMatch]);
 
-  const handleRefresh = () => dispatch(fetchRecommendations({ limit, minMatch }));
+  // Reset display limit when filter or initialDisplayCount changes
+  useEffect(() => {
+    setDisplayLimit(initialDisplayCount);
+  }, [initialDisplayCount, minMatch, easyApplyOnly]);
+
+  const handleRefresh = () => {
+    setDisplayLimit(initialDisplayCount);
+    dispatch(fetchRecommendations({ limit, minMatch }));
+  };
 
   const handleQuickAddSkill = async (skillName) => {
     if (candidateSkills.some((s) => s.toLowerCase() === skillName.toLowerCase())) {
@@ -171,10 +188,13 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
     }
   };
 
+  // Use the backend-returned `saved` field as the source of truth
   const handleToggleSave = async (e, job) => {
     e.preventDefault();
     e.stopPropagation();
-    const alreadySaved = savedJobs?.some((sj) => sj.job?.id === job.id || sj.id === job.id);
+    const alreadySaved = job.saved;
+    // Optimistic update — flip the saved badge instantly
+    dispatch(toggleSavedOptimistic(job.id));
     try {
       if (alreadySaved) {
         await dispatch(unsaveJobThunk(job.id)).unwrap();
@@ -184,9 +204,24 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
         toast.success(`Saved "${job.jobTitle}" to bookmarks`);
       }
     } catch (err) {
+      // Revert optimistic update on failure
+      dispatch(toggleSavedOptimistic(job.id));
       toast.error(err || "Failed to update saved job");
     }
   };
+
+  const easyApplyCount = useMemo(
+    () => recommendations.filter((j) => Boolean(j.easyApply)).length,
+    [recommendations]
+  );
+
+  // Apply front-end EasyApply filter on top of backend results
+  const filteredRecs = easyApplyOnly
+    ? recommendations.filter((j) => Boolean(j.easyApply))
+    : recommendations;
+
+  const visibleRecs  = filteredRecs.slice(0, displayLimit);
+  const hasMore      = displayLimit < filteredRecs.length;
 
   return (
     <div className={`space-y-6 font-inter text-body ${className}`}>
@@ -203,12 +238,50 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
               Recommended Jobs for You
             </h2>
             <p className="text-xs sm:text-sm text-muted mt-1">
-              Ranked by your skills, experience fit, location, and posting freshness.
+              Ranked by skill fit, experience, location, title affinity &amp; posting freshness.
+              {filteredRecs.length > 0 && (
+                <span className="ml-2 font-bold text-primary">{filteredRecs.length} match{filteredRecs.length !== 1 ? "es" : ""} found</span>
+              )}
             </p>
           </div>
 
-          {/* Filters & Refresh */}
-          <div className="flex items-center gap-2.5">
+          {/* Filters, View All Link & Refresh */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* Direct link to full recommended feed in Find Jobs */}
+            {showViewAllButton && filteredRecs.length > 0 && (
+              <Link
+                to={viewAllLink}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 px-3.5 py-2 rounded-xl border border-indigo-200 dark:border-primary/30 bg-indigo-50/70 dark:bg-primary/10 hover:bg-indigo-100/70 transition-all cursor-pointer shadow-xs"
+              >
+                <span>Explore All ({filteredRecs.length})</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            )}
+
+            {/* EasyApply toggle */}
+            <button
+              onClick={() => setEasyApply((v) => !v)}
+              title={easyApplyOnly ? "Show all jobs" : "Filter by Easy Apply"}
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
+                easyApplyOnly
+                  ? "gradient-bg-signature text-white border-transparent shadow-button scale-[1.02]"
+                  : "border-border bg-surface text-muted hover:text-heading hover:bg-surface-hover"
+              }`}
+            >
+              <Zap className={`h-3.5 w-3.5 ${easyApplyOnly ? "fill-white text-white" : ""}`} />
+              <span>Easy Apply</span>
+              {easyApplyCount > 0 && (
+                <span
+                  className={`rounded-full px-1.5 py-0.2 text-[10px] font-black ${
+                    easyApplyOnly ? "bg-white/25 text-white" : "bg-primary/10 text-primary"
+                  }`}
+                >
+                  {easyApplyCount}
+                </span>
+              )}
+            </button>
+
+            {/* Min-match filter pills */}
             <div className="flex items-center rounded-2xl bg-surface border border-border p-1 text-xs">
               {[
                 { label: "All", value: 0 },
@@ -218,7 +291,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                 <button
                   key={opt.value}
                   onClick={() => setMinMatch(opt.value)}
-                  className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                     minMatch === opt.value
                       ? "gradient-bg-signature text-white shadow-button"
                       : "text-muted hover:text-heading hover:bg-surface-hover"
@@ -228,6 +301,7 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
                 </button>
               ))}
             </div>
+
             <button
               onClick={handleRefresh}
               disabled={loading}
@@ -239,6 +313,8 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
           </div>
         </div>
       )}
+
+
 
       {/* ── Quick-Skill Onboarding (new users with ≤ 2 skills) ──────────────── */}
       {candidateSkills.length <= 2 && (
@@ -328,26 +404,51 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
       )}
 
       {/* ── Empty State ──────────────────────────────────────────────────────── */}
-      {!loading && recommendations.length === 0 && (
+      {!loading && filteredRecs.length === 0 && (
         <div className="rounded-3xl border border-border bg-surface p-8 sm:p-12 text-center space-y-4 shadow-xl">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary shadow-inner">
             <Zap className="h-8 w-8" />
           </div>
           <h3 className="text-xl font-extrabold text-heading font-satoshi">
-            {minMatch > 0 ? "No Jobs Matching Filter" : "Explore Active Opportunities"}
+            {easyApplyOnly
+              ? "No Easy Apply Jobs Found"
+              : minMatch > 0
+              ? "No Jobs Matching Filter"
+              : "Explore Active Opportunities"}
           </h3>
           <p className="text-xs sm:text-sm text-muted max-w-md mx-auto leading-relaxed font-medium">
-            {minMatch > 0
+            {easyApplyOnly
+              ? "None of your recommended jobs have Easy Apply enabled right now. Try disabling the filter."
+              : minMatch > 0
               ? `No jobs reached the ${minMatch}% match threshold. Try resetting to "All Matches".`
               : "Select 3+ skills in the quick-start banner above to unlock instant job matching."}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            {minMatch > 0 && (
+            {easyApplyOnly && (
+              <button
+                onClick={() => setEasyApply(false)}
+                className="gradient-bg-signature rounded-xl px-5 py-2.5 text-xs font-bold text-white shadow-button transition hover:scale-105 cursor-pointer"
+              >
+                Show All Jobs
+              </button>
+            )}
+            {minMatch > 0 && !easyApplyOnly && (
               <button
                 onClick={() => setMinMatch(0)}
                 className="gradient-bg-signature rounded-xl px-5 py-2.5 text-xs font-bold text-white shadow-button transition hover:scale-105 cursor-pointer"
               >
                 Reset to All Matches
+              </button>
+            )}
+            {minMatch > 0 && easyApplyOnly && (
+              <button
+                onClick={() => {
+                  setMinMatch(0);
+                  setEasyApply(false);
+                }}
+                className="gradient-bg-signature rounded-xl px-5 py-2.5 text-xs font-bold text-white shadow-button transition hover:scale-105 cursor-pointer"
+              >
+                Reset All Filters
               </button>
             )}
             <Link
@@ -361,10 +462,15 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
       )}
 
       {/* ── Recommendations Grid ──────────────────────────────────────────────── */}
-      <div className={`grid grid-cols-1 md:grid-cols-2 ${limit > 4 ? "xl:grid-cols-3" : "xl:grid-cols-2"} gap-5`}>
-        {recommendations.map((job, idx) => {
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 ${
+          limit > 4 ? "xl:grid-cols-3" : "xl:grid-cols-2"
+        } gap-5 transition-opacity duration-200 ${loading ? "opacity-60 pointer-events-none" : "opacity-100"}`}
+      >
+        {visibleRecs.map((job, idx) => {
           const colors = getMatchColors(job.matchPercentage);
-          const isSaved = savedJobs?.some((sj) => sj.job?.id === job.id || sj.id === job.id);
+          // Use the backend-provided `saved` field directly — no local list check needed
+          const isSaved = job.saved;
           const logoUrl = job.companyLogo ? getAssetUrl(job.companyLogo) : null;
 
           return (
@@ -574,6 +680,49 @@ export default function RecommendedJobsSection({ limit = 10, showHeading = true,
           );
         })}
       </div>
+
+      {/* ── Action Bar Below Grid ─────────────────────────────────────────────── */}
+      {!loading && filteredRecs.length > 0 && (
+        <div className="pt-6 flex flex-col items-center justify-center gap-3">
+          {hasMore ? (
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={() => setDisplayLimit((prev) => prev + stepCount)}
+                className="inline-flex items-center gap-2 rounded-2xl gradient-bg-signature px-6 py-3.5 text-xs sm:text-sm font-extrabold text-white shadow-button hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              >
+                <Sparkles className="h-4 w-4 animate-pulse" />
+                <span>View More Recommended Jobs</span>
+                <span className="rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-black">
+                  +{Math.min(stepCount, filteredRecs.length - displayLimit)}
+                </span>
+              </button>
+
+              {showViewAllButton && (
+                <Link
+                  to={viewAllLink}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface-elevated px-5 py-3.5 text-xs sm:text-sm font-bold text-heading hover:bg-surface-hover hover:border-primary/40 transition-all shadow-xs"
+                >
+                  <span>Explore All {filteredRecs.length} in Find Jobs</span>
+                  <ArrowRight className="h-4 w-4 text-primary" />
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 text-center text-xs text-muted">
+              <span>You're viewing all {filteredRecs.length} personalized recommendations.</span>
+              {showViewAllButton && (
+                <Link
+                  to={viewAllLink}
+                  className="inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                >
+                  <span>Open Full Discovery Feed</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Match Breakdown Modal ─────────────────────────────────────────────── */}
       <AnimatePresence>

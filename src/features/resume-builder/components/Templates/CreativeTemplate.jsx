@@ -1,7 +1,7 @@
 /**
  * src/features/resume-builder/components/Templates/CreativeTemplate.jsx
- * 6. Creative: Modern creative layout, enhanced typography & visual accents for UI/UX, Product Designers, Marketing.
- * Fully compatible with Spring Boot ResumeDocumentResponse DTO schema.
+ * 6. Creative: Modern layout with purple accent for UI/UX, Product Design, Marketing.
+ * 100% inline styles — zero Tailwind / oklch — perfect html2canvas PDF output.
  */
 
 import React from "react";
@@ -29,7 +29,7 @@ export default function CreativeTemplate({ resume }) {
 
   const getSkillsList = () => {
     if (Array.isArray(skills)) return skills;
-    if (typeof skills === "object") {
+    if (typeof skills === "object" && skills !== null) {
       return [
         ...(skills.technical || []),
         ...(skills.frameworks || []),
@@ -40,77 +40,168 @@ export default function CreativeTemplate({ resume }) {
     return [];
   };
 
+  const renderBullets = (text) => {
+    if (!text) return null;
+    const lines = text.split("\n").map((b) => b.trim().replace(/^[-•*]\s*/, "")).filter(Boolean);
+    if (lines.length > 1) {
+      return (
+        <ul style={{ margin: "3px 0 0 0", padding: "0 0 0 14px", listStyleType: "disc" }}>
+          {lines.map((b, i) => (
+            <li key={i} style={{ fontSize: "10.5px", color: "#374151", lineHeight: "1.5", marginBottom: "2px" }}>{b}</li>
+          ))}
+        </ul>
+      );
+    }
+    return <p style={{ fontSize: "10.5px", color: "#374151", lineHeight: "1.5", marginTop: "2px", whiteSpace: "pre-wrap" }}>{text}</p>;
+  };
+
   const skillsArr = getSkillsList();
 
+  const purple = "#7c3aed";
+  const purpleLight = "#f5f3ff";
+  const purpleBorder = "#ddd6fe";
+  const dark = "#1e1b4b";
+
+  const sectionTitle = {
+    fontSize: "9.5px",
+    fontWeight: "900",
+    color: dark,
+    textTransform: "uppercase",
+    letterSpacing: "1.5px",
+    borderBottom: `1.5px solid ${purpleBorder}`,
+    paddingBottom: "3px",
+    marginBottom: "8px",
+    marginTop: "14px",
+  };
+
   return (
-    <div className="bg-white text-slate-900 font-sans p-8 sm:p-10 text-left space-y-6 text-xs shadow-2xl border border-slate-200">
-      {/* Header Accent Bar */}
-      <div className="border-l-4 border-purple-600 pl-4 py-1 space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-black text-purple-950 uppercase tracking-tight">
+    <div
+      style={{
+        background: "#ffffff",
+        color: "#1f2937",
+        fontFamily: "'Segoe UI', Arial, sans-serif",
+        fontSize: "11px",
+        lineHeight: "1.45",
+        padding: "28px 32px 24px 32px",
+        boxSizing: "border-box",
+        width: "794px",
+        minHeight: "auto",
+      }}
+    >
+      {/* Header — Accent left bar */}
+      <div
+        style={{
+          borderLeft: `4px solid ${purple}`,
+          paddingLeft: "14px",
+          paddingBottom: "8px",
+          marginBottom: "14px",
+        }}
+      >
+        <h1 style={{ fontSize: "21px", fontWeight: "900", color: dark, textTransform: "uppercase", letterSpacing: "-0.3px", margin: 0 }}>
           {personalInfo.fullName || resume.fullName || "Creative Leader"}
         </h1>
-        <p className="text-xs font-black text-purple-600 uppercase tracking-wider">
+        <p style={{ fontSize: "10px", fontWeight: "800", color: purple, textTransform: "uppercase", letterSpacing: "1px", margin: "3px 0 6px 0" }}>
           {personalInfo.professionalTitle || resume.professionalTitle}
         </p>
-        <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-600 font-semibold pt-1">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0 10px", fontSize: "10px", color: "#374151", fontWeight: "600" }}>
           {(personalInfo.email || resume.email) && <span>{personalInfo.email || resume.email}</span>}
           {(personalInfo.phone || resume.phone) && <span>• {personalInfo.phone || resume.phone}</span>}
           {(personalInfo.location || resume.location) && <span>• {personalInfo.location || resume.location}</span>}
-          {(personalInfo.portfolio || resume.portfolioUrl) && <span>• {personalInfo.portfolio || resume.portfolioUrl}</span>}
+          {(personalInfo.portfolio || resume.portfolioUrl) && (
+            <span style={{ color: purple, fontWeight: "700" }}>• {personalInfo.portfolio || resume.portfolioUrl}</span>
+          )}
+          {(personalInfo.linkedIn || resume.linkedinUrl) && (
+            <span style={{ color: purple, fontWeight: "700" }}>• {personalInfo.linkedIn || resume.linkedinUrl}</span>
+          )}
         </div>
       </div>
 
-      {/* Summary */}
+      {/* About & Professional Bio */}
       {(summary || resume.professionalSummary) && (
-        <div className="space-y-1.5 bg-purple-50/50 p-4 rounded-xl border border-purple-100">
-          <h2 className="text-xs font-black uppercase tracking-widest text-purple-950">About & Professional Bio</h2>
-          <p className="text-xs text-slate-800 leading-relaxed font-medium">{summary || resume.professionalSummary}</p>
+        <div>
+          <div style={sectionTitle}>About & Professional Bio</div>
+          <div
+            style={{
+              background: purpleLight,
+              border: `1px solid ${purpleBorder}`,
+              borderRadius: "6px",
+              padding: "10px 14px",
+              marginBottom: "4px",
+            }}
+          >
+            <p style={{ fontSize: "10.5px", color: "#374151", lineHeight: "1.6", margin: 0, fontWeight: "500" }}>
+              {summary || resume.professionalSummary}
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Experience */}
+      {/* Experience & Design Work */}
       {experience.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-xs font-black uppercase tracking-widest text-purple-950 border-b border-purple-100 pb-1">
-            Experience & Design Work
-          </h2>
+        <div>
+          <div style={sectionTitle}>Experience & Design Work</div>
           {experience.map((exp, idx) => (
-            <div key={idx} className="space-y-1">
-              <div className="flex items-center justify-between text-xs font-extrabold">
-                <span className="text-slate-900">{exp.position} — <span className="text-purple-700 font-bold">{exp.company}</span></span>
-                <span className="text-slate-500 font-semibold">{exp.startDate} - {exp.currentlyWorking || exp.current ? "Present" : exp.endDate}</span>
+            <div key={idx} style={{ marginBottom: "9px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <span style={{ fontSize: "11px", fontWeight: "800", color: "#111827" }}>
+                  {exp.position} — <span style={{ color: purple, fontWeight: "700" }}>{exp.company}</span>
+                </span>
+                <span style={{ fontSize: "10px", color: "#6B7280", fontWeight: "600" }}>
+                  {exp.startDate} – {exp.currentlyWorking || exp.current ? "Present" : exp.endDate}
+                </span>
               </div>
-              {exp.description && <p className="text-[11px] text-slate-700 leading-relaxed whitespace-pre-line">{exp.description}</p>}
+              {renderBullets(exp.description)}
             </div>
           ))}
         </div>
       )}
 
-      {/* Projects / Portfolio Highlights */}
+      {/* Portfolio Highlights */}
       {projects.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-xs font-black uppercase tracking-widest text-purple-950 border-b border-purple-100 pb-1">
-            Portfolio Highlights & Applications
-          </h2>
+        <div>
+          <div style={sectionTitle}>Portfolio Highlights & Applications</div>
           {projects.map((proj, idx) => (
-            <div key={idx} className="space-y-1">
-              <div className="flex items-center justify-between text-xs font-extrabold text-slate-900">
-                <span>{proj.projectName || proj.name}</span>
-                {proj.technologies && <span className="text-[10px] text-purple-800">[{formatTech(proj.technologies)}]</span>}
+            <div key={idx} style={{ marginBottom: "9px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <span style={{ fontSize: "11px", fontWeight: "800", color: "#111827" }}>{proj.projectName || proj.name}</span>
+                {proj.technologies && (
+                  <span style={{ fontSize: "9.5px", color: purple, fontWeight: "600" }}>[{formatTech(proj.technologies)}]</span>
+                )}
               </div>
-              {proj.description && <p className="text-[11px] text-slate-700 leading-relaxed">{proj.description}</p>}
+              {(proj.liveUrl || proj.githubUrl) && (
+                <p style={{ fontSize: "9.5px", color: purple, fontWeight: "600", margin: "1px 0" }}>
+                  {proj.liveUrl && `Live: ${proj.liveUrl}`}
+                  {proj.liveUrl && proj.githubUrl && " | "}
+                  {proj.githubUrl && `GitHub: ${proj.githubUrl}`}
+                </p>
+              )}
+              {renderBullets(proj.description)}
             </div>
           ))}
         </div>
       )}
 
-      {/* Skills & Stack Badges */}
+      {/* Core Tech & Tools */}
       {skillsArr.length > 0 && (
-        <div className="space-y-2 text-[11px]">
-          <h2 className="text-xs font-black uppercase tracking-widest text-purple-950 border-b border-purple-100 pb-1">Core Tech & Tools</h2>
-          <div className="flex flex-wrap gap-1.5">
+        <div>
+          <div style={sectionTitle}>Core Tech & Tools</div>
+          <div>
             {skillsArr.map((sk, idx) => (
-              <span key={idx} className="bg-purple-100 text-purple-900 px-2.5 py-0.5 rounded-full font-bold text-[10px] border border-purple-200">
+              <span
+                key={idx}
+                style={{
+                  display: "inline-block",
+                  background: purpleLight,
+                  color: purple,
+                  border: `1px solid ${purpleBorder}`,
+                  borderRadius: "20px",
+                  padding: "1px 8px",
+                  fontSize: "9px",
+                  fontWeight: "700",
+                  marginRight: "4px",
+                  marginBottom: "4px",
+                }}
+              >
                 {sk}
               </span>
             ))}
@@ -120,14 +211,61 @@ export default function CreativeTemplate({ resume }) {
 
       {/* Education */}
       {education.length > 0 && (
-        <div className="space-y-1 text-[11px]">
-          <h2 className="text-xs font-black uppercase tracking-widest text-purple-950 border-b border-purple-100 pb-1">Education</h2>
+        <div>
+          <div style={sectionTitle}>Education</div>
           {education.map((edu, idx) => (
-            <div key={idx} className="flex justify-between text-slate-900 font-bold">
-              <span>{edu.degree} in {edu.fieldOfStudy} — {edu.institution} ({edu.grade})</span>
-              <span className="text-slate-500">{edu.startDate} - {edu.endDate}</span>
+            <div key={idx} style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+              <span style={{ fontSize: "10.5px", fontWeight: "800", color: "#111827" }}>
+                {edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ""} — {edu.institution}
+                {edu.grade ? <span style={{ fontWeight: "600", color: purple }}> ({edu.grade})</span> : ""}
+              </span>
+              <span style={{ fontSize: "10px", color: "#6B7280", fontWeight: "600" }}>{edu.startDate} – {edu.endDate}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Certifications */}
+      {certifications.length > 0 && (
+        <div>
+          <div style={sectionTitle}>Certifications</div>
+          {certifications.map((cert, idx) => (
+            <div key={idx} style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
+              <div>
+                <span style={{ fontSize: "10.5px", fontWeight: "800", color: "#111827" }}>{cert.name || cert.certificationName}</span>
+                {(cert.issuingOrganization || cert.issuer) && (
+                  <span style={{ fontSize: "10px", color: "#374151" }}> — {cert.issuingOrganization || cert.issuer}</span>
+                )}
+              </div>
+              <span style={{ fontSize: "9.5px", color: "#6B7280", fontWeight: "600" }}>{cert.issueDate || cert.date}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Achievements */}
+      {achievements.length > 0 && (
+        <div>
+          <div style={sectionTitle}>Achievements & Recognition</div>
+          {achievements.map((ach, idx) => (
+            <div key={idx} style={{ marginBottom: "5px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "10.5px", fontWeight: "800", color: "#111827" }}>{ach.title || ach.achievementTitle}</span>
+                {ach.date && <span style={{ fontSize: "9.5px", color: "#6B7280" }}>{ach.date}</span>}
+              </div>
+              {ach.description && <p style={{ fontSize: "10px", color: "#374151", margin: "2px 0 0 0" }}>{ach.description}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Languages */}
+      {languages.length > 0 && (
+        <div>
+          <div style={sectionTitle}>Languages</div>
+          <p style={{ fontSize: "10.5px", color: "#374151", fontWeight: "600", margin: 0 }}>
+            {languages.map((l) => (typeof l === "string" ? l : `${l.language}${l.proficiency ? ` (${l.proficiency})` : ""}`)).join(" • ")}
+          </p>
         </div>
       )}
     </div>

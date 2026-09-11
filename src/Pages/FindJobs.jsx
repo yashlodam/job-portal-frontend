@@ -25,6 +25,8 @@ import {
   getAllJobs,
   searchJobs,
   filterJobs,
+  fetchSearchSuggestions,
+  fetchSearchFacets,
 } from "../State/JobSlice";
 import { saveJobThunk, unsaveJobThunk } from "../State/savedJobThunk";
 import { useToast } from "../components/ui/ToastNotification";
@@ -45,7 +47,7 @@ const JOB_TYPES = [
 const WORK_MODES = [
   { label: "Remote", value: "REMOTE" },
   { label: "Hybrid", value: "HYBRID" },
-  { label: "On Site", value: "ON_SITE" },
+  { label: "On Site", value: "ONSITE" },
 ];
 const EXPERIENCE_LEVELS = [
   { label: "Entry", value: "ENTRY_LEVEL" },
@@ -59,7 +61,14 @@ const SALARY_RANGES = [
   { label: "₹10L – 20L", min: 1000000, max: 2000000 },
   { label: "₹20L+", min: 2000000, max: Infinity },
 ];
+const DATE_POSTED_OPTIONS = [
+  { label: "Anytime", value: null },
+  { label: "Past 24h", value: 1 },
+  { label: "Past Week", value: 7 },
+  { label: "Past Month", value: 30 },
+];
 const SORT_OPTIONS = [
+  { value: "relevance", label: "Best Match" },
   { value: "createdAt,desc", label: "Newest" },
   { value: "minimumSalary,desc", label: "Salary: High to Low" },
   { value: "minimumSalary,asc", label: "Salary: Low to High" },
@@ -220,14 +229,13 @@ function CheckboxItem({ label, checked, onChange, count }) {
 /* ================================================================
    COMPONENT: FilterSidebarContent
    ================================================================ */
-function FilterSidebarContent({ filters, onToggleFilter, onSetSalary, onClearAll }) {
+function FilterSidebarContent({ filters, onToggleFilter, onSetSalary, onSetDatePosted, onClearAll, facets }) {
   const hasActive =
     filters.types.length > 0 ||
     filters.modes.length > 0 ||
     filters.experience.length > 0 ||
-    filters.salary !== null;
-
-
+    filters.salary !== null ||
+    filters.postedWithinDays !== null;
 
   return (
     <div className="space-y-1">
@@ -241,6 +249,28 @@ function FilterSidebarContent({ filters, onToggleFilter, onSetSalary, onClearAll
         </button>
       )}
 
+      {/* Date Posted */}
+      <FilterSection title="Date Posted">
+        <div className="grid grid-cols-2 gap-2">
+          {DATE_POSTED_OPTIONS.map((d) => {
+            const active = filters.postedWithinDays === d.value;
+            return (
+              <button
+                key={d.label}
+                onClick={() => onSetDatePosted(active ? null : d.value)}
+                className={`rounded-xl border px-3 py-2 text-xs font-semibold transition-all duration-200 ${
+                  active
+                    ? "border-indigo-200 dark:border-primary/40 bg-indigo-50 dark:bg-primary/20 text-indigo-700 dark:text-indigo-300 shadow-sm"
+                    : "border-border bg-surface-elevated/50 text-body hover:border-primary/20 hover:text-heading"
+                }`}
+              >
+                {d.label}
+              </button>
+            );
+          })}
+        </div>
+      </FilterSection>
+
       {/* Job Type */}
       <FilterSection title="Job Type">
         {JOB_TYPES.map((t) => (
@@ -249,6 +279,7 @@ function FilterSidebarContent({ filters, onToggleFilter, onSetSalary, onClearAll
             label={t.label}
             checked={filters.types.includes(t.value)}
             onChange={() => onToggleFilter("types", t.value)}
+            count={facets?.jobTypes?.[t.value]}
           />
         ))}
       </FilterSection>
@@ -261,6 +292,7 @@ function FilterSidebarContent({ filters, onToggleFilter, onSetSalary, onClearAll
             label={m.label}
             checked={filters.modes.includes(m.value)}
             onChange={() => onToggleFilter("modes", m.value)}
+            count={facets?.workingModes?.[m.value]}
           />
         ))}
       </FilterSection>
@@ -273,6 +305,7 @@ function FilterSidebarContent({ filters, onToggleFilter, onSetSalary, onClearAll
             label={e.label}
             checked={filters.experience.includes(e.value)}
             onChange={() => onToggleFilter("experience", e.value)}
+            count={facets?.experienceLevels?.[e.value]}
           />
         ))}
       </FilterSection>
@@ -355,16 +388,16 @@ function JobCard({ job, view }) {
       userSkillNames.some((u) => u.includes(String(sk).toLowerCase().trim()) || String(sk).toLowerCase().includes(u))
     );
     if (matched.length === 0) return null;
-    return Math.min(99, Math.max(65, Math.round((matched.length / skills.length) * 100)));
+    return Math.min(100, Math.round((matched.length / skills.length) * 100));
   }, [userProfile, skills]);
 
   const logoUrl = job.companyLogo ? getAssetUrl(job.companyLogo) : null;
 
   return (
-    <motion.div variants={cardVariants} layout>
+    <motion.div variants={cardVariants} layout className="w-full">
       <Link
         to={`/jobs/${job.id}`}
-        className={`group relative flex rounded-[20px] border border-border bg-surface backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:shadow-glow-primary hover:bg-surface-elevated/60 ${
+        className={`group relative flex w-full rounded-[20px] border border-border bg-surface backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:shadow-glow-primary hover:bg-surface-elevated/60 ${
           isList
             ? "flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-6"
             : "flex-col p-4 sm:p-6"
@@ -538,7 +571,7 @@ function JobCardSkeleton({ view }) {
   const isList = view === "list";
   return (
     <div
-      className={`animate-pulse rounded-[20px] border border-border bg-surface ${
+      className={`animate-pulse rounded-[20px] border border-border bg-surface w-full ${
         isList ? "flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-6" : "flex flex-col p-4 sm:p-6"
       }`}
     >
@@ -566,15 +599,18 @@ function JobCardSkeleton({ view }) {
    ================================================================ */
 export default function FindJobs() {
   /* ── URL params from Home / Hero search ── */
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const urlKeyword = searchParams.get("keyword") ?? "";
   const urlCategory = searchParams.get("category") ?? "";
   const urlMode = searchParams.get("mode") ?? "";
-  const urlCity = searchParams.get("city") ?? "";
+  const urlCity = searchParams.get("city") || searchParams.get("location") || "";
+  const urlFeed = searchParams.get("feed") ?? "";
 
   /* ── Search input state ── */
   const [searchTitle, setSearchTitle] = useState(urlKeyword);
   const [searchLocation, setSearchLocation] = useState(urlCity);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef(null);
 
   /* ── Filter state (sent to backend) ── */
   const [filters, setFilters] = useState({
@@ -582,19 +618,29 @@ export default function FindJobs() {
     modes: urlMode ? [urlMode] : [],
     experience: [],
     salary: null,
+    postedWithinDays: null,
   });
 
   /* ── UI-only state ── */
-  const [feedMode, setFeedMode] = useState("all"); // 'all' | 'recommended'
+  const [feedMode, setFeedMode] = useState(urlFeed === "recommended" ? "recommended" : "all");
   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0].value);
   const [view, setView] = useState("grid");
   const [page, setPage] = useState(0); // 0-indexed (Spring Boot)
   const [mobileFilters, setMobileFilters] = useState(false);
 
+  /* ── Sync URL feed param to feedMode ── */
+  useEffect(() => {
+    if (urlFeed === "recommended") {
+      setFeedMode("recommended");
+    } else if (urlFeed === "all") {
+      setFeedMode("all");
+    }
+  }, [urlFeed]);
+
   const dispatch = useAppDispatch();
 
   /* ── Redux state ── */
-  const { jobs, pagination, loading } = useAppSelector((s) => s.job);
+  const { jobs, pagination, loading, suggestions, facets } = useAppSelector((s) => s.job);
 
   const totalPages = pagination.totalPages ?? 0;
   const totalElements = pagination.totalElements ?? 0;
@@ -602,16 +648,32 @@ export default function FindJobs() {
   /* ── Debounce ref for search inputs ── */
   const debounceRef = useRef(null);
 
+  /* ── Fetch search facets on mount ── */
+  useEffect(() => {
+    dispatch(fetchSearchFacets());
+  }, [dispatch]);
+
+  /* ── Close suggestions on click outside ── */
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   /* ── Central fetch function — called on any param change ── */
   const fetchJobs = useCallback(
     (overrides = {}) => {
-
       const params = {
         page,
         size: PAGE_SIZE,
 
-        // Entity field name
-        sort: sortBy || "createdAt,desc",
+        // Entity field name or omit if relevance
+        sort: sortBy !== "relevance" ? (sortBy || "createdAt,desc") : undefined,
+        sortBy: sortBy === "relevance" ? "relevance" : undefined,
 
         // Search
         keyword: searchTitle.trim() || undefined,
@@ -642,6 +704,11 @@ export default function FindJobs() {
             ? filters.salary?.max
             : undefined,
 
+        postedWithinDays:
+          filters.postedWithinDays !== null && filters.postedWithinDays !== undefined
+            ? filters.postedWithinDays
+            : undefined,
+
         ...overrides,
       };
 
@@ -656,7 +723,6 @@ export default function FindJobs() {
       );
 
       dispatch(searchJobs(cleanParams));
-
     },
     [
       page,
@@ -690,7 +756,15 @@ export default function FindJobs() {
   /* ── Debounced fetch for search input typing ── */
   const handleSearchInputChange = useCallback(
     (field, value) => {
-      if (field === "title") setSearchTitle(value);
+      if (field === "title") {
+        setSearchTitle(value);
+        if (value.trim().length >= 2) {
+          dispatch(fetchSearchSuggestions(value.trim()));
+          setShowSuggestions(true);
+        } else {
+          setShowSuggestions(false);
+        }
+      }
       if (field === "location") setSearchLocation(value);
       setPage(0);
 
@@ -699,12 +773,28 @@ export default function FindJobs() {
         fetchJobs({ page: 0 });
       }, 500);
     },
-    [fetchJobs]
+    [dispatch, fetchJobs]
   );
+
+  /* ── Suggestion Click Handler ── */
+  const handleSelectSuggestion = (type, value) => {
+    setShowSuggestions(false);
+    setPage(0);
+    clearTimeout(debounceRef.current);
+
+    if (type === "title" || type === "skill" || type === "company") {
+      setSearchTitle(value);
+      fetchJobs({ page: 0, keyword: value });
+    } else if (type === "location") {
+      setSearchLocation(value);
+      fetchJobs({ page: 0, city: value });
+    }
+  };
 
   /* ── Search form submit ── */
   const handleSearch = (e) => {
     e.preventDefault();
+    setShowSuggestions(false);
     setPage(0);
     fetchJobs({ page: 0 });
   };
@@ -726,21 +816,28 @@ export default function FindJobs() {
     setPage(0);
   }, []);
 
+  const setDatePosted = useCallback((days) => {
+    setFilters((prev) => ({ ...prev, postedWithinDays: days }));
+    setPage(0);
+  }, []);
+
   const clearAll = useCallback(() => {
-    setFilters({ types: [], modes: [], experience: [], salary: null });
+    setFilters({ types: [], modes: [], experience: [], salary: null, postedWithinDays: null });
     setSearchTitle("");
     setSearchLocation("");
+    setShowSuggestions(false);
     setPage(0);
   }, []);
 
   const removeActiveFilter = useCallback(
     (kind, value) => {
       if (kind === "salary") setSalary(null);
+      else if (kind === "datePosted") setDatePosted(null);
       else if (kind === "search") setSearchTitle("");
       else if (kind === "location") setSearchLocation("");
       else toggleFilter(kind, value);
     },
-    [setSalary, toggleFilter]
+    [setSalary, setDatePosted, toggleFilter]
   );
 
   /* ── Active filter pills ── */
@@ -750,6 +847,10 @@ export default function FindJobs() {
       pills.push({ kind: "search", label: `"${searchTitle.trim()}"` });
     if (searchLocation.trim())
       pills.push({ kind: "location", label: searchLocation.trim() });
+    if (filters.postedWithinDays) {
+      const found = DATE_POSTED_OPTIONS.find((d) => d.value === filters.postedWithinDays);
+      pills.push({ kind: "datePosted", label: found?.label ?? `Past ${filters.postedWithinDays}d` });
+    }
     filters.types.forEach((v) => {
       const found = JOB_TYPES.find((t) => t.value === v);
       pills.push({ kind: "types", label: found?.label ?? v, value: v });
@@ -796,7 +897,7 @@ export default function FindJobs() {
       </div>
 
       {/* ========== SEARCH STRIP ========== */}
-      <section className="relative border-b border-border bg-surface/50 backdrop-blur-md">
+      <section className="relative z-30 border-b border-border bg-surface/50 backdrop-blur-md">
         <div className="section-container py-6 sm:py-10">
           {/* Heading */}
           <motion.div
@@ -821,10 +922,10 @@ export default function FindJobs() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mx-auto flex max-w-4xl flex-col gap-2.5 sm:gap-3 sm:flex-row"
+            className="relative z-30 mx-auto flex max-w-4xl flex-col gap-2.5 sm:gap-3 sm:flex-row"
           >
             {/* Title input */}
-            <div className="relative flex-1">
+            <div className="relative flex-1 z-30">
               <Search
                 size={17}
                 className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-muted"
@@ -833,6 +934,9 @@ export default function FindJobs() {
                 type="text"
                 value={searchTitle}
                 onChange={(e) => handleSearchInputChange("title", e.target.value)}
+                onFocus={() => {
+                  if (searchTitle.trim().length >= 2) setShowSuggestions(true);
+                }}
                 placeholder="Job title, keyword, or company"
                 aria-label="Search by job title, keyword, or company"
                 className="w-full rounded-xl border border-border bg-surface-elevated py-3 sm:py-3.5 pl-10 sm:pl-11 pr-9 sm:pr-10 text-xs sm:text-sm text-heading placeholder:text-muted outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-surface-elevated"
@@ -846,6 +950,109 @@ export default function FindJobs() {
                   <X size={14} />
                 </button>
               )}
+
+              {/* Autocomplete Suggestions Popover */}
+              <AnimatePresence>
+                {showSuggestions &&
+                  (suggestions?.jobTitles?.length > 0 ||
+                    suggestions?.skills?.length > 0 ||
+                    suggestions?.companies?.length > 0 ||
+                    suggestions?.locations?.length > 0) && (
+                    <motion.div
+                      ref={suggestionsRef}
+                      initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 right-0 mt-2 z-50 max-h-80 overflow-y-auto rounded-2xl border border-border bg-white dark:bg-[#0f172a] shadow-2xl backdrop-blur-2xl p-2 text-xs divide-y divide-border/60"
+                    >
+                      {/* Job Titles */}
+                      {suggestions?.jobTitles?.length > 0 && (
+                        <div className="py-1.5 first:pt-0">
+                          <div className="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-muted flex items-center gap-1.5">
+                            <Briefcase size={12} className="text-indigo-600 dark:text-indigo-400" />
+                            Job Titles
+                          </div>
+                          {suggestions.jobTitles.map((title) => (
+                            <button
+                              key={title}
+                              type="button"
+                              onClick={() => handleSelectSuggestion("title", title)}
+                              className="w-full text-left px-3 py-1.5 rounded-lg text-heading hover:bg-surface-elevated flex items-center justify-between group transition-colors cursor-pointer"
+                            >
+                              <span>{title}</span>
+                              <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 text-indigo-600 dark:text-indigo-400 transition-opacity" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Skills */}
+                      {suggestions?.skills?.length > 0 && (
+                        <div className="py-1.5">
+                          <div className="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-muted flex items-center gap-1.5">
+                            <Sparkles size={12} className="text-amber-500" />
+                            Skills & Technologies
+                          </div>
+                          <div className="flex flex-wrap gap-1 px-3 py-1.5">
+                            {suggestions.skills.map((skill) => (
+                              <button
+                                key={skill}
+                                type="button"
+                                onClick={() => handleSelectSuggestion("skill", skill)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-elevated text-heading hover:bg-indigo-50 dark:hover:bg-primary/20 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors cursor-pointer text-[11px] font-medium"
+                              >
+                                <span>{skill}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Companies */}
+                      {suggestions?.companies?.length > 0 && (
+                        <div className="py-1.5">
+                          <div className="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-muted flex items-center gap-1.5">
+                            <Building2 size={12} className="text-cyan-500" />
+                            Companies
+                          </div>
+                          {suggestions.companies.map((comp) => (
+                            <button
+                              key={comp}
+                              type="button"
+                              onClick={() => handleSelectSuggestion("company", comp)}
+                              className="w-full text-left px-3 py-1.5 rounded-lg text-heading hover:bg-surface-elevated flex items-center justify-between group transition-colors cursor-pointer"
+                            >
+                              <span>{comp}</span>
+                              <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 text-cyan-500 transition-opacity" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Locations */}
+                      {suggestions?.locations?.length > 0 && (
+                        <div className="py-1.5">
+                          <div className="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-muted flex items-center gap-1.5">
+                            <MapPin size={12} className="text-rose-500" />
+                            Locations
+                          </div>
+                          {suggestions.locations.map((loc) => (
+                            <button
+                              key={loc}
+                              type="button"
+                              onClick={() => handleSelectSuggestion("location", loc)}
+                              className="w-full text-left px-3 py-1.5 rounded-lg text-heading hover:bg-surface-elevated flex items-center justify-between group transition-colors cursor-pointer"
+                            >
+                              <span>{loc}</span>
+                              <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 text-rose-500 transition-opacity" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+              </AnimatePresence>
             </div>
 
             {/* Location input */}
@@ -887,7 +1094,7 @@ export default function FindJobs() {
       </section>
 
       {/* ========== MAIN CONTENT ========== */}
-      <div className="relative section-container py-6 sm:py-8">
+      <div className="relative section-container py-6 sm:py-8 w-full mx-auto">
         {/* Active Filters Row */}
         <AnimatePresence>
           {activePills.length > 0 && (
@@ -930,7 +1137,14 @@ export default function FindJobs() {
         <div className="mb-5 sm:mb-6 border-b border-border pb-4">
           <div className="grid grid-cols-2 sm:inline-flex items-center rounded-2xl bg-surface border border-border p-1 w-full sm:w-auto gap-1">
             <button
-              onClick={() => setFeedMode("all")}
+              onClick={() => {
+                setFeedMode("all");
+                setSearchParams((prev) => {
+                  const next = new URLSearchParams(prev);
+                  next.delete("feed");
+                  return next;
+                }, { replace: true });
+              }}
               className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-center truncate ${
                 feedMode === "all"
                   ? "bg-primary text-white shadow-md shadow-primary/20"
@@ -940,7 +1154,14 @@ export default function FindJobs() {
               All Open Positions ({totalElements.toLocaleString()})
             </button>
             <button
-              onClick={() => setFeedMode("recommended")}
+              onClick={() => {
+                setFeedMode("recommended");
+                setSearchParams((prev) => {
+                  const next = new URLSearchParams(prev);
+                  next.set("feed", "recommended");
+                  return next;
+                }, { replace: true });
+              }}
               className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer truncate ${
                 feedMode === "recommended"
                   ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20"
@@ -1086,7 +1307,7 @@ export default function FindJobs() {
             </div>
 
         {/* Two-column layout */}
-        <div className="flex gap-8">
+        <div className="flex flex-col lg:flex-row gap-0 lg:gap-8 w-full">
           {/* ===== LEFT: Desktop Filter Sidebar ===== */}
           <aside className="hidden lg:block w-[260px] shrink-0">
             <div className="sticky top-[96px] rounded-[20px] border border-border bg-surface backdrop-blur-lg p-5 sm:p-6">
@@ -1100,21 +1321,23 @@ export default function FindJobs() {
                 filters={filters}
                 onToggleFilter={toggleFilter}
                 onSetSalary={setSalary}
+                onSetDatePosted={setDatePosted}
                 onClearAll={clearAll}
+                facets={facets}
               />
             </div>
           </aside>
 
           {/* ===== RIGHT: Job Cards ===== */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 w-full">
             <AnimatePresence mode="wait">
               {loading ? (
                 <div
                   key="skeleton"
                   className={
                     view === "grid"
-                      ? "grid gap-5 sm:grid-cols-2 lg:grid-cols-2"
-                      : "flex flex-col gap-4"
+                      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-5 w-full"
+                      : "flex flex-col gap-4 w-full"
                   }
                 >
                   {Array.from({ length: PAGE_SIZE }).map((_, i) => (
@@ -1130,8 +1353,8 @@ export default function FindJobs() {
                   exit="hidden"
                   className={
                     view === "grid"
-                      ? "grid gap-5 sm:grid-cols-2 lg:grid-cols-2"
-                      : "flex flex-col gap-4"
+                      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-5 w-full"
+                      : "flex flex-col gap-4 w-full"
                   }
                 >
                   {jobs.map((job) => (
@@ -1296,7 +1519,9 @@ export default function FindJobs() {
                   filters={filters}
                   onToggleFilter={toggleFilter}
                   onSetSalary={setSalary}
+                  onSetDatePosted={setDatePosted}
                   onClearAll={clearAll}
+                  facets={facets}
                 />
               </div>
 

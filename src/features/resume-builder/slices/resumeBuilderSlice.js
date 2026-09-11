@@ -99,7 +99,9 @@ export const generateAiSummaryThunk = createAsyncThunk(
         result?.generatedSummary ||
         result?.text ||
         "";
-      return { targetField: "summary", aiContent: text };
+      // Extract improvement suggestions from the backend response
+      const suggestions = result?.suggestions || result?.improvementSuggestions || [];
+      return { targetField: "summary", aiContent: text, suggestions };
     } catch (err) {
       return rejectWithValue(err.userMessage || err.response?.data?.message || err.message || "AI summary generation failed");
     }
@@ -178,6 +180,7 @@ const initialState = {
   saveStatus: "saved", // 'idle' | 'saving' | 'saved' | 'error'
   aiLoading: false,
   aiSuggestion: null,
+  aiSummaryTips: [],  // suggestions[] from AiSummaryResponse — shown as improvement tip cards
   atsAnalysis: null,
   error: null,
   isDirty: false,
@@ -359,11 +362,14 @@ const resumeBuilderSlice = createSlice({
       .addCase(generateAiSummaryThunk.fulfilled, (state, action) => {
         state.aiLoading = false;
         const generatedText = action.payload.aiContent;
+        const suggestions = action.payload.suggestions || [];
         if (generatedText) {
           // Write directly into the resume summary so it appears in the textarea immediately
           state.currentResume.summary = generatedText;
           state.currentResume.completionPercentage = 0; // will recalculate
           state.isDirty = true;
+          // Store suggestions as improvement tips (shown as tip cards in SummaryForm)
+          state.aiSummaryTips = suggestions;
           // Also store in aiSuggestion for components that want to show an "Applied" confirmation
           state.aiSuggestion = {
             targetField: "summary",

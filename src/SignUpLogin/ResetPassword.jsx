@@ -88,22 +88,26 @@ function ResetPassword() {
 
         try {
             setLoading(true);
+            const cleanEmail = formData.email.trim().toLowerCase();
 
-            await dispatch(sendOtp(formData.email)).unwrap();
+            await dispatch(sendOtp(cleanEmail)).unwrap();
 
             notifications.show({
                 color: "green",
                 title: "Code sent",
-                message: "Check your inbox for the verification code.",
+                message: "Check your inbox for the 6-digit verification code.",
             });
 
             setOtpSent(true);
             setResendCooldown(RESEND_COOLDOWN_SECONDS);
         } catch (e) {
+            const errorMsg = typeof e === "string"
+                ? e
+                : e?.message || e?.error || "Unable to send verification code. Ensure this email is registered.";
             notifications.show({
                 color: "red",
                 title: "Couldn't send code",
-                message: e?.message || "Unable to send the verification code.",
+                message: errorMsg,
             });
         } finally {
             setLoading(false);
@@ -150,13 +154,14 @@ function ResetPassword() {
 
         try {
             setLoading(true);
+            const cleanEmail = formData.email.trim().toLowerCase();
 
             const verifyRequest = {
-                email: formData.email,
-                otp: formData.otp,
+                email: cleanEmail,
+                otp: formData.otp.trim(),
             };
             const resetRequest = {
-                email: formData.email,
+                email: cleanEmail,
                 newPassword: formData.newPassword,
             };
 
@@ -174,10 +179,13 @@ function ResetPassword() {
 
             navigate("/auth");
         } catch (e) {
+            const errorMsg = typeof e === "string"
+                ? e
+                : e?.message || e?.error || "Reset failed. Please check your verification code.";
             notifications.show({
                 color: "red",
                 title: "Reset failed",
-                message: e?.message || "Something went wrong.",
+                message: errorMsg,
             });
         } finally {
             setLoading(false);

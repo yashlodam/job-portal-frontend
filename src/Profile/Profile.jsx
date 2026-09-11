@@ -2368,15 +2368,15 @@ function Profile() {
                 : "border-white/10 bg-surface-elevated hover:border-white/20"
             }`}
           >
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4 min-w-0">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-500/15 text-red-400">
-                  <IconFileCv size={26} />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full sm:w-auto">
+                <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-red-500/15 text-red-400">
+                  <IconFileCv size={24} />
                 </div>
 
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-heading truncate">{res.resumeName || res.fileName || "Resume.pdf"}</h3>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <h3 className="font-semibold text-heading truncate max-w-[200px] sm:max-w-xs">{res.resumeName || res.fileName || "Resume.pdf"}</h3>
                     {res.isDefault && (
                       <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
                         ✓ Default Resume
@@ -2389,7 +2389,7 @@ function Profile() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0 flex-wrap pt-2 sm:pt-0 border-t border-white/5 sm:border-0 w-full sm:w-auto justify-end">
                 {!res.isDefault && (
                   <button
                     type="button"

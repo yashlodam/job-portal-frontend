@@ -292,37 +292,37 @@ export default function MyJobsPage() {
         </div>
 
         {/* Global Pipeline Statistics */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card className="p-4 bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-500/20">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+          <Card className="p-3 sm:p-4 bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-500/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted">Total Applied</span>
-              <Briefcase className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
+              <span className="text-[11px] sm:text-xs font-semibold text-muted">Total Applied</span>
+              <Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-500 dark:text-indigo-400" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">{myApplications.length}</p>
+            <p className="mt-1.5 sm:mt-2 text-xl sm:text-2xl font-extrabold text-heading font-satoshi">{myApplications.length}</p>
           </Card>
 
-          <Card className="p-4 bg-purple-50/50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-500/20">
+          <Card className="p-3 sm:p-4 bg-purple-50/50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-500/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted">Saved Jobs</span>
-              <Bookmark className="h-4 w-4 text-purple-500 dark:text-purple-400" />
+              <span className="text-[11px] sm:text-xs font-semibold text-muted">Saved Jobs</span>
+              <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500 dark:text-purple-400" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">{savedJobs.length}</p>
+            <p className="mt-1.5 sm:mt-2 text-xl sm:text-2xl font-extrabold text-heading font-satoshi">{savedJobs.length}</p>
           </Card>
 
-          <Card className="p-4 bg-teal-50/50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-500/20">
+          <Card className="p-3 sm:p-4 bg-teal-50/50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-500/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted">Interviews</span>
-              <Calendar className="h-4 w-4 text-teal-500 dark:text-teal-400" />
+              <span className="text-[11px] sm:text-xs font-semibold text-muted">Interviews</span>
+              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-teal-500 dark:text-teal-400" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">{interviewList.length}</p>
+            <p className="mt-1.5 sm:mt-2 text-xl sm:text-2xl font-extrabold text-heading font-satoshi">{interviewList.length}</p>
           </Card>
 
-          <Card className="p-4 bg-amber-50/50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-500/20">
+          <Card className="p-3 sm:p-4 bg-amber-50/50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-500/20">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted">Offers</span>
-              <Award className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+              <span className="text-[11px] sm:text-xs font-semibold text-muted">Offers</span>
+              <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500 dark:text-amber-400" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-heading font-satoshi">{offerList.length}</p>
+            <p className="mt-1.5 sm:mt-2 text-xl sm:text-2xl font-extrabold text-heading font-satoshi">{offerList.length}</p>
           </Card>
         </div>
 

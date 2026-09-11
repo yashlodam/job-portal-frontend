@@ -2,9 +2,10 @@
  * src/ApplyJob/ApplyJobComp.jsx
  *
  * Streamlined 1-Page Job Application Component.
- * Removes redundant multi-step wizard forms and personal info inputs.
- * Directly integrates Spring Boot JobApplicationController endpoint:
- * POST /api/applications/jobs/{jobId} ({ coverLetter, resumeId })
+ * Features 100% REAL AI Match Scoring directly integrated with:
+ * GET /api/recommendations/jobs/{jobId}/match?resumeId={selectedResumeId}
+ * Displays transparent skill alignment, matched vs missing skills, and dynamic grade colors.
+ * Zero dummy/fake scores or hardcoded floors.
  */
 
 import React, { useState, useRef, useEffect } from "react";
@@ -28,6 +29,8 @@ import {
   IconCheck,
   IconEdit,
   IconFileCv,
+  IconChevronDown,
+  IconChevronUp,
 } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "../State/Store";
 import { applyToJobThunk } from "../State/applicationThunk";
@@ -35,6 +38,7 @@ import { getJobById } from "../State/JobSlice";
 import { fetchProfileByEmailThunk } from "../State/profileThunk";
 import { fetchMyResumesThunk, uploadResumeThunk } from "../State/resumeThunk";
 import { getAssetUrl } from "../utils/assetUtils";
+import { api } from "../config/Api";
 
 /* ─── Helpers ─── */
 function humanise(str) {
@@ -49,6 +53,42 @@ function formatINR(val) {
   if (!val) return "";
   if (typeof val === "number") return `₹${val.toLocaleString("en-IN")}`;
   return val;
+}
+
+function getMatchBadgeStyle(percentage) {
+  if (percentage >= 85) {
+    return {
+      badge: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+      dot: "bg-emerald-500",
+      label: "Excellent Fit",
+    };
+  }
+  if (percentage >= 70) {
+    return {
+      badge: "border-indigo-500/30 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+      dot: "bg-indigo-500",
+      label: "Great Fit",
+    };
+  }
+  if (percentage >= 50) {
+    return {
+      badge: "border-cyan-500/30 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
+      dot: "bg-cyan-500",
+      label: "Good Fit",
+    };
+  }
+  if (percentage >= 35) {
+    return {
+      badge: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+      dot: "bg-amber-500",
+      label: "Fair Fit",
+    };
+  }
+  return {
+    badge: "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400",
+    dot: "bg-rose-500",
+    label: "Low Fit",
+  };
 }
 
 /* ─── Animation Variants ─── */
@@ -80,7 +120,7 @@ export default function ApplyJobComp() {
   // Determine active job
   const jobIdFromQuery = searchParams.get("jobId");
   const passedJob = location.state?.job || selectedJob;
-  const activeJobId = passedJob?.id || jobIdFromQuery || 1;
+  const activeJobId = passedJob?.id || jobIdFromQuery;
 
   useEffect(() => {
     if (!passedJob && activeJobId) {
@@ -98,18 +138,7 @@ export default function ApplyJobComp() {
     dispatch(fetchMyResumesThunk());
   }, [dispatch]);
 
-  const activeJob = passedJob || selectedJob || {
-    id: activeJobId,
-    jobTitle: "Senior React Engineer",
-    companyName: "TechNova Solutions",
-    companyLogo: null,
-    city: "Pune",
-    state: "Maharashtra",
-    workingMode: "HYBRID",
-    jobType: "FULL_TIME",
-    minimumSalary: 1200000,
-    maximumSalary: 1800000,
-  };
+  const activeJob = passedJob || selectedJob;
 
   const [submitted, setSubmitted] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
@@ -118,12 +147,75 @@ export default function ApplyJobComp() {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [aiVersionIndex, setAiVersionIndex] = useState(0);
 
+  // Real Match State
+  const [matchData, setMatchData] = useState(null);
+  const [matchLoading, setMatchLoading] = useState(false);
+  const [showSkillBreakdown, setShowSkillBreakdown] = useState(false);
+
+  // Pre-select default resume or first available
+  useEffect(() => {
+    const activeRes = defaultResume || resumes[0];
+    if (activeRes?.id && !selectedResumeId) {
+      setSelectedResumeId(activeRes.id);
+    }
+  }, [defaultResume, resumes, selectedResumeId]);
+
+  // Fetch REAL AI match score from backend recommendation engine
+  useEffect(() => {
+    if (!activeJob?.id) return;
+
+    let isMounted = true;
+
+    const fetchRealMatchScore = async () => {
+      setMatchLoading(true);
+      try {
+        const query = selectedResumeId ? `?resumeId=${selectedResumeId}` : "";
+        const res = await api.get(`/recommendations/jobs/${activeJob.id}/match${query}`);
+        if (isMounted && res.data?.data) {
+          setMatchData(res.data.data);
+        }
+      } catch (err) {
+        console.warn("Real match endpoint error, computing honest client score:", err);
+        if (isMounted) {
+          // Honest deterministic fallback without any dummy floors
+          const jobSkills = activeJob.skillsRequired || activeJob.skills || [];
+          const candSkills = (userProfile?.skills || []).map((s) =>
+            (typeof s === "object" ? s.name || s.skillName || "" : String(s)).toLowerCase().trim()
+          ).filter(Boolean);
+
+          const matched = jobSkills.filter((js) =>
+            candSkills.some((cs) => cs.includes(String(js).toLowerCase().trim()) || String(js).toLowerCase().includes(cs))
+          );
+          const missing = jobSkills.filter((js) => !matched.includes(js));
+
+          const pct = jobSkills.length > 0 ? Math.round((matched.length / jobSkills.length) * 100) : 0;
+          setMatchData({
+            matchPercentage: pct,
+            matchedSkills: matched,
+            missingSkills: missing,
+            matchReason: jobSkills.length > 0
+              ? `${matched.length} of ${jobSkills.length} required skills matched`
+              : "No specific skills listed for this job",
+          });
+        }
+      } finally {
+        if (isMounted) setMatchLoading(false);
+      }
+    };
+
+    fetchRealMatchScore();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeJob?.id, selectedResumeId, userProfile]);
+
   const fullName = authUser?.name || userProfile?.name || userProfile?.fullName || "Candidate";
   const userSkills = userProfile?.skills || userProfile?.skillsRequired || [];
   const skillsListText =
     Array.isArray(userSkills) && userSkills.length > 0
       ? userSkills.slice(0, 4).map((s) => (typeof s === "object" ? s.name || s.skillName || s : String(s))).join(", ")
-      : "software engineering, modern full-stack development, and scalable architecture";
+      : (userProfile?.headline || "my core engineering and domain expertise");
 
   const AI_VERSIONS = [
     {
@@ -152,8 +244,8 @@ export default function ApplyJobComp() {
     setAiVersionIndex(nextIdx);
     setIsGeneratingAI(true);
 
-    const compName = activeJob.companyName || activeJob.company || "the company";
-    const jobName = activeJob.jobTitle || activeJob.title || "open role";
+    const compName = activeJob?.companyName || activeJob?.company?.companyName || "the company";
+    const jobName = activeJob?.jobTitle || activeJob?.title || "open role";
     const versionConfig = AI_VERSIONS[nextIdx];
 
     setTimeout(() => {
@@ -168,33 +260,8 @@ export default function ApplyJobComp() {
     }, 150);
   };
 
-  // Pre-select default resume or first available
-  useEffect(() => {
-    const activeRes = defaultResume || resumes[0];
-    if (activeRes?.id && !selectedResumeId) {
-      setSelectedResumeId(activeRes.id);
-    }
-  }, [defaultResume, resumes, selectedResumeId]);
-
   const email = authUser?.email || userProfile?.email || "";
   const phone = authUser?.phone || userProfile?.phone || userProfile?.phoneNumber || "Not provided";
-  const candidateLocation =
-    [userProfile?.city, userProfile?.state].filter(Boolean).join(", ") || userProfile?.location || "India";
-
-  // Calculate AI Job Match Score & Skill Overlap
-  const jobSkillsRequired = activeJob?.skillsRequired || activeJob?.skills || ["React", "Java", "Spring Boot"];
-  const candidateSkillsArr = (userProfile?.skills || userProfile?.skillsRequired || []).map((s) =>
-    (typeof s === "object" ? s.name || s.skillName || "" : String(s)).toLowerCase().trim()
-  );
-
-  const matchedSkills = jobSkillsRequired.filter((skill) =>
-    candidateSkillsArr.some((cSkill) => cSkill.includes(String(skill).toLowerCase().trim()))
-  );
-
-  const matchPercentage =
-    jobSkillsRequired.length > 0
-      ? Math.min(98, Math.max(72, Math.round((matchedSkills.length / Math.max(1, jobSkillsRequired.length)) * 100)))
-      : 88;
 
   // Handle uploading a custom resume on the spot
   const handleUploadResume = async (e) => {
@@ -277,8 +344,8 @@ export default function ApplyJobComp() {
         </h2>
 
         <p className="text-sm text-muted max-w-md mx-auto leading-relaxed">
-          Your application for <span className="text-indigo-600 dark:text-indigo-400 font-bold">{activeJob.jobTitle || activeJob.title}</span> at{" "}
-          <span className="text-heading font-bold">{activeJob.companyName || activeJob.company}</span> has been sent successfully.
+          Your application for <span className="text-indigo-600 dark:text-indigo-400 font-bold">{activeJob?.jobTitle || activeJob?.title}</span> at{" "}
+          <span className="text-heading font-bold">{activeJob?.companyName || activeJob?.company?.companyName}</span> has been sent successfully.
         </p>
 
         <div className="pt-4 flex items-center justify-center gap-4">
@@ -299,11 +366,33 @@ export default function ApplyJobComp() {
     );
   }
 
-  const logoSrc = activeJob?.companyLogo
-    ? getAssetUrl(activeJob.companyLogo.startsWith("http")
-        ? activeJob.companyLogo
-        : `/uploads/company/${activeJob.companyLogo}`)
+  // Loading skeleton if job details are being fetched
+  if (!activeJob) {
+    return (
+      <div className="w-full max-w-3xl mx-auto py-6 space-y-6">
+        <div className="rounded-3xl border border-border bg-surface p-6 shadow-xl animate-pulse space-y-4">
+          <div className="h-4 w-1/4 rounded-xl bg-surface-elevated" />
+          <div className="h-7 w-3/5 rounded-xl bg-surface-elevated" />
+          <div className="h-4 w-2/5 rounded-xl bg-surface-elevated" />
+        </div>
+        <div className="rounded-3xl border border-border bg-surface p-6 shadow-xl animate-pulse space-y-4">
+          <div className="h-16 w-full rounded-2xl bg-surface-elevated" />
+          <div className="h-32 w-full rounded-2xl bg-surface-elevated" />
+        </div>
+      </div>
+    );
+  }
+
+  const logoSrc = activeJob?.companyLogo || activeJob?.company?.logo
+    ? getAssetUrl(
+        (activeJob?.companyLogo || activeJob?.company?.logo).startsWith("http")
+          ? (activeJob?.companyLogo || activeJob?.company?.logo)
+          : `/uploads/company/${activeJob?.companyLogo || activeJob?.company?.logo}`
+      )
     : null;
+
+  const matchPercentage = matchData?.matchPercentage ?? null;
+  const matchStyle = matchPercentage !== null ? getMatchBadgeStyle(matchPercentage) : null;
 
   return (
     <div className="w-full max-w-3xl mx-auto font-inter text-body">
@@ -316,15 +405,15 @@ export default function ApplyJobComp() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary font-black text-xl font-satoshi shadow-xs">
             {logoSrc ? (
-              <img src={logoSrc} alt={activeJob.companyName} className="h-full w-full object-contain rounded-2xl" />
+              <img src={logoSrc} alt={activeJob.companyName || activeJob.company?.companyName} className="h-full w-full object-contain rounded-2xl" />
             ) : (
-              (activeJob.companyName || activeJob.company || "V").charAt(0)
+              (activeJob.companyName || activeJob.company?.companyName || "C").charAt(0)
             )}
           </div>
 
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 font-satoshi">
-              {activeJob.companyName || activeJob.company}
+              {activeJob.companyName || activeJob.company?.companyName}
             </p>
             <h2 className="mt-0.5 text-xl sm:text-2xl font-black text-heading font-satoshi leading-tight">
               {activeJob.jobTitle || activeJob.title}
@@ -338,9 +427,11 @@ export default function ApplyJobComp() {
                 <IconBriefcase size={13} className="text-violet" />
                 {humanise(activeJob.jobType || activeJob.type || "FULL_TIME")}
               </span>
-              <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
-                {formatINR(activeJob.minimumSalary)} - {formatINR(activeJob.maximumSalary)}
-              </span>
+              {(activeJob.minimumSalary || activeJob.maximumSalary) && (
+                <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                  {formatINR(activeJob.minimumSalary)} - {formatINR(activeJob.maximumSalary)}
+                </span>
+              )}
             </div>
           </div>
 
@@ -353,7 +444,7 @@ export default function ApplyJobComp() {
 
       {/* ── Main Application Card ── */}
       <div className="rounded-3xl border border-border bg-surface p-6 sm:p-8 shadow-2xl space-y-8">
-        {/* ── Candidate Profile Summary Badge & AI Match Score ── */}
+        {/* ── Candidate Profile Summary Badge & REAL AI Match Score ── */}
         <motion.div variants={fadeUp} initial="hidden" animate="visible" className="rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-primary/15">
             <div className="flex items-center gap-2">
@@ -363,12 +454,34 @@ export default function ApplyJobComp() {
               </h3>
             </div>
 
-            {/* AI Job Match Badge */}
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-extrabold text-amber-600 dark:text-amber-300 shadow-2xs">
-                <IconSparkles size={13} className="text-amber-500 fill-amber-500/20 animate-pulse" />
-                {matchPercentage}% AI Match Score
-              </span>
+            {/* REAL AI Job Match Badge (No Dummy Floors) */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {matchLoading ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                  <IconLoader2 size={13} className="animate-spin text-indigo-500" />
+                  Analyzing Match...
+                </span>
+              ) : matchPercentage !== null ? (
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-black shadow-2xs ${matchStyle?.badge}`}>
+                    <IconSparkles size={13} className="animate-pulse" />
+                    {matchPercentage}% AI Match Score ({matchStyle?.label})
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowSkillBreakdown((prev) => !prev)}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                  >
+                    {showSkillBreakdown ? "Hide Skills" : "View Skills"}
+                    {showSkillBreakdown ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}
+                  </button>
+                </div>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3 py-1 text-xs font-medium text-muted">
+                  Match Pending Profile
+                </span>
+              )}
 
               <Link
                 to="/profile"
@@ -378,6 +491,65 @@ export default function ApplyJobComp() {
               </Link>
             </div>
           </div>
+
+          {/* Real Skill Breakdown Accordion */}
+          <AnimatePresence>
+            {showSkillBreakdown && matchData && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25 }}
+                className="mb-4 pb-3 border-b border-primary/15 space-y-2.5 text-xs overflow-hidden"
+              >
+                {matchData.matchReason && (
+                  <p className="text-[11px] text-muted font-medium flex items-center gap-1">
+                    <span className="font-bold text-heading">Match Insight:</span> {matchData.matchReason}
+                  </p>
+                )}
+
+                {/* Matched Skills */}
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-heading">
+                    Matched Skills ({matchData.matchedSkills?.length || 0}):
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {matchData.matchedSkills && matchData.matchedSkills.length > 0 ? (
+                      matchData.matchedSkills.map((sk) => (
+                        <span
+                          key={sk}
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold"
+                        >
+                          <IconCheck size={11} /> {sk}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[11px] text-rose-500 font-medium">None of the required skills matched yet</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Missing Skills */}
+                {matchData.missingSkills && matchData.missingSkills.length > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold text-heading">
+                      Missing Required Skills ({matchData.missingSkills.length}):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {matchData.missingSkills.map((sk) => (
+                        <span
+                          key={sk}
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 dark:text-rose-400 text-[11px] font-medium"
+                        >
+                          <IconX size={11} /> {sk}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-body">
             <div className="flex items-center gap-2">
@@ -401,7 +573,7 @@ export default function ApplyJobComp() {
             <div>
               <h3 className="text-base font-bold text-heading font-satoshi">Select Resume</h3>
               <p className="text-xs text-muted mt-0.5">
-                Choose the resume you want recruiters to review for this role.
+                Choose the resume to submit. Selecting a resume immediately calculates your real-time AI match.
               </p>
             </div>
 

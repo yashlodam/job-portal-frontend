@@ -194,6 +194,8 @@ export const searchJobs = createAsyncThunk(
         featured:        searchParams.featured    != null   ? searchParams.featured      : undefined,
         urgentHiring:    searchParams.urgentHiring != null  ? searchParams.urgentHiring  : undefined,
         easyApply:       searchParams.easyApply   != null   ? searchParams.easyApply     : undefined,
+        postedWithinDays: searchParams.postedWithinDays != null ? searchParams.postedWithinDays : undefined,
+        sortBy:          searchParams.sortBy?.trim()          || undefined,
       };
 
       // Strip undefined so Axios doesn't serialize empty params
@@ -393,7 +395,6 @@ export const getWorkModes = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await api.get("/jobs/work-modes");
-
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -406,9 +407,43 @@ export const getWorkModes = createAsyncThunk(
   }
 );
 
+export const fetchSearchSuggestions = createAsyncThunk(
+  "jobs/fetchSearchSuggestions",
+  async (query, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get("/jobs/suggestions", {
+        params: { query },
+      });
+      return data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data ?? {
+          success: false,
+          message: "Unable to fetch search suggestions.",
+        }
+      );
+    }
+  }
+);
 
-
-
+export const fetchSearchFacets = createAsyncThunk(
+  "jobs/fetchSearchFacets",
+  async (filterParams = {}, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get("/jobs/facets", {
+        params: filterParams,
+      });
+      return data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data ?? {
+          success: false,
+          message: "Unable to fetch search facets.",
+        }
+      );
+    }
+  }
+);
 
 const initialState = {
 
@@ -422,6 +457,16 @@ const initialState = {
     categoryJobs: [],
     similarJobs: [],
 
+    // ---------------- Search & Facets ----------------
+
+    suggestions: {
+        jobTitles: [],
+        skills: [],
+        companies: [],
+        locations: [],
+    },
+    facets: null,
+
     // ---------------- Job Details ----------------
 
     selectedJob: null,
@@ -430,6 +475,7 @@ const initialState = {
 
     categories: [],
     workModes: [],
+
 
     // ---------------- Pagination ----------------
 
@@ -680,7 +726,22 @@ const jobSlice = createSlice({
         state.success = true;
         state.workModes = action.payload?.data ?? [];
       })
-      .addCase(getWorkModes.rejected, setRejected);
+      .addCase(getWorkModes.rejected, setRejected)
+
+      // ---------------- Search Suggestions ----------------
+      .addCase(fetchSearchSuggestions.fulfilled, (state, action) => {
+        state.suggestions = action.payload?.data ?? {
+          jobTitles: [],
+          skills: [],
+          companies: [],
+          locations: [],
+        };
+      })
+
+      // ---------------- Search Facets ----------------
+      .addCase(fetchSearchFacets.fulfilled, (state, action) => {
+        state.facets = action.payload?.data ?? null;
+      });
   },
 });
 

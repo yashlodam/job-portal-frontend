@@ -1,10 +1,5 @@
-/**
- * src/features/resume-builder/pages/ResumeEditorPage.jsx
- * 3-Panel Editor Page with spacious desktop A4 live sync canvas and cloud auto-save status.
- */
-
 import React, { useState, useEffect } from "react";
-import { Sparkles, Save, CheckCircle2, Loader2, FileText, Download, ArrowLeft } from "lucide-react";
+import { Sparkles, Save, CheckCircle2, Loader2, FileText, Download, ArrowLeft, ShieldCheck, AlertCircle, Target } from "lucide-react";
 import { useResumeBuilder } from "../hooks/useResumeBuilder";
 import { useToast } from "../../../components/ui/ToastNotification";
 import SectionNav from "../components/Editor/SectionNav";
@@ -18,6 +13,91 @@ import CertificationsForm from "../components/Editor/CertificationsForm";
 import AchievementsForm from "../components/Editor/AchievementsForm";
 import ResumePreviewContainer from "../components/Preview/ResumePreviewContainer";
 import AISuggestionModal from "../components/AI/AISuggestionModal";
+
+// ── Resume Health Panel ────────────────────────────────────────────────────────
+function ResumeHealthPanel({ resume, atsAnalysis, onRunAudit, isAiLoading }) {
+  const completion = resume?.completionPercentage || 0;
+  const checks = [
+    { label: "Personal Info", done: !!(resume?.personalInfo?.fullName && resume?.personalInfo?.email) },
+    { label: "Professional Summary", done: !!(resume?.summary && resume.summary.length > 30) },
+    { label: "Work Experience", done: !!(resume?.experience?.length > 0) },
+    { label: "Education", done: !!(resume?.education?.length > 0) },
+    { label: "Technical Skills", done: !!(resume?.skills?.technical?.length > 0 || (Array.isArray(resume?.skills) && resume.skills.length > 0)) },
+    { label: "Projects", done: !!(resume?.projects?.length > 0) },
+    { label: "Certifications", done: !!(resume?.certifications?.length > 0) },
+  ];
+  const doneCount = checks.filter((c) => c.done).length;
+
+  const atsScore = atsAnalysis?.atsScore || resume?.atsScore || null;
+
+  return (
+    <div className="p-4 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShieldCheck size={16} className="text-indigo-500 dark:text-indigo-400" />
+          <span className="text-sm font-black text-heading">Resume Health</span>
+        </div>
+        <span className={`text-xs font-black px-2.5 py-0.5 rounded-full border ${
+          completion >= 80
+            ? "text-emerald-500 bg-emerald-500/10 border-emerald-500/20"
+            : completion >= 50
+            ? "text-amber-500 bg-amber-500/10 border-amber-500/20"
+            : "text-rose-500 bg-rose-500/10 border-rose-500/20"
+        }`}>
+          {completion}% Complete
+        </span>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full h-2 rounded-full bg-surface-hover overflow-hidden">
+        <div
+          className={`h-2 rounded-full transition-all duration-500 ${
+            completion >= 80 ? "bg-emerald-500" : completion >= 50 ? "bg-amber-500" : "bg-rose-500"
+          }`}
+          style={{ width: `${completion}%` }}
+        />
+      </div>
+
+      {/* Section Checklist */}
+      <div className="space-y-1.5">
+        {checks.map((c) => (
+          <div key={c.label} className="flex items-center gap-2 text-[11px] font-medium">
+            {c.done ? (
+              <CheckCircle2 size={12} className="text-emerald-500 dark:text-emerald-400 shrink-0" />
+            ) : (
+              <AlertCircle size={12} className="text-rose-400 shrink-0" />
+            )}
+            <span className={c.done ? "text-body" : "text-muted"}>{c.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ATS Score / Audit */}
+      <div className="pt-2 border-t border-border space-y-2">
+        {atsScore ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Target size={14} className="text-indigo-500 dark:text-indigo-400" />
+              <span className="text-xs font-black text-heading">ATS Score</span>
+            </div>
+            <span className={`text-sm font-black ${atsScore >= 80 ? "text-emerald-500" : atsScore >= 60 ? "text-amber-500" : "text-rose-500"}`}>
+              {atsScore}/100
+            </span>
+          </div>
+        ) : null}
+
+        <button
+          onClick={onRunAudit}
+          disabled={isAiLoading || !resume?.id}
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 text-xs font-black hover:bg-indigo-500/20 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isAiLoading ? <Loader2 size={13} className="animate-spin" /> : <ShieldCheck size={13} />}
+          {isAiLoading ? "Auditing..." : atsScore ? "Re-run ATS Audit" : "Run ATS Audit"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function ResumeEditorPage() {
   const toast = useToast();
@@ -38,6 +118,9 @@ export default function ResumeEditorPage() {
     saveStatus,
     isDirty,
     setViewMode,
+    analyzeBuilderResume,
+    aiLoading,
+    atsAnalysis,
   } = useResumeBuilder();
 
   // Debounced auto-save effect (1.5s after user stops typing)
@@ -53,6 +136,20 @@ export default function ResumeEditorPage() {
     if (currentResume?.id) {
       updateResume({ id: currentResume.id, resumeData: currentResume });
       toast.success("Resume saved successfully!");
+    }
+  };
+
+  const handleRunAudit = async () => {
+    if (!currentResume?.id) {
+      toast.error("Please save your resume before running ATS audit.");
+      return;
+    }
+    toast.info("Running ATS audit on your resume...");
+    try {
+      await analyzeBuilderResume(currentResume.id);
+      toast.success("ATS audit complete! Check your score above.");
+    } catch {
+      toast.error("ATS audit failed. Please try again.");
     }
   };
 
@@ -103,8 +200,8 @@ export default function ResumeEditorPage() {
 
       {/* Spacious 2-Column Desktop Grid Layout (Editor: 5 cols | Preview: 7 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Section Selector Nav & Dynamic Form Editor (5 cols on Desktop) */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* Left Column: Section Selector Nav + Resume Health + Dynamic Form Editor (5 cols on Desktop) */}
+        <div className="lg:col-span-5 space-y-4">
           {/* Compact Section Navigation Bar */}
           <div className="p-4 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl">
             <SectionNav
@@ -113,6 +210,14 @@ export default function ResumeEditorPage() {
               resume={currentResume}
             />
           </div>
+
+          {/* Resume Health Panel */}
+          <ResumeHealthPanel
+            resume={currentResume}
+            atsAnalysis={atsAnalysis}
+            onRunAudit={handleRunAudit}
+            isAiLoading={aiLoading}
+          />
 
           {/* Form Editor Card */}
           <div className="p-6 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl min-h-[550px]">
@@ -185,3 +290,4 @@ export default function ResumeEditorPage() {
     </div>
   );
 }
+

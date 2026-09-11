@@ -90,12 +90,13 @@ export const sendOtp = createAsyncThunk(
     "auth/sendOtp",
     async (email, { rejectWithValue }) => {
         try {
-            const response = await api.post(`/auth/send-otp/${email}`);
+            const cleanEmail = encodeURIComponent((email || "").trim());
+            const response = await api.post(`/auth/send-otp/${cleanEmail}`);
             return response.data;
         } catch (error) {
-            return rejectWithValue(
-                error.response?.data || { message: "Failed to send OTP." }
-            );
+            const data = error.response?.data;
+            const message = data?.message || data?.error || error.message || "Failed to send OTP.";
+            return rejectWithValue({ message, ...data });
         }
     }
 );
@@ -105,12 +106,15 @@ export const verifyOtp = createAsyncThunk(
     "auth/verifyOtp",
     async (request, { rejectWithValue }) => {
         try {
-            const response = await api.post("/auth/verify-otp", request);
+            const response = await api.post("/auth/verify-otp", {
+                email: (request.email || "").trim(),
+                otp: (request.otp || "").trim(),
+            });
             return response.data;
         } catch (error) {
-            return rejectWithValue(
-                error.response?.data || { message: "OTP verification failed." }
-            );
+            const data = error.response?.data;
+            const message = data?.message || data?.error || error.message || "OTP verification failed.";
+            return rejectWithValue({ message, ...data });
         }
     }
 );
@@ -120,12 +124,15 @@ export const resetPassword = createAsyncThunk(
     "auth/resetPassword",
     async (request, { rejectWithValue }) => {
         try {
-            const response = await api.post("/auth/reset-password", request);
+            const response = await api.post("/auth/reset-password", {
+                email: (request.email || "").trim(),
+                newPassword: request.newPassword,
+            });
             return response.data;
         } catch (error) {
-            return rejectWithValue(
-                error.response?.data || { message: "Password reset failed." }
-            );
+            const data = error.response?.data;
+            const message = data?.message || data?.error || error.message || "Password reset failed.";
+            return rejectWithValue({ message, ...data });
         }
     }
 );
