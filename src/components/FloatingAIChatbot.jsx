@@ -583,12 +583,15 @@ export default function FloatingAIChatbot() {
     handleSend(mode.prompt);
   };
 
-  const isJobDetail = location.pathname.startsWith("/jobs/");
+  const hasStickyBottomBar =
+    location.pathname.startsWith("/jobs/") ||
+    location.pathname.startsWith("/apply-jobs") ||
+    location.pathname.includes("resume-builder");
 
   return (
     <aside
       className={`fixed right-3 sm:right-8 z-50 font-inter pointer-events-none transition-all duration-300 ${
-        isJobDetail ? "bottom-20 sm:bottom-10" : "bottom-5 sm:bottom-10"
+        hasStickyBottomBar ? "bottom-20 sm:bottom-10" : "bottom-5 sm:bottom-10"
       }`}
       aria-label="JobPortal AI Career Copilot"
     >
@@ -597,14 +600,14 @@ export default function FloatingAIChatbot() {
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 24 }}
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 24 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
               transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-              className={`mb-3 sm:mb-4 rounded-3xl border border-border bg-surface/98 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] dark:shadow-[0_30px_80px_rgba(0,0,0,0.95)] flex flex-col text-heading overflow-hidden origin-bottom-right transition-all duration-300 ${
+              className={`fixed inset-x-2.5 bottom-2 sm:static sm:inset-auto mb-0 sm:mb-4 rounded-3xl border border-border bg-surface/98 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] dark:shadow-[0_30px_80px_rgba(0,0,0,0.95)] flex flex-col text-heading overflow-hidden origin-bottom-right transition-all duration-300 z-50 ${
                 isExpanded
-                  ? "w-[calc(100vw-24px)] sm:w-[640px] h-[min(680px,calc(100dvh-90px))]"
-                  : "w-[calc(100vw-24px)] sm:w-[420px] h-[min(580px,calc(100dvh-110px))]"
+                  ? "w-auto sm:w-[640px] h-[min(680px,calc(100dvh-20px))] sm:h-[min(680px,calc(100dvh-90px))]"
+                  : "w-auto sm:w-[420px] h-[min(580px,calc(100dvh-24px))] sm:h-[min(580px,calc(100dvh-110px))]"
               }`}
             >
               {/* ── Top Header ── */}

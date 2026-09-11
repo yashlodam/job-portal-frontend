@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Save, CheckCircle2, Loader2, FileText, Download, ArrowLeft, ShieldCheck, AlertCircle, Target } from "lucide-react";
+import { Sparkles, Save, CheckCircle2, Loader2, FileText, Download, ArrowLeft, ShieldCheck, AlertCircle, Target, Eye } from "lucide-react";
 import { useResumeBuilder } from "../hooks/useResumeBuilder";
 import { useToast } from "../../../components/ui/ToastNotification";
 import SectionNav from "../components/Editor/SectionNav";
@@ -102,6 +102,7 @@ function ResumeHealthPanel({ resume, atsAnalysis, onRunAudit, isAiLoading }) {
 export default function ResumeEditorPage() {
   const toast = useToast();
   const [activeSection, setActiveSection] = useState("personalInfo");
+  const [mobileTab, setMobileTab] = useState("editor"); // "editor" | "preview"
 
   const {
     currentResume,
@@ -198,10 +199,36 @@ export default function ResumeEditorPage() {
         </div>
       </div>
 
-      {/* Spacious 2-Column Desktop Grid Layout (Editor: 5 cols | Preview: 7 cols) */}
+      {/* Mobile-Only Segment Switcher: Edit Sections vs Live A4 Preview */}
+      <div className="lg:hidden flex items-center p-1.5 rounded-2xl bg-surface border border-border shadow-md">
+        <button
+          type="button"
+          onClick={() => setMobileTab("editor")}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            mobileTab === "editor"
+              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+              : "text-muted hover:text-heading"
+          }`}
+        >
+          <FileText size={14} /> Edit Form
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab("preview")}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            mobileTab === "preview"
+              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+              : "text-muted hover:text-heading"
+          }`}
+        >
+          <Eye size={14} /> Live Preview & Download
+        </button>
+      </div>
+
+      {/* Spacious 2-Column Grid Layout (Editor: 5 cols | Preview: 7 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Section Selector Nav + Resume Health + Dynamic Form Editor (5 cols on Desktop) */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className={`lg:col-span-5 space-y-4 ${mobileTab === "editor" ? "block" : "hidden lg:block"}`}>
           {/* Compact Section Navigation Bar */}
           <div className="p-4 rounded-3xl bg-surface border border-border backdrop-blur-2xl shadow-xl">
             <SectionNav
@@ -279,11 +306,28 @@ export default function ResumeEditorPage() {
           </div>
         </div>
 
-        {/* Right Column: Premium Desktop Live A4 Document Canvas (7 cols on Desktop) */}
-        <div className="lg:col-span-7 sticky top-6">
+        {/* Right Column: Live A4 Document Canvas */}
+        <div className={`lg:col-span-7 lg:sticky lg:top-6 ${mobileTab === "preview" ? "block" : "hidden lg:block"}`}>
           <ResumePreviewContainer resume={currentResume} />
         </div>
       </div>
+
+      {/* Mobile Floating "Preview & Download" Quick Action Button (when in editor mode) */}
+      {mobileTab === "editor" && (
+        <div className="lg:hidden fixed bottom-6 right-4 z-40">
+          <button
+            type="button"
+            onClick={() => {
+              setMobileTab("preview");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-extrabold text-xs shadow-2xl shadow-indigo-600/40 border border-white/20 active:scale-95 transition-all cursor-pointer"
+          >
+            <Eye size={16} />
+            <span>Preview Resume</span>
+          </button>
+        </div>
+      )}
 
       {/* AI Suggestion Modal — only shown for non-auto-applied suggestions */}
       <AISuggestionModal />

@@ -1204,13 +1204,43 @@ function Header() {
                     </div>
                   </div>
                 ) : (
-                  <Link
-                    to="/login"
-                    onClick={() => setMobileOpen(false)}
-                    className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3.5 text-sm font-black text-white shadow-lg cursor-pointer"
-                  >
-                    Sign In to Your Account
-                  </Link>
+                  <div className="mt-4 space-y-2.5">
+                    <div className="flex items-center justify-between p-3 rounded-2xl border border-border bg-surface-elevated">
+                      <span className="text-xs font-bold text-heading">Theme Mode</span>
+                      <button
+                        type="button"
+                        onClick={toggleTheme}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-surface text-xs font-bold text-heading hover:border-indigo-500/40 transition cursor-pointer"
+                      >
+                        {theme === "dark" ? (
+                          <>
+                            <Sun size={14} className="text-amber-400" /> Light
+                          </>
+                        ) : (
+                          <>
+                            <Moon size={14} className="text-indigo-600" /> Dark
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        to="/login"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center justify-center rounded-2xl border border-border bg-surface-elevated py-3 text-xs font-extrabold text-heading hover:bg-surface transition"
+                      >
+                        Sign In
+                      </Link>
+                      <Link
+                        to="/signup"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 py-3 text-xs font-extrabold text-white shadow-md shadow-indigo-500/20"
+                      >
+                        Sign Up Free
+                      </Link>
+                    </div>
+                  </div>
                 )}
 
                 {/* Bottom safe-area spacer */}

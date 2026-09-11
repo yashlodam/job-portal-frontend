@@ -329,8 +329,8 @@ const DreamJob = memo(() => {
             {/* ── COMMAND SEARCH CENTER ── */}
             <motion.div variants={fadeUp} className="w-full max-w-3xl lg:max-w-4xl pt-1">
               
-              {/* Quick Category Filter Pills */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1 sm:gap-2 mb-3">
+              {/* Quick Category Filter Pills — Smooth horizontal touch-scroll on mobile, wrap on desktop */}
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-3.5 overflow-x-auto no-scrollbar py-1 -mx-2 px-2 sm:mx-0 sm:px-0 sm:flex-wrap justify-start lg:justify-start touch-scroll-x">
                 {QUICK_FILTERS.map((f) => {
                   const Icon = f.icon;
                   const isSelected = activeFilter === f.id;
@@ -340,7 +340,7 @@ const DreamJob = memo(() => {
                       key={f.id}
                       type="button"
                       onClick={() => handleFilterClick(f)}
-                      className={`inline-flex items-center gap-1 sm:gap-1.5 rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold transition-all duration-200 cursor-pointer ${
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] sm:text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
                         isSelected
                           ? "!bg-indigo-600 !text-white shadow-md shadow-indigo-600/30 border border-indigo-500"
                           : isLight
@@ -349,8 +349,8 @@ const DreamJob = memo(() => {
                       }`}
                       style={isSelected ? { backgroundColor: "#4F46E5", color: "#FFFFFF" } : {}}
                     >
-                      <Icon size={12} style={isSelected ? { color: "#FFFFFF" } : {}} className={isSelected ? "!text-white" : isLight ? "text-indigo-600" : "text-indigo-400"} />
-                      <span style={isSelected ? { color: "#FFFFFF" } : {}} className={isSelected ? "!text-white" : ""}>{f.label}</span>
+                      <Icon size={13} style={isSelected ? { color: "#FFFFFF" } : {}} className={isSelected ? "!text-white" : isLight ? "text-indigo-600" : "text-indigo-400"} />
+                      <span style={isSelected ? { color: "#FFFFFF" } : {}} className={isSelected ? "!text-white whitespace-nowrap" : "whitespace-nowrap"}>{f.label}</span>
                     </button>
                   );
                 })}
@@ -654,21 +654,21 @@ const DreamJob = memo(() => {
               <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
-                className={`absolute left-0 sm:-left-6 top-3 sm:top-10 z-20 flex items-center gap-2.5 sm:gap-3 rounded-2xl border p-2.5 sm:p-3.5 backdrop-blur-2xl scale-[0.88] sm:scale-100 origin-top-left shadow-xl ${
+                className={`absolute left-2 sm:-left-6 top-2 sm:top-10 z-20 flex items-center gap-2 sm:gap-3 rounded-2xl border p-2 sm:p-3.5 backdrop-blur-2xl scale-[0.84] sm:scale-100 origin-top-left shadow-xl max-w-[180px] sm:max-w-none ${
                   isLight
                     ? "border-slate-200/90 bg-white/95 shadow-xl text-slate-800"
                     : "border-white/15 bg-[#090e1c]/95 shadow-[0_20px_40px_rgba(0,0,0,0.7)] text-white"
                 }`}
               >
-                <div className="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 border border-amber-400/30 text-amber-500 shadow-md">
-                  <Sparkles size={18} className="fill-amber-400/20 animate-pulse" />
+                <div className="flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 border border-amber-400/30 text-amber-500 shadow-md">
+                  <Sparkles size={16} className="fill-amber-400/20 animate-pulse" />
                 </div>
                 <div className="space-y-0.5 text-left min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className={`text-xs font-extrabold font-satoshi truncate ${isLight ? "text-slate-900" : "text-white"}`}>AI Match Analysis</h4>
+                  <div className="flex items-center gap-1">
+                    <h4 className={`text-[11px] sm:text-xs font-extrabold font-satoshi truncate ${isLight ? "text-slate-900" : "text-white"}`}>AI Match Analysis</h4>
                     <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
                   </div>
-                  <p className="text-[10px] sm:text-[11px] font-semibold text-emerald-600">Semantic Fit</p>
+                  <p className="text-[9px] sm:text-[11px] font-semibold text-emerald-600 truncate">Semantic Fit</p>
                 </div>
               </motion.div>
 
@@ -676,18 +676,18 @@ const DreamJob = memo(() => {
               <motion.div
                 animate={{ y: [0, 8, 0] }}
                 transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
-                className={`absolute right-0 sm:-right-5 bottom-3 sm:bottom-10 z-20 flex items-center gap-2.5 sm:gap-3 rounded-2xl border p-2.5 sm:p-3.5 backdrop-blur-2xl scale-[0.88] sm:scale-100 origin-bottom-right shadow-xl ${
+                className={`absolute right-2 sm:-right-5 bottom-2 sm:bottom-10 z-20 flex items-center gap-2 sm:gap-3 rounded-2xl border p-2 sm:p-3.5 backdrop-blur-2xl scale-[0.84] sm:scale-100 origin-bottom-right shadow-xl max-w-[180px] sm:max-w-none ${
                   isLight
                     ? "border-slate-200/90 bg-white/95 shadow-xl text-slate-800"
                     : "border-white/15 bg-[#090e1c]/95 shadow-[0_20px_40px_rgba(0,0,0,0.7)] text-white"
                 }`}
               >
-                <div className="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-600/15 border border-indigo-500/30 text-indigo-600 shadow-md">
-                  <Clock size={18} />
+                <div className="flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-600/15 border border-indigo-500/30 text-indigo-600 shadow-md">
+                  <Clock size={16} />
                 </div>
                 <div className="space-y-0.5 text-left min-w-0">
-                  <h4 className={`text-xs font-extrabold font-satoshi truncate ${isLight ? "text-slate-900" : "text-white"}`}>Direct Pipeline</h4>
-                  <p className={`text-[10px] sm:text-[11px] font-semibold ${isLight ? "text-indigo-600" : "text-indigo-300"}`}>Verified Employers</p>
+                  <h4 className={`text-[11px] sm:text-xs font-extrabold font-satoshi truncate ${isLight ? "text-slate-900" : "text-white"}`}>Direct Pipeline</h4>
+                  <p className={`text-[9px] sm:text-[11px] font-semibold truncate ${isLight ? "text-indigo-600" : "text-indigo-300"}`}>Verified Employers</p>
                 </div>
               </motion.div>
 
@@ -723,7 +723,7 @@ const DreamJob = memo(() => {
                 : "border-white/10 bg-[#080d1a]/85 shadow-[0_20px_50px_rgba(0,0,0,0.6)] hover:border-indigo-500/40"
             }`}
           >
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-200/60 dark:divide-white/10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 md:divide-x divide-slate-200/60 dark:divide-white/10">
               {HERO_STATS.map((stat, idx) => {
                 const Icon = stat.icon;
                 const displayVal = stat.id === "jobs" ? liveJobCount : stat.value;
@@ -732,8 +732,10 @@ const DreamJob = memo(() => {
                   <Link
                     key={stat.id}
                     to="/find-jobs"
-                    className={`group flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-3 sm:gap-4 p-2 transition-all duration-300 hover:-translate-y-1 cursor-pointer min-w-0 ${
-                      idx !== 0 ? "pt-4 sm:pt-2 sm:pl-4 lg:pl-6" : ""
+                    className={`group flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-2.5 sm:gap-4 p-2 sm:p-2.5 rounded-2xl md:rounded-none transition-all duration-300 hover:-translate-y-1 cursor-pointer min-w-0 ${
+                      idx !== 0 ? "md:pl-4 lg:pl-6" : ""
+                    } ${
+                      isLight ? "bg-slate-50/70 md:bg-transparent" : "bg-white/[0.02] md:bg-transparent"
                     }`}
                   >
                     <div

@@ -142,6 +142,36 @@ body.light {
 }
 
 /* ============================================================
+   Global Mobile Viewport, Touch & Overflow Protection
+   ============================================================ */
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+  position: relative;
+  min-height: 100%;
+  touch-action: manipulation;
+  background-color: var(--bg-app);
+  color: var(--text-body);
+}
+
+#root {
+  overflow-x: clip;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fast tap response & no grey tap highlight on mobile devices */
+button, a, input, select, textarea, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================================
    Light Mode — Comprehensive Hardcoded Dark Color Overrides
    ============================================================ */
 
@@ -1420,4 +1450,41 @@ textarea::placeholder,
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ============================================================
+   Mobile Ergonomic Utilities
+   ============================================================ */
+
+/* Safe Area Insets for iOS & notched modern devices */
+.pb-safe {
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+}
+.pb-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.mb-safe {
+  margin-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Touch-optimized horizontal scrolling with momentum */
+.touch-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+
+.touch-scroll-x > * {
+  scroll-snap-align: start;
+}
+
+/* Fluid mobile typography helpers */
+@media (max-width: 640px) {
+  .mobile-tight-heading {
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
 }
