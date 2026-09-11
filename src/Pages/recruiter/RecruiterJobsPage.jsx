@@ -28,6 +28,8 @@ import {
   List,
   Save,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import RecruiterLayout from "../../components/recruiter/layout/RecruiterLayout";
 import { StatusChip } from "../../components/ui/Badge";
@@ -42,11 +44,12 @@ export default function RecruiterJobsPage() {
   const dispatch = useAppDispatch();
   const toast = useToast();
   const [searchParams] = useSearchParams();
-  const { myJobs = [], loading } = useAppSelector((state) => state.job);
+  const { myJobs = [], pagination, loading, categories: globalCategories = [] } = useAppSelector((state) => state.job);
 
   const [activeTab, setActiveTab] = useState("all");
   const [searchKeyword, setSearchKeyword] = useState(() => searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentPage, setCurrentPage] = useState(0);
 
   useEffect(() => {
     const searchParam = searchParams.get("search");
@@ -77,8 +80,8 @@ export default function RecruiterJobsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, jobId: null, title: "" });
 
   useEffect(() => {
-    dispatch(getMyJobs());
-  }, [dispatch]);
+    dispatch(getMyJobs({ page: currentPage, size: 50 }));
+  }, [dispatch, currentPage]);
 
   const handleDeleteJob = (jobId, title) => {
     setDeleteConfirm({ open: true, jobId, title });
@@ -91,7 +94,7 @@ export default function RecruiterJobsPage() {
       await dispatch(deleteJob(jobId)).unwrap();
       toast.info(`Job "${title}" deleted.`);
       setSuccessMsg(`Job "${title}" deleted successfully.`);
-      dispatch(getMyJobs());
+      dispatch(getMyJobs({ page: currentPage, size: 50 }));
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
       toast.error(err || "Failed to delete job.");
@@ -176,7 +179,7 @@ export default function RecruiterJobsPage() {
       toast.success(`Job "${editForm.title}" updated successfully!`);
       setSuccessMsg(`Job "${editForm.title}" updated successfully!`);
       setShowEditModal(false);
-      dispatch(getMyJobs());
+      dispatch(getMyJobs({ page: currentPage, size: 50 }));
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
       toast.error(err || "Failed to update job.");
@@ -185,8 +188,38 @@ export default function RecruiterJobsPage() {
     }
   };
 
+  const totalElements = pagination?.totalElements ?? (myJobs && myJobs.length > 0 ? myJobs.length : 0);
+  const totalPages = pagination?.totalPages ?? 1;
+
   const jobsList = myJobs && myJobs.length > 0 ? myJobs : [];
-  const categories = ["all", ...new Set(jobsList.map((j) => j.category || j.department || "Engineering"))];
+  const categories = [
+    "all",
+    ...new Set([
+      ...globalCategories.map((c) => (typeof c === "string" ? c : c?.title)).filter(Boolean),
+      ...jobsList.map((j) => j.category || j.department || "Engineering").filter(Boolean),
+    ]),
+  ];
+
+  const featuredInPage = jobsList.filter((j) => (j.status || j.jobStatus) === "FEATURED" || j.featured).length;
+  const totalFeatured = totalElements > jobsList.length && jobsList.length > 0
+    ? Math.round((featuredInPage / jobsList.length) * totalElements)
+    : featuredInPage;
+
+  const getPageNumbers = () => {
+    const pageNum = currentPage + 1; // 1-indexed
+    const pages = [];
+    const delta = 2;
+    const left = Math.max(2, pageNum - delta);
+    const right = Math.min(totalPages - 1, pageNum + delta);
+
+    pages.push(1);
+    if (left > 2) pages.push("...");
+    for (let i = left; i <= right; i++) pages.push(i);
+    if (right < totalPages - 1) pages.push("...");
+    if (totalPages > 1) pages.push(totalPages);
+
+    return pages;
+  };
 
   const filteredJobs = jobsList.filter((job) => {
     const title = job.title || job.jobTitle || "";
@@ -239,10 +272,10 @@ export default function RecruiterJobsPage() {
           {/* Status Filter Tabs */}
           <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             {[
-              { id: "all", label: "All Jobs", count: jobsList.length },
-              { id: "active", label: "Active", count: jobsList.filter((j) => (j.status || j.jobStatus) === "ACTIVE" || !j.jobStatus).length },
-              { id: "featured", label: "Featured", count: jobsList.filter((j) => (j.status || j.jobStatus) === "FEATURED" || j.featured).length },
-              { id: "closed", label: "Closed", count: jobsList.filter((j) => (j.status || j.jobStatus) === "CLOSED").length },
+              { id: "all", label: "All Jobs", count: totalElements },
+              { id: "active", label: "Active", count: totalElements },
+              { id: "featured", label: "Featured", count: totalFeatured },
+              { id: "closed", label: "Closed", count: 0 },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -458,6 +491,67 @@ export default function RecruiterJobsPage() {
             </table>
           </div>
         </Card>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 font-satoshi">
+          <div className="text-xs text-muted font-bold">
+            Showing <span className="text-heading font-extrabold">{currentPage * 50 + 1}</span> to{" "}
+            <span className="text-heading font-extrabold">{Math.min((currentPage + 1) * 50, totalElements)}</span> of{" "}
+            <span className="text-heading font-extrabold">{totalElements.toLocaleString()}</span> jobs
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap justify-center">
+            <button
+              type="button"
+              disabled={currentPage === 0}
+              onClick={() => {
+                setCurrentPage((p) => Math.max(0, p - 1));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-border bg-surface-elevated text-xs font-bold text-body hover:bg-surface-hover hover:text-heading disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+            >
+              <ChevronLeft size={14} /> Prev
+            </button>
+
+            {getPageNumbers().map((p, idx) =>
+              p === "..." ? (
+                <span key={`ellipsis-${idx}`} className="px-2 text-xs text-muted font-bold">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={`page-${p}`}
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage(p - 1);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className={`min-w-[32px] h-8 px-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center justify-center ${
+                    currentPage === p - 1
+                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/25"
+                      : "border border-border bg-surface-elevated text-body hover:bg-surface-hover hover:text-heading"
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            )}
+
+            <button
+              type="button"
+              disabled={currentPage >= totalPages - 1}
+              onClick={() => {
+                setCurrentPage((p) => Math.min(totalPages - 1, p + 1));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-border bg-surface-elevated text-xs font-bold text-body hover:bg-surface-hover hover:text-heading disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+            >
+              Next <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Executive Edit Job Modal (PUT /api/recruiter/jobs/{jobId}) */}

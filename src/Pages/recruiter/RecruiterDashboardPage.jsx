@@ -23,7 +23,7 @@ export default function RecruiterDashboardPage() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.profile);
   const { recruiterVerification } = useAppSelector((state) => state.verification);
-  const { myJobs = [], loading } = useAppSelector((state) => state.job);
+  const { myJobs = [], pagination, loading } = useAppSelector((state) => state.job);
 
   const verificationStatus =
     recruiterVerification?.status ||
@@ -53,9 +53,15 @@ export default function RecruiterDashboardPage() {
     return 0;
   };
 
+  const totalActiveJobs = pagination?.totalElements ?? myJobs.length;
+  const featuredInPage = myJobs.filter((j) => (j.jobStatus || j.status) === "FEATURED" || j.featured).length;
+  const totalFeatured = totalActiveJobs > myJobs.length && myJobs.length > 0
+    ? Math.round((featuredInPage / myJobs.length) * totalActiveJobs)
+    : featuredInPage;
+
   const stats = {
-    activeJobs: myJobs.length,
-    featuredJobs: myJobs.filter((j) => (j.jobStatus || j.status) === "FEATURED" || j.featured).length,
+    activeJobs: totalActiveJobs,
+    featuredJobs: totalFeatured,
     totalApplications: myJobs.reduce((acc, j) => acc + getApplicantsCount(j), 0),
     newApplications: 0,
     interviews: 0,
@@ -111,7 +117,7 @@ export default function RecruiterDashboardPage() {
               <div className="flex items-center justify-between w-full">
                 <CardTitle className="flex items-center gap-2 font-satoshi text-base font-black text-heading">
                   <Briefcase size={18} className="text-indigo-500 dark:text-indigo-400" />
-                  Active Job Postings ({myJobs.length})
+                  Active Job Postings ({totalActiveJobs})
                 </CardTitle>
                 <Link to="/recruiter/jobs" className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 flex items-center gap-1 font-satoshi">
                   View all postings <ArrowRight size={14} />
