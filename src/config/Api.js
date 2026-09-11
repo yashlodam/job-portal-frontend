@@ -41,6 +41,7 @@ function getCsrfToken() {
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 export const api = axios.create({
   baseURL: API_URL,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -116,13 +117,15 @@ api.interceptors.response.use(
     const status = error.response?.status;
 
     switch (status) {
-      case 401:
-        // Cookie expired or invalid — log out the user.
-        // We no longer check localStorage.getItem("jwt") since there is no JWT
-        // in localStorage. Any 401 from the API means the session is gone.
-        console.warn("[API] 401 Unauthorised — session expired. Logging out.");
-        store.dispatch(logout());
+      case 401: {
+        const reqUrl = (error.config?.url || "").toLowerCase();
+        // Do not trigger global logout side-effects if the 401 is from expected auth endpoints (e.g. wrong password or unauthenticated visitor)
+        if (!reqUrl.includes("/auth/login") && !reqUrl.includes("/auth/me")) {
+          console.warn("[API] 401 Unauthorised — session expired. Logging out.");
+          store.dispatch(logout());
+        }
         break;
+      }
 
       case 403:
         console.warn("[API] 403 Forbidden — you do not have permission for this action.");

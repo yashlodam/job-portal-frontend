@@ -76,8 +76,11 @@ export default function Login({ setIsLogin, role = "APPLICANT", setRole }) {
     setLoading(true);
 
     try {
-      await dispatch(signin(formData)).unwrap();
-      const profile = await dispatch(getUserProfile()).unwrap();
+      const loginResult = await dispatch(signin(formData)).unwrap();
+      const profile = loginResult?.data || loginResult?.user || loginResult;
+
+      // Sync full profile in background without blocking login flow
+      dispatch(getUserProfile()).catch(() => {});
 
       notifications.show({
         title: `Welcome back, ${profile?.name || "User"}! 👋`,

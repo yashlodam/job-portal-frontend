@@ -13,7 +13,7 @@ import SignUpPage from './Pages/SignUpPage';
 import Login from './SignUpLogin/Login';
 import ProfilePage from './Pages/ProfilePage';
 import ResetPassword from './SignUpLogin/ResetPassword';
-import { restoreAuthState } from './State/AuthSlic';
+import { restoreAuthState, forceAuthRestored } from './State/AuthSlic';
 import { getAllJobs, getCategories, getWorkModes } from './State/JobSlice';
 import { useAppSelector } from './State/Store';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -183,7 +183,14 @@ function App() {
 
   useEffect(() => {
     dispatch(restoreAuthState());
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Safety timeout: ensure the app never stays stuck on the loading splash for more than 1.5 seconds
+    const safetyTimer = setTimeout(() => {
+      dispatch(forceAuthRestored());
+    }, 1500);
+
+    return () => clearTimeout(safetyTimer);
+  }, [dispatch]);
 
   if (!isAuthRestored) {
     return <AuthRestoreLoader />;

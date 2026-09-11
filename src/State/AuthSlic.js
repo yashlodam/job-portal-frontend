@@ -59,7 +59,7 @@ export const restoreAuthState = createAsyncThunk(
     "auth/restoreAuthState",
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get("/auth/me");
+            const response = await api.get("/auth/me", { timeout: 4000 });
             return response.data?.data ?? response.data;
         } catch (error) {
             return rejectWithValue(
@@ -176,6 +176,11 @@ const authSlice = createSlice({
         clearSuccess: (state) => {
             state.success = false;
         },
+
+        forceAuthRestored: (state) => {
+            state.isAuthRestored = true;
+            state.loading = false;
+        },
     },
 
     extraReducers: (builder) => {
@@ -229,10 +234,11 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.success = true;
                 state.message = "Login successful";
-                // If login returned safe user payload in data, populate profile immediately
-                if (action.payload?.data?.email) {
-                    state.profile = action.payload.data;
+                const userPayload = action.payload?.data || action.payload;
+                if (userPayload && (userPayload.email || userPayload.id || userPayload.name)) {
+                    state.profile = userPayload;
                 }
+                state.isAuthRestored = true;
             })
             .addCase(signin.rejected, (state, action) => {
                 state.loading = false;
@@ -337,6 +343,6 @@ const authSlice = createSlice({
     },
 });
 
-export const { logout, clearError, clearMessage, clearSuccess } = authSlice.actions;
+export const { logout, clearError, clearMessage, clearSuccess, forceAuthRestored } = authSlice.actions;
 
 export default authSlice.reducer;
