@@ -15,7 +15,7 @@ import { api } from "../config/Api";
  */
 export const sendCopilotMessageApi = async (payload) => {
   try {
-    return await api.post("/ai/copilot/chat", payload);
+    return await api.post("/ai/copilot/chat", payload, { timeout: 60000 });
   } catch (error) {
     console.warn("Copilot API backend call rate-limited or unavailable. Using smart local AI engine fallback.", error);
     

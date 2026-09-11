@@ -12,7 +12,9 @@ import { api } from "../config/Api";
  * POST /api/resume-analysis/{resumeId}?forceReanalyze=false
  */
 export const analyzeResumeApi = async (resumeId, forceReanalyze = false) => {
-  const res = await api.post(`/resume-analysis/${resumeId}?forceReanalyze=${forceReanalyze}`);
+  const res = await api.post(`/resume-analysis/${resumeId}?forceReanalyze=${forceReanalyze}`, null, {
+    timeout: 120000,
+  });
   return res.data;
 };
 

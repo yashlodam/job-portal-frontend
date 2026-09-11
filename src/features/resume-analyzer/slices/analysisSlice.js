@@ -11,11 +11,15 @@ import { resumeAnalyzerService } from "../services/resumeAnalyzerService";
 export const uploadResumeOnlyThunk = createAsyncThunk(
   "analysis/uploadResumeOnlyThunk",
   async (file, { dispatch, rejectWithValue }) => {
+    let resumeInfo = null;
     try {
       dispatch(setUploadProgress(10));
-      const resumeInfo = await resumeAnalyzerService.uploadResume(file, (progress) => {
+      resumeInfo = await resumeAnalyzerService.uploadResume(file, (progress) => {
         dispatch(setUploadProgress(Math.min(progress, 70)));
       });
+
+      // Save uploaded resume info immediately so state is preserved even if analysis is delayed
+      dispatch(setCurrentResume(resumeInfo));
 
       // Auto-trigger AI Analysis so real-time response data renders immediately without page refresh
       dispatch(setUploadProgress(85));
@@ -25,7 +29,7 @@ export const uploadResumeOnlyThunk = createAsyncThunk(
       return { resumeInfo, analysisResult };
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || error.message || "Failed to upload or analyze resume file"
+        error.userMessage || error.response?.data?.message || error.message || "Failed to upload or analyze resume file"
       );
     }
   }
@@ -59,7 +63,7 @@ export const triggerAnalysisThunk = createAsyncThunk(
       return result;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || error.message || "Failed to analyze resume"
+        error.userMessage || error.response?.data?.message || error.message || "Failed to analyze resume"
       );
     }
   }
@@ -87,7 +91,7 @@ export const fetchLatestAnalysisThunk = createAsyncThunk(
       return result;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || error.message || "Failed to fetch analysis"
+        error.userMessage || error.response?.data?.message || error.message || "Failed to fetch analysis"
       );
     }
   }
@@ -126,6 +130,9 @@ const analysisSlice = createSlice({
   reducers: {
     setUploadProgress: (state, action) => {
       state.uploadProgress = action.payload;
+    },
+    setCurrentResume: (state, action) => {
+      state.currentResume = action.payload;
     },
     setActiveDashboardTab: (state, action) => {
       state.activeDashboardTab = action.payload;
@@ -219,6 +226,7 @@ const analysisSlice = createSlice({
 
 export const {
   setUploadProgress,
+  setCurrentResume,
   setActiveDashboardTab,
   resetAnalysisState,
   deleteResume,

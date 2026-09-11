@@ -12,7 +12,7 @@ import { api } from "../config/Api";
  * POST /api/interviews/start
  */
 export const startInterviewApi = async (requestData) => {
-  const res = await api.post("/interviews/start", requestData);
+  const res = await api.post("/interviews/start", requestData, { timeout: 90000 });
   return res.data;
 };
 
@@ -21,7 +21,7 @@ export const startInterviewApi = async (requestData) => {
  * POST /api/interviews/{sessionId}/next-question
  */
 export const getNextQuestionApi = async (sessionId) => {
-  const res = await api.post(`/interviews/${sessionId}/next-question`);
+  const res = await api.post(`/interviews/${sessionId}/next-question`, null, { timeout: 90000 });
   return res.data;
 };
 
@@ -30,7 +30,7 @@ export const getNextQuestionApi = async (sessionId) => {
  * POST /api/interviews/{sessionId}/submit
  */
 export const submitAnswerApi = async (sessionId, requestData) => {
-  const res = await api.post(`/interviews/${sessionId}/submit`, requestData);
+  const res = await api.post(`/interviews/${sessionId}/submit`, requestData, { timeout: 90000 });
   return res.data;
 };
 
@@ -57,7 +57,7 @@ export const getUserHistoryApi = async (page = 0, size = 10) => {
  * GET /api/interviews/{sessionId}/report
  */
 export const getInterviewReportApi = async (sessionId) => {
-  const res = await api.get(`/interviews/${sessionId}/report`);
+  const res = await api.get(`/interviews/${sessionId}/report`, { timeout: 90000 });
   return res.data;
 };
 

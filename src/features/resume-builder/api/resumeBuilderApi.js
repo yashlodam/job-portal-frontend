@@ -23,7 +23,7 @@ export const reorderSectionApi = (resumeId, requestData) => api.put(`/resume-bui
 // ── Spring AI Feature Endpoints ───────────────────────────────────────────
 export const generateAiSummaryApi = async (resumeId) => {
   try {
-    return await api.post(`/resume-builder/${resumeId}/ai/summary`);
+    return await api.post(`/resume-builder/${resumeId}/ai/summary`, null, { timeout: 60000 });
   } catch (error) {
     console.warn("Generate AI Summary API rate-limited or unavailable. Using smart local AI fallback.", error);
     return {
@@ -37,7 +37,7 @@ export const generateAiSummaryApi = async (resumeId) => {
 
 export const improveContentApi = async (resumeId, requestData) => {
   try {
-    return await api.post(`/resume-builder/${resumeId}/ai/improve`, requestData);
+    return await api.post(`/resume-builder/${resumeId}/ai/improve`, requestData, { timeout: 60000 });
   } catch (error) {
     console.warn("Improve Content API rate-limited or unavailable. Using smart local AI fallback.", error);
     return {
@@ -51,7 +51,7 @@ export const improveContentApi = async (resumeId, requestData) => {
 
 export const suggestSkillsApi = async (resumeId) => {
   try {
-    return await api.post(`/resume-builder/${resumeId}/ai/skills`);
+    return await api.post(`/resume-builder/${resumeId}/ai/skills`, null, { timeout: 60000 });
   } catch (error) {
     console.warn("Suggest Skills API rate-limited or unavailable. Using smart local AI fallback.", error);
     return {
@@ -66,7 +66,7 @@ export const suggestSkillsApi = async (resumeId) => {
 // ── AI Resume Analyzer Integration ─────────────────────────────────────────
 export const analyzeBuilderResumeApi = async (resumeId) => {
   try {
-    return await api.post(`/resume-builder/${resumeId}/analyze`);
+    return await api.post(`/resume-builder/${resumeId}/analyze`, null, { timeout: 90000 });
   } catch (error) {
     console.warn("Analyze Builder Resume API rate-limited or unavailable. Using smart local AI fallback.", error);
     return {

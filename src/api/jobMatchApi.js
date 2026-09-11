@@ -76,7 +76,7 @@ export const getMatchAnalysisApi = async (applicationId) => {
  */
 export const recalculateMatchScoreApi = async (applicationId) => {
   try {
-    const response = await api.post(`/recruiter/applications/${applicationId}/match/recalculate`);
+    const response = await api.post(`/recruiter/applications/${applicationId}/match/recalculate`, null, { timeout: 60000 });
     return response.data;
   } catch (error) {
     console.warn("Recalculate Match API rate-limited or unavailable. Using smart local AI fallback.", error);

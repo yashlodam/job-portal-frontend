@@ -18,7 +18,9 @@ export const uploadResumeApi = async ({ file, resumeName, isDefault }) => {
   if (resumeName) formData.append("resumeName", resumeName);
   if (isDefault !== undefined && isDefault !== null) formData.append("isDefault", isDefault);
 
-  const res = await api.post("/resumes", formData);
+  const res = await api.post("/resumes", formData, {
+    timeout: 60000,
+  });
   return res.data;
 };
 

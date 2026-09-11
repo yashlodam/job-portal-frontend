@@ -42,10 +42,12 @@ export default function ResumeUploadPage({ onAnalyzeSuccess }) {
           onAnalyzeSuccess(res.payload?.analysisResult || res.payload);
         }
       } else if (res?.error) {
-        toast.error(res.payload || "Failed to upload resume file.");
+        const errMsg = typeof res.payload === "string" ? res.payload : res.payload?.message || res.error?.message || "Failed to upload or analyze resume file.";
+        toast.error(errMsg);
       }
     } catch (err) {
-      toast.error(err.message || "Failed to upload resume file.");
+      const errMsg = typeof err === "string" ? err : err?.userMessage || err?.message || "Failed to upload or analyze resume file.";
+      toast.error(errMsg);
     }
   };
 
@@ -64,7 +66,7 @@ export default function ResumeUploadPage({ onAnalyzeSuccess }) {
         toast.error(errMsg);
       }
     } catch (err) {
-      const errMsg = typeof err === "string" ? err : err?.message || "AI Analysis failed.";
+      const errMsg = typeof err === "string" ? err : err?.userMessage || err?.message || "AI Analysis failed.";
       toast.error(errMsg);
     } finally {
       setIsAnalyzingLocal(false);

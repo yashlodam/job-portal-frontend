@@ -41,7 +41,7 @@ function getCsrfToken() {
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 export const api = axios.create({
   baseURL: API_URL,
-  timeout: 15000,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -103,7 +103,14 @@ api.interceptors.response.use(
   (response) => response,
 
   (error) => {
-    // No response at all → network/CORS/timeout failure
+    // Timeout error (ECONNABORTED or timeout in error message)
+    if (error.code === "ECONNABORTED" || error.message?.toLowerCase().includes("timeout")) {
+      console.warn("[API] Request timeout:", error.message);
+      error.userMessage = "The AI processing server took longer than expected to analyze your document. Please try again.";
+      return Promise.reject(error);
+    }
+
+    // No response at all → network/CORS failure
     if (!error.response) {
       console.error(
         "[API] Network error — no response received. Check your connection or CORS settings.",
