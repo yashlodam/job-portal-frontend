@@ -15,6 +15,16 @@ export const notificationApi = createApi({
     baseUrl: API_BASE_URL,
     credentials: "include",
     prepareHeaders: (headers) => {
+      // Attach Bearer token from localStorage for dual-mode cross-origin authentication
+      try {
+        const token = localStorage.getItem("jobportal_token");
+        if (token && !headers.has("Authorization")) {
+          headers.set("Authorization", `Bearer ${token}`);
+        }
+      } catch {
+        // Non-browser or storage restricted
+      }
+
       // Attach CSRF token if present in cookie
       const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
       if (match) {

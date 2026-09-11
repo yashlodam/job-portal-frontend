@@ -36,9 +36,19 @@ export function connectChat(onConnected, onError) {
     stompClient.deactivate();
   }
 
+  let token = null;
+  try {
+    token = localStorage.getItem("jobportal_token");
+  } catch {}
+
+  const wsUrlWithToken = token ? `${WS_URL}?token=${encodeURIComponent(token)}` : WS_URL;
+
   stompClient = new Client({
     // SockJS factory — provides fallback for browsers without native WebSocket
-    webSocketFactory: () => new SockJS(WS_URL),
+    webSocketFactory: () => new SockJS(wsUrlWithToken),
+
+    // Dual-mode auth: Send Bearer token in STOMP connect headers
+    connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
 
     // Automatically reconnect every 5 seconds on unexpected disconnect
     reconnectDelay: 5000,
