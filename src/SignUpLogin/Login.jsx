@@ -80,7 +80,11 @@ export default function Login({ setIsLogin, role = "APPLICANT", setRole }) {
       const profile = loginResult?.data || loginResult?.user || loginResult;
 
       // Sync full profile in background without blocking login flow
-      dispatch(getUserProfile()).catch(() => {});
+      try {
+        dispatch(getUserProfile());
+      } catch {
+        // Non-blocking background sync
+      }
 
       notifications.show({
         title: `Welcome back, ${profile?.name || "User"}! 👋`,

@@ -55,8 +55,9 @@ export const api = axios.create({
 });
 
 // ─── Request Interceptor ──────────────────────────────────────────────────────
-// Primary job: handle FormData content-type and ensure CSRF token is attached.
-// The JWT is no longer read here — the browser sends it automatically via cookie.
+// Dual-mode auth: sends HttpOnly cookie automatically (withCredentials: true),
+// AND attaches Authorization: Bearer <token> fallback from localStorage for
+// cross-site hosting (e.g. Vercel frontend + Render backend) where browsers block 3rd-party cookies.
 api.interceptors.request.use(
   (config) => {
     // When the request body is a FormData instance (image/file uploads), remove
@@ -64,6 +65,16 @@ api.interceptors.request.use(
     // multipart boundary automatically.
     if (config.data instanceof FormData) {
       delete config.headers["Content-Type"];
+    }
+
+    // Attach Bearer token from localStorage if present
+    try {
+      const token = localStorage.getItem("jobportal_token");
+      if (token && !config.headers["Authorization"]) {
+        config.headers["Authorization"] = `Bearer ${token}`;
+      }
+    } catch {
+      // Ignore in non-browser environments or if localStorage is restricted
     }
 
     // Ensure CSRF token is always included on state-changing requests.

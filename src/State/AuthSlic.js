@@ -52,19 +52,20 @@ export const getUserProfile = createAsyncThunk(
 );
 
 // ─── Restore Auth on Startup ─────────────────────────────────────────────────
-// Called once when the app mounts. Hits /api/auth/me with credentials.
-// If valid HttpOnly cookie is present, browser sends it automatically.
-// On success, sets the profile in Redux. On 401/error, user remains logged out.
+// Called once when the app mounts. Hits /api/auth/me with credentials + Bearer token.
+// On success, updates the profile in Redux & localStorage.
+// On 401/403, clears the stored session. On network timeout/cold start, preserves cached state.
 export const restoreAuthState = createAsyncThunk(
     "auth/restoreAuthState",
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get("/auth/me", { timeout: 4000 });
+            const response = await api.get("/auth/me", { timeout: 8000 });
             return response.data?.data ?? response.data;
         } catch (error) {
-            return rejectWithValue(
-                error.response?.data || { message: "Not authenticated" }
-            );
+            return rejectWithValue({
+                message: error.response?.data?.message || error.userMessage || "Not authenticated",
+                status: error.response?.status,
+            });
         }
     }
 );
@@ -138,14 +139,33 @@ export const resetPassword = createAsyncThunk(
 );
 
 // ─── Initial State ───────────────────────────────────────────────────────────
+const storedProfile = (() => {
+    try {
+        const u = localStorage.getItem("jobportal_profile");
+        return u ? JSON.parse(u) : null;
+    } catch {
+        return null;
+    }
+})();
+
+const storedToken = (() => {
+    try {
+        return localStorage.getItem("jobportal_token") || null;
+    } catch {
+        return null;
+    }
+})();
+
 const initialState = {
-    profile: null,
+    profile: storedProfile,
+    user: storedProfile,
+    token: storedToken,
     loading: false,
     error: null,
     success: false,
     message: null,
-    // isAuthRestored: false means "startup profile fetch is in flight".
-    isAuthRestored: false,
+    // If user profile is already present in localStorage, restore immediately on frame 0!
+    isAuthRestored: !!storedProfile,
 };
 
 // ─── Slice ───────────────────────────────────────────────────────────────────
@@ -157,7 +177,13 @@ const authSlice = createSlice({
         logout: (state) => {
             // Fire API call to clear HttpOnly cookie on backend
             api.post("/auth/logout").catch(() => {});
+            try {
+                localStorage.removeItem("jobportal_token");
+                localStorage.removeItem("jobportal_profile");
+            } catch {}
             state.profile = null;
+            state.user = null;
+            state.token = null;
             state.loading = false;
             state.error = null;
             state.success = false;
@@ -192,13 +218,30 @@ const authSlice = createSlice({
             })
             .addCase(restoreAuthState.fulfilled, (state, action) => {
                 state.loading = false;
-                state.profile = action.payload;
+                if (action.payload) {
+                    state.profile = { ...(state.profile || {}), ...action.payload };
+                    state.user = state.profile;
+                    try {
+                        localStorage.setItem("jobportal_profile", JSON.stringify(state.profile));
+                    } catch {}
+                }
                 state.isAuthRestored = true;
             })
-            .addCase(restoreAuthState.rejected, (state) => {
+            .addCase(restoreAuthState.rejected, (state, action) => {
                 state.loading = false;
-                state.profile = null;
                 state.isAuthRestored = true;
+                const status = action.payload?.status;
+                // Only clear credentials if backend explicitly returned 401/403.
+                // Never wipe on network timeout, cold start, or offline.
+                if (status === 401 || status === 403) {
+                    state.profile = null;
+                    state.user = null;
+                    state.token = null;
+                    try {
+                        localStorage.removeItem("jobportal_token");
+                        localStorage.removeItem("jobportal_profile");
+                    } catch {}
+                }
             })
 
             // ═══════════════════════ SIGNUP ══════════════════════════════════
@@ -235,8 +278,21 @@ const authSlice = createSlice({
                 state.success = true;
                 state.message = "Login successful";
                 const userPayload = action.payload?.data || action.payload;
+                const token = action.payload?.token || action.payload?.data?.token;
+
+                if (token) {
+                    state.token = token;
+                    try {
+                        localStorage.setItem("jobportal_token", token);
+                    } catch {}
+                }
+
                 if (userPayload && (userPayload.email || userPayload.id || userPayload.name)) {
                     state.profile = userPayload;
+                    state.user = userPayload;
+                    try {
+                        localStorage.setItem("jobportal_profile", JSON.stringify(userPayload));
+                    } catch {}
                 }
                 state.isAuthRestored = true;
             })
@@ -256,7 +312,13 @@ const authSlice = createSlice({
             })
             .addCase(getUserProfile.fulfilled, (state, action) => {
                 state.loading = false;
-                state.profile = action.payload;
+                if (action.payload) {
+                    state.profile = { ...(state.profile || {}), ...action.payload };
+                    state.user = state.profile;
+                    try {
+                        localStorage.setItem("jobportal_profile", JSON.stringify(state.profile));
+                    } catch {}
+                }
                 state.isAuthRestored = true;
             })
             .addCase(getUserProfile.rejected, (state, action) => {
@@ -267,7 +329,13 @@ const authSlice = createSlice({
 
             // ═══════════════════════ LOGOUT ══════════════════════════════════
             .addCase(logoutUser.fulfilled, (state) => {
+                try {
+                    localStorage.removeItem("jobportal_token");
+                    localStorage.removeItem("jobportal_profile");
+                } catch {}
                 state.profile = null;
+                state.user = null;
+                state.token = null;
                 state.loading = false;
                 state.error = null;
                 state.success = false;
