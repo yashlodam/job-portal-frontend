@@ -690,6 +690,33 @@ export default function RecruiterMessagesPage() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
+                  {/* Connection Status Badge */}
+                  <div
+                    className={`hidden sm:inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1 text-[10px] font-bold ${
+                      chat.connectionStatus === "CONNECTED"
+                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                        : chat.connectionStatus === "CONNECTING"
+                        ? "border-blue-500/20 bg-blue-500/10 text-blue-400"
+                        : chat.connectionStatus === "RECONNECTING"
+                        ? "border-amber-500/20 bg-amber-500/10 text-amber-400"
+                        : "border-border bg-surface-elevated text-muted"
+                    }`}
+                    title={chat.wsError || `WebSocket: ${chat.connectionStatus}`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        chat.connectionStatus === "CONNECTED"
+                          ? "bg-emerald-500"
+                          : chat.connectionStatus === "CONNECTING"
+                          ? "bg-blue-500 animate-pulse"
+                          : chat.connectionStatus === "RECONNECTING"
+                          ? "bg-amber-500 animate-pulse"
+                          : "bg-slate-400"
+                      }`}
+                    />
+                    <span>{chat.connectionStatus}</span>
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => setShowInfoPanel(!showInfoPanel)}

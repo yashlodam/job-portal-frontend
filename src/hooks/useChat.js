@@ -26,6 +26,7 @@ export function useChat() {
   const clientRef = useRef(null);
   const subsRef = useRef({});            // active subscriptions keyed by "conv-{id}"
   const [connected, setConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState("DISCONNECTED");
   const [wsError, setWsError] = useState(null);
 
   // Authenticate based on Redux profile state.
@@ -37,13 +38,17 @@ export function useChat() {
     if (!user) {
       disconnectChat();
       setConnected(false);
+      setConnectionStatus("DISCONNECTED");
       return;
     }
+
+    setConnectionStatus("CONNECTING");
 
     connectChat(
       (stompClient) => {
         clientRef.current = stompClient;
         setConnected(true);
+        setConnectionStatus("CONNECTED");
         setWsError(null);
 
         // Subscribe to personal server-push error queue
@@ -60,7 +65,17 @@ export function useChat() {
       (err) => {
         console.warn("[Chat] WebSocket connection failed — REST-only mode:", err?.message || err);
         setConnected(false);
+        setConnectionStatus("ERROR");
         setWsError("WebSocket unavailable — messages will still load via REST.");
+      },
+      (status) => {
+        setConnectionStatus(status);
+        if (status === "CONNECTED") {
+          setConnected(true);
+          setWsError(null);
+        } else if (status === "DISCONNECTED" || status === "ERROR") {
+          setConnected(false);
+        }
       }
     );
 
@@ -72,6 +87,7 @@ export function useChat() {
       subsRef.current = {};
       disconnectChat();
       setConnected(false);
+      setConnectionStatus("DISCONNECTED");
     };
   }, [user]);
 
@@ -199,6 +215,7 @@ export function useChat() {
 
   return {
     connected,
+    connectionStatus,
     wsError,
     subscribeToConversation,
     unsubscribeFromConversation,

@@ -54,11 +54,12 @@ function getBackoffDelay(attempt) {
 /**
  * Connect to the chat WebSocket server.
  *
- * @param {Function} onConnected  Called with (stompClient) when STOMP CONNECT succeeds
- * @param {Function} onError      Called with (frame|event) on unrecoverable connection failure
+ * @param {Function} onConnected     Called with (stompClient) when STOMP CONNECT succeeds
+ * @param {Function} onError         Called with (frame|event) on unrecoverable connection failure
+ * @param {Function} onStatusChange  Called with ("CONNECTING"|"CONNECTED"|"RECONNECTING"|"DISCONNECTED"|"ERROR")
  * @returns {Client} The STOMP client instance
  */
-export function connectChat(onConnected, onError) {
+export function connectChat(onConnected, onError, onStatusChange) {
   // Deactivate any existing connection before creating a new one
   if (stompClient && stompClient.active) {
     stompClient.deactivate();
@@ -66,6 +67,7 @@ export function connectChat(onConnected, onError) {
   }
 
   retryCount = 0;
+  onStatusChange?.("CONNECTING");
 
   let token = null;
   try {
@@ -78,9 +80,6 @@ export function connectChat(onConnected, onError) {
     /**
      * Production: use native WebSocket (wss://) — avoids SockJS's unload listener.
      * Development: fall back to SockJS for HTTP (no WSS available on localhost).
-     *
-     * SockJS is NOT imported here to avoid the unload violation in production.
-     * If you need SockJS in dev, add a conditional import.
      */
     brokerURL: token ? `${WS_URL}?token=${encodeURIComponent(token)}` : WS_URL,
 
@@ -102,6 +101,7 @@ export function connectChat(onConnected, onError) {
         "[ChatSocket] Connected:",
         frame?.headers?.server || "ok"
       );
+      onStatusChange?.("CONNECTED");
       onConnected?.(stompClient);
     },
 
@@ -110,6 +110,7 @@ export function connectChat(onConnected, onError) {
         "[ChatSocket] STOMP error:",
         frame?.headers?.message || frame
       );
+      onStatusChange?.("ERROR");
       onError?.(frame);
     },
 
@@ -126,6 +127,7 @@ export function connectChat(onConnected, onError) {
       if (retryCount < MAX_RETRIES) {
         const delay = getBackoffDelay(retryCount);
         retryCount++;
+        onStatusChange?.("RECONNECTING");
         console.log(`[ChatSocket] Retrying in ${Math.round(delay / 1000)}s...`);
 
         setTimeout(() => {
@@ -142,6 +144,7 @@ export function connectChat(onConnected, onError) {
             } catch {
               // ignore
             }
+            onStatusChange?.("CONNECTING");
             stompClient.activate();
           }
         }, delay);
@@ -151,6 +154,7 @@ export function connectChat(onConnected, onError) {
             MAX_RETRIES +
             ") reached. WebSocket disabled — REST-only mode."
         );
+        onStatusChange?.("ERROR");
         onError?.(event);
         // Fully deactivate — do NOT keep reconnecting
         if (stompClient) {
@@ -161,6 +165,7 @@ export function connectChat(onConnected, onError) {
 
     onDisconnect: () => {
       console.log("[ChatSocket] Disconnected");
+      onStatusChange?.("DISCONNECTED");
     },
   });
 
