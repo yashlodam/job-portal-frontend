@@ -13,6 +13,7 @@ import {
   fetchJobApplicationsThunk,
   fetchAllRecruiterApplicationsThunk,
   updateApplicationStatusThunk,
+  fetchRecruiterDashboardStatsThunk,
 } from "./applicationThunk";
 
 const initialState = {
@@ -35,6 +36,7 @@ const initialState = {
     number: 0,
     size: 10,
   },
+  dashboardStats: null,
 
   // Active selected application detail
   selectedApplication: null,
@@ -187,6 +189,11 @@ const applicationSlice = createSlice({
       .addCase(updateApplicationStatusThunk.rejected, (state, action) => {
         state.updateStatusLoading = false;
         state.error = action.payload;
+      })
+
+      // ─── Fetch Recruiter Dashboard Stats ────────────────────────────────────
+      .addCase(fetchRecruiterDashboardStatsThunk.fulfilled, (state, action) => {
+        state.dashboardStats = action.payload;
       });
   },
 });

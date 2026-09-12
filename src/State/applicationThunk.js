@@ -128,3 +128,18 @@ export const updateApplicationStatusThunk = createAsyncThunk(
     }
   }
 );
+
+// ─── 6. Fetch Recruiter Dashboard Stats ──────────────────────────────────────
+export const fetchRecruiterDashboardStatsThunk = createAsyncThunk(
+  "applications/fetchDashboardStats",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/recruiter/dashboard-stats");
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch dashboard stats"
+      );
+    }
+  }
+);

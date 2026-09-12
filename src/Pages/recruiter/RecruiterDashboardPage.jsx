@@ -18,12 +18,16 @@ import { StatusChip } from "../../components/ui/Badge";
 import { useAppDispatch, useAppSelector } from "../../State/Store";
 import { getMyJobs } from "../../State/JobSlice";
 import { fetchVerificationStatus } from "../../State/verificationSlice";
+import { fetchAllRecruiterApplicationsThunk, fetchRecruiterDashboardStatsThunk } from "../../State/applicationThunk";
+import { fetchInterviewStats } from "../../State/recruiterInterviewSlice";
 
 export default function RecruiterDashboardPage() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.profile);
   const { recruiterVerification } = useAppSelector((state) => state.verification);
   const { myJobs = [], pagination, loading } = useAppSelector((state) => state.job);
+  const { jobApplications = [], jobApplicationsPage, dashboardStats } = useAppSelector((state) => state.application);
+  const { stats: interviewStats } = useAppSelector((state) => state.recruiterInterview || {});
 
   const verificationStatus =
     recruiterVerification?.status ||
@@ -39,6 +43,9 @@ export default function RecruiterDashboardPage() {
   useEffect(() => {
     dispatch(fetchVerificationStatus());
     dispatch(getMyJobs());
+    dispatch(fetchAllRecruiterApplicationsThunk({ page: 0, size: 50 }));
+    dispatch(fetchRecruiterDashboardStatsThunk());
+    dispatch(fetchInterviewStats());
   }, [dispatch]);
 
   const getApplicantsCount = (job) => {
@@ -57,14 +64,36 @@ export default function RecruiterDashboardPage() {
     ? Math.round((featuredInPage / myJobs.length) * totalActiveJobs)
     : featuredInPage;
 
+  const totalAppsCount = dashboardStats?.totalApplications ?? Math.max(
+    jobApplicationsPage?.totalElements ?? 0,
+    jobApplications.length,
+    myJobs.reduce((acc, j) => acc + getApplicantsCount(j), 0)
+  );
+
+  const newAppsCount = dashboardStats?.newApplications ?? (
+    jobApplications.filter(
+      (a) => !a.status || a.status.toUpperCase() === "APPLIED" || a.status.toUpperCase() === "REVIEWING"
+    ).length || (totalAppsCount > 0 && jobApplications.length === 0 ? totalAppsCount : 0)
+  );
+
+  const interviewsCount = dashboardStats?.interviewApplications ?? (
+    interviewStats?.totalScheduled ??
+    jobApplications.filter((a) => (a.status || "").toUpperCase() === "INTERVIEWING").length
+  );
+
+  const hiredCount = dashboardStats?.hiredApplications ?? (
+    jobApplications.filter((a) => (a.status || "").toUpperCase() === "ACCEPTED").length
+  );
+
   const stats = {
-    activeJobs: totalActiveJobs,
-    featuredJobs: totalFeatured,
-    totalApplications: myJobs.reduce((acc, j) => acc + getApplicantsCount(j), 0),
-    newApplications: 0,
-    interviews: 0,
-    hired: 0,
+    activeJobs: dashboardStats?.activeJobs ?? totalActiveJobs,
+    featuredJobs: dashboardStats?.featuredJobs ?? totalFeatured,
+    totalApplications: totalAppsCount,
+    newApplications: newAppsCount,
+    interviews: interviewsCount,
+    hired: hiredCount,
   };
+
 
   return (
     <RecruiterLayout
