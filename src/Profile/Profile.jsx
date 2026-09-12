@@ -98,6 +98,82 @@ const revokeBlob = (url) => {
 /** Deep-clone a plain JS value (arrays/objects of primitives). */
 const deepClone = (v) => JSON.parse(JSON.stringify(v));
 
+/** Normalise backend ProfileResponse into the unified UI profile schema. */
+function normaliseProfile(rp) {
+  if (!rp) return null;
+  return {
+    id: rp.id ?? rp.profileId ?? rp.userId ?? rp._id,
+    name: rp.name ?? "",
+    jobTitle: rp.headline ?? rp.jobTitle ?? rp.role ?? "",
+    company: rp.company ?? rp.currentCompany ?? "",
+    location: rp.location ?? "",
+    about: typeof rp.about === "string" ? rp.about : rp.about?.about ?? "",
+    experienceLevel: rp.experienceLevel ?? "MID_LEVEL",
+    availability: rp.availability ? (
+      rp.availability === "Open to Work" || rp.availability === "Open to Opportunities" ? "OPEN_TO_WORK" :
+      rp.availability === "Employed" ? "EMPLOYED" :
+      rp.availability === "Not Looking" ? "NOT_LOOKING" :
+      rp.availability
+    ) : "OPEN_TO_WORK",
+    profileImage: rp.profileImage ?? null,
+    bannerImage: rp.bannerImage ?? null,
+
+    skills: Array.isArray(rp.skills) ? rp.skills : [],
+
+    // Map ExperienceResponse fields → local UI fields
+    experience: (rp.experiences ?? rp.experience ?? []).map((e) => ({
+      _id: e.id ? `id_${e.id}` : uid(),
+      id: e.id ?? e._id ?? null,
+      title: e.title ?? e.jobTitle ?? e.role ?? "",
+      company: e.company ?? e.companyName ?? "",
+      location: e.location ?? "",
+      startDate: e.startDate ?? "",
+      endDate: e.endDate ?? "",
+      working: e.working ?? e.currentlyWorking ?? false,
+      description: e.description ?? "",
+      employmentType: e.employmentType ?? "",
+    })),
+
+    // Map EducationResponse fields → local UI fields
+    education: (rp.educations ?? rp.education ?? []).map((e) => ({
+      _id: e.id ? `id_${e.id}` : uid(),
+      id: e.id ?? e._id ?? null,
+      degree: e.degree ?? "",
+      collegeName: e.collegeName ?? e.school ?? e.institution ?? "",
+      university: e.university ?? "",
+      startDate: e.startDate ?? "",
+      endDate: e.endDate ?? "",
+      location: e.location ?? "",
+      grade: e.grade ?? "",
+    })),
+
+    // Map CertificationResponse fields → local UI fields
+    certifications: (rp.certifications ?? []).map((c) => ({
+      _id: c.id ? `id_${c.id}` : uid(),
+      id: c.id ?? c._id ?? null,
+      title: c.title ?? c.name ?? "",
+      issuer: c.issuer ?? c.issuingOrganization ?? "",
+      issueDate: c.issueDate ?? "",
+      certificateId: c.certificateId ?? "",
+      certificateUrl: c.certificateUrl ?? "",
+      imageUrl: c.imageUrl ?? c.certificateImage ?? null,
+    })),
+
+    languages: Array.isArray(rp.languages) ? rp.languages : [],
+
+    socialLinks: {
+      linkedin: rp.linkedinUrl ?? rp.links?.linkedinUrl ?? rp.socialLinks?.linkedin ?? "",
+      github: rp.githubUrl ?? rp.links?.githubUrl ?? rp.socialLinks?.github ?? "",
+      portfolio: rp.portfolioUrl ?? rp.links?.portfolioUrl ?? rp.socialLinks?.portfolio ?? "",
+    },
+
+    resume: {
+      resumeUrl: rp.resumeUrl ?? null,
+      resumeName: rp.resumeName ?? null,
+    }
+  };
+}
+
 /* ============================================================
    Design tokens
    ============================================================ */
@@ -602,7 +678,7 @@ function Profile() {
   const reduxSuccess = useAppSelector(selectProfileSuccess);
 
   // ── Canonical local data (synced from Redux) ─────────────────────────────
-  const [data, setData] = useState(() => reduxProfile ? normalise(reduxProfile) : null);
+  const [data, setData] = useState(() => reduxProfile ? normaliseProfile(reduxProfile) : null);
 
   // ── Per-section draft state (only active while editing) ──────────────────
   // Each section stores its own editable copy separately from `data`,
@@ -652,82 +728,9 @@ function Profile() {
     dispatch(fetchMyProfileThunk());
   }, [dispatch]);
 
-  // ── Normalise & hydrate from Redux ────────────────────────────────────────
-  const normalise = useCallback((rp) => ({
-    id: rp.id ?? rp.profileId ?? rp.userId ?? rp._id,
-    name: rp.name ?? "",
-    jobTitle: rp.headline ?? rp.jobTitle ?? rp.role ?? "",
-    company: rp.company ?? rp.currentCompany ?? "",
-    location: rp.location ?? "",
-    about: typeof rp.about === "string" ? rp.about : rp.about?.about ?? "",
-    experienceLevel: rp.experienceLevel ?? "MID_LEVEL",
-    availability: rp.availability ? (
-      rp.availability === "Open to Work" || rp.availability === "Open to Opportunities" ? "OPEN_TO_WORK" :
-      rp.availability === "Employed" ? "EMPLOYED" :
-      rp.availability === "Not Looking" ? "NOT_LOOKING" :
-      rp.availability
-    ) : "OPEN_TO_WORK",
-    profileImage: rp.profileImage ?? null,
-    bannerImage: rp.bannerImage ?? null,
-
-    skills: Array.isArray(rp.skills) ? rp.skills : [],
-
-    // Map ExperienceResponse fields → local UI fields
-    experience: (rp.experiences ?? rp.experience ?? []).map((e) => ({
-      _id: e.id ? `id_${e.id}` : uid(),
-      id: e.id ?? e._id ?? null,
-      title: e.title ?? e.jobTitle ?? e.role ?? "",
-      company: e.company ?? e.companyName ?? "",
-      location: e.location ?? "",
-      startDate: e.startDate ?? "",
-      endDate: e.endDate ?? "",
-      working: e.working ?? e.currentlyWorking ?? false,
-      description: e.description ?? "",
-      employmentType: e.employmentType ?? "",
-    })),
-
-    // Map EducationResponse fields → local UI fields
-    education: (rp.educations ?? rp.education ?? []).map((e) => ({
-      _id: e.id ? `id_${e.id}` : uid(),
-      id: e.id ?? e._id ?? null,
-      degree: e.degree ?? "",
-      collegeName: e.collegeName ?? e.school ?? e.institution ?? "",
-      university: e.university ?? "",
-      startDate: e.startDate ?? "",
-      endDate: e.endDate ?? "",
-      location: e.location ?? "",
-      grade: e.grade ?? "",
-    })),
-
-    // Map CertificationResponse fields → local UI fields
-    certifications: (rp.certifications ?? []).map((c) => ({
-      _id: c.id ? `id_${c.id}` : uid(),
-      id: c.id ?? c._id ?? null,
-      title: c.title ?? c.name ?? "",
-      issuer: c.issuer ?? c.issuingOrganization ?? "",
-      issueDate: c.issueDate ?? "",
-      certificateId: c.certificateId ?? "",
-      certificateUrl: c.certificateUrl ?? "",
-      imageUrl: c.imageUrl ?? c.certificateImage ?? null,
-    })),
-
-    languages: Array.isArray(rp.languages) ? rp.languages : [],
-
-    socialLinks: {
-      linkedin: rp.linkedinUrl ?? rp.links?.linkedinUrl ?? rp.socialLinks?.linkedin ?? "",
-      github: rp.githubUrl ?? rp.links?.githubUrl ?? rp.socialLinks?.github ?? "",
-      portfolio: rp.portfolioUrl ?? rp.links?.portfolioUrl ?? rp.socialLinks?.portfolio ?? "",
-    },
-
-    resume: {
-      resumeUrl: rp.resumeUrl ?? null,
-      resumeName: rp.resumeName ?? null,
-    }
-  }), []);
-
   useEffect(() => {
     if (!reduxProfile) return;
-    const normalised = normalise(reduxProfile);
+    const normalised = normaliseProfile(reduxProfile);
     setData(normalised);
     if (reduxProfile.bannerImage !== prevBannerRef.current) {
       prevBannerRef.current = reduxProfile.bannerImage ?? null;
@@ -737,7 +740,7 @@ function Profile() {
       prevAvatarRef.current = reduxProfile.profileImage ?? null;
       setAvatarError(false);
     }
-  }, [reduxProfile, normalise]);
+  }, [reduxProfile]);
 
   // ── Toast handlers ────────────────────────────────────────────────────────
   useEffect(() => {
