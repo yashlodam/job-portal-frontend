@@ -59,7 +59,7 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
     "Company information could not be verified.";
 
   return (
-    <div className="min-h-screen bg-background font-inter text-body flex">
+    <div className={`bg-background font-inter text-body flex ${noPadding ? "h-[100dvh] max-h-[100dvh] overflow-hidden" : "min-h-screen"}`}>
       {/* Sidebar */}
       <RecruiterSidebar
         collapsed={sidebarCollapsed}
@@ -69,12 +69,12 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
       />
 
       {/* Main Container */}
-      <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "md:ml-20" : "md:ml-64"}`}>
+      <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "md:ml-20" : "md:ml-64"} ${noPadding ? "h-full overflow-hidden" : ""}`}>
         {/* Navbar */}
         <RecruiterNavbar onOpenMobileSidebar={() => setMobileSidebarOpen(true)} />
 
         {/* Content Area */}
-        <main className={`flex-1 w-full mx-auto ${noPadding ? "p-0 max-w-full flex flex-col overflow-hidden" : "p-4 sm:p-6 lg:p-8 max-w-7xl space-y-6"}`}>
+        <main className={`flex-1 min-h-0 w-full mx-auto ${noPadding ? "p-0 max-w-full flex flex-col overflow-hidden" : "p-4 sm:p-6 lg:p-8 max-w-7xl space-y-6"}`}>
           {/* ── LIFECYCLE RESTRICTION BANNERS ── */}
           {isPending && (
             <div className={`border border-amber-500/30 bg-amber-500/10 text-xs text-amber-600 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-amber-500/5 backdrop-blur-xl ${noPadding ? "m-3 rounded-xl p-3" : "rounded-2xl p-4"}`}>

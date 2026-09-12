@@ -102,7 +102,7 @@ export const deleteMessageApi = async (conversationId, messageId) => {
  * company name, and professional badge indicators (Recruiter vs Candidate)
  * from any conversation shape returned by Spring Boot.
  */
-export function getOtherParticipant(conv, currentUserId, knownCompaniesMap = {}) {
+export function getOtherParticipant(conv, currentUserId, knownCompaniesMap = {}, currentUserEmail = null) {
   if (!conv) {
     return { name: "User", email: "", online: false, isRecruiter: false, role: "", companyName: "" };
   }
@@ -110,6 +110,22 @@ export function getOtherParticipant(conv, currentUserId, knownCompaniesMap = {})
   let rawUser = null;
   let isOnline = false;
   let lastSeen = null;
+
+  const normalizedUserId = currentUserId != null ? String(currentUserId) : null;
+  const normalizedUserEmail = currentUserEmail ? String(currentUserEmail).toLowerCase() : null;
+
+  const isMeChecker = (candidate) => {
+    if (!candidate) return false;
+    const cid = candidate.userId ?? candidate.id ?? candidate.user?.userId ?? candidate.user?.id;
+    if (normalizedUserId && cid != null && String(cid) === normalizedUserId) {
+      return true;
+    }
+    const cEmail = (candidate.email || candidate.user?.email || "").toLowerCase();
+    if (normalizedUserEmail && cEmail && cEmail === normalizedUserEmail) {
+      return true;
+    }
+    return false;
+  };
 
   // Search all possible company fields across the conversation structure
   let company =
@@ -148,9 +164,7 @@ export function getOtherParticipant(conv, currentUserId, knownCompaniesMap = {})
   }
   // 3. Check conv.candidate / conv.recruiter
   else if (conv.candidate || conv.recruiter) {
-    const isCurrentUserRecruiter =
-      currentUserId &&
-      (conv.recruiter?.id === currentUserId || conv.recruiter?.userId === currentUserId);
+    const isCurrentUserRecruiter = isMeChecker(conv.recruiter);
     const target = isCurrentUserRecruiter
       ? conv.candidate || conv.recruiter
       : conv.recruiter || conv.candidate;
@@ -162,10 +176,7 @@ export function getOtherParticipant(conv, currentUserId, knownCompaniesMap = {})
   // 4. Check conv.participants array
   else if (Array.isArray(conv.participants) && conv.participants.length > 0) {
     const other =
-      conv.participants.find(
-        (p) =>
-          (p.userId || p.id || p.user?.id || p.user?.userId) !== currentUserId
-      ) || conv.participants[0];
+      conv.participants.find((p) => !isMeChecker(p)) || conv.participants[0];
     rawUser = other.user || other.profile || other;
     isOnline = Boolean(other.online ?? rawUser.online ?? false);
     lastSeen = other.lastSeenAt || rawUser.lastSeenAt || null;

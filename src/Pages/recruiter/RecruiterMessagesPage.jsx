@@ -126,8 +126,29 @@ function ChatAvatar({ user, size = "md", online = false }) {
 export default function RecruiterMessagesPage() {
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const currentUser = useAppSelector((state) => state.auth.profile);
-  const currentUserId = currentUser?.id;
+  const currentUser = useAppSelector((state) => state.auth.profile || state.auth.user);
+  const currentUserId = currentUser?.id ?? currentUser?.userId;
+  const currentUserEmail = (currentUser?.email || "").toLowerCase();
+
+  const isMessageFromMe = useCallback(
+    (msg) => {
+      if (!msg) return false;
+      if (msg._optimistic) return true;
+      const senderId = msg.sender?.id ?? msg.sender?.userId;
+      if (currentUserId != null && senderId != null) {
+        if (senderId === currentUserId || String(senderId) === String(currentUserId)) {
+          return true;
+        }
+      }
+      const senderEmail = (msg.sender?.email || "").toLowerCase();
+      if (currentUserEmail && senderEmail && currentUserEmail === senderEmail) {
+        return true;
+      }
+      return false;
+    },
+    [currentUserId, currentUserEmail]
+  );
+
   const chat = useChat();
 
   const urlConvId = searchParams.get("convId");
@@ -162,12 +183,34 @@ export default function RecruiterMessagesPage() {
         behavior: smooth ? "smooth" : "instant",
       });
     }
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: smooth ? "smooth" : "instant",
+        block: "end",
+      });
+    }
   }, []);
+
+  // Auto-scroll when messages update or active conversation changes
+  useEffect(() => {
+    if (messages.length > 0) {
+      const container = messagesContainerRef.current;
+      if (!container) {
+        scrollToBottom(false);
+        return;
+      }
+      const isNearBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight < 250;
+      if (isNearBottom || messages.some((m) => m._optimistic)) {
+        requestAnimationFrame(() => scrollToBottom(true));
+      }
+    }
+  }, [messages, scrollToBottom]);
 
   const activeConv = conversations.find((c) => c.id === activeConvId) || null;
   const otherParticipant = useMemo(
-    () => getOtherParticipant(activeConv, currentUserId),
-    [activeConv, currentUserId]
+    () => getOtherParticipant(activeConv, currentUserId, {}, currentUserEmail),
+    [activeConv, currentUserId, currentUserEmail]
   );
 
   // Load conversations on mount
@@ -211,7 +254,7 @@ export default function RecruiterMessagesPage() {
     setOtherTyping(false);
 
     const conv = conversations.find((c) => c.id === activeConvId);
-    const other = getOtherParticipant(conv, currentUserId);
+    const other = getOtherParticipant(conv, currentUserId, {}, currentUserEmail);
     setOtherOnline(Boolean(other?.online));
 
     loadMessagesPage(activeConvId, 0);
@@ -225,11 +268,25 @@ export default function RecruiterMessagesPage() {
           const items = [...content].reverse();
           setMessages((prev) => {
             const existingIds = new Set(prev.map((m) => m.id));
-            const newItems = items.filter((m) => !existingIds.has(m.id) && !m._optimistic);
-            if (newItems.length > 0) {
-              return [...prev, ...newItems];
-            }
-            return prev;
+            let updated = [...prev];
+            let changed = false;
+
+            items.forEach((serverMsg) => {
+              const optIndex = updated.findIndex(
+                (p) => p._optimistic && p.content === serverMsg.content && isMessageFromMe(serverMsg)
+              );
+              if (optIndex !== -1) {
+                updated[optIndex] = { ...serverMsg, _optimistic: false };
+                existingIds.add(serverMsg.id);
+                changed = true;
+              } else if (!existingIds.has(serverMsg.id)) {
+                updated.push(serverMsg);
+                existingIds.add(serverMsg.id);
+                changed = true;
+              }
+            });
+
+            return changed ? updated : prev;
           });
         }
       }).catch(() => {});
@@ -250,7 +307,11 @@ export default function RecruiterMessagesPage() {
       const items = [...content].reverse();
       if (pageNum === 0) {
         setMessages(items);
-        setTimeout(() => scrollToBottom(false), 30);
+        requestAnimationFrame(() => {
+          scrollToBottom(false);
+          setTimeout(() => scrollToBottom(false), 50);
+          setTimeout(() => scrollToBottom(false), 200);
+        });
       } else {
         setMessages((prev) => [...items, ...prev]);
       }
@@ -273,21 +334,22 @@ export default function RecruiterMessagesPage() {
 
       chat.subscribeToConversation(convId, {
         onMessage: (msg) => {
+          const fromMe = isMessageFromMe(msg);
           setMessages((prev) => {
             const isOurOptimistic =
-              msg.sender?.id === currentUserId &&
+              fromMe &&
               prev.some((m) => m._optimistic && m.content === msg.content);
             if (isOurOptimistic) {
               return prev.map((m) =>
-                m._optimistic && m.content === msg.content ? msg : m
+                m._optimistic && m.content === msg.content ? { ...msg, _optimistic: false } : m
               );
             }
             if (prev.some((m) => m.id === msg.id)) return prev;
             return [...prev, msg];
           });
-          setTimeout(() => scrollToBottom(true), 30);
+          requestAnimationFrame(() => scrollToBottom(true));
 
-          if (msg.sender?.id !== currentUserId) {
+          if (!fromMe) {
             chat.markAsRead(convId);
             setConversations((prev) =>
               prev.map((c) =>
@@ -297,11 +359,17 @@ export default function RecruiterMessagesPage() {
           }
         },
         onTyping: (data) => {
-          if (data.userId !== currentUserId) setOtherTyping(data.typing === true);
+          const isMe =
+            (currentUserId != null && String(data.userId) === String(currentUserId)) ||
+            (currentUserEmail && (data.email || "").toLowerCase() === currentUserEmail);
+          if (!isMe) setOtherTyping(data.typing === true);
         },
         onRead: () => {},
         onPresence: (presence) => {
-          if (presence.user?.id !== currentUserId) {
+          const isMe =
+            (currentUserId != null && String(presence.user?.id) === String(currentUserId)) ||
+            (currentUserEmail && (presence.user?.email || "").toLowerCase() === currentUserEmail);
+          if (!isMe) {
             setOtherOnline(presence.online === true);
             setConversations((prev) =>
               prev.map((c) =>
@@ -320,7 +388,7 @@ export default function RecruiterMessagesPage() {
         },
       });
     },
-    [chat, currentUserId]
+    [chat, currentUserId, currentUserEmail, isMessageFromMe, scrollToBottom]
   );
 
   // Sync mobile chat view when convId query param changes
@@ -370,7 +438,12 @@ export default function RecruiterMessagesPage() {
       id: `opt-${Date.now()}`,
       _optimistic: true,
       conversationId: activeConvId,
-      sender: { id: currentUserId, name: currentUser?.name || "You" },
+      sender: {
+        id: currentUserId,
+        userId: currentUserId,
+        name: currentUser?.name || "You",
+        email: currentUserEmail,
+      },
       content: text,
       displayContent: text,
       messageType: "TEXT",
@@ -378,7 +451,7 @@ export default function RecruiterMessagesPage() {
       deleted: false,
     };
     setMessages((prev) => [...prev, optimisticMsg]);
-    setTimeout(() => scrollToBottom(true), 20);
+    requestAnimationFrame(() => scrollToBottom(true));
 
     clearTimeout(typingTimerRef.current);
     chat.sendTyping(activeConvId, false);
@@ -419,7 +492,7 @@ export default function RecruiterMessagesPage() {
   // ── Multi-field Search Filter ─────────────────────────────────────────────
   const filteredConvs = useMemo(() => {
     return conversations.filter((c) => {
-      const other = getOtherParticipant(c, currentUserId);
+      const other = getOtherParticipant(c, currentUserId, {}, currentUserEmail);
       const name = (other?.name || "").toLowerCase();
       const email = (other?.email || "").toLowerCase();
       const jobTitle = (c.jobTitle || "").toLowerCase();
@@ -443,7 +516,7 @@ export default function RecruiterMessagesPage() {
       if (filter === "unread") return matches && unreadCount > 0;
       return matches;
     });
-  }, [conversations, currentUserId, search, filter]);
+  }, [conversations, currentUserId, currentUserEmail, search, filter]);
 
   const totalUnread = conversations.reduce((acc, c) => acc + (c.myUnreadCount || c.unreadCount || 0), 0);
 
@@ -452,7 +525,7 @@ export default function RecruiterMessagesPage() {
       noPadding={true}
     >
       {/* Full-height Responsive Chat Container */}
-      <div className="h-[calc(100dvh-64px)] w-full bg-surface overflow-hidden border-0 md:border md:border-border md:rounded-2xl md:m-4 md:h-[calc(100dvh-96px)] md:w-[calc(100%-2rem)] shadow-xl flex font-inter text-heading">
+      <div className="flex-1 min-h-0 w-full bg-surface overflow-hidden border-0 md:border md:border-border md:rounded-2xl md:m-3 md:w-[calc(100%-1.5rem)] shadow-xl flex font-inter text-heading">
 
         {/* ── Conversation Sidebar ───────────────────────────────────────── */}
         <div
@@ -569,10 +642,10 @@ export default function RecruiterMessagesPage() {
             ) : (
               filteredConvs.map((conv) => {
                 const isActive = conv.id === activeConvId;
-                const other = getOtherParticipant(conv, currentUserId);
+                const other = getOtherParticipant(conv, currentUserId, {}, currentUserEmail);
                 const isOnline = other?.online;
                 const lastMsg = conv.lastMessage;
-                const lastMsgIsMe = lastMsg?.sender?.id === currentUserId;
+                const lastMsgIsMe = isMessageFromMe(lastMsg);
                 const unread = conv.myUnreadCount || conv.unreadCount || 0;
 
                 return (
@@ -800,21 +873,21 @@ export default function RecruiterMessagesPage() {
                       </div>
                     ) : (
                       messages.map((msg) => {
-                        const isMe = msg.sender?.id === currentUserId;
+                        const isMe = isMessageFromMe(msg);
                         const isDeleted = msg.deleted;
                         const isOptimistic = msg._optimistic;
 
                         return (
                           <div
                             key={msg.id}
-                            className={`flex flex-col group ${isMe ? "items-end" : "items-start"}`}
+                            className={`flex flex-col w-full group ${isMe ? "items-end" : "items-start"}`}
                             onClick={() => setSelectedMsgId((prev) => (prev === msg.id ? null : msg.id))}
                           >
                             <div
                               className={`relative max-w-[86%] sm:max-w-[78%] md:max-w-md rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs leading-relaxed shadow-xs transition-all break-words [overflow-wrap:anywhere] ${
                                 isMe
-                                  ? "gradient-bg-signature text-white rounded-tr-none font-medium shadow-md"
-                                  : "bg-surface-elevated border border-border text-heading rounded-tl-none font-medium shadow-xs"
+                                  ? "gradient-bg-signature text-white rounded-tr-none font-medium shadow-md ml-auto"
+                                  : "bg-surface-elevated border border-border text-heading rounded-tl-none font-medium shadow-xs mr-auto"
                               } ${isDeleted ? "opacity-60 italic" : ""}`}
                             >
                               <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
@@ -983,7 +1056,7 @@ export default function RecruiterMessagesPage() {
               </div>
 
               {/* Bottom Input Bar */}
-              <div className="px-3 sm:px-4 py-2 sm:py-2.5 bg-surface flex items-center gap-2 border-t border-border z-10 shrink-0 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
+              <div className="px-3 sm:px-4 py-2 sm:py-2.5 bg-surface flex items-center gap-2 border-t border-border z-10 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 <input
                   type="text"
                   value={inputText}
@@ -992,7 +1065,7 @@ export default function RecruiterMessagesPage() {
                   placeholder={otherParticipant?.name ? `Message ${otherParticipant.name.split(" ")[0]}…` : "Type message to candidate…"}
                   maxLength={5000}
                   enterKeyHint="send"
-                  className="flex-1 rounded-xl border border-border bg-surface-elevated px-3.5 py-2.5 sm:px-4 sm:py-2 text-base sm:text-xs text-heading placeholder:text-muted outline-none focus:border-primary font-medium transition min-h-[42px]"
+                  className="flex-1 min-w-0 rounded-xl border border-border bg-surface-elevated px-3.5 py-2.5 sm:px-4 sm:py-2 text-base sm:text-xs text-heading placeholder:text-muted outline-none focus:border-primary font-medium transition min-h-[42px]"
                 />
 
                 <button

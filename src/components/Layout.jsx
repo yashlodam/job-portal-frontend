@@ -29,7 +29,7 @@ function Layout() {
   const hideChatbot = isAuthRoute || isRecruiterRoute || isMessagesRoute;
 
   return (
-    <div className="min-h-screen w-full bg-background font-inter text-body flex flex-col">
+    <div className={`w-full bg-background font-inter text-body flex flex-col ${isMessagesRoute ? "h-[100dvh] max-h-[100dvh] overflow-hidden" : "min-h-screen"}`}>
       {/* Accessibility */}
       <a href="#main-content" className="skip-link">
         Skip to main content
@@ -41,7 +41,7 @@ function Layout() {
       {!hideUserHeader && <Header />}
 
       {/* Main Page Content */}
-      <main id="main-content" className={`relative w-full flex-1 flex flex-col ${isMessagesRoute ? "pb-0" : "pb-16 md:pb-0"}`}>
+      <main id="main-content" className={`relative w-full flex-1 min-h-0 flex flex-col ${isMessagesRoute ? "pb-0 overflow-hidden" : "pb-16 md:pb-0"}`}>
         <Outlet />
       </main>
 
