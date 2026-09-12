@@ -377,12 +377,20 @@ export const JOB_TYPES = [
   },
 ];
 /* ============================================================
+/* ============================================================
    BannerPlaceholder
    ============================================================ */
 
-function BannerPlaceholder() {
+function BannerPlaceholder({ onClick }) {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none select-none">
+    <div
+      onClick={onClick}
+      className="absolute inset-0 flex flex-col items-center justify-center gap-3 cursor-pointer select-none group/ph"
+      role="button"
+      tabIndex={0}
+      aria-label="Upload banner image"
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick?.(); }}
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-violet/10 to-accent/15 opacity-80" />
       <div
         className="absolute inset-0 opacity-10"
@@ -392,10 +400,15 @@ function BannerPlaceholder() {
           backgroundSize: "32px 32px",
         }}
       />
-      <div className="relative z-10 flex flex-col items-center gap-2 opacity-40">
-        <IconPhoto size={40} stroke={1.2} className="text-white" />
-        <span className="text-xs font-medium text-white tracking-widest uppercase">
+      <div className="relative z-10 flex flex-col items-center gap-2 opacity-70 group-hover/ph:opacity-100 group-hover/ph:scale-105 transition-all duration-200">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-md">
+          <IconPhoto size={24} stroke={1.5} className="text-white" />
+        </div>
+        <span className="text-xs font-semibold text-white tracking-wider uppercase">
           Add a banner image
+        </span>
+        <span className="text-[11px] text-white/60">
+          Click to upload PNG, JPG or WEBP (up to 5MB)
         </span>
       </div>
     </div>
@@ -589,7 +602,7 @@ function Profile() {
   const reduxSuccess = useAppSelector(selectProfileSuccess);
 
   // ── Canonical local data (synced from Redux) ─────────────────────────────
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(() => reduxProfile ? normalise(reduxProfile) : null);
 
   // ── Per-section draft state (only active while editing) ──────────────────
   // Each section stores its own editable copy separately from `data`,
@@ -609,7 +622,6 @@ function Profile() {
   // ── Misc UI state ─────────────────────────────────────────────────────────
   const [confirm, setConfirm] = useState(null);
   const [certPreview, setCertPreview] = useState(null);
-  const [bannerLoaded, setBannerLoaded] = useState(false);
   const [bannerError, setBannerError] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
@@ -717,12 +729,8 @@ function Profile() {
     if (!reduxProfile) return;
     const normalised = normalise(reduxProfile);
     setData(normalised);
-    if (reduxProfile.bannerImage && reduxProfile.bannerImage !== prevBannerRef.current) {
-      prevBannerRef.current = reduxProfile.bannerImage;
-      setBannerLoaded(false);
-      setBannerError(false);
-    } else if (!prevBannerRef.current && reduxProfile.bannerImage) {
-      prevBannerRef.current = reduxProfile.bannerImage;
+    if (reduxProfile.bannerImage !== prevBannerRef.current) {
+      prevBannerRef.current = reduxProfile.bannerImage ?? null;
       setBannerError(false);
     }
     if (reduxProfile.profileImage !== prevAvatarRef.current) {
@@ -788,15 +796,16 @@ function Profile() {
     revokeBlob(prevBannerRef.current);
     const url = URL.createObjectURL(file);
     prevBannerRef.current = url;
-    setBannerLoaded(false);
     setBannerError(false);
     setData((prev) => ({ ...prev, bannerImage: url }));
     e.target.value = "";
     try {
       const res = await dispatch(uploadBannerImageThunk(file)).unwrap();
       const payload = res?.data ?? res;
-      if (payload?.bannerImage) {
-        setData((prev) => ({ ...prev, bannerImage: payload.bannerImage }));
+      const newBanner = payload?.bannerImage || payload?.url || payload?.bannerUrl;
+      if (newBanner) {
+        setData((prev) => ({ ...prev, bannerImage: newBanner }));
+        prevBannerRef.current = newBanner;
       }
       dispatch(fetchMyProfileThunk());
       notifications.show({
@@ -807,6 +816,7 @@ function Profile() {
       });
     } catch (err) {
       setData((prev) => ({ ...prev, bannerImage: previousBanner }));
+      prevBannerRef.current = previousBanner;
       notifications.show({
         title: "Banner Upload Failed",
         message: err?.message || "Failed to upload banner image.",
@@ -1610,45 +1620,31 @@ function Profile() {
 
         {/* Banner */}
         <div className="group relative h-60 md:h-72 w-full overflow-hidden rounded-t-2xl bg-gradient-to-br from-primary/20 via-violet/10 to-accent/15">
-          {(!bannerSrc || bannerError) && <BannerPlaceholder />}
+          {(!bannerSrc || bannerError) && (
+            <BannerPlaceholder onClick={() => bannerInputRef.current?.click()} />
+          )}
           {bannerSrc && !bannerError && (
-            <>
-              {!bannerLoaded && (
-                <div className="absolute inset-0 bg-white/[0.04] overflow-hidden">
-                  <div className="absolute inset-0 animate-[shimmer-slide_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
-                </div>
-              )}
-              <img
-                src={bannerSrc}
-                alt={`${data.name || "Profile"} banner`}
-                onLoad={() => setBannerLoaded(true)}
-                onError={() => {
-                  setBannerLoaded(true);
-                  setBannerError(true);
-                }}
-                ref={(el) => {
-                  if (el && el.complete && el.naturalWidth > 0 && !bannerLoaded) {
-                    setBannerLoaded(true);
-                  }
-                }}
-                className={[
-                  "absolute inset-0 h-full w-full object-cover object-center",
-                  "transition-all duration-500 group-hover:scale-[1.03]",
-                  bannerLoaded ? "opacity-100" : "opacity-0",
-                ].join(" ")}
-                style={{ imageOrientation: "from-image" }}
-              />
-            </>
+            <img
+              src={bannerSrc}
+              alt={`${data.name || "Profile"} banner`}
+              onError={() => {
+                setBannerError(true);
+              }}
+              className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
+              style={{ imageOrientation: "from-image" }}
+              loading="eager"
+              decoding="async"
+            />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-surface/70 via-transparent to-transparent pointer-events-none" />
           <button
             type="button"
             onClick={() => bannerInputRef.current?.click()}
             aria-label="Change banner image"
-            className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/50 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-200 hover:bg-black/70 hover:border-white/40"
+            className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/50 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-white opacity-90 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-200 hover:bg-black/70 hover:border-white/40 shadow-sm"
           >
             <IconCamera size={14} />
-            Change banner
+            {bannerSrc && !bannerError ? "Change banner" : "Upload banner"}
           </button>
           <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerSelect} aria-label="Upload banner image" />
         </div>
