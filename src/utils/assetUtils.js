@@ -59,13 +59,19 @@ export function resolveImageUrl(path, subfolder = "uploads", fallback = null) {
     return getAssetUrl(clean);
   }
 
+  // If path starts with common upload subdirectories, prepend uploads/
+  const knownSubdirs = ["profile/", "banner/", "resume/", "logo/", "company/", "avatars/", "certificates/"];
+  if (knownSubdirs.some((prefix) => clean.startsWith(prefix))) {
+    return getAssetUrl(`uploads/${clean}`);
+  }
+
   // Handle custom subfolders (e.g. "uploads/certificates")
   const cleanSub = (subfolder || "").replace(/^\/+/, "").replace(/\/+$/, "");
   if (cleanSub) {
-    if (clean.startsWith(cleanSub)) {
-      return getAssetUrl(clean);
+    if (cleanSub.startsWith("uploads")) {
+      return getAssetUrl(`${cleanSub}/${clean}`);
     }
-    return getAssetUrl(`${cleanSub}/${clean}`);
+    return getAssetUrl(`uploads/${cleanSub}/${clean}`);
   }
 
   return getAssetUrl(`uploads/${clean}`);

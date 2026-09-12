@@ -610,6 +610,8 @@ function Profile() {
   const [confirm, setConfirm] = useState(null);
   const [certPreview, setCertPreview] = useState(null);
   const [bannerLoaded, setBannerLoaded] = useState(false);
+  const [bannerError, setBannerError] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   // ── Image refs ────────────────────────────────────────────────────────────
   const bannerInputRef = useRef(null);
@@ -718,10 +720,15 @@ function Profile() {
     if (reduxProfile.bannerImage && reduxProfile.bannerImage !== prevBannerRef.current) {
       prevBannerRef.current = reduxProfile.bannerImage;
       setBannerLoaded(false);
+      setBannerError(false);
     } else if (!prevBannerRef.current && reduxProfile.bannerImage) {
       prevBannerRef.current = reduxProfile.bannerImage;
+      setBannerError(false);
     }
-    prevAvatarRef.current = reduxProfile.profileImage ?? null;
+    if (reduxProfile.profileImage !== prevAvatarRef.current) {
+      prevAvatarRef.current = reduxProfile.profileImage ?? null;
+      setAvatarError(false);
+    }
   }, [reduxProfile, normalise]);
 
   // ── Toast handlers ────────────────────────────────────────────────────────
@@ -765,22 +772,41 @@ function Profile() {
   const handleBannerSelect = useCallback(async (e) => {
     const file = e.target.files?.[0];
     if (!file || !data) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      notifications.show({
+        title: "File Too Large",
+        message: "Banner image must be under 5MB.",
+        color: "red",
+        autoClose: 4000,
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const previousBanner = data.bannerImage;
     revokeBlob(prevBannerRef.current);
     const url = URL.createObjectURL(file);
     prevBannerRef.current = url;
     setBannerLoaded(false);
+    setBannerError(false);
     setData((prev) => ({ ...prev, bannerImage: url }));
     e.target.value = "";
     try {
-      await dispatch(uploadBannerImageThunk(file)).unwrap();
+      const res = await dispatch(uploadBannerImageThunk(file)).unwrap();
+      const payload = res?.data ?? res;
+      if (payload?.bannerImage) {
+        setData((prev) => ({ ...prev, bannerImage: payload.bannerImage }));
+      }
       dispatch(fetchMyProfileThunk());
       notifications.show({
         title: "Banner Updated",
-        message: "Your banner image has been updated.",
+        message: "Your banner image has been updated successfully.",
         color: "teal",
         autoClose: 3000,
       });
     } catch (err) {
+      setData((prev) => ({ ...prev, bannerImage: previousBanner }));
       notifications.show({
         title: "Banner Upload Failed",
         message: err?.message || "Failed to upload banner image.",
@@ -793,13 +819,31 @@ function Profile() {
   const handleAvatarSelect = useCallback(async (e) => {
     const file = e.target.files?.[0];
     if (!file || !data) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      notifications.show({
+        title: "File Too Large",
+        message: "Profile photo must be under 5MB.",
+        color: "red",
+        autoClose: 4000,
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const previousAvatar = data.profileImage;
     revokeBlob(prevAvatarRef.current);
     const url = URL.createObjectURL(file);
     prevAvatarRef.current = url;
+    setAvatarError(false);
     setData((prev) => ({ ...prev, profileImage: url }));
     e.target.value = "";
     try {
-      await dispatch(uploadProfileImageThunk(file)).unwrap();
+      const res = await dispatch(uploadProfileImageThunk(file)).unwrap();
+      const payload = res?.data ?? res;
+      if (payload?.profileImage) {
+        setData((prev) => ({ ...prev, profileImage: payload.profileImage }));
+      }
       dispatch(fetchMyProfileThunk());
       notifications.show({
         title: "Profile Photo Updated",
@@ -808,6 +852,7 @@ function Profile() {
         autoClose: 3000,
       });
     } catch (err) {
+      setData((prev) => ({ ...prev, profileImage: previousAvatar }));
       notifications.show({
         title: "Photo Upload Failed",
         message: err?.message || "Failed to upload profile photo.",
@@ -1565,8 +1610,8 @@ function Profile() {
 
         {/* Banner */}
         <div className="group relative h-60 md:h-72 w-full overflow-hidden rounded-t-2xl bg-gradient-to-br from-primary/20 via-violet/10 to-accent/15">
-          {!bannerSrc && <BannerPlaceholder />}
-          {bannerSrc && (
+          {(!bannerSrc || bannerError) && <BannerPlaceholder />}
+          {bannerSrc && !bannerError && (
             <>
               {!bannerLoaded && (
                 <div className="absolute inset-0 bg-white/[0.04] overflow-hidden">
@@ -1577,7 +1622,10 @@ function Profile() {
                 src={bannerSrc}
                 alt={`${data.name || "Profile"} banner`}
                 onLoad={() => setBannerLoaded(true)}
-                onError={() => setBannerLoaded(true)}
+                onError={() => {
+                  setBannerLoaded(true);
+                  setBannerError(true);
+                }}
                 ref={(el) => {
                   if (el && el.complete && el.naturalWidth > 0 && !bannerLoaded) {
                     setBannerLoaded(true);
@@ -1612,7 +1660,7 @@ function Profile() {
             {/* Avatar */}
             <div className="group relative w-fit">
               <div className="h-28 w-28 sm:h-32 sm:w-32 shrink-0 overflow-hidden rounded-2xl border-[3px] border-surface bg-surface-elevated shadow-[0_8px_32px_rgba(0,0,0,0.45)] flex items-center justify-center">
-                {avatarSrc ? (
+                {avatarSrc && !avatarError ? (
                   <img
                     src={avatarSrc}
                     alt={`${data.name || "User"} profile photo`}
@@ -1620,8 +1668,8 @@ function Profile() {
                     style={{ imageOrientation: "from-image" }}
                     loading="eager"
                     decoding="async"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
+                    onError={() => {
+                      setAvatarError(true);
                     }}
                   />
                 ) : (

@@ -67,11 +67,14 @@ export const fetchMyProfileThunk = createAsyncThunk(
         try {
           return await fetchProfileByEmail(user.email);
         } catch (e) {
+          const currentProfile = state.profile?.profile || {};
           return {
-            name: user.name || "",
+            name: user.name || currentProfile.name || "",
             email: user.email,
             role: user.role || "APPLICANT",
             accountType: user.accountType || "APPLICANT",
+            profileImage: currentProfile.profileImage || user.profileImage || null,
+            bannerImage: currentProfile.bannerImage || user.bannerImage || null,
           };
         }
       }
@@ -89,11 +92,14 @@ export const fetchProfileByEmailThunk = createAsyncThunk(
     } catch (error) {
       const state = getState();
       const user = state.auth?.profile;
+      const currentProfile = state.profile?.profile || {};
       return {
-        name: user?.name || "",
+        name: user?.name || currentProfile.name || "",
         email: email || user?.email || "",
         role: user?.role || "APPLICANT",
         accountType: user?.accountType || "APPLICANT",
+        profileImage: currentProfile.profileImage || user?.profileImage || null,
+        bannerImage: currentProfile.bannerImage || user?.bannerImage || null,
       };
     }
   }

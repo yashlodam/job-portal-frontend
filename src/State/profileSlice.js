@@ -90,29 +90,38 @@ const setError = (state, action) => {
 const unwrap = (payload) => payload?.data ?? payload;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Initial State
+// Initial State (Restored from localStorage for instant frame-0 rendering)
 // ─────────────────────────────────────────────────────────────────────────────
+const storedFullProfile = (() => {
+  try {
+    const p = localStorage.getItem("jobportal_full_profile");
+    return p ? JSON.parse(p) : null;
+  } catch {
+    return null;
+  }
+})();
+
 const initialState = {
   loading: false,
   error: null,
   success: false,
 
   // Core profile object returned by GET /profile/me
-  profile: null,
+  profile: storedFullProfile,
 
   // Granular section caches (populated by dedicated section fetches)
-  header: null,
-  about: null,
-  links: null,
-  skills: [],
-  experiences: [],
-  educations: [],
-  certifications: [],
-  languages: [],
+  header: storedFullProfile?.header ?? null,
+  about: storedFullProfile?.about ?? null,
+  links: storedFullProfile?.links ?? null,
+  skills: storedFullProfile?.skills ?? [],
+  experiences: storedFullProfile?.experiences ?? [],
+  educations: storedFullProfile?.educations ?? [],
+  certifications: storedFullProfile?.certifications ?? [],
+  languages: storedFullProfile?.languages ?? [],
   resume: null,
   // Image URLs returned after successful upload
-  profileImage: null,
-  bannerImage: null,
+  profileImage: storedFullProfile?.profileImage ?? null,
+  bannerImage: storedFullProfile?.bannerImage ?? null,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -133,7 +142,28 @@ const profileSlice = createSlice({
       state.error = null;
     },
     /** Hard-reset the entire profile slice (e.g. on logout). */
-    resetProfile: () => initialState,
+    resetProfile: () => {
+      try {
+        localStorage.removeItem("jobportal_full_profile");
+      } catch {}
+      return {
+        loading: false,
+        error: null,
+        success: false,
+        profile: null,
+        header: null,
+        about: null,
+        links: null,
+        skills: [],
+        experiences: [],
+        educations: [],
+        certifications: [],
+        languages: [],
+        resume: null,
+        profileImage: null,
+        bannerImage: null,
+      };
+    },
   },
 
   // ── Async reducers ────────────────────────────────────────────────────────
@@ -148,21 +178,26 @@ const profileSlice = createSlice({
       .addCase(fetchMyProfileThunk.fulfilled, (state, action) => {
         state.loading = false;
         const data = unwrap(action.payload);
-        state.profile = data;
-        // Hydrate granular section caches
-        state.header         = data?.header         ?? state.header;
-        state.about          = data?.about          ?? state.about;
-        state.links          = data?.links          ?? state.links;
-        state.skills         = data?.skills         ?? state.skills;
-        state.experiences    = data?.experiences    ?? state.experiences;
-        state.educations     = data?.educations     ?? state.educations;
-        state.certifications = data?.certifications ?? state.certifications;
-        state.languages      = data?.languages      ?? state.languages;
-        state.profileImage   = data?.profileImage   ?? state.profileImage;
-        state.bannerImage    = data?.bannerImage    ?? state.bannerImage;
-        // Hydrate resume cache from root-level fields on ProfileResponse
-        if (data?.resumeUrl || data?.resumeName) {
-          state.resume = { resumeUrl: data.resumeUrl ?? null, resumeName: data.resumeName ?? null };
+        if (data) {
+          state.profile = data;
+          // Hydrate granular section caches
+          state.header         = data?.header         ?? state.header;
+          state.about          = data?.about          ?? state.about;
+          state.links          = data?.links          ?? state.links;
+          state.skills         = data?.skills         ?? state.skills;
+          state.experiences    = data?.experiences    ?? state.experiences;
+          state.educations     = data?.educations     ?? state.educations;
+          state.certifications = data?.certifications ?? state.certifications;
+          state.languages      = data?.languages      ?? state.languages;
+          state.profileImage   = data?.profileImage   ?? state.profileImage;
+          state.bannerImage    = data?.bannerImage    ?? state.bannerImage;
+          // Hydrate resume cache from root-level fields on ProfileResponse
+          if (data?.resumeUrl || data?.resumeName) {
+            state.resume = { resumeUrl: data.resumeUrl ?? null, resumeName: data.resumeName ?? null };
+          }
+          try {
+            localStorage.setItem("jobportal_full_profile", JSON.stringify(state.profile));
+          } catch {}
         }
       })
       .addCase(fetchMyProfileThunk.rejected, setError)
@@ -175,20 +210,25 @@ const profileSlice = createSlice({
       .addCase(fetchProfileByEmailThunk.fulfilled, (state, action) => {
         state.loading = false;
         const data = unwrap(action.payload);
-        state.profile        = data;
-        state.header         = data?.header         ?? state.header;
-        state.about          = data?.about          ?? state.about;
-        state.links          = data?.links          ?? state.links;
-        state.skills         = data?.skills         ?? state.skills;
-        state.experiences    = data?.experiences    ?? state.experiences;
-        state.educations     = data?.educations     ?? state.educations;
-        state.certifications = data?.certifications ?? state.certifications;
-        state.languages      = data?.languages      ?? state.languages;
-        state.profileImage   = data?.profileImage   ?? state.profileImage;
-        state.bannerImage    = data?.bannerImage    ?? state.bannerImage;
-        // Hydrate resume cache from root-level fields on ProfileResponse
-        if (data?.resumeUrl || data?.resumeName) {
-          state.resume = { resumeUrl: data.resumeUrl ?? null, resumeName: data.resumeName ?? null };
+        if (data) {
+          state.profile        = data;
+          state.header         = data?.header         ?? state.header;
+          state.about          = data?.about          ?? state.about;
+          state.links          = data?.links          ?? state.links;
+          state.skills         = data?.skills         ?? state.skills;
+          state.experiences    = data?.experiences    ?? state.experiences;
+          state.educations     = data?.educations     ?? state.educations;
+          state.certifications = data?.certifications ?? state.certifications;
+          state.languages      = data?.languages      ?? state.languages;
+          state.profileImage   = data?.profileImage   ?? state.profileImage;
+          state.bannerImage    = data?.bannerImage    ?? state.bannerImage;
+          // Hydrate resume cache from root-level fields on ProfileResponse
+          if (data?.resumeUrl || data?.resumeName) {
+            state.resume = { resumeUrl: data.resumeUrl ?? null, resumeName: data.resumeName ?? null };
+          }
+          try {
+            localStorage.setItem("jobportal_full_profile", JSON.stringify(state.profile));
+          } catch {}
         }
       })
       .addCase(fetchProfileByEmailThunk.rejected, setError)
@@ -204,7 +244,12 @@ const profileSlice = createSlice({
         state.profileImage = img;
         if (state.profile) {
           state.profile.profileImage = img;
+        } else {
+          state.profile = { profileImage: img };
         }
+        try {
+          localStorage.setItem("jobportal_full_profile", JSON.stringify(state.profile));
+        } catch {}
       })
       .addCase(uploadProfileImageThunk.rejected, setError)
       // ══════════════════════════════════════════════════════════════════════
@@ -219,7 +264,12 @@ const profileSlice = createSlice({
         state.bannerImage = banner;
         if (state.profile) {
           state.profile.bannerImage = banner;
+        } else {
+          state.profile = { bannerImage: banner };
         }
+        try {
+          localStorage.setItem("jobportal_full_profile", JSON.stringify(state.profile));
+        } catch {}
       })
       .addCase(uploadBannerImageThunk.rejected, setError)
 
