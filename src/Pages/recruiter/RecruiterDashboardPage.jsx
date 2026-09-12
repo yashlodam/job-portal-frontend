@@ -8,7 +8,7 @@
 
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, ArrowRight, Briefcase, Sparkles, AlertCircle, ShieldAlert } from "lucide-react";
+import { Plus, ArrowRight, Briefcase, Sparkles, AlertCircle, ShieldAlert, Clock } from "lucide-react";
 import RecruiterLayout from "../../components/recruiter/layout/RecruiterLayout";
 import DashboardKpis from "../../components/recruiter/dashboard/DashboardKpis";
 import { RecentActivityWidget, HiringFunnelWidget } from "../../components/recruiter/dashboard/RecentActivityWidget";
@@ -38,10 +38,8 @@ export default function RecruiterDashboardPage() {
 
   useEffect(() => {
     dispatch(fetchVerificationStatus());
-    if (isApproved) {
-      dispatch(getMyJobs());
-    }
-  }, [dispatch, isApproved]);
+    dispatch(getMyJobs());
+  }, [dispatch]);
 
   const getApplicantsCount = (job) => {
     if (job.applicantsCount != null) return job.applicantsCount;
@@ -68,42 +66,49 @@ export default function RecruiterDashboardPage() {
     hired: 0,
   };
 
-  // If recruiter is NOT approved, render the limited Pending Dashboard
-  if (!isApproved) {
-    return (
-      <RecruiterLayout
-        title={`Welcome, ${user?.name?.split(" ")[0] ?? "Recruiter"}`}
-        subtitle="Manage your organization verification status and compliance profile."
-        action={
-          <Link
-            to="/recruiter/verification"
-            className="flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-indigo-500 transition cursor-pointer font-satoshi"
-          >
-            <Sparkles size={15} />
-            <span>Verification Center</span>
-          </Link>
-        }
-      >
-        <PendingRecruiterDashboard />
-      </RecruiterLayout>
-    );
-  }
-
-  // Full Normal Recruiter Dashboard for Approved Recruiters
   return (
     <RecruiterLayout
-      title={`Welcome Back, ${user?.name?.split(" ")[0] ?? "Recruiter"}!`}
+      title={`Welcome, ${user?.name?.split(" ")[0] ?? "Recruiter"}!`}
       subtitle="Here is your real-time candidate pipeline and active hiring snapshot for today."
       action={
-        <Link
-          to="/upload-job"
-          className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-2.5 text-xs font-black text-white shadow-lg hover:scale-105 transition cursor-pointer font-satoshi"
-        >
-          <Plus size={16} />
-          <span>Post New Role</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          {!isApproved && (
+            <Link
+              to="/recruiter/verification"
+              className="flex items-center gap-2 rounded-2xl bg-amber-500/20 border border-amber-500/40 px-3.5 py-2 text-xs font-bold text-amber-600 dark:text-amber-300 hover:bg-amber-500/30 transition cursor-pointer font-satoshi"
+            >
+              <Sparkles size={14} />
+              <span>Verification Status</span>
+            </Link>
+          )}
+          <Link
+            to="/upload-job"
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-2.5 text-xs font-black text-white shadow-lg hover:scale-105 transition cursor-pointer font-satoshi"
+          >
+            <Plus size={16} />
+            <span>Post New Role</span>
+          </Link>
+        </div>
       }
     >
+      {/* Pending Verification Notice Banner */}
+      {!isApproved && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs font-bold text-amber-600 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg font-satoshi">
+          <div className="flex items-center gap-2.5">
+            <Clock className="h-5 w-5 text-amber-500 shrink-0 animate-pulse" />
+            <span>
+              <strong>Organization Verification Under Review:</strong> You have full access to manage your jobs, review candidate applications, and use real-time candidate chat.
+            </span>
+          </div>
+          <Link
+            to="/recruiter/verification"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-3.5 py-1.5 text-xs font-black text-slate-950 hover:bg-amber-400 transition shrink-0"
+          >
+            <Sparkles size={14} /> Verification Center
+          </Link>
+        </div>
+      )}
+
       {/* Real-Time KPIs */}
       <DashboardKpis stats={stats} />
 

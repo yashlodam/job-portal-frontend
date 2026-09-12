@@ -41,7 +41,7 @@ function Layout() {
       {!hideUserHeader && <Header />}
 
       {/* Main Page Content */}
-      <main id="main-content" className="relative w-full flex-1 flex flex-col pb-16 md:pb-0">
+      <main id="main-content" className={`relative w-full flex-1 flex flex-col ${isMessagesRoute ? "pb-0" : "pb-16 md:pb-0"}`}>
         <Outlet />
       </main>
 

@@ -11,6 +11,7 @@ import {
   withdrawApplicationThunk,
   fetchMyApplicationsThunk,
   fetchJobApplicationsThunk,
+  fetchAllRecruiterApplicationsThunk,
   updateApplicationStatusThunk,
 } from "./applicationThunk";
 
@@ -137,6 +138,29 @@ const applicationSlice = createSlice({
         }
       })
       .addCase(fetchJobApplicationsThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // ─── Fetch All Recruiter Applications (Across all jobs) ─────────────────
+      .addCase(fetchAllRecruiterApplicationsThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllRecruiterApplicationsThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        const res = action.payload;
+        const pageData = res?.data ?? res;
+        if (pageData?.content) {
+          state.jobApplicationsPage = pageData;
+          state.jobApplications = pageData.content;
+        } else if (Array.isArray(pageData)) {
+          state.jobApplications = pageData;
+        } else {
+          state.jobApplications = [];
+        }
+      })
+      .addCase(fetchAllRecruiterApplicationsThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

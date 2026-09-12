@@ -37,9 +37,9 @@ import { Modal } from "../../components/ui/Modal";
 import { Tabs } from "../../components/ui/Tabs";
 import { useAppDispatch, useAppSelector } from "../../State/Store";
 import { getMyJobs } from "../../State/JobSlice";
-import { fetchJobApplicationsThunk, updateApplicationStatusThunk } from "../../State/applicationThunk";
+import { fetchJobApplicationsThunk, fetchAllRecruiterApplicationsThunk, updateApplicationStatusThunk } from "../../State/applicationThunk";
 import { getAssetUrl } from "../../utils/assetUtils";
-import { getCandidatesWithMatchApi } from "../../api/jobMatchApi";
+import { getCandidatesWithMatchApi, getAllCandidatesWithMatchApi } from "../../api/jobMatchApi";
 import MatchScoreBadge from "../../components/recruiter/MatchScoreBadge";
 import MatchAnalysisModal from "../../components/recruiter/MatchAnalysisModal";
 import { createOrGetConversationApi, resolveCandidateUserId } from "../../api/chatApi";
@@ -83,7 +83,8 @@ export default function RecruiterApplicationsPage() {
   const { myJobs = [] } = useAppSelector((state) => state.job);
   const { jobApplications = [], loading } = useAppSelector((state) => state.application);
 
-  const [selectedJobId, setSelectedJobId] = useState(null);
+  const paramJobId = searchParams.get("jobId");
+  const [selectedJobId, setSelectedJobId] = useState(() => paramJobId ? (paramJobId === "all" ? "all" : Number(paramJobId)) : "all");
   const [activeTab, setActiveTab] = useState("all");
   const [matchTier, setMatchTier] = useState("all"); // 'all' | 'top' (>=80%) | 'moderate' (60-79%) | 'low' (<60%)
   const [sortBy, setSortBy] = useState("ma.matchPercentage,desc");
@@ -111,17 +112,9 @@ export default function RecruiterApplicationsPage() {
     dispatch(getMyJobs());
   }, [dispatch]);
 
-  const firstJobId = myJobs[0]?.id;
-
-  useEffect(() => {
-    if (firstJobId && !selectedJobId) {
-      setSelectedJobId(firstJobId);
-    }
-  }, [firstJobId, selectedJobId]);
-
   // Fetch job applications + candidates with match scores
   useEffect(() => {
-    if (selectedJobId) {
+    if (selectedJobId !== undefined && selectedJobId !== null) {
       fetchApplicationsAndMatchScores(selectedJobId, sortBy);
     }
   }, [selectedJobId, sortBy]);
@@ -129,12 +122,10 @@ export default function RecruiterApplicationsPage() {
   const fetchApplicationsAndMatchScores = async (jobId, sortOption) => {
     setMatchLoading(true);
     try {
-      // 1. Fetch from Spring Boot AI Job Match endpoint
-      const res = await getCandidatesWithMatchApi(jobId, {
-        page: 0,
-        size: 50,
-        sort: sortOption,
-      });
+      // 1. Fetch from Spring Boot AI Job Match endpoint (all or specific job)
+      const res = jobId === "all"
+        ? await getAllCandidatesWithMatchApi({ page: 0, size: 50, sort: sortOption })
+        : await getCandidatesWithMatchApi(jobId, { page: 0, size: 50, sort: sortOption });
 
       const pageData = res?.data ?? res;
       const contentList = pageData?.content ?? (Array.isArray(pageData) ? pageData : []);
@@ -162,7 +153,11 @@ export default function RecruiterApplicationsPage() {
       console.warn("[RecruiterApplicationsPage] AI Job Match fetch notice:", err?.userMessage || err?.message);
     } finally {
       // Also trigger Redux applications fetch for state synchronization
-      dispatch(fetchJobApplicationsThunk({ jobId }));
+      if (jobId === "all") {
+        dispatch(fetchAllRecruiterApplicationsThunk());
+      } else {
+        dispatch(fetchJobApplicationsThunk({ jobId }));
+      }
       setMatchLoading(false);
     }
   };
@@ -344,11 +339,14 @@ export default function RecruiterApplicationsPage() {
           <div className="flex flex-wrap items-center gap-3 text-xs">
             <span className="font-extrabold text-heading">Active Job Position:</span>
             <select
-              value={selectedJobId || ""}
-              onChange={(e) => setSelectedJobId(Number(e.target.value))}
+              value={selectedJobId || "all"}
+              onChange={(e) => setSelectedJobId(e.target.value === "all" ? "all" : Number(e.target.value))}
               className="rounded-xl border border-border bg-surface-elevated px-4 py-2 text-heading font-bold outline-none focus:border-indigo-500/60 transition cursor-pointer"
               style={{ colorScheme: 'auto' }}
             >
+              <option value="all" className="bg-surface text-heading">
+                All Job Positions (All Candidates)
+              </option>
               {myJobs.map((j) => (
                 <option key={j.id} value={j.id} className="bg-surface text-heading">
                   {j.title || j.jobTitle} (#{j.id})

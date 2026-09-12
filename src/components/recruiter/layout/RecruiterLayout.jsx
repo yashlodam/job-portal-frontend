@@ -27,7 +27,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], action, children }) {
+export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], action, noPadding = false, children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [resubmitOpen, setResubmitOpen] = useState(false);
@@ -74,10 +74,10 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
         <RecruiterNavbar onOpenMobileSidebar={() => setMobileSidebarOpen(true)} />
 
         {/* Content Area */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className={`flex-1 w-full mx-auto ${noPadding ? "p-0 max-w-full flex flex-col overflow-hidden" : "p-4 sm:p-6 lg:p-8 max-w-7xl space-y-6"}`}>
           {/* ── LIFECYCLE RESTRICTION BANNERS ── */}
           {isPending && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-600 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-amber-500/5 backdrop-blur-xl">
+            <div className={`border border-amber-500/30 bg-amber-500/10 text-xs text-amber-600 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-amber-500/5 backdrop-blur-xl ${noPadding ? "m-3 rounded-xl p-3" : "rounded-2xl p-4"}`}>
               <div className="flex items-center gap-2.5">
                 <Clock className="h-4 w-4 text-amber-500 shrink-0 animate-pulse" />
                 <span>
@@ -88,7 +88,7 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
           )}
 
           {isRejected && (
-            <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-600 dark:text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-rose-500/5 backdrop-blur-xl">
+            <div className={`border border-rose-500/30 bg-rose-500/10 text-xs text-rose-600 dark:text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg shadow-rose-500/5 backdrop-blur-xl ${noPadding ? "m-3 rounded-xl p-3" : "rounded-2xl p-4"}`}>
               <div className="flex items-start sm:items-center gap-2.5">
                 <AlertTriangle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5 sm:mt-0" />
                 <div>
@@ -108,7 +108,7 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
           )}
 
           {isSuspended && (
-            <div className="rounded-2xl border border-rose-600/40 bg-rose-500/10 dark:bg-rose-950/40 p-4 text-xs text-rose-600 dark:text-rose-200 flex items-center gap-3 shadow-xl shadow-rose-600/10 backdrop-blur-xl">
+            <div className={`border border-rose-600/40 bg-rose-500/10 dark:bg-rose-950/40 text-xs text-rose-600 dark:text-rose-200 flex items-center gap-3 shadow-xl shadow-rose-600/10 backdrop-blur-xl ${noPadding ? "m-3 rounded-xl p-3" : "rounded-2xl p-4"}`}>
               <AlertOctagon className="h-5 w-5 text-rose-500 shrink-0" />
               <span>
                 <strong>Account Suspended:</strong> Your recruiter account has been suspended. Recruiter functionality is currently unavailable. Please contact platform support.
@@ -117,10 +117,10 @@ export default function RecruiterLayout({ title, subtitle, breadcrumbs = [], act
           )}
 
           {/* Breadcrumb */}
-          {breadcrumbs.length > 0 && <Breadcrumb items={breadcrumbs} />}
+          {!noPadding && breadcrumbs.length > 0 && <Breadcrumb items={breadcrumbs} />}
 
           {/* Page Header */}
-          {(title || action) && (
+          {!noPadding && (title || action) && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
               <div>
                 {title && <h1 className="text-2xl sm:text-3xl font-black text-heading font-satoshi tracking-tight">{title}</h1>}

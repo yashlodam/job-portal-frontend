@@ -106,7 +106,12 @@ api.interceptors.response.use(
     // Timeout error (ECONNABORTED or timeout in error message)
     if (error.code === "ECONNABORTED" || error.message?.toLowerCase().includes("timeout")) {
       console.warn("[API] Request timeout:", error.message);
-      error.userMessage = "The AI processing server took longer than expected to analyze your document. Please try again.";
+      const reqUrl = (error.config?.url || "").toLowerCase();
+      if (reqUrl.includes("resume") || reqUrl.includes("interview") || reqUrl.includes("match") || reqUrl.includes("ai")) {
+        error.userMessage = "The AI processing server took longer than expected to process your request. Please try again.";
+      } else {
+        error.userMessage = "The server took longer than expected to respond. If the server is starting up, please try again in a few moments.";
+      }
       return Promise.reject(error);
     }
 

@@ -422,12 +422,10 @@ export default function RecruiterMessagesPage() {
 
   return (
     <RecruiterLayout
-      title="Candidate Messages"
-      subtitle="Direct real-time candidate communications, screening, and interview coordination."
-      breadcrumbs={[{ label: "Messages" }]}
+      noPadding={true}
     >
-      {/* Full-height Container */}
-      <div className="h-[calc(100dvh-130px)] md:h-[calc(100vh-140px)] min-h-[460px] md:min-h-[580px] w-full bg-surface rounded-2xl overflow-hidden border border-border shadow-xl flex font-inter text-heading">
+      {/* Full-height Responsive Chat Container */}
+      <div className="h-[calc(100dvh-64px)] w-full bg-surface overflow-hidden border-0 md:border md:border-border md:rounded-2xl md:m-4 md:h-[calc(100dvh-96px)] md:w-[calc(100%-2rem)] shadow-xl flex font-inter text-heading">
 
         {/* ── Conversation Sidebar ───────────────────────────────────────── */}
         <div

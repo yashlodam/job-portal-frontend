@@ -59,7 +59,7 @@ export const restoreAuthState = createAsyncThunk(
     "auth/restoreAuthState",
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get("/auth/me", { timeout: 8000 });
+            const response = await api.get("/auth/me", { timeout: 15000 });
             return response.data?.data ?? response.data;
         } catch (error) {
             return rejectWithValue({
@@ -325,6 +325,30 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.error =
                     action.payload?.message || "Failed to fetch user";
+            })
+
+            // ══════════════════ RESTORE AUTH STATE ════════════════════════════
+            .addCase(restoreAuthState.fulfilled, (state, action) => {
+                if (action.payload) {
+                    state.profile = { ...(state.profile || {}), ...action.payload };
+                    state.user = state.profile;
+                    try {
+                        localStorage.setItem("jobportal_profile", JSON.stringify(state.profile));
+                    } catch {}
+                }
+                state.isAuthRestored = true;
+            })
+            .addCase(restoreAuthState.rejected, (state, action) => {
+                if (action.payload?.status === 401) {
+                    try {
+                        localStorage.removeItem("jobportal_token");
+                        localStorage.removeItem("jobportal_profile");
+                    } catch {}
+                    state.profile = null;
+                    state.user = null;
+                    state.token = null;
+                }
+                state.isAuthRestored = true;
             })
 
             // ═══════════════════════ LOGOUT ══════════════════════════════════

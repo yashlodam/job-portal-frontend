@@ -88,6 +88,26 @@ export const fetchJobApplicationsThunk = createAsyncThunk(
   }
 );
 
+// ─── 4b. Fetch All Applications Across All Jobs (Recruiter) ───────────────────
+export const fetchAllRecruiterApplicationsThunk = createAsyncThunk(
+  "applications/fetchAllRecruiterApplications",
+  async ({ page = 0, size = 50, sort = "createdAt,desc" } = {}, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/recruiter/applications`, {
+        params: { page, size, sort },
+      });
+      return response.data?.data ?? response.data;
+    } catch (error) {
+      console.error("fetchAllRecruiterApplicationsThunk error:", error?.message || String(error));
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        "Failed to fetch recruiter applications"
+      );
+    }
+  }
+);
+
 // ─── 5. Update Application Status (Recruiter) ────────────────────────────────
 export const updateApplicationStatusThunk = createAsyncThunk(
   "applications/updateApplicationStatus",

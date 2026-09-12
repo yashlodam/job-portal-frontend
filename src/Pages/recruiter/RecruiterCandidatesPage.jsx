@@ -28,9 +28,9 @@ import { StatusChip } from "../../components/ui/Badge";
 import { Modal } from "../../components/ui/Modal";
 import { useAppDispatch, useAppSelector } from "../../State/Store";
 import { getMyJobs } from "../../State/JobSlice";
-import { fetchJobApplicationsThunk, updateApplicationStatusThunk } from "../../State/applicationThunk";
+import { fetchJobApplicationsThunk, fetchAllRecruiterApplicationsThunk, updateApplicationStatusThunk } from "../../State/applicationThunk";
 import { searchTalent } from "../../api/talentApi";
-import { getCandidatesWithMatchApi } from "../../api/jobMatchApi";
+import { getCandidatesWithMatchApi, getAllCandidatesWithMatchApi } from "../../api/jobMatchApi";
 import MatchScoreBadge from "../../components/recruiter/MatchScoreBadge";
 import MatchAnalysisModal from "../../components/recruiter/MatchAnalysisModal";
 import { createOrGetConversationApi, resolveCandidateUserId } from "../../api/chatApi";
@@ -107,23 +107,23 @@ export default function RecruiterCandidatesPage() {
     dispatch(getMyJobs());
   }, [dispatch]);
 
-  const primaryJobId = myJobs.length > 0 ? (selectedJobId === "all" ? myJobs[0].id : selectedJobId) : null;
-
-  // Fetch match scores for selected job
+  // Fetch match scores for selected job or all jobs
   useEffect(() => {
-    if (primaryJobId) {
-      fetchMatchScoresForJob(primaryJobId);
-      dispatch(fetchJobApplicationsThunk({ jobId: primaryJobId }));
+    if (selectedJobId === "all") {
+      fetchMatchScoresForJob("all");
+      dispatch(fetchAllRecruiterApplicationsThunk());
+    } else if (selectedJobId) {
+      fetchMatchScoresForJob(selectedJobId);
+      dispatch(fetchJobApplicationsThunk({ jobId: selectedJobId }));
     }
-  }, [dispatch, primaryJobId, sortBy]);
+  }, [dispatch, selectedJobId, sortBy]);
 
   const fetchMatchScoresForJob = async (jobId) => {
     try {
-      const res = await getCandidatesWithMatchApi(jobId, {
-        page: 0,
-        size: 50,
-        sort: sortBy,
-      });
+      const res = jobId === "all"
+        ? await getAllCandidatesWithMatchApi({ page: 0, size: 50, sort: sortBy })
+        : await getCandidatesWithMatchApi(jobId, { page: 0, size: 50, sort: sortBy });
+
       const pageData = res?.data ?? res;
       const contentList = pageData?.content ?? (Array.isArray(pageData) ? pageData : []);
 

@@ -22,6 +22,18 @@ export const getCandidatesWithMatchApi = async (jobId, { page = 0, size = 10, so
 };
 
 /**
+ * 1b. Fetch All Candidates Across ALL Jobs with Match Scores
+ * GET /api/recruiter/candidates-with-match
+ * @param {object} params - { page = 0, size = 50, sort = "app.createdAt,desc" }
+ */
+export const getAllCandidatesWithMatchApi = async ({ page = 0, size = 50, sort = "app.createdAt,desc" } = {}) => {
+  const response = await api.get(`/recruiter/candidates-with-match`, {
+    params: { page, size, sort },
+  });
+  return response.data;
+};
+
+/**
  * 2. Get Full Match Analysis Breakdown
  * GET /api/recruiter/applications/{applicationId}/match
  * @param {number|string} applicationId

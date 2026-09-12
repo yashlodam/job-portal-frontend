@@ -34,20 +34,15 @@ export default function RecruiterVerificationGuard() {
   ).toUpperCase();
 
   const isApproved = verificationStatus === "APPROVED" || verificationStatus === "VERIFIED";
+  const isSuspended = verificationStatus === "SUSPENDED";
 
   useEffect(() => {
-    if (isRecruiter && !isApproved) {
-      if (verificationStatus === "SUSPENDED") {
-        toast.error("Your recruiter account is currently suspended.");
-      } else if (verificationStatus === "REJECTED" || verificationStatus === "VERIFICATION_REJECTED") {
-        toast.warning("Your recruiter verification was rejected. Please update your details.");
-      } else {
-        toast.info("Your recruiter account is awaiting verification. Verification is required to access this feature.");
-      }
+    if (isRecruiter && isSuspended) {
+      toast.error("Your recruiter account is currently suspended. Please contact platform support.");
     }
-  }, [isRecruiter, isApproved, verificationStatus, toast]);
+  }, [isRecruiter, isSuspended, toast]);
 
-  if (isRecruiter && !isApproved) {
+  if (isRecruiter && isSuspended) {
     return <Navigate to="/recruiter/verification" state={{ from: location }} replace />;
   }
 
