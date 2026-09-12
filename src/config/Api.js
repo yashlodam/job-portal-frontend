@@ -102,7 +102,20 @@ api.interceptors.response.use(
   // Pass successful responses straight through.
   (response) => response,
 
-  (error) => {
+  async (error) => {
+    const config = error.config;
+
+    // Auto-retry idempotent GET requests once if server is cold-starting or waking up
+    const isNetworkOrTimeout = !error.response || error.code === "ECONNABORTED";
+    const isGet = (config?.method || "").toLowerCase() === "get";
+
+    if (config && isGet && isNetworkOrTimeout && !config._retry) {
+      config._retry = true;
+      // Wait 2.5 seconds for container connection to establish and retry
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      return api(config);
+    }
+
     // Timeout error (ECONNABORTED or timeout in error message)
     if (error.code === "ECONNABORTED" || error.message?.toLowerCase().includes("timeout")) {
       console.warn("[API] Request timeout:", error.message);
@@ -115,13 +128,13 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // No response at all → network/CORS failure
+    // No response at all → server waking up, offline, or redeploying
     if (!error.response) {
-      console.error(
-        "[API] Network error — no response received. Check your connection or CORS settings.",
+      console.warn(
+        "[API] Server connecting or waking up:",
         error.message
       );
-      error.userMessage = "Network error. Please check your internet connection.";
+      error.userMessage = "The server is currently connecting or waking up. Please wait a few seconds and refresh.";
       return Promise.reject(error);
     }
 
