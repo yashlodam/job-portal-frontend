@@ -217,7 +217,28 @@ export default function RecruiterMessagesPage() {
     loadMessagesPage(activeConvId, 0);
     subscribeAndRead(activeConvId);
 
-    return () => clearTimeout(typingTimerRef.current);
+    // Background safety sync every 4s to guarantee real-time updates even during socket reconnects
+    const pollTimer = setInterval(() => {
+      chat.loadMessages(activeConvId, 0).then((pageData) => {
+        const content = pageData?.content ?? (Array.isArray(pageData) ? pageData : []);
+        if (content && content.length > 0) {
+          const items = [...content].reverse();
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const newItems = items.filter((m) => !existingIds.has(m.id) && !m._optimistic);
+            if (newItems.length > 0) {
+              return [...prev, ...newItems];
+            }
+            return prev;
+          });
+        }
+      }).catch(() => {});
+    }, 4000);
+
+    return () => {
+      clearTimeout(typingTimerRef.current);
+      clearInterval(pollTimer);
+    };
   }, [activeConvId]);
 
   const loadMessagesPage = async (convId, pageNum) => {
@@ -339,9 +360,11 @@ export default function RecruiterMessagesPage() {
     setSearchParams({}, { replace: false });
   };
 
-  const handleSend = (textToSend) => {
+  const handleSend = async (textToSend) => {
     const text = (textToSend || inputText).trim();
     if (!text || !activeConvId) return;
+
+    setInputText("");
 
     const optimisticMsg = {
       id: `opt-${Date.now()}`,
@@ -357,15 +380,19 @@ export default function RecruiterMessagesPage() {
     setMessages((prev) => [...prev, optimisticMsg]);
     setTimeout(() => scrollToBottom(true), 20);
 
-    const sent = chat.sendMessage(activeConvId, text);
-    if (!sent) {
+    clearTimeout(typingTimerRef.current);
+    chat.sendTyping(activeConvId, false);
+
+    const res = await chat.sendMessage(activeConvId, text);
+    if (!res || !res.success) {
       setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
-      toast.error("Message failed to send — WebSocket not connected.");
-    } else {
-      clearTimeout(typingTimerRef.current);
-      chat.sendTyping(activeConvId, false);
+      toast.error(res?.error || "Message failed to send. Please try again.");
+    } else if (res.via === "rest" && res.data) {
+      // Reconcile optimistic message with server persisted record
+      setMessages((prev) =>
+        prev.map((m) => (m.id === optimisticMsg.id ? { ...res.data, _optimistic: false } : m))
+      );
     }
-    setInputText("");
   };
 
   const handleInputChange = (e) => {

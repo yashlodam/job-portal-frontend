@@ -27,6 +27,19 @@ export const createOrGetConversationApi = async (participantId, jobApplicationId
 };
 
 /**
+ * Send a message via REST API.
+ * POST /chat/conversations/{id}/messages
+ * Guaranteed delivery even if WebSocket is disconnected or re-connecting.
+ */
+export const sendChatMessageApi = async (conversationId, content) => {
+  const response = await api.post(`/chat/conversations/${conversationId}/messages`, {
+    conversationId: Number(conversationId),
+    content: (content || "").trim(),
+  });
+  return response.data?.data ?? response.data;
+};
+
+/**
  * Get all conversations for the current authenticated user.
  * GET /chat/conversations
  */

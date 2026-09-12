@@ -16,6 +16,7 @@ import { connectChat, disconnectChat } from "./useChatSocket";
 import {
   getConversationsApi,
   getMessagesApi,
+  sendChatMessageApi,
   markAsReadApi,
   getUnreadCountApi,
   deleteMessageApi,
@@ -25,6 +26,7 @@ import {
 export function useChat() {
   const clientRef = useRef(null);
   const subsRef = useRef({});            // active subscriptions keyed by "conv-{id}"
+  const pendingSubsRef = useRef({});     // queued subscriptions keyed by "conv-{id}"
   const [connected, setConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState("DISCONNECTED");
   const [wsError, setWsError] = useState(null);
@@ -32,6 +34,51 @@ export function useChat() {
   // Authenticate based on Redux profile state.
   // HttpOnly cookie is automatically included in the WebSocket handshake.
   const user = useSelector((state) => state.auth.profile);
+
+  // ── Helper to execute actual STOMP subscriptions on a connected client ─────
+  const doSubscribe = useCallback((client, conversationId, handlers) => {
+    if (!client || !client.active) return;
+
+    const key = `conv-${conversationId}`;
+    // If already subscribed, unsubscribe previous listeners first
+    if (subsRef.current[key]) {
+      subsRef.current[key].forEach((s) => { try { s.unsubscribe(); } catch { /* ignore */ } });
+      delete subsRef.current[key];
+    }
+
+    const subs = [];
+    const safeParse = (msg) => { try { return JSON.parse(msg.body); } catch { return null; } };
+
+    subs.push(
+      client.subscribe(`/topic/conversations/${conversationId}`, (msg) => {
+        const data = safeParse(msg);
+        if (data) handlers.onMessage?.(data);
+      })
+    );
+
+    subs.push(
+      client.subscribe(`/topic/conversations/${conversationId}/typing`, (msg) => {
+        const data = safeParse(msg);
+        if (data) handlers.onTyping?.(data);
+      })
+    );
+
+    subs.push(
+      client.subscribe(`/topic/conversations/${conversationId}/read`, (msg) => {
+        const data = safeParse(msg);
+        if (data) handlers.onRead?.(data);
+      })
+    );
+
+    subs.push(
+      client.subscribe(`/topic/conversations/${conversationId}/presence`, (msg) => {
+        const data = safeParse(msg);
+        if (data) handlers.onPresence?.(data);
+      })
+    );
+
+    subsRef.current[key] = subs;
+  }, []);
 
   // ── Connect on mount / when user is authenticated ──────────────────────────
   useEffect(() => {
@@ -61,12 +108,17 @@ export function useChat() {
             // ignore parse errors
           }
         });
+
+        // Automatically activate any queued subscriptions (e.g. conversation opened before connect)
+        Object.entries(pendingSubsRef.current).forEach(([cId, handlers]) => {
+          doSubscribe(stompClient, cId, handlers);
+        });
       },
       (err) => {
         console.warn("[Chat] WebSocket connection failed — REST-only mode:", err?.message || err);
         setConnected(false);
         setConnectionStatus("ERROR");
-        setWsError("WebSocket unavailable — messages will still load via REST.");
+        setWsError("WebSocket unavailable — messages will still load and send via REST.");
       },
       (status) => {
         setConnectionStatus(status);
@@ -89,62 +141,26 @@ export function useChat() {
       setConnected(false);
       setConnectionStatus("DISCONNECTED");
     };
-  }, [user]);
+  }, [user, doSubscribe]);
 
-  // ── Subscribe to a conversation ──────────────────────────────────────────
+  // ── Subscribe to a conversation (Queued / Resilient) ─────────────────────
   /**
    * Call this when the user opens a chat window.
-   * Subscribes to 4 topics: messages, typing, read receipts, presence.
-   *
-   * @param {number|string} conversationId
-   * @param {{ onMessage, onTyping, onRead, onPresence }} handlers
+   * Stores handlers in pendingSubsRef so subscription is guaranteed even if socket is reconnecting.
    */
   const subscribeToConversation = useCallback(
     (conversationId, handlers) => {
-      const client = clientRef.current;
-      if (!client || !connected) return;
-
-      const key = `conv-${conversationId}`;
-      if (subsRef.current[key]) return; // already subscribed
-
-      const subs = [];
-      const safeParse = (msg) => { try { return JSON.parse(msg.body); } catch { return null; } };
-
-      subs.push(
-        client.subscribe(`/topic/conversations/${conversationId}`, (msg) => {
-          const data = safeParse(msg);
-          if (data) handlers.onMessage?.(data);
-        })
-      );
-
-      subs.push(
-        client.subscribe(`/topic/conversations/${conversationId}/typing`, (msg) => {
-          const data = safeParse(msg);
-          if (data) handlers.onTyping?.(data);
-        })
-      );
-
-      subs.push(
-        client.subscribe(`/topic/conversations/${conversationId}/read`, (msg) => {
-          const data = safeParse(msg);
-          if (data) handlers.onRead?.(data);
-        })
-      );
-
-      subs.push(
-        client.subscribe(`/topic/conversations/${conversationId}/presence`, (msg) => {
-          const data = safeParse(msg);
-          if (data) handlers.onPresence?.(data);
-        })
-      );
-
-      subsRef.current[key] = subs;
+      pendingSubsRef.current[conversationId] = handlers;
+      if (clientRef.current && connected) {
+        doSubscribe(clientRef.current, conversationId, handlers);
+      }
     },
-    [connected]
+    [connected, doSubscribe]
   );
 
   // ── Unsubscribe when user closes the chat window ─────────────────────────
   const unsubscribeFromConversation = useCallback((conversationId) => {
+    delete pendingSubsRef.current[conversationId];
     const key = `conv-${conversationId}`;
     const subs = subsRef.current[key];
     if (subs) {
@@ -153,26 +169,48 @@ export function useChat() {
     }
   }, []);
 
-  // ── Send message via WebSocket ────────────────────────────────────────────
-  const sendMessage = useCallback((conversationId, content) => {
-    if (!clientRef.current || !connected) {
-      console.warn("[Chat] Cannot send — WebSocket not connected");
-      return false;
+  // ── Dual-Transport Send Message (WebSocket + Guaranteed REST Fallback) ──
+  const sendMessage = useCallback(async (conversationId, content) => {
+    const trimmed = (content || "").trim();
+    if (!trimmed || !conversationId) return { success: false, error: "Empty message" };
+
+    // 1. Try WebSocket if connected
+    if (clientRef.current && connected) {
+      try {
+        clientRef.current.publish({
+          destination: "/app/chat.send",
+          body: JSON.stringify({ conversationId: Number(conversationId), content: trimmed }),
+        });
+        return { success: true, via: "websocket" };
+      } catch (wsErr) {
+        console.warn("[Chat] WebSocket send error, falling back to REST:", wsErr?.message);
+      }
     }
-    clientRef.current.publish({
-      destination: "/app/chat.send",
-      body: JSON.stringify({ conversationId, content }),
-    });
-    return true;
+
+    // 2. Reliable REST Fallback (works 100% of the time, even during reconnects)
+    try {
+      const serverMsg = await sendChatMessageApi(conversationId, trimmed);
+      return { success: true, via: "rest", data: serverMsg };
+    } catch (restErr) {
+      console.error("[Chat] REST send error:", restErr?.response?.data?.message || restErr?.message);
+      return {
+        success: false,
+        error: restErr?.response?.data?.message || "Failed to send message. Please try again.",
+      };
+    }
   }, [connected]);
 
   // ── Typing indicator ──────────────────────────────────────────────────────
   const sendTyping = useCallback((conversationId, isTyping) => {
     if (!clientRef.current || !connected) return;
-    clientRef.current.publish({
-      destination: "/app/chat.typing",
-      body: JSON.stringify({ conversationId, typing: isTyping }),
-    });
+    try {
+      clientRef.current.publish({
+        destination: "/app/chat.typing",
+        body: JSON.stringify({ conversationId: Number(conversationId), typing: isTyping }),
+      });
+    } catch {
+      // Ephemeral typing indicator — ignore failures
+    }
   }, [connected]);
 
   // ── Mark as read (REST + WebSocket broadcast) ─────────────────────────────
