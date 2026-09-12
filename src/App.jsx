@@ -22,6 +22,7 @@ import RecruiterRoute from './components/auth/RecruiterRoute';
 import RecruiterVerificationGuard from './components/auth/RecruiterVerificationGuard';
 import AdminRoute from './components/auth/AdminRoute';
 import { ToastProvider } from './components/ui/ToastNotification';
+import StartupSplashScreen from './components/ui/StartupSplashScreen';
 
 /* ──────────────────────────────────────────────
    Lazy-loaded routes — large pages loaded on demand
@@ -112,57 +113,26 @@ class ErrorBoundary extends React.Component {
 }
 
 /* ──────────────────────────────────────────────
-   Page Loading Placeholder
+/* ──────────────────────────────────────────────
+   Page Loading Placeholder (Suspense Fallback)
    ────────────────────────────────────────────── */
 
 function PageLoader() {
   return (
-    <div className="min-h-[50vh] flex items-center justify-center" style={{ backgroundColor: 'var(--bg-app)' }}>
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
-    </div>
-  );
-}
-
-/* ──────────────────────────────────────────────
-   Startup Auth Restoration Loader
-   Always rendered in dark — intentional branding moment
-   ────────────────────────────────────────────── */
-
-function AuthRestoreLoader() {
-  return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: '#070b12',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 99999,
-        gap: '16px',
-      }}
+      className="min-h-[60vh] flex flex-col items-center justify-center gap-3"
+      style={{ backgroundColor: 'var(--bg-app, #070B14)' }}
     >
-      <div className="flex flex-col items-center gap-4">
-        {/* Wordmark */}
-        <div className="flex items-center gap-2 mb-2">
-          <div className="h-8 w-8 rounded-xl bg-indigo-600 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
-              <path d="M8 5L11 6.75V10.25L8 12L5 10.25V6.75L8 5Z" fill="white" fillOpacity="0.3"/>
-            </svg>
-          </div>
-          <span className="text-white font-black font-satoshi text-lg tracking-tight">JobPortal AI</span>
-        </div>
-        {/* Spinner */}
-        <div className="relative flex items-center justify-center">
-          <div
-            className="h-8 w-8 rounded-full border-2 border-transparent animate-spin"
-            style={{ borderTopColor: '#6366F1', borderRightColor: '#818CF8' }}
-          />
-        </div>
-        <p className="text-xs font-medium text-slate-500 font-satoshi">Loading your workspace…</p>
+      <div className="relative flex items-center justify-center">
+        <div className="h-10 w-10 rounded-full border-2 border-indigo-500/20 animate-ping absolute" />
+        <div
+          className="h-9 w-9 rounded-full border-2 border-transparent animate-spin"
+          style={{ borderTopColor: '#6366F1', borderRightColor: '#A855F7' }}
+        />
       </div>
+      <p className="text-[11px] font-semibold text-slate-400 font-satoshi tracking-wider uppercase">
+        Loading View…
+      </p>
     </div>
   );
 }
@@ -184,16 +154,16 @@ function App() {
   useEffect(() => {
     dispatch(restoreAuthState());
 
-    // Safety timeout: ensure the app never stays stuck on the loading splash for more than 1.5 seconds
+    // Safety timeout: ensure the app never stays stuck on the loading splash for more than 2 seconds
     const safetyTimer = setTimeout(() => {
       dispatch(forceAuthRestored());
-    }, 1500);
+    }, 2000);
 
     return () => clearTimeout(safetyTimer);
   }, [dispatch]);
 
   if (!isAuthRestored) {
-    return <AuthRestoreLoader />;
+    return <StartupSplashScreen />;
   }
 
   return (
