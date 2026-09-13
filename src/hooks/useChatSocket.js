@@ -1,27 +1,13 @@
 /**
  * src/hooks/useChatSocket.js
  *
- * STOMP WebSocket connector — production-safe version.
+ * Production-grade STOMP WebSocket Client Manager.
  *
- * Changes from original:
- *  1. Uses native WebSocket (wss://) in production — avoids SockJS's
- *     window.addEventListener('unload') which triggers:
- *     "[Violation] Permissions policy violation: unload is not allowed in this document."
- *  2. Bounded exponential backoff: max 5 retries, doubling delay (5s → 10s → 20s → 30s cap).
- *     Prevents infinite reconnect storms when the backend is down/restarting.
- *  3. Manual reconnect counter — deactivates the client entirely after maxRetries
- *     instead of reconnecting forever.
- *  4. SockJS is kept as a fallback for HTTP-only environments (localhost dev).
- *
- * Authentication:
- *   Uses HttpOnly cookies sent automatically during the WebSocket handshake.
- *   Authorization: Bearer header is also sent in STOMP connect headers as fallback
- *   for cross-site environments where the cookie may be blocked.
- *
- * Usage:
- *   import { connectChat, disconnectChat } from './useChatSocket';
- *   connectChat(onConnected, onError);
- *   disconnectChat();
+ * Features:
+ * - Reference-counted connection lifecycle (prevents disconnect/reconnect thrashing on fast navigation)
+ * - StompJS native automatic reconnection (reconnectDelay: 5000)
+ * - Dual authentication: Bearer token in CONNECT headers + query param + HttpOnly cookie
+ * - Automatic re-subscription to active conversations upon reconnect
  */
 
 import { Client } from "@stomp/stompjs";
@@ -31,163 +17,257 @@ const WS_URL =
   import.meta.env.VITE_WS_URL ||
   RAW_API_URL.replace(/\/api\/?$/, "").replace(/^http/, "ws") + "/ws";
 
-// In production, always use wss:// (the above replace handles http→ws / https→wss)
-const isProduction = import.meta.env.PROD;
-
-// Bounded reconnect configuration
-const MAX_RETRIES = 5;
-const BASE_DELAY_MS = 5000;
-const MAX_DELAY_MS = 30000;
-
 let stompClient = null;
-let retryCount = 0;
+let consumerCount = 0;
+let disconnectTimer = null;
+const statusListeners = new Set();
+const activeHandlersByConv = new Map();
+const activeStompSubsByConv = new Map();
 
-/**
- * Compute exponential backoff delay with jitter, capped at MAX_DELAY_MS.
- */
-function getBackoffDelay(attempt) {
-  const delay = Math.min(BASE_DELAY_MS * Math.pow(2, attempt), MAX_DELAY_MS);
-  // ±10% jitter to prevent thundering herd
-  return delay + (Math.random() * delay * 0.2 - delay * 0.1);
+function getStoredToken() {
+  try {
+    return localStorage.getItem("jobportal_token") || null;
+  } catch {
+    return null;
+  }
+}
+
+function notifyStatus(status, error = null) {
+  statusListeners.forEach((fn) => {
+    try {
+      fn(status, error);
+    } catch {
+      // ignore
+    }
+  });
+}
+
+function subscribeTopics(client, convId, handlers) {
+  if (!client || !client.connected) return;
+
+  unsubscribeTopics(convId);
+
+  const subs = [];
+  const safeParse = (msg) => {
+    try {
+      return JSON.parse(msg.body);
+    } catch {
+      return null;
+    }
+  };
+
+  try {
+    subs.push(
+      client.subscribe(`/topic/conversations/${convId}`, (msg) => {
+        const data = safeParse(msg);
+        if (data) handlers.onMessage?.(data);
+      })
+    );
+
+    subs.push(
+      client.subscribe(`/topic/conversations/${convId}/typing`, (msg) => {
+        const data = safeParse(msg);
+        if (data) handlers.onTyping?.(data);
+      })
+    );
+
+    subs.push(
+      client.subscribe(`/topic/conversations/${convId}/read`, (msg) => {
+        const data = safeParse(msg);
+        if (data) handlers.onRead?.(data);
+      })
+    );
+
+    subs.push(
+      client.subscribe(`/topic/conversations/${convId}/presence`, (msg) => {
+        const data = safeParse(msg);
+        if (data) handlers.onPresence?.(data);
+      })
+    );
+
+    activeStompSubsByConv.set(convId, subs);
+  } catch (err) {
+    console.warn(`[ChatSocket] Error subscribing to conv ${convId}:`, err);
+  }
+}
+
+function unsubscribeTopics(convId) {
+  const existing = activeStompSubsByConv.get(convId);
+  if (existing) {
+    existing.forEach((s) => {
+      try {
+        s.unsubscribe();
+      } catch {
+        // ignore
+      }
+    });
+    activeStompSubsByConv.delete(convId);
+  }
+}
+
+function resubscribeAllActive(client) {
+  activeHandlersByConv.forEach((handlers, convId) => {
+    subscribeTopics(client, convId, handlers);
+  });
 }
 
 /**
- * Connect to the chat WebSocket server.
- *
- * @param {Function} onConnected     Called with (stompClient) when STOMP CONNECT succeeds
- * @param {Function} onError         Called with (frame|event) on unrecoverable connection failure
- * @param {Function} onStatusChange  Called with ("CONNECTING"|"CONNECTED"|"RECONNECTING"|"DISCONNECTED"|"ERROR")
- * @returns {Client} The STOMP client instance
+ * Connect to chat WebSocket. Reuses active connection if already established.
  */
 export function connectChat(onConnected, onError, onStatusChange) {
-  // Deactivate any existing connection before creating a new one
+  if (disconnectTimer) {
+    clearTimeout(disconnectTimer);
+    disconnectTimer = null;
+  }
+
+  consumerCount++;
+
+  if (onStatusChange) {
+    statusListeners.add(onStatusChange);
+  }
+
+  // If already connected, immediately notify caller
+  if (stompClient && stompClient.connected) {
+    onStatusChange?.("CONNECTED");
+    onConnected?.(stompClient);
+    return stompClient;
+  }
+
+  // If already activating, wait for onConnect
   if (stompClient && stompClient.active) {
-    stompClient.deactivate();
-    stompClient = null;
+    onStatusChange?.("CONNECTING");
+    return stompClient;
   }
 
-  retryCount = 0;
-  onStatusChange?.("CONNECTING");
-
-  let token = null;
-  try {
-    token = localStorage.getItem("jobportal_token");
-  } catch {
-    // localStorage may be blocked in some browser contexts
-  }
+  const token = getStoredToken();
+  const brokerURL = token ? `${WS_URL}?token=${encodeURIComponent(token)}` : WS_URL;
 
   stompClient = new Client({
-    /**
-     * Production: use native WebSocket (wss://) — avoids SockJS's unload listener.
-     * Development: fall back to SockJS for HTTP (no WSS available on localhost).
-     */
-    brokerURL: token ? `${WS_URL}?token=${encodeURIComponent(token)}` : WS_URL,
-
-    // Dual-mode auth: Bearer token in STOMP CONNECT headers (fallback for
-    // cross-site browsers that block 3rd-party cookies)
+    brokerURL,
     connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
-
-    // Heartbeat: 10s outgoing, 10s incoming — keeps connection alive through
-    // Render's proxy without consuming too much bandwidth
     heartbeatIncoming: 10000,
     heartbeatOutgoing: 10000,
+    reconnectDelay: 5000,
 
-    // Disable automatic reconnect — we handle it manually with bounded backoff
-    reconnectDelay: 0,
-
-    onConnect: (frame) => {
-      retryCount = 0; // reset on successful connection
-      console.log(
-        "[ChatSocket] Connected:",
-        frame?.headers?.server || "ok"
-      );
-      onStatusChange?.("CONNECTED");
-      onConnected?.(stompClient);
-    },
-
-    onStompError: (frame) => {
-      console.error(
-        "[ChatSocket] STOMP error:",
-        frame?.headers?.message || frame
-      );
-      onStatusChange?.("ERROR");
-      onError?.(frame);
-    },
-
-    onWebSocketError: (event) => {
-      console.warn(
-        "[ChatSocket] WebSocket error (attempt " +
-          (retryCount + 1) +
-          "/" +
-          MAX_RETRIES +
-          "):",
-        event?.type || event
-      );
-
-      if (retryCount < MAX_RETRIES) {
-        const delay = getBackoffDelay(retryCount);
-        retryCount++;
-        onStatusChange?.("RECONNECTING");
-        console.log(`[ChatSocket] Retrying in ${Math.round(delay / 1000)}s...`);
-
-        setTimeout(() => {
-          if (stompClient && !stompClient.active) {
-            // Refresh token before retry in case it was set after first attempt
-            try {
-              const freshToken = localStorage.getItem("jobportal_token");
-              if (freshToken) {
-                stompClient.brokerURL = `${WS_URL}?token=${encodeURIComponent(freshToken)}`;
-                stompClient.connectHeaders = {
-                  Authorization: `Bearer ${freshToken}`,
-                };
-              }
-            } catch {
-              // ignore
-            }
-            onStatusChange?.("CONNECTING");
-            stompClient.activate();
-          }
-        }, delay);
-      } else {
-        console.error(
-          "[ChatSocket] Max retries (" +
-            MAX_RETRIES +
-            ") reached. WebSocket disabled — REST-only mode."
-        );
-        onStatusChange?.("ERROR");
-        onError?.(event);
-        // Fully deactivate — do NOT keep reconnecting
-        if (stompClient) {
-          stompClient.deactivate();
-        }
+    beforeConnect: () => {
+      const freshToken = getStoredToken();
+      if (freshToken && stompClient) {
+        stompClient.brokerURL = `${WS_URL}?token=${encodeURIComponent(freshToken)}`;
+        stompClient.connectHeaders = { Authorization: `Bearer ${freshToken}` };
       }
     },
 
-    onDisconnect: () => {
-      console.log("[ChatSocket] Disconnected");
-      onStatusChange?.("DISCONNECTED");
+    onConnect: (frame) => {
+      console.log("[ChatSocket] Connected:", frame?.headers?.server || "ok");
+      notifyStatus("CONNECTED", null);
+      onConnected?.(stompClient);
+
+      // Auto-resubscribe open chat windows
+      resubscribeAllActive(stompClient);
+    },
+
+    onStompError: (frame) => {
+      const msg = frame?.headers?.message || "STOMP error";
+      console.warn("[ChatSocket] STOMP error:", msg);
+      notifyStatus("ERROR", msg);
+      onError?.(frame);
+    },
+
+    onWebSocketClose: () => {
+      notifyStatus("DISCONNECTED", null);
+    },
+
+    onWebSocketError: (event) => {
+      console.warn("[ChatSocket] WebSocket error:", event?.type || event);
+      notifyStatus("RECONNECTING", null);
     },
   });
 
+  notifyStatus("CONNECTING", null);
   stompClient.activate();
   return stompClient;
 }
 
 /**
- * Gracefully disconnect from the WebSocket server.
- * Resets retry counter so the next connectChat() starts fresh.
+ * Disconnect with a grace period to avoid thrashing during rapid re-mounts.
  */
-export function disconnectChat() {
-  retryCount = MAX_RETRIES; // prevent any pending retry from firing
-  if (stompClient) {
-    stompClient.deactivate();
-    stompClient = null;
+export function disconnectChat(onStatusChange) {
+  if (onStatusChange) {
+    statusListeners.delete(onStatusChange);
+  }
+
+  consumerCount = Math.max(0, consumerCount - 1);
+
+  if (consumerCount === 0) {
+    disconnectTimer = setTimeout(() => {
+      if (consumerCount === 0 && stompClient) {
+        console.log("[ChatSocket] No consumers, deactivating socket...");
+        stompClient.deactivate();
+        stompClient = null;
+        activeStompSubsByConv.clear();
+      }
+    }, 2000);
   }
 }
 
-/**
- * Get the current STOMP client instance (for direct use if needed).
- */
+export function subscribeToConv(convId, handlers) {
+  const cId = Number(convId);
+  if (!cId || isNaN(cId)) return;
+
+  activeHandlersByConv.set(cId, handlers);
+  if (stompClient && stompClient.connected) {
+    subscribeTopics(stompClient, cId, handlers);
+  }
+}
+
+export function unsubscribeFromConv(convId) {
+  const cId = Number(convId);
+  if (!cId || isNaN(cId)) return;
+
+  activeHandlersByConv.delete(cId);
+  unsubscribeTopics(cId);
+}
+
+export function publishMessage(convId, content) {
+  if (!stompClient || !stompClient.connected) return false;
+  try {
+    stompClient.publish({
+      destination: "/app/chat.send",
+      body: JSON.stringify({ conversationId: Number(convId), content }),
+    });
+    return true;
+  } catch (err) {
+    console.warn("[ChatSocket] publishMessage error:", err);
+    return false;
+  }
+}
+
+export function publishTyping(convId, isTyping) {
+  if (!stompClient || !stompClient.connected) return false;
+  try {
+    stompClient.publish({
+      destination: "/app/chat.typing",
+      body: JSON.stringify({ conversationId: Number(convId), typing: Boolean(isTyping) }),
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function publishRead(convId) {
+  if (!stompClient || !stompClient.connected) return false;
+  try {
+    stompClient.publish({
+      destination: "/app/chat.read",
+      body: JSON.stringify({ conversationId: Number(convId), content: "" }),
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function getChatClient() {
   return stompClient;
 }
