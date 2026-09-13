@@ -127,8 +127,29 @@ export default function RecruiterMessagesPage() {
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentUser = useAppSelector((state) => state.auth.profile || state.auth.user);
-  const currentUserId = currentUser?.id ?? currentUser?.userId ?? currentUser?.applicantId;
-  const currentUserEmail = (currentUser?.email || "").toLowerCase();
+
+  const cachedProfile = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("jobportal_profile");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const currentUserId =
+    currentUser?.id ??
+    currentUser?.userId ??
+    currentUser?.applicantId ??
+    cachedProfile?.id ??
+    cachedProfile?.userId ??
+    cachedProfile?.applicantId;
+
+  const currentUserEmail = (
+    currentUser?.email ||
+    cachedProfile?.email ||
+    ""
+  ).toLowerCase();
 
   // Extract all possible identifiers for current user
   const myIds = useMemo(() => {
@@ -139,54 +160,24 @@ export default function RecruiterMessagesPage() {
       currentUser?.applicantId,
       currentUser?.user?.id,
       currentUser?.user?.userId,
+      cachedProfile?.id,
+      cachedProfile?.userId,
+      cachedProfile?.applicantId,
+      cachedProfile?.user?.id,
     ].filter((id) => id !== null && id !== undefined && id !== "");
     return new Set(ids.map(String));
-  }, [currentUserId, currentUser]);
+  }, [currentUserId, currentUser, cachedProfile]);
 
   const myEmails = useMemo(() => {
     const emails = [
       currentUserEmail,
       currentUser?.email,
       currentUser?.user?.email,
+      cachedProfile?.email,
+      cachedProfile?.user?.email,
     ].filter((e) => Boolean(e && typeof e === "string"));
-    return new Set(emails.map((e) => e.toLowerCase()));
-  }, [currentUserEmail, currentUser]);
-
-  const isMessageFromMe = useCallback(
-    (msg) => {
-      if (!msg) return false;
-      if (msg._optimistic) return true;
-
-      // Check all possible sender ID fields
-      const senderId =
-        msg.sender?.id ??
-        msg.sender?.userId ??
-        msg.senderId ??
-        msg.sender_id ??
-        msg.userId ??
-        msg.sender?.applicantId;
-
-      if (senderId != null && myIds.has(String(senderId))) {
-        return true;
-      }
-
-      // Check all possible sender email fields
-      const senderEmail = (
-        msg.sender?.email ||
-        (typeof msg.sender === "string" ? msg.sender : "") ||
-        msg.senderEmail ||
-        msg.sender_email ||
-        ""
-      ).toLowerCase();
-
-      if (senderEmail && myEmails.has(senderEmail)) {
-        return true;
-      }
-
-      return false;
-    },
-    [myIds, myEmails]
-  );
+    return new Set(emails.map((e) => e.trim().toLowerCase()));
+  }, [currentUserEmail, currentUser, cachedProfile]);
 
   const chat = useChat();
 
@@ -252,6 +243,86 @@ export default function RecruiterMessagesPage() {
     [activeConv, currentUserId, currentUserEmail]
   );
 
+  const isMessageFromMe = useCallback(
+    (msg) => {
+      if (!msg) return false;
+      if (msg._optimistic) return true;
+
+      // 1. Check all possible sender ID fields
+      const senderId =
+        msg.sender?.id ??
+        msg.sender?.userId ??
+        msg.senderId ??
+        msg.sender_id ??
+        msg.userId ??
+        msg.sender?.applicantId ??
+        (typeof msg.sender === "number" ? msg.sender : null);
+
+      if (senderId != null && myIds.has(String(senderId))) {
+        return true;
+      }
+
+      // 2. Check all possible sender email fields
+      const senderEmail = (
+        msg.sender?.email ||
+        (typeof msg.sender === "string" ? msg.sender : "") ||
+        msg.senderEmail ||
+        msg.sender_email ||
+        ""
+      ).trim().toLowerCase();
+
+      if (senderEmail && myEmails.has(senderEmail)) {
+        return true;
+      }
+
+      // 3. Contrast against otherParticipant (in a 1-on-1 recruiter vs candidate chat)
+      const otherId = otherParticipant?.id != null ? String(otherParticipant.id) : null;
+      const otherEmail = (otherParticipant?.email || "").trim().toLowerCase();
+
+      if (senderId != null && otherId && String(senderId) === otherId) {
+        return false;
+      }
+      if (senderEmail && otherEmail && senderEmail === otherEmail) {
+        return false;
+      }
+
+      // 4. Role-based check: on Recruiter page, current user is RECRUITER / EMPLOYER
+      const senderAccountType = (
+        msg.sender?.accountType ||
+        msg.sender?.role ||
+        msg.accountType ||
+        ""
+      ).toUpperCase();
+
+      if (senderAccountType === "RECRUITER" || senderAccountType === "EMPLOYER") {
+        return true;
+      }
+      if (
+        senderAccountType === "APPLICANT" ||
+        senderAccountType === "JOB_SEEKER" ||
+        senderAccountType === "CANDIDATE"
+      ) {
+        return false;
+      }
+
+      // If otherId or otherEmail is known and sender does not match other, it is from me
+      if (otherId && senderId != null && String(senderId) !== otherId) {
+        return true;
+      }
+      if (otherEmail && senderEmail && senderEmail !== otherEmail) {
+        return true;
+      }
+
+      return false;
+    },
+    [myIds, myEmails, otherParticipant]
+  );
+
+  const isMessageFromMeRef = useRef(isMessageFromMe);
+  useEffect(() => {
+    isMessageFromMeRef.current = isMessageFromMe;
+  });
+
   // Load conversations on mount
   useEffect(() => {
     loadAllConversations();
@@ -311,14 +382,23 @@ export default function RecruiterMessagesPage() {
             let changed = false;
 
             items.forEach((serverMsg) => {
-              const optIndex = updated.findIndex(
-                (p) => p._optimistic && p.content === serverMsg.content && isMessageFromMe(serverMsg)
-              );
-              if (optIndex !== -1) {
-                updated[optIndex] = { ...serverMsg, _optimistic: false };
-                existingIds.add(serverMsg.id);
-                changed = true;
-              } else if (!existingIds.has(serverMsg.id)) {
+              const fromMe = isMessageFromMeRef.current(serverMsg);
+              if (fromMe) {
+                const optIndex = updated.findIndex(
+                  (p) =>
+                    p._optimistic &&
+                    (p.content?.trim() === serverMsg.content?.trim() ||
+                      updated.filter((x) => x._optimistic).length === 1)
+                );
+                if (optIndex !== -1) {
+                  updated[optIndex] = { ...serverMsg, _optimistic: false };
+                  existingIds.add(serverMsg.id);
+                  changed = true;
+                  return;
+                }
+              }
+
+              if (!existingIds.has(serverMsg.id)) {
                 updated.push(serverMsg);
                 existingIds.add(serverMsg.id);
                 changed = true;
@@ -373,20 +453,26 @@ export default function RecruiterMessagesPage() {
 
       chat.subscribeToConversation(convId, {
         onMessage: (msg) => {
-          const fromMe = isMessageFromMe(msg);
+          const fromMe = isMessageFromMeRef.current(msg);
           setMessages((prev) => {
-            const isOurOptimistic =
-              fromMe &&
-              prev.some((m) => m._optimistic && m.content === msg.content);
-            if (isOurOptimistic) {
-              return prev.map((m) =>
-                m._optimistic && m.content === msg.content ? { ...msg, _optimistic: false } : m
+            if (fromMe) {
+              const optIndex = prev.findIndex(
+                (m) =>
+                  m._optimistic &&
+                  (m.content?.trim() === msg.content?.trim() ||
+                    prev.filter((x) => x._optimistic).length === 1)
               );
+              if (optIndex !== -1) {
+                const next = [...prev];
+                next[optIndex] = { ...msg, _optimistic: false };
+                return next;
+              }
             }
             if (prev.some((m) => m.id === msg.id)) return prev;
             return [...prev, msg];
           });
-          requestAnimationFrame(() => scrollToBottom(true));
+          scrollToBottom(true);
+          setTimeout(() => scrollToBottom(true), 60);
 
           if (!fromMe) {
             chat.markAsRead(convId);
@@ -427,7 +513,7 @@ export default function RecruiterMessagesPage() {
         },
       });
     },
-    [chat, myIds, myEmails, isMessageFromMe, scrollToBottom]
+    [chat, myIds, myEmails, scrollToBottom]
   );
 
   // Sync mobile chat view when convId query param changes
@@ -473,15 +559,17 @@ export default function RecruiterMessagesPage() {
 
     setInputText("");
 
+    const optimisticId = `opt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const optimisticMsg = {
-      id: `opt-${Date.now()}`,
+      id: optimisticId,
       _optimistic: true,
       conversationId: activeConvId,
       sender: {
         id: currentUserId,
         userId: currentUserId,
-        name: currentUser?.name || "You",
+        name: currentUser?.name || cachedProfile?.name || "You",
         email: currentUserEmail,
+        accountType: "RECRUITER",
       },
       content: text,
       displayContent: text,
@@ -489,21 +577,42 @@ export default function RecruiterMessagesPage() {
       sentAt: new Date().toISOString(),
       deleted: false,
     };
+
     setMessages((prev) => [...prev, optimisticMsg]);
-    requestAnimationFrame(() => scrollToBottom(true));
+    scrollToBottom(true);
+    setTimeout(() => scrollToBottom(true), 50);
+    setTimeout(() => scrollToBottom(true), 200);
+
+    // Update conversation preview snippet immediately
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === activeConvId
+          ? {
+              ...c,
+              lastMessage: optimisticMsg,
+              lastMessageAt: optimisticMsg.sentAt,
+            }
+          : c
+      )
+    );
 
     clearTimeout(typingTimerRef.current);
     chat.sendTyping(activeConvId, false);
 
-    const res = await chat.sendMessage(activeConvId, text);
-    if (!res || !res.success) {
-      setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
-      toast.error(res?.error || "Message failed to send. Please try again.");
-    } else if (res.via === "rest" && res.data) {
-      // Reconcile optimistic message with server persisted record
-      setMessages((prev) =>
-        prev.map((m) => (m.id === optimisticMsg.id ? { ...res.data, _optimistic: false } : m))
-      );
+    try {
+      const res = await chat.sendMessage(activeConvId, text);
+      if (!res || !res.success) {
+        setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+        toast.error(res?.error || "Message failed to send. Please try again.");
+      } else if (res.data) {
+        // Reconcile optimistic message with server persisted record
+        setMessages((prev) =>
+          prev.map((m) => (m.id === optimisticId ? { ...res.data, _optimistic: false } : m))
+        );
+      }
+    } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+      toast.error("Message failed to send. Please check your connection.");
     }
   };
 
@@ -743,7 +852,7 @@ export default function RecruiterMessagesPage() {
 
         {/* ── Chat Window ─────────────────────────────────────────────────── */}
         <div
-          className={`flex-1 bg-surface flex flex-col relative ${
+          className={`flex-1 min-h-0 h-full bg-surface flex flex-col relative overflow-hidden ${
             !showMobileChat ? "hidden md:flex" : "flex"
           }`}
         >
@@ -874,8 +983,8 @@ export default function RecruiterMessagesPage() {
               </div>
 
               {/* Messages + Info Panel */}
-              <div className="flex-1 flex overflow-hidden z-10">
-                <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 min-h-0 flex overflow-hidden z-10">
+                <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                   {hasMore && (
                     <div className="flex justify-center pt-2.5 shrink-0">
                       <button
@@ -890,7 +999,7 @@ export default function RecruiterMessagesPage() {
                     </div>
                   )}
 
-                  <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-2.5 sm:space-y-3 overscroll-contain">
+                  <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-5 space-y-2.5 sm:space-y-3 overscroll-contain">
                     <div className="flex justify-center my-1">
                       <div className="inline-flex items-center gap-1.5 rounded-xl bg-surface-elevated border border-border px-3.5 py-1.5 text-[11px] text-muted text-center font-medium max-w-md">
                         <Lock size={12} className="text-amber-500 shrink-0" />
@@ -1096,36 +1205,41 @@ export default function RecruiterMessagesPage() {
               </div>
 
               {/* WhatsApp-Style Bottom Input Bar */}
-              <div className="px-2.5 sm:px-4 py-2 sm:py-2.5 bg-surface flex items-center gap-2 border-t border-border z-20 shrink-0 pb-[max(0.6rem,env(safe-area-inset-bottom))] shadow-2xl">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSend();
+                }}
+                className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 bg-surface flex items-center gap-2 border-t border-border z-30 shrink-0 pb-[max(0.6rem,env(safe-area-inset-bottom))] shadow-2xl"
+              >
                 {/* Rounded Pill Text Input Container */}
-                <div className="flex-1 min-w-0 flex items-center rounded-full border border-border bg-surface-elevated px-4 py-1.5 focus-within:border-primary/70 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                <div className="flex-1 min-w-0 flex items-center rounded-full border border-border bg-surface-elevated px-4 py-2 focus-within:border-primary/70 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                   <input
                     type="text"
                     value={inputText}
                     onChange={handleInputChange}
-                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                     placeholder={otherParticipant?.name ? `Message ${otherParticipant.name.split(" ")[0]}…` : "Type message to candidate…"}
                     maxLength={5000}
+                    autoComplete="off"
                     enterKeyHint="send"
                     className="w-full bg-transparent text-sm sm:text-xs text-heading placeholder:text-muted outline-none font-medium transition placeholder:font-normal"
                   />
                 </div>
 
-                {/* WhatsApp-Style Circular Action Button — Always prominently visible */}
+                {/* WhatsApp-Style Circular Action Button — Always prominently visible on Mobile & Desktop */}
                 <button
-                  type="button"
-                  onClick={() => handleSend()}
+                  type="submit"
                   disabled={!inputText.trim()}
                   aria-label="Send message"
-                  className={`h-10 w-10 sm:h-11 sm:w-11 min-h-[40px] min-w-[40px] rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer shrink-0 active:scale-90 shadow-md ${
+                  className={`h-11 w-11 min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center transition-all duration-200 shrink-0 shadow-md ${
                     inputText.trim()
-                      ? "gradient-bg-signature text-white shadow-indigo-500/40 scale-100"
-                      : "bg-primary text-white opacity-70 hover:opacity-100 shadow-sm"
+                      ? "gradient-bg-signature text-white shadow-indigo-500/40 cursor-pointer active:scale-90 scale-100"
+                      : "bg-white/10 text-muted cursor-not-allowed opacity-80"
                   }`}
                 >
-                  <Send size={18} className={`transition-transform duration-200 ${inputText.trim() ? "translate-x-0.5" : ""}`} />
+                  <Send size={18} className={`transition-transform duration-150 ${inputText.trim() ? "translate-x-0.5 text-white" : ""}`} />
                 </button>
-              </div>
+              </form>
             </>
           )}
         </div>
