@@ -16,29 +16,73 @@ import {
   ChevronRight,
   ShieldAlert,
 } from "lucide-react";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-
 import NotificationTypeIcon from "./NotificationTypeIcon";
 import { useNotificationActions } from "../hooks/useNotificationActions";
-
-dayjs.extend(relativeTime);
+import { parseChatDate } from "../../../utils/chatDateUtils";
 
 /**
- * Formats ISO date to relative timestamp ("2m ago", "Yesterday", "Aug 1")
+ * Safely parses and formats notification date to show real hour / time:
+ * - "Just now" (if < 45s)
+ * - "11:21 PM (15m ago)" (if < 60m today)
+ * - "Today at 11:21 PM" (today)
+ * - "Yesterday at 4:30 PM" (yesterday)
+ * - "Fri at 2:15 PM" (within 7 days)
+ * - "Sep 5 at 10:00 AM" / "Sep 5, 2025 at 10:00 AM" (older)
  */
-function formatTimestamp(dateStr) {
-  if (!dateStr) return "";
-  const date = dayjs(dateStr);
-  const now = dayjs();
+function formatNotificationTimestamp(dateStr) {
+  const d = parseChatDate(dateStr);
+  if (!d) return "";
+  const now = new Date();
+  const timeStr = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
 
-  if (now.diff(date, "hour") < 24) {
-    return date.fromNow();
+  const diffMs = now.getTime() - d.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+
+  // Today
+  if (d.toDateString() === now.toDateString()) {
+    if (diffSec < 45) return "Just now";
+    if (diffMin < 60) return `${timeStr} (${diffMin}m ago)`;
+    return `Today at ${timeStr}`;
   }
-  if (now.diff(date, "day") < 7) {
-    return date.format("ddd, h:mm A");
+
+  // Yesterday
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) {
+    return `Yesterday at ${timeStr}`;
   }
-  return date.format("MMM D, YYYY");
+
+  // Within 7 days
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays >= 0 && diffDays < 7) {
+    const dayName = d.toLocaleDateString([], { weekday: "short" });
+    return `${dayName} at ${timeStr}`;
+  }
+
+  // Older
+  const sameYear = d.getFullYear() === now.getFullYear();
+  const dateStrFormatted = d.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+  return `${dateStrFormatted} at ${timeStr}`;
+}
+
+function formatNotificationTooltip(dateStr) {
+  const d = parseChatDate(dateStr);
+  if (!d) return "";
+  return d.toLocaleString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
 }
 
 import { useAppSelector } from "../../../State/Store";
@@ -282,8 +326,11 @@ export default function NotificationCard({
             )}
           </div>
 
-          <span className="shrink-0 text-[11px] font-medium text-muted">
-            {formatTimestamp(createdAt)}
+          <span
+            title={formatNotificationTooltip(createdAt)}
+            className="shrink-0 text-[11px] font-semibold text-muted tracking-tight"
+          >
+            {formatNotificationTimestamp(createdAt)}
           </span>
         </div>
 
