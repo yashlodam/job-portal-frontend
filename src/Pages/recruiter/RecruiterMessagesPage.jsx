@@ -41,6 +41,14 @@ import { useChat } from "../../hooks/useChat";
 import { useAppSelector } from "../../State/Store";
 import { getAssetUrl } from "../../utils/assetUtils";
 import { getOtherParticipant } from "../../api/chatApi";
+import {
+  parseChatDate,
+  formatBubbleTime,
+  formatConvListTime,
+  getDateDividerLabel,
+  formatFullDateTime,
+  formatLastSeen,
+} from "../../utils/chatDateUtils";
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
@@ -52,22 +60,7 @@ const RECRUITER_QUICK_REPLIES = [
   "Please let us know if you have any questions about the role.",
 ];
 
-function formatMsgTime(iso) {
-  if (!iso) return "";
-  try {
-    const d = new Date(iso);
-    const now = new Date();
-    const isToday = d.toDateString() === now.toDateString();
-    const yesterday = new Date(now);
-    yesterday.setDate(now.getDate() - 1);
-    const isYesterday = d.toDateString() === yesterday.toDateString();
-    if (isToday) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    if (isYesterday) return "Yesterday";
-    return d.toLocaleDateString([], { month: "short", day: "numeric" });
-  } catch {
-    return "";
-  }
-}
+const formatMsgTime = formatConvListTime;
 
 function getProfileImageUrl(path) {
   if (!path) return null;
@@ -405,7 +398,14 @@ export default function RecruiterMessagesPage() {
               }
             });
 
-            return changed ? updated : prev;
+            if (changed) {
+              return updated.sort((a, b) => {
+                const tA = parseChatDate(a.sentAt)?.getTime() || 0;
+                const tB = parseChatDate(b.sentAt)?.getTime() || 0;
+                return tA - tB;
+              });
+            }
+            return prev;
           });
         }
       }).catch(() => {});
@@ -425,14 +425,34 @@ export default function RecruiterMessagesPage() {
       const content = pageData?.content ?? (Array.isArray(pageData) ? pageData : []);
       const items = [...content].reverse();
       if (pageNum === 0) {
-        setMessages(items);
+        const sorted = [...items].sort((a, b) => {
+          const tA = parseChatDate(a.sentAt)?.getTime() || 0;
+          const tB = parseChatDate(b.sentAt)?.getTime() || 0;
+          return tA - tB;
+        });
+        setMessages(sorted);
         requestAnimationFrame(() => {
           scrollToBottom(false);
           setTimeout(() => scrollToBottom(false), 50);
           setTimeout(() => scrollToBottom(false), 200);
         });
       } else {
-        setMessages((prev) => [...items, ...prev]);
+        setMessages((prev) => {
+          const combined = [...items, ...prev];
+          const seen = new Set();
+          const unique = [];
+          for (const m of combined) {
+            if (!seen.has(m.id)) {
+              seen.add(m.id);
+              unique.push(m);
+            }
+          }
+          return unique.sort((a, b) => {
+            const tA = parseChatDate(a.sentAt)?.getTime() || 0;
+            const tB = parseChatDate(b.sentAt)?.getTime() || 0;
+            return tA - tB;
+          });
+        });
       }
       setHasMore(!pageData?.last && content.length > 0);
       setPage(pageNum);
@@ -455,6 +475,7 @@ export default function RecruiterMessagesPage() {
         onMessage: (msg) => {
           const fromMe = isMessageFromMeRef.current(msg);
           setMessages((prev) => {
+            let nextList;
             if (fromMe) {
               const optIndex = prev.findIndex(
                 (m) =>
@@ -465,11 +486,22 @@ export default function RecruiterMessagesPage() {
               if (optIndex !== -1) {
                 const next = [...prev];
                 next[optIndex] = { ...msg, _optimistic: false };
-                return next;
+                nextList = next;
+              } else if (!prev.some((m) => m.id === msg.id)) {
+                nextList = [...prev, msg];
+              } else {
+                return prev;
               }
+            } else {
+              if (prev.some((m) => m.id === msg.id)) return prev;
+              nextList = [...prev, msg];
             }
-            if (prev.some((m) => m.id === msg.id)) return prev;
-            return [...prev, msg];
+
+            return nextList.sort((a, b) => {
+              const tA = parseChatDate(a.sentAt)?.getTime() || 0;
+              const tB = parseChatDate(b.sentAt)?.getTime() || 0;
+              return tA - tB;
+            });
           });
           scrollToBottom(true);
           setTimeout(() => scrollToBottom(true), 60);
@@ -921,7 +953,7 @@ export default function RecruiterMessagesPage() {
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" /> Active now
                         </span>
                       ) : otherParticipant?.lastSeenAt ? (
-                        <span className="text-muted">last seen {formatMsgTime(otherParticipant.lastSeenAt)}</span>
+                        <span className="text-muted">last seen {formatLastSeen(otherParticipant.lastSeenAt)}</span>
                       ) : (
                         <span className="text-muted">Offline</span>
                       )}
@@ -1021,60 +1053,76 @@ export default function RecruiterMessagesPage() {
                         </p>
                       </div>
                     ) : (
-                      messages.map((msg) => {
+                      messages.map((msg, index) => {
                         const isMe = isMessageFromMe(msg);
                         const isDeleted = msg.deleted;
                         const isOptimistic = msg._optimistic;
 
-                        return (
-                          <div
-                            key={msg.id}
-                            className={`flex flex-col w-full group ${isMe ? "items-end" : "items-start"}`}
-                            onClick={() => setSelectedMsgId((prev) => (prev === msg.id ? null : msg.id))}
-                          >
-                            <div
-                              className={`relative max-w-[86%] sm:max-w-[78%] md:max-w-md rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs leading-relaxed shadow-xs transition-all break-words [overflow-wrap:anywhere] ${
-                                isMe
-                                  ? "gradient-bg-signature text-white rounded-tr-none font-medium shadow-md ml-auto"
-                                  : "bg-surface-elevated border border-border text-heading rounded-tl-none font-medium shadow-xs mr-auto"
-                              } ${isDeleted ? "opacity-60 italic" : ""}`}
-                            >
-                              <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
-                                {isDeleted ? "This message was deleted." : msg.displayContent || msg.content}
-                                {msg.edited && !isDeleted && (
-                                  <em className="text-[10px] text-muted ml-1.5">(edited)</em>
-                                )}
-                              </p>
+                        const currentDivider = getDateDividerLabel(msg.sentAt);
+                        const prevDivider = index > 0 ? getDateDividerLabel(messages[index - 1].sentAt) : null;
+                        const showDivider = !prevDivider || currentDivider !== prevDivider;
 
-                              <div className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-80">
-                                <span>{formatMsgTime(msg.sentAt)}</span>
-                                {isMe && !isDeleted && (
-                                  isOptimistic ? (
-                                    <Check size={12} className="text-white/60" />
-                                  ) : (
-                                    <CheckCheck size={13} className="text-white" />
-                                  )
+                        return (
+                          <React.Fragment key={msg.id}>
+                            {showDivider && currentDivider && (
+                              <div className="flex justify-center my-3 sticky top-1 z-10 pointer-events-none">
+                                <span className="px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide border shadow-xs pointer-events-auto bg-surface-elevated/95 border-border text-heading shadow-black/40 backdrop-blur-md">
+                                  {currentDivider}
+                                </span>
+                              </div>
+                            )}
+
+                            <div
+                              key={msg.id}
+                              className={`flex flex-col w-full group ${isMe ? "items-end" : "items-start"}`}
+                              onClick={() => setSelectedMsgId((prev) => (prev === msg.id ? null : msg.id))}
+                            >
+                              <div
+                                className={`relative max-w-[86%] sm:max-w-[78%] md:max-w-md rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs leading-relaxed shadow-xs transition-all break-words [overflow-wrap:anywhere] ${
+                                  isMe
+                                    ? "gradient-bg-signature text-white rounded-tr-none font-medium shadow-md ml-auto"
+                                    : "bg-surface-elevated border border-border text-heading rounded-tl-none font-medium shadow-xs mr-auto"
+                                } ${isDeleted ? "opacity-60 italic" : ""}`}
+                              >
+                                <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                                  {isDeleted ? "This message was deleted." : msg.displayContent || msg.content}
+                                  {msg.edited && !isDeleted && (
+                                    <em className="text-[10px] text-muted ml-1.5">(edited)</em>
+                                  )}
+                                </p>
+
+                                <div className="mt-1 flex items-center justify-end gap-1.5 text-[10px] opacity-85">
+                                  <span title={formatFullDateTime(msg.sentAt)} className="font-medium tracking-tight">
+                                    {formatBubbleTime(msg.sentAt)}
+                                  </span>
+                                  {isMe && !isDeleted && (
+                                    isOptimistic ? (
+                                      <Check size={12} className="text-white/60" title="Sending..." />
+                                    ) : (
+                                      <CheckCheck size={13} className="text-white" title="Delivered" />
+                                    )
+                                  )}
+                                </div>
+
+                                {isMe && !isDeleted && !isOptimistic && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDelete(msg);
+                                    }}
+                                    className={`absolute -top-2.5 -left-7 ${
+                                      selectedMsgId === msg.id ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100"
+                                    } p-1.5 rounded-full bg-surface border border-border text-rose-500 hover:text-rose-400 transition shadow-xs active:scale-90`}
+                                    title="Delete message"
+                                    aria-label="Delete message"
+                                  >
+                                    <Trash2 size={11} />
+                                  </button>
                                 )}
                               </div>
-
-                              {isMe && !isDeleted && !isOptimistic && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDelete(msg);
-                                  }}
-                                  className={`absolute -top-2.5 -left-7 ${
-                                    selectedMsgId === msg.id ? "opacity-100 scale-100" : "opacity-0 group-hover:opacity-100"
-                                  } p-1.5 rounded-full bg-surface border border-border text-rose-500 hover:text-rose-400 transition shadow-xs active:scale-90`}
-                                  title="Delete message"
-                                  aria-label="Delete message"
-                                >
-                                  <Trash2 size={11} />
-                                </button>
-                              )}
                             </div>
-                          </div>
+                          </React.Fragment>
                         );
                       })
                     )}
